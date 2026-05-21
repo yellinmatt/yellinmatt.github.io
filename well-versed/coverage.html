@@ -37,7 +37,9 @@ h1 { font-family: var(--serif); font-size: 44px; font-weight: 500; line-height: 
 .section-sub { font-style: italic; font-size: 14.5px; color: var(--muted); margin: 0 0 8px; }
 .matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; margin: 12px 0 0; }
 .cell { text-align: center; padding: 8px 4px 14px; }
-.cell svg { width: 100%; height: auto; max-width: 270px; display: block; margin: 0 auto; }
+.cell svg { width: 100%; height: auto; max-width: 270px; display: block; margin: 0 auto; overflow: visible; }
+.spoke .hit { cursor: pointer; }
+.spoke-label { fill: var(--ink); stroke: var(--bg); stroke-width: 3.5px; paint-order: stroke; font-family: var(--serif); font-size: 11px; opacity: 0; transition: opacity 0.12s; pointer-events: none; }
 .cell-cap { font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 @media (max-width: 540px) { .matrix { grid-template-columns: 1fr; } }
 .tree { margin: 14px 0 0; }
@@ -119,7 +121,7 @@ h1 { font-family: var(--serif); font-size: 44px; font-weight: 500; line-height: 
   function countField(f){ var n=0; LESSONS.forEach(function(L){ if(L.f===f) n++; }); return n; }
   function countGroup(map){ var out=[]; Object.keys(map).forEach(function(k){ var n=0; map[k].forEach(function(f){ n+=countField(f); }); out.push([k,n]); }); return out; }
 
-  var fieldsData = FIELDS.map(function(f){ return ["", countField(f)]; });
+  var fieldsData = FIELDS.map(function(f){ return [f, countField(f)]; });
   var domainsData = countGroup(DOMAINS);
   var facultiesData = countGroup(FACULTIES);
   var tierData = [["Anchor",0],["Standard",0],["Light",0]];
@@ -140,14 +142,18 @@ h1 { font-family: var(--serif); font-size: 44px; font-weight: 500; line-height: 
     var cp=[]; for(var i=0;i<N;i++){ var v=data[i][1]/max; var q=pt(i,R*v); cp.push(q[0].toFixed(1)+','+q[1].toFixed(1)); }
     s+='<polygon points="'+cp.join(' ')+'" fill="var(--accent)" fill-opacity="0.22" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>';
     for(var i=0;i<N;i++){ var v=data[i][1]/max; if(v>0){ var q=pt(i,R*v); s+='<circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="6" fill="var(--accent)" fill-opacity="0.16"/><circle cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="3" fill="var(--accent)"/>'; } }
+    if(opts.interactive){ for(var i=0;i<N;i++){ var q=pt(i,R); var lq=pt(i,R+13); var a=-Math.PI/2 + i/N*TWO; var c=Math.cos(a); var anc=Math.abs(c)<0.34?'middle':(c>0?'start':'end'); var dy=Math.sin(a)>0.34?'0.7em':(Math.sin(a)<-0.34?'-0.1em':'0.3em'); s+='<g class="spoke"><line class="hit" x1="'+cx+'" y1="'+cy+'" x2="'+q[0].toFixed(1)+'" y2="'+q[1].toFixed(1)+'" stroke="transparent" stroke-width="18" pointer-events="stroke" onmouseover="wvSpokeShow(this,1)" onmouseout="wvSpokeShow(this,0)" onclick="wvSpokeTap(this)"/><text class="spoke-label" x="'+lq[0].toFixed(1)+'" y="'+lq[1].toFixed(1)+'" text-anchor="'+anc+'" dy="'+dy+'">'+data[i][0].replace(/&/g,'&amp;')+' · '+data[i][1]+'</text></g>'; } }
     if(opts.labels){ for(var i=0;i<N;i++){ var q=pt(i,R+13); var a=-Math.PI/2 + i/N*TWO; var c=Math.cos(a); var anc=Math.abs(c)<0.34?'middle':(c>0?'start':'end'); var dy=Math.sin(a)>0.34?'0.7em':(Math.sin(a)<-0.34?'-0.1em':'0.3em'); s+='<text x="'+q[0].toFixed(1)+'" y="'+q[1].toFixed(1)+'" text-anchor="'+anc+'" dy="'+dy+'" font-family="Spectral, Georgia, serif" font-size="11" fill="var(--muted)">'+data[i][0]+'</text>'; } }
     document.getElementById(id).innerHTML='<svg viewBox="0 0 '+size+' '+size+'" role="img" aria-label="Coverage radar">'+s+'</svg>';
   }
 
-  radar('fig-fields', fieldsData, {size:240, labels:false});
+  radar('fig-fields', fieldsData, {size:240, labels:false, interactive:true});
   radar('fig-domains', domainsData, {size:240, labels:true});
   radar('fig-faculties', facultiesData, {size:240, labels:true});
   radar('fig-tiers', tierData, {size:240, labels:true});
+
+  window.wvSpokeShow = function(el, on){ var g=el.parentNode; if(g.classList.contains('pinned')) return; var t=g.querySelector('.spoke-label'); if(t) t.style.opacity = on ? '1' : '0'; };
+  window.wvSpokeTap = function(el){ var g=el.parentNode; var on=!g.classList.contains('pinned'); g.classList.toggle('pinned', on); var t=g.querySelector('.spoke-label'); if(t) t.style.opacity = on ? '1' : '0'; };
 
   function setN(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
   var fieldsTouched=0; FIELDS.forEach(function(f){ if(countField(f)>0) fieldsTouched++; });
