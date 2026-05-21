@@ -23,10 +23,11 @@
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 820px; margin: 0 auto; padding: 56px 28px 80px; }
-.masthead { text-align: center; border-top: 2px solid var(--accent); border-bottom: 0.5px solid var(--rule); padding: 24px 0 28px; margin-bottom: 38px; }
+.masthead { text-align: center; border-top: 2px solid var(--accent); border-bottom: 0.5px solid var(--rule); padding: 24px 0 26px; margin-bottom: 34px; }
 .masthead h1 { font-family: var(--serif); font-size: 52px; font-weight: 500; letter-spacing: -0.02em; margin: 0; line-height: 1; }
 .masthead .sub { font-family: var(--serif); font-style: italic; font-size: 17px; color: var(--muted); line-height: 1.5; margin: 14px auto 0; max-width: 480px; }
-.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 28px; }
+.masthead .substat { font-family: var(--sans); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 16px 0 0; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; }
 .search { flex: 1; min-width: 220px; padding: 10px 14px; border: 0.5px solid var(--rule); border-radius: 4px; background: var(--field); font-family: var(--serif); font-size: 15px; color: var(--ink); }
 .search::placeholder { color: var(--muted); font-style: italic; }
 .search:focus { outline: none; border-color: var(--accent); }
@@ -34,6 +35,10 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
 .pill { font-family: var(--sans); font-size: 12px; letter-spacing: 0.06em; padding: 6px 12px; border: 0.5px solid var(--rule); border-radius: 999px; cursor: pointer; background: transparent; color: var(--muted); transition: all 0.15s; }
 .pill:hover { background: var(--soft); color: var(--ink); }
 .pill.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.viewbar { display: none; gap: 8px; margin: 0 0 14px; }
+.viewbar button { font-family: var(--sans); font-size: 12px; letter-spacing: 0.05em; padding: 7px 15px; border: 0.5px solid var(--rule); border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+.viewbar button:hover { color: var(--ink); }
+.viewbar button.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
 .year { margin-bottom: 36px; }
 .year-head { display: flex; align-items: baseline; gap: 14px; cursor: pointer; padding: 8px 0; user-select: none; }
 .year-head h2 { font-family: var(--serif); font-size: 26px; font-weight: 500; margin: 0; }
@@ -52,17 +57,26 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
 .lesson .meta a:hover { border-bottom-color: var(--accent); }
 .lesson .summary { font-family: var(--serif); font-size: 14px; color: var(--muted); margin: 4px 0 0; line-height: 1.55; }
 .lesson .summary strong { color: var(--ink); font-weight: 600; }
-.surprise { margin: 0 0 34px; }
-.surprise-card { width: 100%; display: flex; align-items: center; gap: 16px; background: var(--soft); border: 0.5px solid var(--rule); border-radius: 8px; padding: 13px 18px; cursor: pointer; text-align: left; font-family: var(--serif); color: var(--ink); transition: border-color 0.15s; }
-.surprise-card:hover { border-color: var(--accent); }
-.surprise-glyph { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 50%; border: 0.5px solid var(--accent); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 19px; }
-.surprise-body { flex: 1; }
-.surprise-title { font-family: var(--serif); font-size: 18px; color: var(--ink); display: block; line-height: 1.1; }
-.surprise-sub { font-family: var(--serif); font-style: italic; font-size: 13px; color: var(--muted); }
-.surprise-cta { font-family: var(--sans); font-size: 12px; letter-spacing: 0.06em; color: var(--accent); white-space: nowrap; }
-.coverage-btn { display: block; text-align: center; margin-top: 44px; padding: 15px; border: 0.5px solid var(--accent); border-radius: 8px; color: var(--accent); text-decoration: none; font-family: var(--sans); font-size: 13px; letter-spacing: 0.05em; transition: background 0.15s; }
-.coverage-btn:hover { background: var(--soft); }
-.latest { margin-bottom: 34px; }
+#catalog-view { display: none; }
+.lrow { display: grid; grid-template-columns: 64px 1fr; gap: 16px; padding: 14px 0; border-bottom: 0.5px solid var(--rule-soft); align-items: start; text-decoration: none; color: inherit; }
+.lrow:last-child { border-bottom: none; }
+.lrow-thumb img { width: 64px; height: 64px; object-fit: cover; object-position: top center; border-radius: 4px; display: block; background: var(--soft); }
+.lrow-date { display: block; font-family: var(--sans); font-size: 10px; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; }
+.lrow-title { display: block; font-family: var(--serif); font-size: 18px; color: var(--ink); border-bottom: 0.5px dotted transparent; transition: border-color 0.15s; }
+.lrow:hover .lrow-title { border-bottom-color: var(--accent); }
+.lrow-sum { display: block; font-family: var(--serif); font-size: 14px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+.lrow-sum strong { color: var(--ink); font-weight: 600; }
+.topic { border-bottom: 0.5px solid var(--rule); }
+.topic-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 15px 2px; background: transparent; border: none; cursor: pointer; font-family: var(--serif); color: var(--ink); text-align: left; }
+.topic-name { flex: 1; font-size: 20px; }
+.topic-count { font-family: var(--sans); font-size: 11px; letter-spacing: 0.06em; color: var(--muted); }
+.topic-chev { font-family: var(--sans); font-size: 18px; color: var(--muted); width: 18px; text-align: center; }
+.topic-body { display: none; padding: 0 0 10px 6px; }
+.topic.open .topic-body { display: block; }
+.surprise { text-align: center; margin: 0 0 30px; }
+.surprise-lead { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--muted); margin-right: 7px; }
+.surprise-link { background: none; border: none; padding: 0; cursor: pointer; font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--accent); border-bottom: 0.5px solid var(--accent); }
+.latest { margin-bottom: 30px; }
 .latest-label { font-family: var(--sans); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .latest-label .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); display: inline-block; }
 .latest-card { display: grid; grid-template-columns: 200px 1fr; gap: 22px; background: var(--soft); border: 0.5px solid var(--rule); border-radius: 6px; padding: 20px; align-items: center; }
@@ -81,6 +95,8 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
 .foot { margin-top: 64px; padding-top: 24px; border-top: 0.5px solid var(--rule); font-family: var(--serif); font-size: 13px; color: var(--muted); text-align: center; line-height: 1.65; }
 .foot .name { color: var(--ink); }
 .foot .sep { margin: 0 7px; color: var(--muted); }
+.foot-links { margin-top: 8px; }
+.foot-links a { color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--accent); }
 .hidden { display: none !important; }
 </style>
 </head>
@@ -89,6 +105,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
   <header class="masthead">
     <h1>Well-Versed</h1>
     <p class="sub">One concept a day toward a well-rounded mind.</p>
+    <p class="substat" id="masthead-stats"></p>
   </header>
 
   <section class="latest" id="latest">
@@ -108,14 +125,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
   </section>
 
   <section class="surprise">
-    <button class="surprise-card" onclick="wvRandom()" aria-label="Open a random lesson">
-      <span class="surprise-glyph">&#8635;</span>
-      <span class="surprise-body">
-        <span class="surprise-title">Surprise me</span>
-        <span class="surprise-sub">Jump to a random lesson from the library</span>
-      </span>
-      <span class="surprise-cta">Go &rarr;</span>
-    </button>
+    <span class="surprise-lead">Not sure where to begin?</span><button class="surprise-link" onclick="wvRandom()">Open a random lesson &rarr;</button>
   </section>
 
   <div class="controls">
@@ -123,6 +133,11 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
     <div class="pills" id="pills">
       <button class="pill active" data-domain="">All</button>
     </div>
+  </div>
+
+  <div class="viewbar" id="view-toggle">
+    <button data-mode="date" class="active">By date</button>
+    <button data-mode="topic">By topic</button>
   </div>
 
   <div id="catalog">
@@ -142,7 +157,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-21</div>
               <a href="daedalus-and-icarus.html">Daedalus and Icarus</a>
-              <p class="summary"><strong>Everyone remembers the wrong half of this myth.</strong> Daedalus warned his son about the sea, not just the sun.</p>
+              <p class="summary"><strong>Everyone remembers the wrong half of this myth.</strong> Daedalus warned his son about flying too low over the sea, not just too high toward the sun, and the painting that made it famous shows a world too busy to notice him fall.</p>
             </div>
           </div>
         </div>
@@ -154,7 +169,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-21</div>
               <a href="hubble-deep-field.html">The Hubble Deep Field</a>
-              <p class="summary">They aimed the world's finest telescope at <strong>a blank patch of empty sky</strong> for ten days. It came back holding 3,000 galaxies.</p>
+              <p class="summary"><strong>They aimed the world's finest telescope at a patch of empty sky for ten days.</strong> It came back holding three thousand galaxies, the faintest of them twelve billion years old.</p>
             </div>
           </div>
         </div>
@@ -166,7 +181,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-20</div>
               <a href="fall-of-constantinople.html">The Fall of Constantinople</a>
-              <p class="summary"><strong>The Roman Empire actually ended on a Tuesday in 1453.</strong> The Greeks have called Tuesday unlucky ever since.</p>
+              <p class="summary"><strong>The Roman Empire actually ended on a Tuesday in 1453,</strong> nearly a thousand years after Rome itself fell. The Greeks have considered Tuesday unlucky ever since.</p>
             </div>
           </div>
         </div>
@@ -178,7 +193,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-19</div>
               <a href="goldberg-variations.html">The Goldberg Variations</a>
-              <p class="summary"><strong>The keyboard piece that made Glenn Gould famous at 22:</strong> one aria, thirty variations, a single bass line beneath them all.</p>
+              <p class="summary"><strong>This is the keyboard piece that made Glenn Gould famous at twenty-two.</strong> One aria, thirty variations, and a single bass line holding all of it together.</p>
             </div>
           </div>
         </div>
@@ -190,7 +205,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-18</div>
               <a href="ozymandias.html">Ozymandias</a>
-              <p class="summary"><strong>A Christmas bet between two friends</strong> produced the most famous poem ever written about the arrogance of power.</p>
+              <p class="summary"><strong>The most famous poem about the arrogance of power began as a Christmas bet between two friends.</strong> One of them wrote a masterpiece; the other is forgotten.</p>
             </div>
           </div>
         </div>
@@ -202,7 +217,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-17</div>
               <a href="pantheon.html">The Pantheon</a>
-              <p class="summary"><strong>The largest concrete dome on Earth has no steel in it,</strong> and it has stood open to the sky for nineteen centuries.</p>
+              <p class="summary"><strong>The largest unreinforced concrete dome on Earth has no steel inside it.</strong> It has stood open to the sky for nineteen centuries, and no one has matched it since.</p>
             </div>
           </div>
         </div>
@@ -214,7 +229,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-16</div>
               <a href="marcus-aurelius.html">Marcus Aurelius</a>
-              <p class="summary"><strong>The most powerful man alive kept a notebook he never meant anyone to read.</strong> It is still in print eighteen centuries later.</p>
+              <p class="summary"><strong>The most powerful man alive kept a private notebook he never meant anyone to read.</strong> It survived anyway, and eighteen centuries later it is still one of the wisest books ever written.</p>
             </div>
           </div>
         </div>
@@ -226,7 +241,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-16</div>
               <a href="neoclassicism.html">Neoclassicism</a>
-              <p class="summary"><strong>The look of the French Revolution</strong> began when painters started digging up ancient Rome.</p>
+              <p class="summary"><strong>The look of the French Revolution began with painters digging up ancient Rome.</strong> Within a generation, Europe was building, dressing, and posing like republicans.</p>
             </div>
           </div>
         </div>
@@ -238,7 +253,7 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
             <div class="meta">
               <div class="date">2026-05-16</div>
               <a href="negroni.html">The Negroni</a>
-              <p class="summary"><strong>A count swapped the soda in his cocktail for gin.</strong> Florence, 1919, and the world got its sharpest aperitivo.</p>
+              <p class="summary"><strong>A Florentine count asked his bartender to put gin where the soda used to be.</strong> That swap, in 1919, gave the world its sharpest aperitivo.</p>
             </div>
           </div>
         </div>
@@ -248,83 +263,156 @@ body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-fam
 
   </div>
 
+  <div id="catalog-view"></div>
+
   <div class="empty hidden" id="empty">No lessons match this filter.</div>
 
-  <a class="coverage-btn" href="coverage.html">See the coverage map &mdash; the shape of a well-rounded mind &rarr;</a>
-
   <footer class="foot">
-    <span class="name">Compiled by Matthew Yellin</span><span class="sep">&middot;</span>Est. May 2026<span class="sep">&middot;</span><span id="foot-stats">7 lessons across 7 subjects</span>
+    <span class="name">Compiled by Matthew Yellin</span><span class="sep">&middot;</span>Est. May 2026<span class="sep">&middot;</span><span id="foot-stats">9 lessons across 9 subjects</span>
+    <div class="foot-links"><a href="coverage.html">The coverage map &rarr;</a></div>
   </footer>
 </div>
 
 <script>
 (function() {
-  const catalog = document.getElementById('catalog');
-  const search = document.getElementById('search');
-  const pills = document.getElementById('pills');
-  const empty = document.getElementById('empty');
+  var catalog = document.getElementById('catalog');
+  var view = document.getElementById('catalog-view');
+  var search = document.getElementById('search');
+  var pills = document.getElementById('pills');
+  var empty = document.getElementById('empty');
+  var toggle = document.getElementById('view-toggle');
+  if (!catalog || !view) return;
 
-  const domains = Array.from(new Set(
-    Array.from(catalog.querySelectorAll('.lesson')).map(l => l.dataset.domain)
-  )).sort();
+  function txt(el, sel) { var n = el.querySelector(sel); return n ? (n.textContent || '').trim() : ''; }
 
-  const fs = document.getElementById('foot-stats');
-  if (fs) {
-    const n = catalog.querySelectorAll('.lesson').length;
-    fs.textContent = n + (n === 1 ? ' lesson' : ' lessons') + ' across ' + domains.length + (domains.length === 1 ? ' subject' : ' subjects');
-  }
-
-  for (const d of domains) {
-    const b = document.createElement('button');
-    b.className = 'pill';
-    b.dataset.domain = d;
-    b.textContent = d;
-    pills.appendChild(b);
-  }
-
-  let activeDomain = '';
-  pills.addEventListener('click', e => {
-    if (e.target.tagName !== 'BUTTON') return;
-    activeDomain = e.target.dataset.domain;
-    pills.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.domain === activeDomain));
-    apply();
+  var lessons = Array.prototype.slice.call(catalog.querySelectorAll('.lesson')).map(function(l) {
+    var a = l.querySelector('.meta a');
+    var img = l.querySelector('.thumb img');
+    var sum = l.querySelector('.summary');
+    return {
+      domain: l.getAttribute('data-domain') || 'Other',
+      text: l.getAttribute('data-text') || '',
+      date: txt(l, '.date'),
+      href: a ? a.getAttribute('href') : '#',
+      title: a ? (a.textContent || '').trim() : '',
+      summary: sum ? sum.innerHTML : '',
+      thumb: img ? img.getAttribute('src') : ''
+    };
   });
 
-  search.addEventListener('input', apply);
+  var counts = {};
+  lessons.forEach(function(x) { counts[x.domain] = (counts[x.domain] || 0) + 1; });
+  var domains = Object.keys(counts).sort();
+  var nL = lessons.length, nD = domains.length;
 
-  function apply() {
-    const q = search.value.trim().toLowerCase();
-    let visible = 0;
-    catalog.querySelectorAll('.lesson').forEach(l => {
-      const matchDomain = !activeDomain || l.dataset.domain === activeDomain;
-      const matchText = !q || (l.dataset.text + ' ' + l.querySelector('.meta a').textContent + ' ' + l.querySelector('.summary').textContent).toLowerCase().includes(q);
-      const show = matchDomain && matchText;
-      l.classList.toggle('hidden', !show);
-      if (show) visible++;
+  function plural(n, w) { return n + ' ' + (n === 1 ? w : w + 's'); }
+  function setText(id, t) { var e = document.getElementById(id); if (e) e.textContent = t; }
+  setText('masthead-stats', plural(nL, 'lesson') + ' · ' + plural(nD, 'subject') + ' · since May 2026');
+  setText('foot-stats', plural(nL, 'lesson') + ' across ' + plural(nD, 'subject'));
+
+  pills.innerHTML = '';
+  var allBtn = document.createElement('button');
+  allBtn.className = 'pill active'; allBtn.setAttribute('data-domain', ''); allBtn.textContent = 'All · ' + nL;
+  pills.appendChild(allBtn);
+  domains.forEach(function(d) {
+    var b = document.createElement('button');
+    b.className = 'pill'; b.setAttribute('data-domain', d); b.textContent = d + ' · ' + counts[d];
+    pills.appendChild(b);
+  });
+
+  var mode = 'date', activeDomain = '', q = '', openDomains = {};
+
+  function filtered() {
+    return lessons.filter(function(x) {
+      var md = !activeDomain || x.domain === activeDomain;
+      var mt = !q || (x.text + ' ' + x.title + ' ' + x.summary).toLowerCase().indexOf(q) > -1;
+      return md && mt;
     });
-    catalog.querySelectorAll('.domain').forEach(d => {
-      const anyVisible = Array.from(d.querySelectorAll('.lesson')).some(l => !l.classList.contains('hidden'));
-      d.classList.toggle('hidden', !anyVisible);
-    });
-    catalog.querySelectorAll('.year').forEach(y => {
-      const anyVisible = Array.from(y.querySelectorAll('.lesson')).some(l => !l.classList.contains('hidden'));
-      y.classList.toggle('hidden', !anyVisible);
-    });
-    empty.classList.toggle('hidden', visible > 0);
   }
 
-  window.toggleYear = function(head) {
-    const year = head.parentElement;
-    year.classList.toggle('collapsed');
-    head.querySelector('.toggle').textContent = year.classList.contains('collapsed') ? '+' : '−';
-  };
+  function row(x, topicMode) {
+    var a = document.createElement('a');
+    a.className = 'lrow'; a.href = x.href;
+    var kicker = topicMode ? x.date : (x.date + ' · ' + x.domain);
+    a.innerHTML =
+      '<span class="lrow-thumb"><img src="' + x.thumb + '" alt="" loading="lazy"></span>' +
+      '<span class="lrow-meta">' +
+        '<span class="lrow-date">' + kicker + '</span>' +
+        '<span class="lrow-title">' + x.title + '</span>' +
+        '<span class="lrow-sum">' + x.summary + '</span>' +
+      '</span>';
+    return a;
+  }
+
+  function renderDate(items) {
+    items = items.slice().sort(function(a, b) {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      return a.title < b.title ? -1 : 1;
+    });
+    var wrap = document.createElement('div');
+    items.forEach(function(x) { wrap.appendChild(row(x, false)); });
+    view.appendChild(wrap);
+  }
+
+  function renderTopic(items) {
+    var groups = {};
+    items.forEach(function(x) { (groups[x.domain] = groups[x.domain] || []).push(x); });
+    Object.keys(groups).sort().forEach(function(d) {
+      var arr = groups[d].slice().sort(function(a, b) { return a.title < b.title ? -1 : 1; });
+      var isOpen = !!openDomains[d] || !!q;
+      var sec = document.createElement('div');
+      sec.className = 'topic' + (isOpen ? ' open' : '');
+      var head = document.createElement('button');
+      head.className = 'topic-head';
+      head.innerHTML = '<span class="topic-name">' + d + '</span><span class="topic-count">' + arr.length + '</span><span class="topic-chev">' + (isOpen ? '−' : '+') + '</span>';
+      head.addEventListener('click', function() { openDomains[d] = !isOpen; render(); });
+      sec.appendChild(head);
+      var body = document.createElement('div');
+      body.className = 'topic-body';
+      arr.forEach(function(x) { body.appendChild(row(x, true)); });
+      sec.appendChild(body);
+      view.appendChild(sec);
+    });
+  }
+
+  function render() {
+    var items = filtered();
+    view.innerHTML = '';
+    if (!items.length) { empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    if (mode === 'date') renderDate(items); else renderTopic(items);
+  }
+
+  pills.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'BUTTON') return;
+    activeDomain = e.target.getAttribute('data-domain');
+    Array.prototype.forEach.call(pills.children, function(p) { p.classList.toggle('active', p.getAttribute('data-domain') === activeDomain); });
+    render();
+  });
+
+  search.addEventListener('input', function() { q = search.value.trim().toLowerCase(); render(); });
+
+  if (toggle) {
+    toggle.addEventListener('click', function(e) {
+      var b = e.target.closest ? e.target.closest('[data-mode]') : null;
+      if (!b) return;
+      mode = b.getAttribute('data-mode');
+      Array.prototype.forEach.call(toggle.children, function(c) { c.classList.toggle('active', c.getAttribute('data-mode') === mode); });
+      render();
+    });
+  }
 
   window.wvRandom = function() {
-    var links = Array.prototype.slice.call(catalog.querySelectorAll('.lesson .meta a'));
-    if (!links.length) return;
-    var href = links[Math.floor(Math.random() * links.length)].getAttribute('href');
-    if (href) window.location.href = href;
+    if (!lessons.length) return;
+    var x = lessons[Math.floor(Math.random() * lessons.length)];
+    if (x.href) window.location.href = x.href;
   };
+  window.toggleYear = function() {};
+
+  render();
+  catalog.style.display = 'none';
+  view.style.display = 'block';
+  if (toggle) toggle.style.display = 'flex';
 })();
 </script>
 </body>

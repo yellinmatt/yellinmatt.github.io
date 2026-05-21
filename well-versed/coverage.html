@@ -71,15 +71,15 @@ em { font-style: italic; }
     <div class="kicker">Well-Versed &middot; A Coverage Report</div>
     <h1>The Shape of a Well-Rounded Mind</h1>
     <p class="deck">Plotting a self-directed general education against the whole map of what an educated person is expected to know.</p>
-    <div class="byline">Compiled by Matthew Yellin &middot; Updated 21 May 2026</div>
+    <div class="byline">Compiled by Matthew Yellin &middot; A living coverage report</div>
   </div>
 
-  <p class="abstract">A well-rounded mind should, in principle, fill a circle. This report measures one against the project's fixed map of 205 topics across 23 fields, and plots the result as a radar of breadth. The current figure is small and spiky on purpose: the honest picture of a library nine lessons old, and a record of which way it still has to grow.</p>
+  <p class="abstract">A well-rounded mind should, in principle, fill a circle. This report plots a self-directed education against the whole map of what an educated person is expected to know, field by field, as a radar of breadth: what has been covered, and which way it still has to grow.</p>
 
   <div class="stats">
-    <div class="stat"><div class="n">9</div><div class="l">of 205 topics</div></div>
-    <div class="stat"><div class="n">7</div><div class="l">of 23 fields</div></div>
-    <div class="stat"><div class="n">4.4%</div><div class="l">of the map</div></div>
+    <div class="stat"><div class="n" id="s-cov">&middot;</div><div class="l" id="s-cov-l">topics taught</div></div>
+    <div class="stat"><div class="n" id="s-fields">&middot;</div><div class="l" id="s-fields-l">fields touched</div></div>
+    <div class="stat"><div class="n" id="s-pct">&middot;</div><div class="l">of the whole map</div></div>
   </div>
 
   <div class="section-label"><span>Figure I</span><hr></div>
@@ -103,9 +103,9 @@ em { font-style: italic; }
   <div class="section-label"><span>Methodology</span><hr></div>
   <div class="body method">
     <ol>
-      <li><b>Population.</b> The set of topics is fixed in advance. The project's domain map enumerates 205 topics across 23 fields, split into three priority tiers: 98 Anchor, 94 Standard, 13 Light. Coverage is measured against this closed set, never against a count of lessons, which has no ceiling.</li>
+      <li><b>Population.</b> The set of topics is fixed in advance. The project's domain map enumerates every topic worth knowing across two dozen fields, split into three priority tiers: Anchor, Standard, and Light. Coverage is measured against this closed set, never against a count of lessons, which has no ceiling.</li>
       <li><b>Unit.</b> The unit of coverage is the topic, not the lesson. A topic counts as covered the first time a lesson teaches it. A second lesson on the same topic deepens it but does not raise coverage.</li>
-      <li><b>Mapping.</b> Each published lesson is assigned to one topic and its parent field. The nine to date: Neoclassicism and the Pantheon (Visual Arts &amp; Architecture); Ozymandias and Daedalus (Literature &amp; Letters); the Goldberg Variations (Music); the Fall of Constantinople (History); Marcus Aurelius (Philosophy); the Hubble Deep Field (Sciences); the Negroni (Drinks).</li>
+      <li><b>Mapping.</b> Each published lesson is assigned to one topic and its parent field. A field's reach is the share of its topics taught at least once; a second lesson in a field extends that reach toward the rim.</li>
       <li><b>Projection.</b> Each field is an axis; its radius is the fraction of its topics covered. A perfectly well-rounded mind fills the circle. The figure is drawn to be honest about how far that is, not to flatter the total.</li>
       <li><b>Limitations.</b> The map is a menu, not a mandate. The tiers bias rotation toward Anchor topics, so coverage grows unevenly by design. Field boundaries are editorial. The radar rewards breadth over depth, which is the entire point of the exercise.</li>
     </ol>
@@ -125,6 +125,14 @@ em { font-style: italic; }
 (function(){
   var GRAN=[["Visual Arts",2,8],["Performing",0,5],["Music",1,5],["Literature",2,7],["History",1,9],["Philosophy",1,12],["Sciences",1,15],["Medicine",0,6],["Technology",0,6],["Language",0,19],["Drinks",1,8],["Food",0,7],["Smoke",0,2],["Hand skills",0,11],["Survival",0,7],["Outdoors",0,10],["Self-defense",0,6],["Games",0,9],["Style",0,13],["Civic",0,12],["Sports",0,10],["Social",0,14],["Animal",0,4]];
   var GROUP=[["Arts",3,18],["Letters",2,26],["Thought & Past",2,21],["Sciences & Tech",1,27],["The Table",1,17],["Craft & Field",0,53],["World & Self",0,43]];
+
+  var covered=0, total=0, touched=0;
+  GRAN.forEach(function(d){ covered+=d[1]; total+=d[2]; if(d[1]>0) touched++; });
+  var nF=GRAN.length;
+  function setStat(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+  setStat('s-cov', covered); setStat('s-cov-l', 'of '+total+' topics');
+  setStat('s-fields', touched); setStat('s-fields-l', 'of '+nF+' fields');
+  setStat('s-pct', (covered/total*100).toFixed(1)+'%');
 
   function radar(id,data,opts){
     opts=opts||{};
