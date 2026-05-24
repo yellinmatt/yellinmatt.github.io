@@ -98,7 +98,8 @@ const C=[
  [9,"John Mulaney","2000s",P.mulaney,"Precision-built storytelling with an old-soul polish."],
  [10,"Bo Burnham","2000s",P.burnham,"The musical-comedy auteur of the internet age."],
 ];
-document.getElementById("list").innerHTML=C.map(c=>`<div class="cc"><div class="rk">${String(c[0]).padStart(2,"0")}</div><div class="ph"><img src="${c[3]}" alt="${c[1]}" loading="lazy"></div><div><div class="nm">${c[1]}</div><div class="meta"><span class="erchip">${c[2]}</span></div><div class="tk">${c[4]}</div></div><div class="ar">&#8594;</div></div>`).join("");
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+document.getElementById("list").innerHTML=C.map(c=>`<a class="cc" href="comic.html?c=${slug(c[1])}"><div class="rk">${String(c[0]).padStart(2,"0")}</div><div class="ph"><img src="${c[3]}" alt="${c[1]}" loading="lazy"></div><div><div class="nm">${c[1]}</div><div class="meta"><span class="erchip">${c[2]}</span></div><div class="tk">${c[4]}</div></div><div class="ar">&#8594;</div></a>`).join("");
 const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.cc"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));

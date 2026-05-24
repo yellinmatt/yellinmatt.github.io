@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comic — Greatest Bits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+#cur{position:fixed;top:0;left:0;width:22px;height:22px;border:2px solid var(--red);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:99;opacity:0;transition:opacity .2s,width .15s,height .15s,background .15s;mix-blend-mode:difference}
+#cur.on{opacity:1}#cur.big{width:48px;height:48px;background:rgba(232,52,28,.18)}
+@media(hover:none){#cur{display:none}}@media(prefers-reduced-motion:reduce){#cur{display:none}}
+.nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:14px 26px;background:var(--ink);color:var(--cream)}
+.nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
+.nav .links{display:flex;gap:20px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
+.nav .links a.on{color:var(--yellow)}.nav .links a:hover{color:var(--yellow)}.nav .sp{margin-left:auto}
+.wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+/* breadcrumb */
+.crumb{padding:20px 0 0;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.crumb a:hover{color:var(--red)}
+/* header */
+.hero{display:grid;grid-template-columns:300px 1fr;gap:34px;align-items:end;padding:18px 0 30px;border-bottom:4px solid var(--ink)}
+.hero .ph{width:300px;aspect-ratio:3/4;overflow:hidden;border:3px solid var(--ink);background:#e7ddc9}
+.hero .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
+.hero .ph .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:90px;color:var(--ink);background:var(--yellow)}
+.hero .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--red);font-weight:600}
+.hero h1{font-family:'Anton',sans-serif;font-size:clamp(46px,8vw,104px);text-transform:uppercase;line-height:.84;margin:8px 0 12px}
+.hero .pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.hero .pill{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 11px}
+.hero .blurb{font-family:'Fraunces',serif;font-size:18px;color:#3a3128;max-width:54ch;line-height:1.4}
+.links-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.lk-btn{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;border:2px solid var(--ink);border-radius:999px;padding:9px 16px;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+.lk-btn:hover{background:var(--ink);color:var(--yellow)}
+.tbd{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);background:#fff;border:1.5px dashed #c9b98f;border-radius:999px;padding:6px 12px}
+/* sections */
+.sec{padding:30px 0;border-bottom:2px solid #e3d9c5}
+.sec .sk{display:flex;align-items:baseline;gap:12px;margin-bottom:16px}
+.sec .sk .t{font-family:'Anton',sans-serif;font-size:26px;text-transform:uppercase;line-height:1}
+.sec .sk .rule{flex:1;height:2px;background:#e3d9c5}
+.sec .bio{font-size:16.5px;line-height:1.65;color:#2b2419;max-width:68ch}
+/* bit mini-cards */
+.bits{display:flex;flex-direction:column;gap:0}
+.bitrow{border-bottom:1px solid #e3d9c5}
+.bit{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:14px 4px;cursor:pointer}
+.bit .pb{width:42px;height:42px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.bit .pb::after{content:"";border-left:13px solid var(--ink);border-top:8px solid transparent;border-bottom:8px solid transparent;margin-left:3px}
+.bit .pb.pause::after{border:none;width:11px;height:13px;border-left:4px solid var(--ink);border-right:4px solid var(--ink);margin:0}
+.bit .subj{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:2px 7px;border-radius:4px;margin-bottom:6px}
+.bit .bt{font-family:'Anton',sans-serif;font-size:clamp(20px,2.6vw,30px);text-transform:uppercase;line-height:.95}
+.bit .by{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);margin-top:5px;text-transform:uppercase}
+.bit .go{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red)}
+.bdr{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1)}
+.bdr.open{max-height:440px}.bdr .in{padding:8px 0 18px}
+.bdr iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:8px}
+/* specials */
+.sp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px}
+.sp{border:3px solid var(--ink);background:#fff;overflow:hidden}
+.sp .pst{aspect-ratio:2/3;background:#0d0d0d;overflow:hidden}
+.sp .pst img{width:100%;height:100%;object-fit:cover}
+.sp .pst .none{width:100%;height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-family:'Anton';font-size:20px;color:var(--cream);text-transform:uppercase;background:repeating-linear-gradient(45deg,#141414 0 12px,#0d0d0d 12px 24px)}
+.sp .b{padding:11px 12px 13px}
+.sp .b .t{font-family:'Archivo',sans-serif;font-weight:900;font-size:14px;line-height:1.05}
+.sp .b .m{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--mut);margin:5px 0 9px}
+.sp .b a{font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;color:var(--red)}
+.ftr{background:var(--ink);color:#9a9082;padding:26px 32px 30px;font-size:12px;line-height:1.6;margin-top:6px}.ftr a{color:var(--yellow);text-decoration:underline}
+@media(max-width:760px){
+ html,body{overflow-x:hidden;max-width:100vw}
+ .nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp{display:none}
+ .hero{grid-template-columns:1fr;gap:18px}.hero .ph{width:200px}
+}
+</style>
+</head>
+<body>
+<div id="cur"></div>
+<nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
+<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html" class="on">Index</a><a href="history.html">History</a></span><span class="sp"></span></nav>
+<div class="wrap" id="app"></div>
+<footer class="ftr">A non-commercial, fan-made index of stand-up, in progress. Photographs identify and credit each artist and link to official sources; all rights remain with their owners. Photos via Wikimedia Commons and TMDB. <a href="contact.html">Get in touch</a> to correct or remove anything. &middot; <a href="index.html">Home</a></footer>
+
+<script>
+const P={
+ bruce:"https://upload.wikimedia.org/wikipedia/commons/1/16/Lenny_Bruce_1961.jpg",
+ sahl:"https://image.tmdb.org/t/p/h632/1c7iqwcig1vTbkZ8b1B3ajr9zz8.jpg",
+ newhart:"https://image.tmdb.org/t/p/h632/wnhoM8iS6LOZ1qymFMXKYZBbVy8.jpg",
+ carlin:"https://image.tmdb.org/t/p/h632/2No6PxJbTGtawVJh0ivUiXfVprH.jpg",
+ pryor:"https://image.tmdb.org/t/p/h632/5hLh0btIkqYPbDmJ0i4WZo9OAt2.jpg",
+ martin:"https://image.tmdb.org/t/p/h632/d0KthX8hVWU9BxTCG1QUO8FURRm.jpg",
+ klein:"https://image.tmdb.org/t/p/h632/eZNiVyIMZSuyDmjIf7UaccpCJph.jpg",
+ murphy:"https://image.tmdb.org/t/p/h632/qgjMfefsKwSYsyCaIX46uyOXIpy.jpg",
+ williams:"https://image.tmdb.org/t/p/h632/iYdeP6K0qz44Wg2Nw9LPJGMBkQ5.jpg",
+ kinison:"https://image.tmdb.org/t/p/h632/rjGlPffVAEe4hxUJoLPyRdaWSD1.jpg",
+ wright:"https://image.tmdb.org/t/p/h632/9Q9buDjfm6uq0VE86MZ01o96lyG.jpg",
+ rock:"https://image.tmdb.org/t/p/h632/5lILFeBvX3sC0EfbHhrvMEc7bPD.jpg",
+ hicks:"https://image.tmdb.org/t/p/h632/lAn7eqeUo5L8d5Fgu3IlHIiPq9z.jpg",
+ izzard:"https://image.tmdb.org/t/p/h632/6mUPuQt6ofMBHxHJQmF3Dj1nYmH.jpg",
+ norm:"https://image.tmdb.org/t/p/h632/pGOpdt9Xy9YO2nUEWgp8G89KC5r.jpg",
+ chappelle:"https://image.tmdb.org/t/p/h632/hDVe67wjmjtbOTzDrFaJfcobcE.jpg",
+ hedberg:"https://image.tmdb.org/t/p/h632/1Urrrx1TOCF8Q2mu5lcQcQoyDRt.jpg",
+ berniemac:"https://image.tmdb.org/t/p/h632/o1LQ83S4ZYvj84HYeWAzEV7Cg95.jpg",
+ burr:"https://image.tmdb.org/t/p/h632/4U95TX23X97OK9csaKVwzqAjFUV.jpg",
+ oswalt:"https://image.tmdb.org/t/p/h632/ljQvjbPmcIAl205Lb2Mu4CW8WO7.jpg",
+ mulaney:"https://image.tmdb.org/t/p/h632/i3dGv3WoIONVLSlOpW4NIaT8Fs2.jpg",
+ gadsby:"https://image.tmdb.org/t/p/h632/muniJCyvEKACJaijKZZl0T9qZe7.jpg",
+ wong:"https://image.tmdb.org/t/p/h632/vpVDlzPIIzgwdO23MbbwvfmPtXQ.jpg",
+ tig:"https://image.tmdb.org/t/p/h632/tdZ6XLzIaK0HWWPSM2B5OrOqUC0.jpg",
+ minhaj:"https://image.tmdb.org/t/p/h632/6vHHhLnbKBCPmYc90qAV2Cde95F.jpg",
+ bargatze:"https://image.tmdb.org/t/p/h632/60KdELrwXRuNAKJveTaZIpHyDUU.jpg",
+ burnham:"https://image.tmdb.org/t/p/h632/xMAatohXadCfz9ipvqvIaTLwOmV.jpg",
+ gillis:"https://image.tmdb.org/t/p/h632/ijRXBDjfazwne2jxjWEaaWqPw2.jpg",
+ rife:"https://image.tmdb.org/t/p/h632/htkMef7qxya47Fbei9t9t1k5l7O.jpg",
+ tomlinson:"https://image.tmdb.org/t/p/h632/2wUSNpnI31K40KmhJmI9eZxUIwv.jpg",
+ normand:"https://image.tmdb.org/t/p/h632/5oACmUz1qzGBonT6riBvUwpDjE4.jpg",
+ halkias:"https://image.tmdb.org/t/p/h632/9QB7YGMk6O7hRgGWvK0OimTVzl7.jpg"
+};
+// [name, era, nationality, years, photoKey, blurb]
+const ROWS=[
+ ["Lenny Bruce","1950s–60s","American","1925–1966","bruce","The First Amendment martyr who made stand-up dangerous."],
+ ["Mort Sahl","1950s–60s","American","1927–2021","sahl","Newspaper in hand, the pioneer of political stand-up."],
+ ["Bob Newhart","1950s–60s","American","","newhart","Deadpan button-down mind; the one-sided phone call."],
+ ["George Carlin","1970s","American","1937–2008","carlin","Counterculture philosopher of language and taboo."],
+ ["Richard Pryor","1970s","American","1940–2005","pryor","The most influential stand-up who ever lived."],
+ ["Steve Martin","1970s","American","","martin","Anti-comedy showman who filled arenas with absurdity."],
+ ["Robert Klein","1970s","American","","klein","The observational bridge into the comedy-album era."],
+ ["Eddie Murphy","1980s","American","","murphy","Leather-suited supernova of the arena era."],
+ ["Robin Williams","1980s","American","1951–2014","williams","Improvisational tornado; free association at light speed."],
+ ["Sam Kinison","1980s","American","1953–1992","kinison","The scream — rock-and-roll rage as comedy."],
+ ["Steven Wright","1980s","American","","wright","The one-liner at absolute zero; pure deadpan."],
+ ["Chris Rock","1990s","American","","rock","Razor social commentary with a closer's timing."],
+ ["Bill Hicks","1990s","American","1961–1994","hicks","Preacher-philosopher of the counterculture."],
+ ["Eddie Izzard","UK","British","","izzard","Stream-of-consciousness surrealist in heels."],
+ ["Norm Macdonald","1990s","Canadian","1959–2021","norm","Anti-comedy assassin; the patron saint of the long setup."],
+ ["Dave Chappelle","1990s","American","","chappelle","Street logic, political nerve, generational ease."],
+ ["Mitch Hedberg","1990s","American","1968–2005","hedberg","Surreal one-liner mystic of the absurd non sequitur."],
+ ["Bernie Mac","1990s","American","1957–2008","berniemac","Kings of Comedy force; fearless storyteller."],
+ ["Bill Burr","1990s","American","","burr","The everyman rant; talks hostile crowds into love."],
+ ["Patton Oswalt","1990s","American","","oswalt","Nerd-poet of pop culture and grief."],
+ ["John Mulaney","2000s","American","","mulaney","Precision-built storytelling with old-soul polish."],
+ ["Hannah Gadsby","ANZ","Australian","","gadsby","Interrogated the form itself in Nanette."],
+ ["Ali Wong","2010s","American","","wong","Feral and candid; demolisher of the polite hour."],
+ ["Tig Notaro","2010s","American","","tig","Built a masterpiece set out of catastrophe."],
+ ["Hasan Minhaj","2010s","American","","minhaj","Cinematic political storytelling; the new docu-special."],
+ ["Nate Bargatze","2000s","American","","bargatze","Clean, slow-burn deadpan; the everyman headliner."],
+ ["Bo Burnham","2000s","American","","burnham","Musical-comedy auteur of the internet age."],
+ ["Shane Gillis","2020s","American","","gillis","Throwback club energy for the podcast era."],
+ ["Matt Rife","2020s","American","","rife","Crowd-work phenomenon of the TikTok era."],
+ ["Taylor Tomlinson","2010s","American","","tomlinson","Sharp generational confessional; late-night host."],
+ ["Mark Normand","2010s","American","","normand","Joke-dense club assassin; punchlines at speed."],
+ ["Stavros Halkias","2020s","American","","halkias","The self-deprecating id of the podcast scene."]
+];
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+const COMICS={};ROWS.forEach(r=>{COMICS[slug(r[0])]={name:r[0],era:r[1],nat:r[2],years:r[3],photo:r[4],blurb:r[5]};});
+const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+// flagship extras (populated; the rest fill in part by part)
+const EXTRAS={
+ "george-carlin":{bio:"George Carlin spent five decades turning stand-up into social criticism, mapping the hypocrisies of American language, religion, and power. He reinvented his act every few years and only got sharper with age.",links:{youtube:"https://www.youtube.com/@OfficialGeorgeCarlin"},bits:[{t:"Seven Words",subj:"Censorship",sp:"Class Clown",yr:1972,id:"1rP-U-ZbuzE"}],specials:[{t:"Class Clown",yr:1972,plat:"Album",poster:null,watch:"https://open.spotify.com/album/27eyUk7nflmPUUH2zkdOy9"}]},
+ "richard-pryor":{bio:"Richard Pryor is, by near-consensus, the most influential stand-up who ever lived. He put his whole life on stage — the addiction, the violence, the heart attack — and made it unbearably funny and true.",links:{},bits:[{t:"The Heart-Attack Act-Out",subj:"Mortality",sp:"Live in Concert",yr:1979,id:"WsTXsc7rXrQ"}],specials:[{t:"Live in Concert",yr:1979,plat:"Film",poster:null,watch:""}]},
+ "bo-burnham":{bio:"Bo Burnham came up on YouTube as a teenager, then turned the comedy special into auteur cinema, writing, shooting, and editing Inside alone in a single room.",links:{youtube:"https://www.youtube.com/@boburnham"},bits:[{t:"Welcome to the Internet",subj:"The Internet",sp:"Inside",yr:2021,id:"k1BneeJTDcU"}],specials:[{t:"Inside",yr:2021,plat:"Netflix",poster:"https://image.tmdb.org/t/p/w780/ku1UvTWYvhFQbSesOD6zteY7bXT.jpg",watch:"https://www.netflix.com/title/81289483"}]}
+};
+const TBD='<span class="tbd">Coming soon</span>';
+function avatar(c){return c.photo&&P[c.photo]?`<img src="${P[c.photo]}" alt="${c.name}">`:`<span class="ini">${ini(c.name)}</span>`;}
+function sec(title,inner){return `<div class="sec"><div class="sk"><span class="t">${title}</span><span class="rule"></span></div>${inner}</div>`;}
+
+function render(){
+ const sl=new URLSearchParams(location.search).get("c")||"";
+ const c=COMICS[sl];
+ const app=document.getElementById("app");
+ if(!c){app.innerHTML=`<div class="crumb"><a href="browse.html">&larr; The Index</a></div><div class="sec"><div class="sk"><span class="t">Comic not found</span><span class="rule"></span></div><p class="bio">We could not find that comic. <a href="browse.html" style="color:var(--red);text-decoration:underline">Browse the Index</a>.</p></div>`;return;}
+ document.title=c.name+" — Greatest Bits";
+ const x=EXTRAS[sl]||{};
+ // links
+ let links="";
+ if(x.links&&(x.links.youtube||x.links.website||x.links.instagram)){
+   if(x.links.website)links+=`<a class="lk-btn" href="${x.links.website}" target="_blank" rel="noopener">Website &#8599;</a>`;
+   if(x.links.youtube)links+=`<a class="lk-btn" href="${x.links.youtube}" target="_blank" rel="noopener">YouTube &#8599;</a>`;
+   if(x.links.instagram)links+=`<a class="lk-btn" href="${x.links.instagram}" target="_blank" rel="noopener">Instagram &#8599;</a>`;
+ } else links=`<span class="tbd">Official links coming soon</span>`;
+ // header
+ let html=`<div class="crumb"><a href="browse.html">The Index</a> / ${c.name}</div>
+ <div class="hero"><div class="ph">${avatar(c)}</div>
+  <div><div class="k">Comic</div><h1>${c.name}</h1>
+   <div class="pills">${c.years?`<span class="pill">${c.years}</span>`:""}<span class="pill">${c.nat}</span><span class="pill">${c.era}</span></div>
+   <div class="blurb">${c.blurb}</div>
+   <div class="links-row">${links}</div>
+  </div></div>`;
+ // bits
+ let bitsHtml;
+ if(x.bits&&x.bits.length){
+   bitsHtml=`<div class="bits">`+x.bits.map((b,i)=>`<div class="bitrow"><div class="bit" data-i="${i}"><span class="pb"></span><div><span class="subj">${b.subj}</span><div class="bt">${b.t}</div><div class="by">${b.sp} · ${b.yr}</div></div><span class="go">Play &#9654;</span></div><div class="bdr"><div class="in"></div></div></div>`).join("")+`</div>`;
+ } else bitsHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Their best bits, with clips, are being added.</span></p>`;
+ html+=sec("Best Bits",bitsHtml);
+ // specials
+ let spHtml;
+ if(x.specials&&x.specials.length){
+   spHtml=`<div class="sp-grid">`+x.specials.map(s=>`<article class="sp"><div class="pst">${s.poster?`<img src="${s.poster}" alt="${s.t}">`:`<div class="none">${s.t}</div>`}</div><div class="b"><div class="t">${s.t}</div><div class="m">${s.yr} · ${s.plat}</div>${s.watch?`<a href="${s.watch}" target="_blank" rel="noopener">Watch &#8599;</a>`:`<span class="tbd" style="padding:4px 9px;font-size:10px">Watch soon</span>`}</div></article>`).join("")+`</div>`;
+ } else spHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Their specials, with posters and where to watch, are being added.</span></p>`;
+ html+=sec("Specials",spHtml);
+ // timeline + accolades + about
+ html+=sec("Career Timeline",`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">A year-by-year timeline is on the way.</span></p>`);
+ html+=sec("Accolades",`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Awards and honors are on the way.</span></p>`);
+ html+=sec("About",x.bio?`<p class="bio">${x.bio}</p>`:`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">A full profile is being written.</span></p>`);
+ app.innerHTML=html;
+ // bit play
+ app.querySelectorAll(".bit").forEach((row,i)=>{row.addEventListener("click",()=>{
+   const b=x.bits[+row.dataset.i],dr=row.parentElement.querySelector(".bdr"),inn=dr.querySelector(".in"),pb=row.querySelector(".pb");
+   if(dr.classList.contains("open")){dr.classList.remove("open");inn.innerHTML="";pb.classList.remove("pause");return;}
+   app.querySelectorAll(".bdr.open").forEach(d=>{d.classList.remove("open");d.querySelector(".in").innerHTML="";});
+   app.querySelectorAll(".pb.pause").forEach(p=>p.classList.remove("pause"));
+   inn.innerHTML=`<iframe src="https://www.youtube.com/embed/${b.id}?autoplay=1" title="${b.t}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe>`;
+   dr.classList.add("open");pb.classList.add("pause");
+ });});
+}
+render();
+const cur=document.getElementById("cur");
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.bit,.pb,.lk-btn,.sp"));});
+addEventListener("pointerleave",()=>cur.classList.remove("on"));
+</script>
+</body>
+</html>

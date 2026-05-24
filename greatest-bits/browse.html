@@ -143,6 +143,7 @@ const D=[
 const ERAS=["50s60s","1970s","1980s","1990s","2000s","2010s","2020s","UK","ANZ"];
 const ELAB={"50s60s":"1950s–60s","1970s":"1970s","1980s":"1980s","1990s":"1990s","2000s":"2000s","2010s":"2010s","2020s":"2020s","UK":"UK","ANZ":"ANZ"};
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
 let q="",era="all",letter="all",mode="grid";
 document.getElementById("facets").innerHTML=`<button class="chip on" data-e="all">All eras</button>`+ERAS.map(e=>`<button class="chip" data-e="${e}">${ELAB[e]}</button>`).join("");
 document.getElementById("az").innerHTML=`<button class="on" data-l="all">All</button>`+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L=>`<button data-l="${L}">${L}</button>`).join("");
@@ -154,8 +155,8 @@ function render(){
  const grid=document.getElementById("grid"),list=document.getElementById("list");
  grid.style.display=mode==="grid"?"grid":"none";list.style.display=mode==="list"?"block":"none";
  if(!rows.length){grid.innerHTML=list.innerHTML=`<div class="empty">No comics match — clear the search or filters.</div>`;return;}
- if(mode==="grid"){grid.innerHTML=rows.map(d=>`<a class="gt" href="#"><span class="go">View →</span>${avatar(d)}<div class="cap"><div class="nm">${d.name}</div><div class="er">${d.era} · ${d.nat}</div></div></a>`).join("");}
- else{let h="",c="";rows.forEach(d=>{const L=d.last[0].toUpperCase();if(L!==c){c=L;h+=`<div class="letter">${L}</div>`;}h+=`<a class="lr" href="#"><span class="av">${avatar(d)}</span><div><div class="nm">${d.name}</div><div class="meta">${d.era} · ${d.nat}</div></div><span class="go">View page →</span></a>`;});list.innerHTML=h;}
+ if(mode==="grid"){grid.innerHTML=rows.map(d=>`<a class="gt" href="comic.html?c=${slug(d.name)}"><span class="go">View →</span>${avatar(d)}<div class="cap"><div class="nm">${d.name}</div><div class="er">${d.era} · ${d.nat}</div></div></a>`).join("");}
+ else{let h="",c="";rows.forEach(d=>{const L=d.last[0].toUpperCase();if(L!==c){c=L;h+=`<div class="letter">${L}</div>`;}h+=`<a class="lr" href="comic.html?c=${slug(d.name)}"><span class="av">${avatar(d)}</span><div><div class="nm">${d.name}</div><div class="meta">${d.era} · ${d.nat}</div></div><span class="go">View page →</span></a>`;});list.innerHTML=h;}
 }
 document.getElementById("q").addEventListener("input",e=>{q=e.target.value;render();});
 document.getElementById("facets").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#facets .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");era=b.dataset.e;render();});
