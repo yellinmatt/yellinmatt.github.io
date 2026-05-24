@@ -97,16 +97,16 @@ const P={
  halkias:"https://image.tmdb.org/t/p/h632/9QB7YGMk6O7hRgGWvK0OimTVzl7.jpg"
 };
 const B=[
- {r:1,t:"Seven Words",subj:"Censorship",who:"George Carlin",sp:"Class Clown",yr:1972,face:P.carlin,src:"spotify",id:"51XiG3b2QzDUko5gmBHsgo"},
+ {r:1,t:"Seven Words",subj:"Censorship",who:"George Carlin",sp:"Class Clown",yr:1972,face:P.carlin,src:"youtube",id:"1rP-U-ZbuzE"},
  {r:2,t:"Welcome to the Internet",subj:"The Internet",who:"Bo Burnham",sp:"Inside",yr:2021,face:P.burnham,src:"youtube",id:"k1BneeJTDcU"},
- {r:3,t:"The Heart-Attack Act-Out",subj:"Mortality",who:"Richard Pryor",sp:"Live in Concert",yr:1979,face:P.pryor,src:"link",plat:"the special"},
- {r:4,t:"It's Just a Ride",subj:"Reality",who:"Bill Hicks",sp:"Revelations",yr:1993,face:P.hicks,src:"link",plat:"the special"},
- {r:5,t:"The Horse Loose in a Hospital",subj:"Chaos",who:"John Mulaney",sp:"Kid Gorgeous",yr:2018,face:P.mulaney,src:"link",plat:"the special"},
+ {r:3,t:"The Heart-Attack Act-Out",subj:"Mortality",who:"Richard Pryor",sp:"Live in Concert",yr:1979,face:P.pryor,src:"link",url:"https://www.youtube.com/results?search_query=Richard+Pryor+Live+in+Concert+heart+attack",plat:"YouTube"},
+ {r:4,t:"It's Just a Ride",subj:"Reality",who:"Bill Hicks",sp:"Revelations",yr:1993,face:P.hicks,src:"link",url:"https://www.youtube.com/results?search_query=Bill+Hicks+It%27s+Just+a+Ride",plat:"YouTube"},
+ {r:5,t:"The Horse Loose in a Hospital",subj:"Chaos",who:"John Mulaney",sp:"Kid Gorgeous",yr:2018,face:P.mulaney,src:"link",url:"https://www.youtube.com/results?search_query=John+Mulaney+horse+loose+in+a+hospital",plat:"YouTube"},
 ];
 const pad=n=>String(n).padStart(2,"0");
 function wave(seed){let h="",v=seed*9301;for(let i=0;i<48;i++){v=(v*9301+49297)%233280;const r=v/233280;const ht=20+Math.abs(Math.sin(i*0.5+seed))*48+r*30;h+=`<i style="height:${Math.min(100,ht)}%"></i>`;}return h;}
-const dot=s=>s==="spotify"?`<span class="d" style="background:#1db954"></span>Plays here · Spotify`:s==="youtube"?`<span class="d" style="background:#ff0000"></span>Plays here · YouTube`:`<span class="d" style="background:#0d0d0d"></span>Link out · the special`;
-document.getElementById("list").innerHTML=B.map(b=>`<div class="rowline"><div class="bw" data-src="${b.src}" data-id="${b.id||''}"><div class="rk">${pad(b.r)}</div><div class="face"><img src="${b.face}" alt="${b.who}" loading="lazy"></div><div><span class="subj">${b.subj}</span><div class="bt">${b.t}</div><div class="by">${b.who} · ${b.sp} · ${b.yr}</div></div><div class="player"><div class="prow"><span class="playbtn"></span><div class="wave">${wave(b.r)}</div></div><div class="src">${dot(b.src)}</div></div></div><div class="drawer"><div class="inner"></div></div></div>`).join("");
+const dot=s=>s==="spotify"?`<span class="d" style="background:#1db954"></span>Plays here · Spotify`:s==="youtube"?`<span class="d" style="background:#ff0000"></span>Plays here · YouTube`:`<span class="d" style="background:#ffd23e"></span>Watch on YouTube`;
+document.getElementById("list").innerHTML=B.map(b=>`<div class="rowline"><div class="bw" data-src="${b.src}" data-id="${b.id||''}" data-url="${b.url||''}" data-plat="${b.plat||'YouTube'}"><div class="rk">${pad(b.r)}</div><div class="face"><img src="${b.face}" alt="${b.who}" loading="lazy"></div><div><span class="subj">${b.subj}</span><div class="bt">${b.t}</div><div class="by">${b.who} · ${b.sp} · ${b.yr}</div></div><div class="player"><div class="prow"><span class="playbtn"></span><div class="wave">${wave(b.r)}</div></div><div class="src">${dot(b.src)}</div></div></div><div class="drawer"><div class="inner"></div></div></div>`).join("");
 document.querySelectorAll("#list .bw").forEach(row=>{row.addEventListener("click",()=>{
  const drawer=row.parentElement.querySelector(".drawer"),inner=drawer.querySelector(".inner"),btn=row.querySelector(".playbtn");
  const open=drawer.classList.contains("open");
@@ -115,7 +115,7 @@ document.querySelectorAll("#list .bw").forEach(row=>{row.addEventListener("click
  const s=row.dataset.src,id=row.dataset.id;
  if(s==="spotify")inner.innerHTML=`<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${id}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`;
  else if(s==="youtube")inner.innerHTML=`<iframe width="100%" height="300" src="https://www.youtube.com/embed/${id}?autoplay=1" title="clip" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen style="border-radius:8px"></iframe>`;
- else inner.innerHTML=`<div class="lk"><a class="watch" href="#"><span style="color:#0d0d0d">&#9654;</span> Watch on Netflix</a><span class="note">No official standalone clip yet — links to the full special at its timestamp (verified at the data stage).</span></div>`;
+ else inner.innerHTML=`<div class="lk"><a class="watch" href="${row.dataset.url||'#'}" target="_blank" rel="noopener"><span style="color:#0d0d0d">&#9654;</span> Watch on ${row.dataset.plat||'YouTube'}</a><span class="note">Opens the official ${row.dataset.plat||'YouTube'} source. A verified inline clip is on the way.</span></div>`;
  drawer.classList.add("open");btn.classList.add("pause");
 });});
 const cur=document.getElementById("cur");
