@@ -6,38 +6,77 @@
 <title>100 Best Specials — Greatest Bits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d}
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
-a{color:inherit;text-decoration:none}
-.nav{display:flex;align-items:center;gap:22px;padding:14px 26px;background:var(--ink);color:var(--cream)}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+#cur{position:fixed;top:0;left:0;width:22px;height:22px;border:2px solid var(--red);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:99;opacity:0;transition:opacity .2s,width .15s,height .15s,background .15s;mix-blend-mode:difference}
+#cur.on{opacity:1}#cur.big{width:48px;height:48px;background:rgba(232,52,28,.18)}
+@media(hover:none){#cur{display:none}}@media(prefers-reduced-motion:reduce){#cur{display:none}}
+.nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:14px 26px;background:var(--ink);color:var(--cream)}
 .nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
-.nav .links{display:flex;gap:18px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
-.nav .links a:hover{color:var(--yellow)}.nav .links a.on{color:var(--yellow)}.nav .sp{margin-left:auto}
-@media(max-width:700px){.nav .links{display:none}}
-.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 26px;position:relative;overflow:hidden}
-.main::before{content:"";position:absolute;width:120vw;height:120vw;background:radial-gradient(circle, rgba(232,52,28,.08), transparent 60%);top:-30vw}
-.soon{position:relative;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:6px 14px;border-radius:999px}
-.main h1{position:relative;font-family:'Anton',sans-serif;font-size:clamp(48px,11vw,140px);text-transform:uppercase;line-height:.85;margin:22px 0 14px;max-width:14ch}
-.main p{position:relative;color:#3a3128;font-size:16px;max-width:54ch;line-height:1.5}
-.main .back{position:relative;margin-top:30px;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;border:2px solid var(--ink);border-radius:999px;padding:11px 22px;transition:.15s}
-.main .back:hover{background:var(--ink);color:var(--yellow)}
-.ftr{background:var(--ink);color:#9a9082;padding:18px 26px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6}
-.ftr a{color:var(--yellow);text-decoration:underline}
+.nav .links{display:flex;gap:20px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
+.nav .links a.on{color:var(--yellow)}.nav .links a:hover{color:var(--yellow)}.nav .sp{margin-left:auto}
+.head{padding:34px 32px 8px;max-width:1100px;margin:0 auto}
+.head .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--red);font-weight:600}
+.head h1{font-family:'Anton',sans-serif;font-size:clamp(44px,9vw,118px);text-transform:uppercase;line-height:.82;margin:8px 0 6px}
+.head .sub{font-size:15px;color:#3a3128;max-width:64ch}
+.rule{height:4px;background:var(--red);margin:14px auto 0;max-width:1100px}
+.list{max-width:1100px;margin:16px auto 0;padding:6px 32px 40px;display:flex;flex-direction:column;gap:16px}
+.watch{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;border-radius:999px;padding:11px 18px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;transition:.15s;border:2px solid var(--ink);background:var(--ink);color:var(--cream);white-space:nowrap}
+.watch .pl{color:var(--yellow)}.watch:hover{background:var(--yellow);color:var(--ink)}.watch:hover .pl{color:var(--ink)}
+.sp-card{display:grid;grid-template-columns:300px 1fr auto;gap:24px;align-items:center;border:3px solid var(--ink);background:#fff;overflow:hidden;padding-right:20px;transition:.18s;cursor:pointer}
+.sp-card:hover{box-shadow:9px 9px 0 var(--ink);transform:translateY(-3px)}
+.cov-type{position:relative;width:300px;min-height:190px;display:flex;flex-direction:column;justify-content:flex-end;padding:18px 16px;color:var(--cream);background:repeating-linear-gradient(45deg,#141414 0 14px,#0d0d0d 14px 28px)}
+.cov-type.m{background:radial-gradient(120% 90% at 80% 0%, var(--maroon,#7a1003), #0d0d0d 70%)}
+.cov-type .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow)}
+.cov-type .ct{font-family:'Anton',sans-serif;font-size:clamp(30px,3.2vw,46px);text-transform:uppercase;line-height:.86;margin-top:8px}
+.cov-type .yr{position:absolute;top:12px;right:12px;background:var(--yellow);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:900;font-size:11px;padding:3px 8px;border-radius:4px}
+.cov-still{position:relative;width:300px;height:190px;overflow:hidden;background:#0d0d0d}
+.cov-still img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05) brightness(.82);transition:.3s}
+.sp-card:hover .cov-still img{filter:none}
+.cov-still .pb{position:absolute;inset:0;margin:auto;width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:var(--yellow);opacity:.92;transition:.2s}
+.cov-still .pb::after{content:"";border-left:18px solid var(--ink);border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:5px}
+.sp-card:hover .cov-still .pb{opacity:1;transform:scale(1.08)}
+.cov-still .badge{position:absolute;top:10px;left:10px;background:var(--yellow);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:900;font-size:10px;padding:3px 7px;border-radius:4px}
+.cov-still iframe{width:100%;height:100%;border:0;display:block}
+.sp-main .t{font-family:'Anton',sans-serif;font-size:clamp(26px,3vw,40px);text-transform:uppercase;line-height:.94}
+.sp-main .by{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--mut);margin:7px 0 11px;text-transform:uppercase;letter-spacing:.04em}
+.sp-main .ctx{display:flex;flex-direction:column;gap:7px;max-width:60ch}
+.sp-main .ctx div{font-size:13px;line-height:1.45;color:#3a3128}
+.sp-main .ctx b{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);display:block}
+.ftr{background:var(--ink);color:#9a9082;padding:26px 32px 30px;font-size:12px;line-height:1.6;margin-top:10px}.ftr a{color:var(--yellow);text-decoration:underline}
+@media(max-width:760px){.nav .links{display:none}.sp-card{grid-template-columns:1fr;padding-right:0}.cov-type,.cov-still{width:100%}.cov-still{height:210px}.sp-main{padding:0 18px}.sp-watch{padding:0 0 16px 18px}}
+/*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 </style>
 </head>
 <body>
+<div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
-<span class="links"><a href="comics.html">Comics</a><a href="bits.html">Bits</a><a href="specials.html">Specials</a><a href="browse.html">Index</a><a href="history.html">History</a></span>
-<span class="sp"></span></nav>
-<main class="main">
-<span class="soon">Coming soon</span>
-<h1>100 Best Specials</h1>
-<p>The greatest hours and albums in the history of the form, ranked, with where to watch. Building now.</p>
-<a class="back" href="index.html">&larr; Back to Greatest Bits</a>
-</main>
-<footer class="ftr">A non-commercial, fan-made index of stand-up, in progress. Imagery and clips identify and credit each artist and link to official sources; all rights remain with their owners. <a href="index.html">Home</a></footer>
+<span class="links"><a href="comics.html">Comics</a><a href="specials.html" class="on">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a></span><span class="sp"></span></nav>
+<div class="head"><div class="k">The flagship ranking</div><h1>100 Best Specials</h1><div class="sub">The greatest hours and albums in the history of the form, with where to watch and the context behind each. Order shown is illustrative; the ranking is in progress.</div></div>
+<div class="rule"></div>
+<div class="list" id="list"></div>
+<footer class="ftr">A non-commercial, fan-made index of stand-up, in progress. Trailers are official uploads (embedded, not re-hosted); "Watch" links to the official platform. Posters via TMDB once wired. <a href="index.html">Home</a></footer>
+<script>
+const S=[
+ {t:"Nanette",who:"Hannah Gadsby",yr:2018,plat:"Netflix",watch:"https://www.netflix.com/title/80233611",trailer:"5aE29fiatQ0",car:"Gadsby's breakout, and a threat to quit comedy.",imp:"Forced a global argument about what stand-up is for."},
+ {t:"Inside",who:"Bo Burnham",yr:2021,plat:"Netflix",watch:"https://www.netflix.com/title/81289483",trailer:"Bs-GdcUfl0Q",car:"Made alone in one room during lockdown, years off the stage.",imp:"Redefined the comedy special as auteur cinema."},
+ {t:"Delirious",who:"Eddie Murphy",yr:1983,plat:"Max",watch:"",trailer:"",cover:"m",car:"Murphy at 22, at the peak of his SNL fame.",imp:"The template every arena stand-up special copied."},
+ {t:"Bring the Pain",who:"Chris Rock",yr:1996,plat:"Max",watch:"",trailer:"",cover:"",car:"Rock's reinvention years after leaving SNL.",imp:"Relaunched him as the defining stand-up voice of the 90s."},
+];
+const watchBtn=s=>`<a class="watch" href="${s.watch||'#'}"${s.watch?' target="_blank" rel="noopener"':''}><span class="pl">&#9654;</span> Watch on ${s.plat}</a>`;
+document.getElementById("list").innerHTML=S.map(s=>{
+ const cover=s.trailer?`<div class="cov-still" data-tr="${s.trailer}"><img src="https://i.ytimg.com/vi/${s.trailer}/hqdefault.jpg" alt="${s.t} trailer"><span class="badge">${s.plat}</span><span class="pb"></span></div>`
+  :`<div class="cov-type ${s.cover||''}"><span class="yr">${s.yr}</span><div class="k">Special · ${s.plat}</div><div class="ct">${s.t}</div></div>`;
+ return `<article class="sp-card">${cover}<div class="sp-main"><div class="t">${s.t}</div><div class="by">${s.who} · ${s.yr} · ${s.plat}</div><div class="ctx"><div><b>Career</b>${s.car}</div><div><b>Impact</b>${s.imp}</div></div></div><div class="sp-watch">${watchBtn(s)}</div></article>`;
+}).join("");
+document.querySelectorAll("#list .cov-still").forEach(c=>{c.addEventListener("click",e=>{e.stopPropagation();if(c.querySelector("iframe"))return;c.innerHTML=`<iframe src="https://www.youtube.com/embed/${c.dataset.tr}?autoplay=1" title="Official trailer" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe>`;});});
+const cur=document.getElementById("cur");
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.sp-card,.watch,.cov-still"));});
+addEventListener("pointerleave",()=>cur.classList.remove("on"));
+</script>
 </body>
 </html>

@@ -6,38 +6,80 @@
 <title>100 Best Comics — Greatest Bits</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d}
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;display:flex;flex-direction:column}
-a{color:inherit;text-decoration:none}
-.nav{display:flex;align-items:center;gap:22px;padding:14px 26px;background:var(--ink);color:var(--cream)}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
+#cur{position:fixed;top:0;left:0;width:22px;height:22px;border:2px solid var(--red);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:99;opacity:0;transition:opacity .2s,width .15s,height .15s,background .15s;mix-blend-mode:difference}
+#cur.on{opacity:1}#cur.big{width:48px;height:48px;background:rgba(232,52,28,.18)}
+@media(hover:none){#cur{display:none}}@media(prefers-reduced-motion:reduce){#cur{display:none}}
+.nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:14px 26px;background:var(--ink);color:var(--cream)}
 .nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
-.nav .links{display:flex;gap:18px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
-.nav .links a:hover{color:var(--yellow)}.nav .links a.on{color:var(--yellow)}.nav .sp{margin-left:auto}
+.nav .links{display:flex;gap:20px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
+.nav .links a.on{color:var(--yellow)}.nav .links a:hover{color:var(--yellow)}.nav .sp{margin-left:auto}
 @media(max-width:700px){.nav .links{display:none}}
-.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 26px;position:relative;overflow:hidden}
-.main::before{content:"";position:absolute;width:120vw;height:120vw;background:radial-gradient(circle, rgba(232,52,28,.08), transparent 60%);top:-30vw}
-.soon{position:relative;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:6px 14px;border-radius:999px}
-.main h1{position:relative;font-family:'Anton',sans-serif;font-size:clamp(48px,11vw,140px);text-transform:uppercase;line-height:.85;margin:22px 0 14px;max-width:14ch}
-.main p{position:relative;color:#3a3128;font-size:16px;max-width:54ch;line-height:1.5}
-.main .back{position:relative;margin-top:30px;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;border:2px solid var(--ink);border-radius:999px;padding:11px 22px;transition:.15s}
-.main .back:hover{background:var(--ink);color:var(--yellow)}
-.ftr{background:var(--ink);color:#9a9082;padding:18px 26px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.6}
+.head{padding:34px 32px 8px;max-width:1100px;margin:0 auto}
+.head .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--red);font-weight:600}
+.head h1{font-family:'Anton',sans-serif;font-size:clamp(46px,9vw,118px);text-transform:uppercase;line-height:.82;margin:8px 0 6px}
+.head .sub{font-size:15px;color:#3a3128;max-width:62ch}
+.rule{height:4px;background:var(--red);margin:14px 32px 0;max-width:1100px;margin-left:auto;margin-right:auto}
+.list{max-width:1100px;margin:6px auto 0;padding:14px 32px 40px}
+.cc{display:grid;grid-template-columns:78px 110px 1fr 36px;gap:20px;align-items:center;border-bottom:3px solid var(--ink);padding:18px 6px;cursor:pointer}
+.cc:first-child{border-top:3px solid var(--ink)}
+.cc .rk{font-family:'Anton',sans-serif;font-size:64px;line-height:.8;color:var(--red);text-align:right}
+.cc .ph{width:110px;height:140px;overflow:hidden;border:3px solid var(--ink);transform:rotate(-2deg);transition:.2s}
+.cc .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 12%;filter:grayscale(1) contrast(1.1);transition:.25s}
+.cc:hover .ph{transform:rotate(0) scale(1.03)}.cc:hover .ph img{filter:none}
+.cc .nm{font-family:'Anton',sans-serif;font-size:clamp(26px,3.4vw,40px);text-transform:uppercase;line-height:.95}
+.cc .meta{margin:7px 0 8px}
+.cc .erchip{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;border:1.5px solid var(--ink);border-radius:5px;padding:3px 7px}
+.cc .tk{font-size:14.5px;color:#3a3128;max-width:62ch;line-height:1.45}
+.cc .ar{font-size:24px;color:var(--red);justify-self:end;transition:transform .18s}.cc:hover .ar{transform:translateX(5px)}
+@media(max-width:680px){.cc{grid-template-columns:48px 84px 1fr}.cc .ar{display:none}.cc .rk{font-size:40px}.cc .ph{width:84px;height:108px}}
+.ftr{background:var(--ink);color:#9a9082;padding:26px 32px 30px;font-size:12px;line-height:1.6;margin-top:10px}
 .ftr a{color:var(--yellow);text-decoration:underline}
+/*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 </style>
 </head>
 <body>
+<div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
-<span class="links"><a href="comics.html">Comics</a><a href="bits.html">Bits</a><a href="specials.html">Specials</a><a href="browse.html">Index</a><a href="history.html">History</a></span>
-<span class="sp"></span></nav>
-<main class="main">
-<span class="soon">Coming soon</span>
-<h1>100 Best Comics</h1>
-<p>The greatest stand-ups who ever held a mic, ranked. We are building this list now.</p>
-<a class="back" href="index.html">&larr; Back to Greatest Bits</a>
-</main>
-<footer class="ftr">A non-commercial, fan-made index of stand-up, in progress. Imagery and clips identify and credit each artist and link to official sources; all rights remain with their owners. <a href="index.html">Home</a></footer>
+<span class="links"><a href="comics.html" class="on">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a></span><span class="sp"></span></nav>
+<div class="head"><div class="k">The flagship ranking</div><h1>100 Best Comics</h1><div class="sub">The greatest stand-ups who ever held a mic. Order shown is illustrative; the ranking is in progress.</div></div>
+<div class="rule"></div>
+<div class="list" id="list"></div>
+<footer class="ftr">A non-commercial, fan-made index of stand-up, in progress. Photographs identify and credit each artist and link to official sources; all rights remain with their owners. Comic photos via <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> (CC BY-SA). <a href="index.html">Home</a></footer>
+<script>
+const P={
+ pryor:"https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Richard_Pryor_The_Midnight_Show_in_April_1974.png/960px-Richard_Pryor_The_Midnight_Show_in_April_1974.png",
+ carlin:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/George_Carlin_1975_%28Little_David_Records%29_Publicity.jpg/960px-George_Carlin_1975_%28Little_David_Records%29_Publicity.jpg",
+ murphy:"https://upload.wikimedia.org/wikipedia/commons/5/5f/Eddie_Murphy_by_David_Shankbone.jpg",
+ williams:"https://upload.wikimedia.org/wikipedia/commons/0/05/Robin_Williams_2011a_%282%29.jpg",
+ rock:"https://upload.wikimedia.org/wikipedia/commons/8/89/Chris_Rock_2014.jpg",
+ chappelle:"https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Dave_Chappelle_at_Preamiere_of_%22Dave_Chappelle_In_Real_Life%22_%282%29_%28cropped_2%29.jpg/960px-Dave_Chappelle_at_Preamiere_of_%22Dave_Chappelle_In_Real_Life%22_%282%29_%28cropped_2%29.jpg",
+ hicks:"https://upload.wikimedia.org/wikipedia/commons/0/0d/Bill_Hicks_at_the_Laff_Stop_in_Austin%2C_Texas%2C_1991.jpg",
+ gadsby:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Hannah-Gadsby-at-the-2024-Edinburgh-Festival-Fringe-2_%28cropped%29.jpg/500px-Hannah-Gadsby-at-the-2024-Edinburgh-Festival-Fringe-2_%28cropped%29.jpg",
+ mulaney:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/John_Mulaney_PaleyFest_crop.jpg/500px-John_Mulaney_PaleyFest_crop.jpg",
+ burnham:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Bo_Burnham_Montaclair_Film_Festival_%28cropped%29.jpg/960px-Bo_Burnham_Montaclair_Film_Festival_%28cropped%29.jpg",
+};
+const C=[
+ [1,"Richard Pryor","1970s",P.pryor,"The most influential stand-up who ever lived; turned pain into the act itself."],
+ [2,"George Carlin","1970s",P.carlin,"Counterculture philosopher of language and taboo, who reinvented himself every decade."],
+ [3,"Eddie Murphy","1980s",P.murphy,"Leather-suited supernova who made the arena special an event."],
+ [4,"Robin Williams","1980s",P.williams,"An improvisational tornado; free association at the speed of thought."],
+ [5,"Chris Rock","1990s",P.rock,"Razor-sharp social commentary delivered with a closer's timing."],
+ [6,"Dave Chappelle","1990s",P.chappelle,"Street logic, political nerve, and an easy charm few have matched."],
+ [7,"Bill Hicks","1990s",P.hicks,"The preacher-philosopher of the counterculture, gone too soon."],
+ [8,"Hannah Gadsby","2010s",P.gadsby,"Interrogated the form itself and rewrote what a special could be."],
+ [9,"John Mulaney","2000s",P.mulaney,"Precision-built storytelling with an old-soul polish."],
+ [10,"Bo Burnham","2000s",P.burnham,"The musical-comedy auteur of the internet age."],
+];
+document.getElementById("list").innerHTML=C.map(c=>`<div class="cc"><div class="rk">${String(c[0]).padStart(2,"0")}</div><div class="ph"><img src="${c[3]}" alt="${c[1]}" loading="lazy"></div><div><div class="nm">${c[1]}</div><div class="meta"><span class="erchip">${c[2]}</span></div><div class="tk">${c[4]}</div></div><div class="ar">&#8594;</div></div>`).join("");
+const cur=document.getElementById("cur");
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.cc"));});
+addEventListener("pointerleave",()=>cur.classList.remove("on"));
+</script>
 </body>
 </html>

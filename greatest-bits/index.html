@@ -3,73 +3,93 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Greatest Bits — a living index of stand-up</title>
-<meta name="description" content="An original, non-commercial index of stand-up comedy: every comic, every special, every bit — the 100 best of each, and a history of the form.">
+<title>Greatest Bits</title>
+<meta name="description" content="An index of every comic, every special, and every bit in stand-up: the hundred best of each, and a history of the form told through its bits.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--maroon:#7a1003;--line:#241f15}
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--maroon:#7a1003}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
-a{color:inherit;text-decoration:none}
-img{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 #cur{position:fixed;top:0;left:0;width:22px;height:22px;border:2px solid var(--yellow);border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:99;opacity:0;transition:opacity .2s,width .15s,height .15s,background .15s;mix-blend-mode:difference}
 #cur.on{opacity:1}#cur.big{width:50px;height:50px;background:rgba(255,210,62,.25)}
-@media(hover:none){#cur{display:none}}
-@media(prefers-reduced-motion:reduce){#cur{display:none}}
-/* nav A */
+@media(hover:none){#cur{display:none}}@media(prefers-reduced-motion:reduce){#cur{display:none}}
 .nav{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:24px;padding:14px 26px;background:var(--ink);color:var(--cream)}
 .nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
 .nav .links{display:flex;gap:20px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
 .nav .links a:hover{color:var(--yellow)}.nav .sp{margin-left:auto}
 .nav .search{font-family:'IBM Plex Mono',monospace;font-size:12px;border:1.5px solid #3a3a3a;border-radius:999px;padding:7px 13px;color:#c9c2b4}
-@media(max-width:700px){.nav .links{display:none}}
-/* hero (the one place red lives) */
-.hero{background:var(--red);color:var(--cream);padding:60px 26px 0;text-align:center;overflow:hidden;position:relative}
-.hero .est{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
-.hero h1{font-family:'Anton',sans-serif;font-size:clamp(64px,17vw,230px);text-transform:uppercase;line-height:.8;margin:14px 0 16px}
+@media(max-width:760px){.nav .links{display:none}}
+/* hero (the only place red lives) */
+.hero{background:var(--red);color:var(--cream);padding:62px 26px 0;text-align:center;overflow:hidden}
+.hero h1{font-family:'Anton',sans-serif;font-size:clamp(64px,17vw,230px);text-transform:uppercase;line-height:.8;margin:0 0 18px}
 .hero h1 .y{color:var(--yellow)}
-.hero .desc{max-width:640px;margin:0 auto;font-size:clamp(15px,1.8vw,18px);line-height:1.55;color:#ffe6d2}
-.hero .desc b{color:var(--cream);font-weight:700}
-.hero .tick{margin-top:30px;background:var(--ink);color:var(--cream);overflow:hidden;white-space:nowrap;padding:11px 0;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase;
-  margin-left:-26px;margin-right:-26px;width:calc(100% + 52px)}
+.stool{height:.82em;width:.58em;vertical-align:-.055em;margin:0 .015em;overflow:visible}
+.hero .desc{max-width:680px;margin:0 auto;font-size:clamp(16px,1.9vw,20px);line-height:1.6;color:#fff7ec}
+.hero .tick{margin:32px -26px 0;background:var(--ink);color:var(--cream);overflow:hidden;white-space:nowrap;padding:11px 0;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
 .hero .tick .trk{display:inline-block;animation:mq 30s linear infinite}
 .hero .tick .trk span{margin:0 20px}.hero .tick .trk .s{color:var(--yellow)}
 @keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.hero .tick .trk{animation:none}}
-/* explore */
-.wrap{max-width:1100px;margin:0 auto;padding:46px 26px 10px}
+/* sections */
+.sec{max-width:1100px;margin:0 auto;padding:48px 26px 0}
 .glabel{display:flex;align-items:baseline;gap:12px;margin-bottom:18px}
 .glabel .t{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
 .glabel .rule{flex:1;height:2px;background:var(--ink)}
-.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-@media(max-width:820px){.grid{grid-template-columns:1fr}}
-.card{position:relative;border:3px solid var(--ink);background:#fff;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s}
-.card:hover{transform:translateY(-5px);box-shadow:9px 9px 0 var(--red)}
-.card .faces{display:flex;padding:16px 16px 0}
-.card .faces img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:50% 14%;border:2px solid var(--ink);margin-left:-12px;filter:grayscale(.5)}
-.card .faces img:first-child{margin-left:0}
-.card:hover .faces img{filter:none}
-.card .emblem{font-family:'Anton',sans-serif;font-size:40px;text-transform:uppercase;color:var(--ink);padding:18px 16px 0;line-height:.9}
-.card .bd{padding:14px 16px 18px}
-.card .tt{font-family:'Anton',sans-serif;font-size:24px;text-transform:uppercase;line-height:.95}
-.card .dd{color:#3a3128;font-size:13.5px;margin-top:7px;line-height:1.45}
-.card .foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
-.card .soon{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#0d0d0d;background:var(--yellow);padding:3px 8px;border-radius:5px}
-.card .ar{color:var(--red);font-size:20px;transition:transform .18s}.card:hover .ar{transform:translateX(5px)}
-.card.wide{grid-column:span 3}@media(max-width:820px){.card.wide{grid-column:span 1}}
-.card.wide .bd{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+/* best-of trio */
+.trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:820px){.trio{grid-template-columns:1fr}}
+.bcard{position:relative;border:3px solid var(--ink);background:#fff;overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s}
+.bcard:hover{transform:translateY(-5px);box-shadow:9px 9px 0 var(--red)}
+.bcard .faces{display:flex;padding:16px 16px 0}
+.bcard .faces img{width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 14%;border:2px solid var(--ink);margin-left:-12px;filter:grayscale(.55)}
+.bcard .faces img:first-child{margin-left:0}.bcard:hover .faces img{filter:none}
+.bcard .bd{padding:14px 16px 18px}
+.bcard .tt{font-family:'Anton',sans-serif;font-size:24px;text-transform:uppercase;line-height:.95}
+.bcard .dd{color:#3a3128;font-size:13.5px;margin-top:7px;line-height:1.45}
+.bcard .foot{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.bcard .soon{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:3px 8px;border-radius:5px}
+.bcard .ar{color:var(--red);font-size:20px;transition:transform .18s}.bcard:hover .ar{transform:translateX(5px)}
+/* Index — embellished band */
+.indexband{margin-top:18px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);overflow:hidden}
+.indexband .mosaic{display:flex;flex-wrap:wrap;gap:0;opacity:.9}
+.indexband .mosaic img{width:calc(100%/12);aspect-ratio:1;object-fit:cover;object-position:50% 14%;filter:grayscale(1) contrast(1.05);transition:filter .25s}
+.indexband:hover .mosaic img{filter:none}
+@media(max-width:760px){.indexband .mosaic img{width:calc(100%/6)}}
+.indexband .body{padding:24px 24px 26px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;justify-content:space-between}
+.indexband .ttl{font-family:'Anton',sans-serif;font-size:clamp(28px,4vw,46px);text-transform:uppercase;line-height:.92}
+.indexband .ttl .y{color:var(--yellow)}
+.indexband .sb{color:#cfc6b4;font-size:14px;margin-top:6px;max-width:46ch}
+.indexband .fakesearch{display:flex;align-items:center;gap:10px;background:#1b1b1b;border:1.5px solid #333;border-radius:999px;padding:11px 18px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:#9a9082;min-width:230px}
+.indexband .cta{font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;background:var(--yellow);color:var(--ink);border-radius:999px;padding:12px 20px;white-space:nowrap}
+/* History — emphasized cinematic band */
+.histband{margin:48px 0 0;background:#0d0d0d;color:var(--cream);position:relative;overflow:hidden}
+.histband .glow{position:absolute;inset:0;background:radial-gradient(800px 380px at 30% 0%, rgba(232,52,28,.30), transparent 65%)}
+.histband .in{position:relative;max-width:1100px;margin:0 auto;padding:60px 26px 54px}
+.histband .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
+.histband h2{font-family:'Anton',sans-serif;font-size:clamp(44px,8vw,110px);text-transform:uppercase;line-height:.85;margin:12px 0 14px}
+.histband h2 .r{color:var(--red)}
+.histband .sb{color:#cfc6b4;font-size:clamp(15px,1.7vw,18px);max-width:60ch;line-height:1.55}
+.histband .timeline{display:flex;flex-wrap:wrap;gap:0;margin:28px 0 26px;border-top:2px solid #2a2a2a;border-bottom:2px solid #2a2a2a}
+.histband .timeline span{flex:1;min-width:80px;text-align:center;padding:14px 6px;font-family:'Anton',sans-serif;font-size:clamp(14px,1.6vw,20px);color:#6f675a;border-right:1px solid #2a2a2a;transition:.2s}
+.histband .timeline span:last-child{border-right:none}
+.histband .timeline span:hover{color:var(--yellow);background:rgba(255,210,62,.06)}
+.histband .cta{display:inline-flex;align-items:center;gap:9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:15px;border:2px solid var(--yellow);color:var(--yellow);border-radius:999px;padding:13px 24px;transition:.15s}
+.histband .cta:hover{background:var(--yellow);color:var(--ink)}
+.histband .soon{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9a9082;margin-left:14px}
 /* footer */
-.ftr{background:var(--ink);color:#cfc6b4;padding:40px 26px 32px;margin-top:40px}
+.ftr{background:var(--ink);color:#cfc6b4;padding:40px 26px 32px;margin-top:48px}
 .ftr .big{font-family:'Anton',sans-serif;font-size:clamp(40px,9vw,110px);color:var(--cream);text-transform:uppercase;line-height:.82}
 .ftr .big b{color:var(--red);font-weight:400}
 .ftr .cols{display:flex;flex-wrap:wrap;gap:36px;margin:24px 0 20px}
 .ftr .col h5{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow);margin-bottom:9px}
 .ftr .col a{display:block;font-family:'Archivo',sans-serif;font-weight:600;font-size:14px;color:#d8cfc0;padding:3px 0}.ftr .col a:hover{color:var(--yellow)}
-.ftr .disc{border-top:1px solid #2a2a2a;padding-top:16px;font-size:12px;line-height:1.6;color:#9a9082;max-width:90ch}
+.ftr .disc{border-top:1px solid #2a2a2a;padding-top:16px;font-size:12px;line-height:1.6;color:#9a9082;max-width:92ch}
 .ftr .disc a{color:var(--yellow);text-decoration:underline}
+/*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 </style>
 </head>
 <body>
@@ -77,51 +97,58 @@ img{display:block;max-width:100%}
 
 <nav class="nav">
   <span class="logo">Greatest <b>Bits</b></span>
-  <span class="links"><a href="comics.html">Comics</a><a href="bits.html">Bits</a><a href="specials.html">Specials</a><a href="browse.html">Index</a><a href="history.html">History</a></span>
+  <span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a></span>
   <span class="sp"></span><span class="search">&#9906; Search</span>
 </nav>
 
 <header class="hero">
-  <div class="est">A living index of stand-up</div>
-  <h1>Greatest&nbsp;B<span class="y">I</span>TS</h1>
-  <div class="desc">Every comic, every special, every bit&mdash;<b>indexed</b>. The hundred best of each, <b>ranked</b>. A <b>history</b> of the form, told in bits.</div>
+  <h1>Greatest&nbsp;B<svg class="stool" viewBox="0 0 64 132" role="img" aria-label="I (a stand-up stool)"><g fill="none" stroke="#ffd23e" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M28 28 L23 116" stroke-opacity=".5"/><path d="M36 28 L41 116" stroke-opacity=".5"/><path d="M23 28 L9 125"/><path d="M41 28 L55 125"/><path d="M13 86 L51 86"/><path d="M10 111 L54 111" stroke-width="5" stroke-opacity=".85"/></g><ellipse cx="32" cy="19" rx="29" ry="10.5" fill="#ffd23e"/><ellipse cx="32" cy="15.5" rx="29" ry="8" fill="#ffe48a"/></svg>TS</h1>
+  <p class="desc">An index of every comic, every special, and every bit in stand-up: the hundred best of each, ranked, and a history of the form told through its bits.</p>
   <div class="tick"><div class="trk" id="trk"></div></div>
 </header>
 
-<main class="wrap">
-  <div class="glabel"><span class="t">Explore</span><span class="rule"></span></div>
-  <div class="grid">
-    <a class="card" href="comics.html">
-      <div class="faces" id="f1"></div>
-      <div class="bd"><div class="tt">100 Best Comics</div><div class="dd">The greatest stand-ups who ever held a mic, ranked.</div>
-        <div class="foot"><span class="soon">Coming soon</span><span class="ar">&#8594;</span></div></div></a>
-    <a class="card" href="bits.html">
-      <div class="faces" id="f2"></div>
-      <div class="bd"><div class="tt">100 Best Bits</div><div class="dd">The single jokes, runs, and act-outs that changed comedy.</div>
-        <div class="foot"><span class="soon">Coming soon</span><span class="ar">&#8594;</span></div></div></a>
-    <a class="card" href="specials.html">
-      <div class="faces" id="f3"></div>
-      <div class="bd"><div class="tt">100 Best Specials</div><div class="dd">The greatest hours and albums, ranked, with where to watch.</div>
-        <div class="foot"><span class="soon">Coming soon</span><span class="ar">&#8594;</span></div></div></a>
-    <a class="card wide" href="browse.html">
-      <div class="emblem">The Index</div>
-      <div class="bd"><div><div class="tt" style="font-size:20px">Every comic &middot; every special &middot; every bit</div><div class="dd">The full anatomy of stand-up, browsable. Look anyone up.</div></div>
-        <div class="foot" style="margin:0"><span class="soon">Coming soon</span>&nbsp;&nbsp;<span class="ar">&#8594;</span></div></div></a>
-    <a class="card wide" href="history.html">
-      <div class="emblem" style="color:var(--red)">A History of Stand-Up</div>
-      <div class="bd"><div><div class="tt" style="font-size:20px">The story of the form, told in bits</div><div class="dd">One long scroll from the 1950s to now &mdash; the masterpiece.</div></div>
-        <div class="foot" style="margin:0"><span class="soon">Coming soon</span>&nbsp;&nbsp;<span class="ar">&#8594;</span></div></div></a>
-  </div>
+<main>
+  <section class="sec">
+    <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+    <div class="trio">
+      <a class="bcard" href="comics.html"><div class="faces" id="f1"></div><div class="bd"><div class="tt">100 Best Comics</div><div class="dd">The greatest stand-ups who ever held a mic, ranked.</div><div class="foot"><span class="soon">In progress</span><span class="ar">&#8594;</span></div></div></a>
+      <a class="bcard" href="specials.html"><div class="faces" id="f2"></div><div class="bd"><div class="tt">100 Best Specials</div><div class="dd">The greatest hours and albums, ranked, with where to watch.</div><div class="foot"><span class="soon">In progress</span><span class="ar">&#8594;</span></div></div></a>
+      <a class="bcard" href="bits.html"><div class="faces" id="f3"></div><div class="bd"><div class="tt">100 Best Bits</div><div class="dd">The single jokes and act-outs that changed comedy, each a clip you can play.</div><div class="foot"><span class="soon">In progress</span><span class="ar">&#8594;</span></div></div></a>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="glabel"><span class="t">Look anyone up</span><span class="rule"></span></div>
+    <a class="indexband" href="browse.html">
+      <div class="mosaic" id="mosaic"></div>
+      <div class="body">
+        <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">The complete anatomy of stand-up: every comic, every special, and every bit, browsable and searchable.</div></div>
+        <div class="fakesearch">&#9906;&nbsp; Search 400+ comics…</div>
+        <span class="cta">Browse the Index &#8594;</span>
+      </div>
+    </a>
+  </section>
 </main>
+
+<section class="histband">
+  <div class="glow"></div>
+  <div class="in">
+    <div class="k">The masterpiece</div>
+    <h2>A History of <span class="r">Stand-Up</span></h2>
+    <p class="sb">The story of the form, told through its bits. One long scroll from the smoky clubs of the 1950s to the streaming era, with the moments, the movements, and the clips that made it.</p>
+    <div class="timeline"><span>1950s</span><span>60s</span><span>70s</span><span>80s</span><span>90s</span><span>2000s</span><span>2010s</span><span>2020s</span></div>
+    <a class="cta" href="history.html">Enter the history &#8594;</a><span class="soon">Coming soon</span>
+  </div>
+</section>
 
 <footer class="ftr">
   <div class="big">Greatest <b>Bits</b></div>
   <div class="cols">
-    <div class="col"><h5>The 100 Best</h5><a href="comics.html">Comics</a><a href="bits.html">Bits</a><a href="specials.html">Specials</a></div>
+    <div class="col"><h5>The 100 Best</h5><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a></div>
     <div class="col"><h5>Explore</h5><a href="browse.html">The Index</a><a href="history.html">A History of Stand-Up</a></div>
     <div class="col"><h5>About</h5><a href="#">The project</a><a href="#">Method &amp; sources</a></div>
   </div>
-  <div class="disc"><b style="color:#fff3e4">A non-commercial, fan-made index of stand-up, in progress.</b> Photographs, posters, and clips are used to identify and credit each artist's work and point you to the official source &mdash; all rights remain with their owners and nothing is hosted here. Comic photos via <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> (CC BY-SA); posters via TMDB; clips embedded from official YouTube / Spotify or linked to the official special. Something wrong or want it removed? <a href="#">Get in touch</a> and we'll take it down.</div>
+  <div class="disc">A non-commercial, fan-made index of stand-up, in progress. Photographs, posters, and clips are used to identify and credit each artist's work and to point you to the official source; all rights remain with their owners and nothing is hosted here. Comic photos via <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> (CC BY-SA); posters via TMDB; clips embedded from official YouTube and Spotify or linked to the official special. Something wrong or want it removed? <a href="#">Get in touch</a> and we will take it down.</div>
 </footer>
 
 <script>
@@ -138,16 +165,27 @@ const P={
  rock:"https://upload.wikimedia.org/wikipedia/commons/8/89/Chris_Rock_2014.jpg",
  burr:"https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Bill_Burr_by_Gage_Skidmore.jpg/500px-Bill_Burr_by_Gage_Skidmore.jpg",
  martin:"https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Steve_Martin%2C_2017-08-11_%28cropped%29.jpg/960px-Steve_Martin%2C_2017-08-11_%28cropped%29.jpg",
+ hicks:"https://upload.wikimedia.org/wikipedia/commons/0/0d/Bill_Hicks_at_the_Laff_Stop_in_Austin%2C_Texas%2C_1991.jpg",
+ norm:"https://upload.wikimedia.org/wikipedia/commons/1/1f/Norm_MacDonald_%2826378045703%29_%28cropped%29.jpg",
+ tig:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Tig_Notaro_Come_See_Me_In_The_Good_Light-12.jpg/500px-Tig_Notaro_Come_See_Me_In_The_Good_Light-12.jpg",
+ izzard:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Eddie_Izzard_comes_to_Crouch_End.jpg/960px-Eddie_Izzard_comes_to_Crouch_End.jpg",
+ oswalt:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Patton_Oswalt_in_2025_%28cropped%29.jpg/500px-Patton_Oswalt_in_2025_%28cropped%29.jpg",
+ wright:"https://upload.wikimedia.org/wikipedia/commons/6/68/Steven_Wright_1994.jpg",
+ minhaj:"https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/Hasan_Minhaj_by_Gage_Skidmore.jpg/500px-Hasan_Minhaj_by_Gage_Skidmore.jpg",
+ bargatze:"https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Nate_Bargatze.jpg/500px-Nate_Bargatze.jpg",
+ tomlinson:"https://upload.wikimedia.org/wikipedia/commons/3/38/Taylor_Tomlinson_on_The_Blocks_Podcast.png",
+ gillis:"https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Shane_Gillis_%28cropped%29.jpg/960px-Shane_Gillis_%28cropped%29.jpg",
 };
 const fc=(el,keys)=>{document.getElementById(el).innerHTML=keys.map(k=>`<img src="${P[k]}" alt="" loading="lazy">`).join("");};
 fc("f1",["carlin","pryor","murphy","williams"]);
-fc("f2",["carlin","gadsby","mulaney","burnham"]);
-fc("f3",["murphy","chappelle","rock","wong"]);
+fc("f2",["murphy","chappelle","rock","gadsby"]);
+fc("f3",["carlin","hicks","burnham","mulaney"]);
+const order=["carlin","pryor","murphy","williams","rock","chappelle","hicks","gadsby","wong","burnham","mulaney","norm","tig","izzard","oswalt","wright","minhaj","bargatze","tomlinson","gillis","martin","burr"];
+document.getElementById("mosaic").innerHTML=order.map(k=>`<img src="${P[k]}" alt="" loading="lazy">`).join("");
 const names=["George Carlin","Richard Pryor","Eddie Murphy","Robin Williams","Chris Rock","Dave Chappelle","Bill Hicks","Hannah Gadsby","Ali Wong","Bo Burnham","John Mulaney","Norm Macdonald","Tig Notaro","Mitch Hedberg","Steve Martin","Bill Burr"];
-const seg=names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("");
-document.getElementById("trk").innerHTML=seg+seg;
+document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("")).repeat(2);
 const cur=document.getElementById("cur");
-addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.card,.search"));});
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.bcard,.search,.indexband,.histband .cta"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 </body>
