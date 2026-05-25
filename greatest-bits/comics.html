@@ -97,7 +97,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 <div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
 <span class="links"><a href="comics.html" class="on">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><button type="button" class="navsearch" aria-label="Search">&#9906; Search</button></nav>
-<div class="head"><div class="k">The flagship ranking</div><h1>100 Best Comics</h1><div class="sub">The greatest stand-ups who ever held a mic. Order shown is illustrative; the ranking is in progress.</div></div>
+<div class="head"><div class="k">The flagship ranking</div><h1>100 Best Comics</h1><div class="sub">A provisional order from Rolling Stone's 50 Best Stand-Up Comics of All Time, mapped to our profiles. We re-rank as our own canon forms.</div></div>
 <div class="rule"></div>
 <div class="list" id="list"></div>
 <footer class="ftr">
@@ -178,8 +178,18 @@ const C=[
  [31,"Stavros Halkias","2020s",P.halkias,"The self-deprecating id of the podcast scene."],
  [32,"Matt Rife","2020s",P.rife,"The crowd-work phenomenon of the social-media era."],
 ];
-const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-document.getElementById("list").innerHTML=C.map(c=>`<a class="cc" href="comic.html?c=${slug(c[1])}"><div class="rk">${String(c[0]).padStart(2,"0")}</div><div class="ph"><img src="${c[3]}" alt="${c[1]}" loading="lazy"></div><div><div class="nm">${c[1]}</div><div class="meta"><span class="erchip">${c[2]}</span></div><div class="tk">${c[4]}</div></div><div class="ar">&#8594;</div></a>`).join("");
+const ORDER=[[1,"richard-pryor"],[2,"george-carlin"],[3,"lenny-bruce"],[4,"louis-ck"],[5,"chris-rock"],[6,"joan-rivers"],[7,"jerry-seinfeld"],[8,"bill-cosby"],[9,"dave-chappelle"],[10,"mort-sahl"],[11,"steve-martin"],[12,"robin-williams"],[13,"bill-hicks"],[14,"andy-kaufman"],[15,"steven-wright"],[16,"billy-connolly"],[17,"bill-burr"],[18,"kevin-hart"],[19,"albert-brooks"],[20,"mitch-hedberg"],[21,"bob-newhart"],[22,"jonathan-winters"],[23,"don-rickles"],[24,"eddie-izzard"],[25,"eddie-murphy"],[26,"rodney-dangerfield"],[27,"redd-foxx"],[28,"robert-klein"],[29,"dick-gregory"],[30,"woody-allen","Woody Allen"],[31,"sarah-silverman"],[32,"patrice-oneal"],[33,"janeane-garofalo"],[34,"patton-oswalt"],[35,"tig-notaro"],[36,"daniel-kitson","Daniel Kitson"],[37,"sam-kinison"],[38,"roseanne-barr"],[39,"moms-mabley"],[40,"garry-shandling"],[41,"bernie-mac"],[42,"phyllis-diller"],[43,"amy-schumer"],[44,"russell-peters"],[45,"freddie-prinze"],[46,"reggie-watts"],[47,"elayne-boosler"],[48,"margaret-cho"],[49,"aziz-ansari"],[50,"wanda-sykes"]];
+const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+(async function(){
+ let R={};try{const r=await fetch("data/comedians.json?v="+Date.now());(await r.json()).forEach(c=>{R[c.id]=c;});}catch(e){}
+ document.getElementById("list").innerHTML=ORDER.map(o=>{
+  const rk=o[0],id=o[1],c=R[id];
+  const name=c?c.name:(o[2]||id),era=(c&&c.era&&c.era!=="None")?c.era:"",photo=c?c.photo_url:null,take=c?(c.blurb||""):"";
+  const ph=photo?`<img src="${photo}" alt="${name}" loading="lazy">`:`<div class="ini" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:42px;color:var(--ink);background:var(--yellow)">${ini(name)}</div>`;
+  const inner=`<div class="rk">${String(rk).padStart(2,"0")}</div><div class="ph">${ph}</div><div><div class="nm">${name}</div><div class="meta">${era?`<span class="erchip">${era}</span>`:""}</div><div class="tk">${take}</div></div><div class="ar">&#8594;</div>`;
+  return c?`<a class="cc" href="comic.html?c=${id}">${inner}</a>`:`<div class="cc" style="cursor:default">${inner}</div>`;
+ }).join("");
+})();
 const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.cc"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
