@@ -34,16 +34,16 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 /* living masthead */
 .hh{position:relative;background:var(--red);color:var(--cream);padding:30px 26px 0;overflow:hidden;text-align:center}
 .hh .collage{display:flex;gap:10px;justify-content:center;margin-bottom:6px}
-.hh .collage span{width:62px;height:78px;border:2px solid var(--cream);overflow:hidden;transform:rotate(var(--r));transition:transform .25s,filter .25s}
-.hh .collage span:nth-child(1){--r:-5deg}.hh .collage span:nth-child(2){--r:3deg;margin-top:12px}.hh .collage span:nth-child(3){--r:-2deg}.hh .collage span:nth-child(4){--r:4deg;margin-top:10px}.hh .collage span:nth-child(5){--r:-4deg}
-.hh .collage span:hover{transform:rotate(0) scale(1.05)}
+.hh .collage a{display:block;width:62px;height:78px;border:2px solid var(--cream);overflow:hidden;transform:rotate(var(--r));transition:transform .25s,filter .25s}
+.hh .collage a:nth-child(1){--r:-5deg}.hh .collage a:nth-child(2){--r:3deg;margin-top:12px}.hh .collage a:nth-child(3){--r:-2deg}.hh .collage a:nth-child(4){--r:4deg;margin-top:10px}.hh .collage a:nth-child(5){--r:-4deg}
+.hh .collage a:hover{transform:rotate(0) scale(1.05)}
 .hh .collage img{width:100%;height:100%;object-fit:cover;object-position:50% 14%;filter:grayscale(1) contrast(1.1)}
-.hh .collage span:hover img{filter:none}
+.hh .collage a:hover img{filter:none}
 .hh h1{font-family:'Anton',sans-serif;font-size:clamp(60px,15vw,205px);text-transform:uppercase;line-height:.78;margin:4px 0 0}
 .hh h1 .y{color:var(--yellow)}
 .hh .swap{font-family:'Archivo',sans-serif;font-weight:800;font-size:clamp(15px,2.1vw,20px);text-transform:uppercase;letter-spacing:.02em;margin:16px 0 0;color:#fff7ec}
 .hh .swap em{color:var(--yellow);font-style:normal;border-bottom:3px solid var(--yellow);transition:opacity .25s}
-.hh .cotd{display:flex;justify-content:center;margin-top:18px}
+.hh .cotd{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:18px}
 .hh .cotd a{display:inline-flex;align-items:center;gap:9px;background:var(--ink);color:var(--cream);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:9px 15px;border-radius:999px;transition:.15s}
 .hh .cotd a b{color:var(--yellow);font-weight:400}.hh .cotd a:hover{box-shadow:0 0 0 2px var(--yellow)}
 .hh .tick{margin:24px -26px 0;background:var(--ink);color:var(--cream);overflow:hidden;white-space:nowrap;padding:11px 0;font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
@@ -152,7 +152,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
   <div class="collage" id="collage"></div>
   <h1>Greatest&nbsp;B<span class="y">I</span>TS</h1>
   <p class="swap">Every comic. Every special. Every <em id="swap">bit</em>.</p>
-  <div class="cotd"><a id="cotd" href="browse.html"><span>Comic of the day:</span> <b>&hellip;</b> &#8594;</a></div>
+  <div class="cotd"><a id="cotd" href="browse.html"><span>Comic of the day:</span> <b>&hellip;</b> &#8594;</a><a id="botdchip" href="browse.html"><span>Bit of the day:</span> <b>&hellip;</b> &#8594;</a></div>
   <div class="tick"><div class="trk" id="trk"></div></div>
 </header>
 
@@ -177,10 +177,6 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
     </a>
   </section>
 
-  <section class="sec">
-    <div class="glabel"><span class="t">Bit of the Day</span><span class="rule"></span></div>
-    <div class="botd" id="botd"><div class="top"><span class="pb"></span><div><span class="subj">Loading</span><div class="bt">Finding today's bit&hellip;</div></div><span class="cue">Play &#9654;</span></div><div class="player"><div class="in"></div></div></div>
-  </section>
 </main>
 
 <section class="histband">
@@ -224,9 +220,10 @@ const P={
 };
 const fc=(el,keys)=>{document.getElementById(el).innerHTML=keys.map(k=>`<img src="${P[k]}" alt="" loading="lazy">`).join("");};
 // living masthead
-document.getElementById("collage").innerHTML=["carlin","pryor","murphy","williams","chappelle"].map(k=>`<span><img src="${P[k]}" alt=""></span>`).join("");
+const COLL=[["carlin","george-carlin","George Carlin"],["pryor","richard-pryor","Richard Pryor"],["murphy","eddie-murphy","Eddie Murphy"],["williams","robin-williams","Robin Williams"],["chappelle","dave-chappelle","Dave Chappelle"]];
+document.getElementById("collage").innerHTML=COLL.map(c=>`<a href="comic.html?c=${c[1]}" title="${c[2]}"><img src="${P[c[0]]}" alt="${c[2]}"></a>`).join("");
 const WORDS=["bit","story","act-out","one-liner","callback","crowd-work"];let wi=0;const sw=document.getElementById("swap");
-setInterval(()=>{wi=(wi+1)%WORDS.length;sw.style.opacity=0;setTimeout(()=>{sw.textContent=WORDS[wi];sw.style.opacity=1;},250);},2200);
+setInterval(()=>{wi=(wi+1)%WORDS.length;sw.textContent=WORDS[wi];},2200);
 const COTD=[["George Carlin","george-carlin"],["Richard Pryor","richard-pryor"],["Dave Chappelle","dave-chappelle"],["Robin Williams","robin-williams"],["Eddie Murphy","eddie-murphy"],["Bill Burr","bill-burr"],["John Mulaney","john-mulaney"]];
 const cd=COTD[Math.floor(Date.now()/864e5)%COTD.length];
 document.getElementById("cotd").innerHTML=`<span>Comic of the day:</span> <b>${cd[0]}</b> &#8594;`;
@@ -241,21 +238,16 @@ document.getElementById("mosaic").innerHTML=order.slice(0,12).map(k=>`<img src="
 // ticker
 const names=["George Carlin","Richard Pryor","Eddie Murphy","Robin Williams","Chris Rock","Dave Chappelle","Bill Hicks","Hannah Gadsby","Ali Wong","Bo Burnham","John Mulaney","Norm Macdonald","Tig Notaro","Bill Burr"];
 document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("")).repeat(2);
-// Bit of the Day from specials index
+// Bit of the day chip -> the special it lives in
 (async function(){
  let idx=null;try{const r=await fetch("data/specials.json?v="+Date.now());idx=await r.json();}catch(e){}
  if(!idx)return;
- const pool=[];Object.values(idx).forEach(v=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({comic:v.comic,comicId:v.comicId,special:v.t,t:b.t,subj:b.subj,id:b.id});});});
+ const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({slug,t:b.t});});});
  if(!pool.length)return;
  const b=pool[Math.floor(Date.now()/864e5)%pool.length];
- const el=document.getElementById("botd");
- el.querySelector(".top").innerHTML=`<span class="pb"></span><div><span class="subj">${b.subj||"Bit"}</span><div class="bt">${b.t}</div><div class="by">${b.comic} · from ${b.special}</div></div><span class="cue">Play &#9654;</span>`;
- el.querySelector(".top").addEventListener("click",()=>{
-   const pl=el.querySelector(".player"),inn=pl.querySelector(".in");
-   if(el.classList.contains("open")){el.classList.remove("open");inn.innerHTML="";return;}
-   el.classList.add("open");
-   inn.innerHTML=`<iframe src="https://www.youtube.com/embed/${b.id}?autoplay=1&rel=0" title="${b.t}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe><a class="ytlink" href="comic.html?c=${b.comicId}">More from ${b.comic} &#8594;</a>`;
- });
+ const chip=document.getElementById("botdchip");
+ chip.innerHTML=`<span>Bit of the day:</span> <b>${b.t}</b> &#8594;`;
+ chip.href="special.html?s="+b.slug;
 })();
 const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.bcard,.botd .top,.collage span,.indexband,.histband .cta,.search"));});
