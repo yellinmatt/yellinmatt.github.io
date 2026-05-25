@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Audit — Greatest Bits</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;--ok:#2e7d32}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit}img{display:block;max-width:100%}
+/* top bar */
+.bar{position:sticky;top:0;z-index:20;background:var(--ink);color:var(--cream);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;border-bottom:3px solid var(--yellow)}
+.bar .logo{font-family:'Anton',sans-serif;font-size:18px;text-transform:uppercase}.bar .logo b{color:var(--yellow);font-weight:400}
+.bar .prog{flex:1;min-width:200px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#cfc6b4}
+.bar .prog b{color:var(--yellow)}
+.bar .pbar{height:7px;background:#2a2a2a;border-radius:4px;overflow:hidden;margin-top:5px}
+.bar .pbar i{display:block;height:100%;background:var(--yellow)}
+.bar button{font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;border:2px solid var(--cream);background:none;color:var(--cream);border-radius:8px;padding:7px 12px;cursor:pointer;text-transform:uppercase;letter-spacing:.03em}
+.bar button:hover{border-color:var(--yellow);color:var(--yellow)}
+.bar button.exp{background:var(--yellow);color:var(--ink);border-color:var(--yellow)}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.status{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;border-radius:999px;display:inline-block}
+.status.verified{background:var(--ok);color:#fff}.status.issues{background:var(--red);color:#fff}.status.unseen{background:#e3d9c5;color:var(--mut)}
+/* head */
+.top{display:grid;grid-template-columns:230px 1fr;gap:26px;align-items:start;margin-top:8px}
+.ph{position:relative;width:230px;aspect-ratio:3/4;border:3px solid var(--ink);overflow:hidden;background:#e7ddc9}
+.ph img{width:100%;height:100%;object-fit:cover;object-position:50% 12%}
+.ph .ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:74px;color:var(--ink);background:var(--yellow)}
+.idx{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em}
+h1{font-family:'Anton',sans-serif;font-size:clamp(40px,7vw,72px);text-transform:uppercase;line-height:.86;margin:4px 0 10px}
+.pills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px}
+.pill{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;border:2px solid var(--ink);border-radius:999px;padding:4px 10px;background:#fff}
+.blurb{font-family:'Fraunces',Georgia,serif;font-size:18px;color:#332c22;line-height:1.5;max-width:60ch}
+/* flag chips */
+.flags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.fl{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border:1.5px solid #c9b98f;background:#fff;color:var(--mut);border-radius:6px;padding:4px 9px;cursor:pointer;transition:.12s}
+.fl:hover{border-color:var(--red);color:var(--red)}
+.fl.on{background:var(--red);color:#fff;border-color:var(--red)}
+.lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:600;margin:22px 0 8px;border-top:2px solid #e3d9c5;padding-top:12px}
+/* links */
+.lk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
+.lk .nm{font-family:'Archivo';font-weight:800;font-size:13px;min-width:90px}
+.lk a{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink);text-decoration:underline;word-break:break-all}
+.lk .miss{font-family:'IBM Plex Mono';font-size:11px;color:var(--mut)}
+/* specials + bits cards */
+.card{border:2px solid var(--ink);background:#fff;border-radius:9px;padding:12px 13px;margin-bottom:10px}
+.card .row{display:flex;gap:13px;align-items:flex-start}
+.card .pos{width:52px;height:74px;border:2px solid var(--ink);overflow:hidden;background:#e7ddc9;flex:0 0 auto}
+.card .pos img{width:100%;height:100%;object-fit:cover}.card .pos .none{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Anton';font-size:16px;color:#c5b48a;background:#efe6d3}
+.card .t{font-family:'Archivo';font-weight:900;font-size:15px;line-height:1.1}
+.card .m{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);margin-top:3px}
+.card .w{font-family:'IBM Plex Mono';font-size:11px;color:var(--red);text-decoration:underline}
+.pb{font-family:'Archivo';font-weight:800;font-size:11px;color:var(--ink);background:var(--yellow);border:2px solid var(--ink);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.embed{margin-top:10px}.embed iframe{width:100%;max-width:560px;aspect-ratio:16/9;border:0;border-radius:8px}
+.note{width:100%;margin-top:8px;border:2px solid var(--ink);border-radius:8px;padding:8px 10px;font-family:'Inter';font-size:13px;resize:vertical;min-height:42px}
+/* bottom controls */
+.ctrl{position:sticky;bottom:0;background:var(--cream);border-top:3px solid var(--ink);padding:12px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:24px}
+.ctrl button{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;border:2px solid var(--ink);border-radius:9px;padding:11px 16px;cursor:pointer;background:#fff;text-transform:uppercase;letter-spacing:.03em}
+.ctrl button.v{background:var(--ok);color:#fff;border-color:var(--ink)}
+.ctrl button.nextun{background:var(--yellow)}
+.ctrl .hint{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--mut);margin-left:auto}
+.empty{font-family:'IBM Plex Mono';font-size:12px;color:var(--mut);padding:8px 0}
+</style>
+</head>
+<body>
+<div class="bar">
+  <span class="logo">Audit <b>·</b> GB</span>
+  <div class="prog"><span id="ptext"></span><div class="pbar"><i id="pfill"></i></div></div>
+  <button id="jump">Next unaudited</button>
+  <button class="exp" id="export">Export flags</button>
+</div>
+<div class="wrap" id="app"><div class="empty">Loading roster…</div></div>
+<div class="ctrl">
+  <button id="prev">&#8592; Prev</button>
+  <button id="next">Next &#8594;</button>
+  <button class="v" id="verify">&#10003; Verify &amp; next</button>
+  <span class="hint">keys: &#8592;/&#8594; move &middot; V verify+next &middot; N next unaudited</span>
+</div>
+
+<script>
+var KEY="gbAudit_v1";
+var AUD=JSON.parse(localStorage.getItem(KEY)||"{}"); // {id:{status,flags:[{field,issue}],note,ts}}
+var ROST=[],i=0,cur=null,curId=null;
+function save(){localStorage.setItem(KEY,JSON.stringify(AUD));updateProg();}
+function rec(id){if(!AUD[id])AUD[id]={status:"unseen",flags:[],note:""};return AUD[id];}
+function hasFlag(id,field,issue){return rec(id).flags.some(function(f){return f.field===field&&f.issue===issue;});}
+function toggleFlag(id,field,issue){var r=rec(id);var k=r.flags.findIndex(function(f){return f.field===field&&f.issue===issue;});if(k>-1)r.flags.splice(k,1);else r.flags.push({field:field,issue:issue});if(r.status==="unseen")r.status="issues";if(r.flags.length===0&&r.status==="issues")r.status="unseen";save();}
+function statusOf(id){return (AUD[id]&&AUD[id].status)||"unseen";}
+function updateProg(){var done=ROST.filter(function(c){return statusOf(c.id)!=="unseen";}).length;var flagged=ROST.filter(function(c){return statusOf(c.id)==="issues";}).length;document.getElementById("ptext").innerHTML="<b>"+done+"</b> / "+ROST.length+" audited &middot; "+flagged+" flagged";document.getElementById("pfill").style.width=(ROST.length?Math.round(done/ROST.length*100):0)+"%";}
+function chip(field,issue,id){return '<span class="fl'+(hasFlag(id,field,issue)?" on":"")+'" data-field="'+field+'" data-issue="'+issue+'">'+issue+'</span>';}
+function esc(s){return (s==null?"":String(s)).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+async function load(idx){
+ i=(idx+ROST.length)%ROST.length;var c=ROST[i];curId=c.id;
+ var app=document.getElementById("app");app.innerHTML='<div class="empty">Loading '+esc(c.name)+'…</div>';
+ var x={};try{var r=await fetch("data/comics/"+c.id+".json?v="+Date.now());if(r.ok)x=await r.json();}catch(e){}
+ cur=x;
+ var photo=x.photo||c.photo_url;
+ var st=statusOf(c.id);
+ var h='<div class="idx">Comic '+(i+1)+' / '+ROST.length+' &middot; id: '+esc(c.id)+' &middot; <span class="status '+st+'">'+st+'</span></div>';
+ h+='<div class="top"><div class="ph">'+(photo?'<img src="'+esc(photo)+'" alt="">':'<span class="ini">'+esc((c.name||"?").slice(0,2).toUpperCase())+'</span>')+'</div><div>';
+ h+='<h1>'+esc(c.name)+'</h1>';
+ h+='<div class="pills">'+[x.years,x.nat||c.nationality,x.era||c.era].filter(Boolean).map(function(p){return '<span class="pill">'+esc(p)+'</span>';}).join("")+'</div>';
+ h+='<div class="lbl" style="border:none;margin-top:0;padding-top:0">Photograph &mdash; is this actually '+esc(c.name)+'?</div><div class="flags">'+chip("photo","wrong person",c.id)+chip("photo","low quality",c.id)+chip("photo","bad crop",c.id)+chip("photo","missing",c.id)+'</div>';
+ h+='<div class="lbl">Bio</div><div class="blurb">'+(esc(x.bio||c.blurb)||'<span class="empty">No bio.</span>')+'</div><div class="flags">'+chip("bio","wrong",c.id)+chip("bio","too thin",c.id)+chip("bio","rewrite",c.id)+'</div>';
+ h+='</div></div>';
+ // links
+ h+='<div class="lbl">Official links</div>';
+ var L=x.links||{};
+ function linkRow(name,field,url){return '<div class="lk"><span class="nm">'+name+'</span>'+(url?'<a href="'+esc(url)+'" target="_blank" rel="noopener">'+esc(url)+'</a>'+chip(field,"dead",c.id)+chip(field,"wrong",c.id):'<span class="miss">none</span>'+chip(field,"missing",c.id))+'</div>';}
+ h+=linkRow("Website","links.website",L.website);
+ h+=linkRow("YouTube","links.youtube",L.youtube);
+ h+=linkRow("Instagram","links.instagram",L.instagram);
+ h+=linkRow("Podcast","links.podcast",L.podcast&&L.podcast.url);
+ // specials
+ var sps=x.specials||[];
+ h+='<div class="lbl">Specials ('+sps.length+')</div>';
+ if(!sps.length)h+='<div class="flags">'+chip("specials","none / add",c.id)+'</div>';
+ sps.forEach(function(s,si){var f="special:"+si;var pos=s.poster?'<img src="https://image.tmdb.org/t/p/w185/'+esc(s.poster)+'" alt="">':'<div class="none">'+esc((s.t||"?")[0])+'</div>';
+  h+='<div class="card"><div class="row"><div class="pos">'+pos+'</div><div style="flex:1"><div class="t">'+esc(s.t)+'</div><div class="m">'+esc(s.yr||"")+' &middot; '+esc(s.plat||"")+(s.watch?' &middot; <a class="w" href="'+esc(s.watch)+'" target="_blank" rel="noopener">watch</a>':' &middot; no watch link')+'</div><div class="flags">'+chip(f,"wrong special",c.id)+chip(f,"wrong/no poster",c.id)+chip(f,"wrong year",c.id)+chip(f,"add watch",c.id)+chip(f,"remove",c.id)+'</div></div></div></div>';});
+ // bits
+ var bits=x.bits||[];
+ h+='<div class="lbl">Bits ('+bits.length+') &mdash; play to confirm the clip matches</div>';
+ if(!bits.length)h+='<div class="flags">'+chip("bits","none / add",c.id)+chip("bits","needs more",c.id)+'</div>';
+ bits.forEach(function(b,bi){var f="bit:"+bi;
+  h+='<div class="card"><div class="row"><button class="pb" data-play="'+esc(b.id)+'" data-t="'+esc(b.t)+'">&#9654; Play</button><div style="flex:1"><div class="t">'+esc(b.t)+'</div><div class="m">'+esc(b.subj||"")+' &middot; from '+esc(b.sp||"?")+' '+esc(b.yr||"")+' &middot; id '+esc(b.id)+'</div><div class="flags">'+chip(f,"wrong clip",c.id)+chip(f,"wrong title",c.id)+chip(f,"not official",c.id)+chip(f,"wrong type",c.id)+chip(f,"remove",c.id)+'</div></div></div><div class="embed" data-slot="'+bi+'"></div></div>';});
+ if(bits.length)h+='<div class="flags" style="margin-top:6px">'+chip("bits","needs more",c.id)+'</div>';
+ // note
+ h+='<div class="lbl">Note (optional)</div><textarea class="note" id="note" placeholder="Anything else to fix for '+esc(c.name)+'…">'+esc(rec(c.id).note||"")+'</textarea>';
+ app.innerHTML=h;
+ app.querySelectorAll(".fl").forEach(function(el){el.addEventListener("click",function(){toggleFlag(curId,el.dataset.field,el.dataset.issue);el.classList.toggle("on");refreshStatusChip();});});
+ app.querySelectorAll("[data-play]").forEach(function(btn){btn.addEventListener("click",function(){var slot=btn.closest(".card").querySelector(".embed");if(slot.innerHTML){slot.innerHTML="";btn.innerHTML="&#9654; Play";return;}slot.innerHTML='<iframe src="https://www.youtube.com/embed/'+btn.dataset.play+'?rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';btn.innerHTML="&#9632; Close";});});
+ var nt=document.getElementById("note");if(nt)nt.addEventListener("input",function(){var r=rec(curId);r.note=nt.value;if(r.note&&r.status==="unseen")r.status="issues";save();});
+ updateProg();
+}
+function refreshStatusChip(){var el=document.querySelector(".status");if(el){var s=statusOf(curId);el.className="status "+s;el.textContent=s;}}
+function verifyNext(){var r=rec(curId);r.status=(r.flags.length||r.note)?"issues":"verified";r.ts=Date.now();save();nextUnaudited(true);}
+function nextUnaudited(fromVerify){for(var k=1;k<=ROST.length;k++){var j=(i+k)%ROST.length;if(statusOf(ROST[j].id)==="unseen"){load(j);return;}}load((i+1)%ROST.length);}
+document.getElementById("prev").addEventListener("click",function(){load(i-1);});
+document.getElementById("next").addEventListener("click",function(){load(i+1);});
+document.getElementById("verify").addEventListener("click",verifyNext);
+document.getElementById("jump").addEventListener("click",function(){nextUnaudited();});
+document.getElementById("export").addEventListener("click",function(){
+ var out={generated:new Date().toISOString(),audited:ROST.filter(function(c){return statusOf(c.id)!=="unseen";}).length,total:ROST.length,
+  comics:Object.keys(AUD).filter(function(id){return AUD[id].flags.length||AUD[id].note||AUD[id].status==="verified";}).map(function(id){return {id:id,status:AUD[id].status,flags:AUD[id].flags,note:AUD[id].note||""};})};
+ var js=JSON.stringify(out,null,1);
+ try{navigator.clipboard.writeText(js);}catch(e){}
+ var blob=new Blob([js],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="gb-audit.json";a.click();
+ alert("Audit exported: "+out.comics.length+" comics with flags/verdicts. Copied to clipboard + downloaded gb-audit.json.");
+});
+document.addEventListener("keydown",function(e){if(/^(INPUT|TEXTAREA)$/.test((document.activeElement||{}).tagName||""))return;
+ if(e.key==="ArrowLeft"){load(i-1);}else if(e.key==="ArrowRight"){load(i+1);}else if(e.key==="v"||e.key==="V"){verifyNext();}else if(e.key==="n"||e.key==="N"){nextUnaudited();}});
+(async function(){
+ try{var r=await fetch("data/comedians.json?v="+Date.now());ROST=await r.json();}catch(e){document.getElementById("app").innerHTML='<div class="empty">Could not load roster.</div>';return;}
+ ROST.sort(function(a,b){return (a.name||"").localeCompare(b.name||"");});
+ var firstUn=ROST.findIndex(function(c){return statusOf(c.id)==="unseen";});
+ load(firstUn>-1?firstUn:0);
+})();
+</script>
+</body>
+</html>
