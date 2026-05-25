@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ranking Lab — Greatest Bits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit}
+.nav{display:flex;align-items:center;gap:24px;padding:14px 26px;background:var(--ink);color:var(--cream)}
+.nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase;text-decoration:none}.nav .logo b{color:var(--yellow);font-weight:400}
+.nav .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--yellow)}
+.nav a.x{margin-left:auto;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;color:var(--cream);text-decoration:none}
+.wrap{max-width:1040px;margin:0 auto;padding:26px 24px 60px}
+.head h1{font-family:'Anton',sans-serif;font-size:clamp(38px,7vw,76px);text-transform:uppercase;line-height:.85}
+.head .sub{font-size:15px;color:#3a3128;margin-top:8px;max-width:62ch}
+/* progress */
+.prog{margin:22px 0 8px;display:flex;align-items:center;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+.bar{flex:1;height:8px;background:#e3d9c5;border:2px solid var(--ink);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--red);width:0;transition:width .3s}
+/* compare */
+.arena{display:grid;grid-template-columns:1fr 64px 1fr;gap:0;align-items:stretch;margin-top:14px}
+.card{border:3px solid var(--ink);background:#fff;display:flex;flex-direction:column;cursor:pointer;transition:.15s;overflow:hidden}
+.card:hover{box-shadow:8px 8px 0 var(--ink);transform:translateY(-3px)}
+.card .ph{aspect-ratio:16/10;overflow:hidden;background:#e7ddc9;border-bottom:3px solid var(--ink)}
+.card .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;filter:grayscale(1) contrast(1.08)}
+.card:hover .ph img{filter:none}
+.card .yt{aspect-ratio:16/10;border-bottom:3px solid var(--ink)}
+.card .yt iframe{width:100%;height:100%;border:0;display:block}
+.card .body{padding:16px 16px 18px;display:flex;flex-direction:column;gap:0;flex:1}
+.card .subj{align-self:flex-start;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;background:var(--yellow);padding:3px 8px;border-radius:4px;margin-bottom:9px}
+.card .t{font-family:'Anton',sans-serif;font-size:clamp(22px,3vw,34px);text-transform:uppercase;line-height:.95}
+.card .by{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);text-transform:uppercase;margin-top:8px;letter-spacing:.03em}
+.card .watch{align-self:flex-start;margin-top:13px;font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;color:var(--red);background:none;border:2px solid var(--ink);border-radius:999px;padding:7px 13px;cursor:pointer}
+.card .watch:hover{background:var(--ink);color:var(--yellow)}
+.vs{display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:26px;color:var(--red)}
+.pickrow{margin-top:16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.btn{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;border:2px solid var(--ink);background:#fff;border-radius:999px;padding:10px 18px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--ink);color:var(--yellow)}
+.btn.kbd b{font-family:'IBM Plex Mono',monospace;color:var(--red)}
+.hint{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);margin-top:12px;letter-spacing:.04em}
+/* tier + result */
+.rrow{display:grid;grid-template-columns:42px 52px 1fr;gap:14px;align-items:center;border-bottom:2px solid #e3d9c5;padding:9px 4px}
+.rrow .rk{font-family:'Anton',sans-serif;font-size:24px;color:var(--red)}
+.rrow .ph{width:52px;height:52px;border:2px solid var(--ink);overflow:hidden}
+.rrow .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 16%;filter:grayscale(1)}
+.rrow .nm{font-family:'Archivo',sans-serif;font-weight:800;font-size:15px}
+.rrow .nm small{display:block;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:10.5px;color:var(--mut);text-transform:uppercase;margin-top:2px}
+.divline{display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer;color:var(--mut)}
+.divline:hover{color:var(--red)}
+.divline .ln{flex:1;height:2px;background:repeating-linear-gradient(90deg,#c9b98f 0 7px,transparent 7px 13px)}
+.divline.set .ln{background:var(--red);height:3px}
+.divline .lab{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.tierband{font-family:'Anton',sans-serif;font-size:15px;text-transform:uppercase;color:var(--ink);background:var(--yellow);display:inline-block;padding:3px 12px;margin:14px 0 2px;border:2px solid var(--ink)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.out{margin-top:18px;background:var(--ink);color:#d8cdb8;border-radius:8px;padding:16px;font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow:auto}
+.note{font-size:13px;color:#3a3128;margin-top:10px}
+@media(max-width:720px){.arena{grid-template-columns:1fr;gap:12px}.vs{padding:4px 0}.card .ph,.card .yt{aspect-ratio:16/9}}
+</style>
+</head>
+<body>
+<nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a><span class="tag">Ranking Lab</span><a class="x" href="bits.html">Exit &#8599;</a></nav>
+<div class="wrap">
+<div class="head"><h1 id="h1">Rank the Bits</h1><div class="sub" id="sub">Two bits at a time. Pick the one you rate higher; press play to watch either clip first. Your picks build the full ranking, then you set the tier lines. Progress saves as you go.</div></div>
+<div class="prog"><span id="ptxt">Placed 0 / 0</span><div class="bar"><i id="pbar"></i></div><span id="pcmp">0 picks</span></div>
+<div id="stage"></div>
+<div class="actions" id="bottomActions"></div>
+</div>
+<script>
+const LIST="bits";
+const DATA=[
+ {id:"1rP-U-ZbuzE",t:"Seven Words",subj:"Censorship",who:"George Carlin",sp:"Class Clown",yr:1972,face:"https://image.tmdb.org/t/p/h632/2No6PxJbTGtawVJh0ivUiXfVprH.jpg"},
+ {id:"WsTXsc7rXrQ",t:"The Heart-Attack Act-Out",subj:"Mortality",who:"Richard Pryor",sp:"Is It Something I Said?",yr:1975,face:"https://image.tmdb.org/t/p/h632/5hLh0btIkqYPbDmJ0i4WZo9OAt2.jpg"},
+ {id:"KgzQuE1pR1w",t:"It's Just a Ride",subj:"Reality",who:"Bill Hicks",sp:"Revelations",yr:1993,face:"https://image.tmdb.org/t/p/h632/lAn7eqeUo5L8d5Fgu3IlHIiPq9z.jpg"},
+ {id:"JhkZMxgPxXU",t:"The Horse in the Hospital",subj:"Chaos",who:"John Mulaney",sp:"Kid Gorgeous",yr:2018,face:"https://image.tmdb.org/t/p/h632/i3dGv3WoIONVLSlOpW4NIaT8Fs2.jpg"},
+ {id:"k1BneeJTDcU",t:"Welcome to the Internet",subj:"The Internet",who:"Bo Burnham",sp:"Inside",yr:2021,face:"https://image.tmdb.org/t/p/h632/xMAatohXadCfz9ipvqvIaTLwOmV.jpg"},
+ {id:"Ft4kEk5CHrE",t:"The Ice Cream Man",subj:"Childhood",who:"Eddie Murphy",sp:"Delirious",yr:1983,face:"https://image.tmdb.org/t/p/h632/qgjMfefsKwSYsyCaIX46uyOXIpy.jpg"},
+ {id:"B5xGPU1QWok",t:"Rockets and Penises",subj:"War",who:"George Carlin",sp:"Jammin in New York",yr:1992,face:"https://image.tmdb.org/t/p/h632/2No6PxJbTGtawVJh0ivUiXfVprH.jpg"},
+ {id:"14NQIq4SrmY",t:"The Invention of Golf",subj:"Golf",who:"Robin Williams",sp:"Live on Broadway",yr:2002,face:"https://image.tmdb.org/t/p/h632/iYdeP6K0qz44Wg2Nw9LPJGMBkQ5.jpg"},
+ {id:"n3LMSflEN54",t:"The Moth Joke",subj:"Anti-Comedy",who:"Norm Macdonald",sp:"Conan",yr:2014,face:"https://image.tmdb.org/t/p/h632/pGOpdt9Xy9YO2nUEWgp8G89KC5r.jpg"},
+ {id:"vrIw2i4WtA4",t:"An Escalator Can Never Break",subj:"Absurdism",who:"Mitch Hedberg",sp:"Comedy Central Presents",yr:1999,face:"https://image.tmdb.org/t/p/h632/1Urrrx1TOCF8Q2mu5lcQcQoyDRt.jpg"},
+ {id:"2MZZ__5F_-A",t:"Impressions",subj:"Impressions",who:"Dave Chappelle",sp:"The Age of Spin",yr:2017,face:"https://image.tmdb.org/t/p/h632/hDVe67wjmjtbOTzDrFaJfcobcE.jpg"},
+ {id:"q6mX5Ryq8Rs",t:"To Hell with Humiliation",subj:"Identity",who:"Hannah Gadsby",sp:"Nanette",yr:2018,face:"https://image.tmdb.org/t/p/h632/muniJCyvEKACJaijKZZl0T9qZe7.jpg"},
+ {id:"XY9h-0x1Oao",t:"The Pregnant Comedian",subj:"Pregnancy",who:"Ali Wong",sp:"Baby Cobra",yr:2016,face:"https://image.tmdb.org/t/p/h632/vpVDlzPIIzgwdO23MbbwvfmPtXQ.jpg"},
+ {id:"0-sDt8n_YZE",t:"The Banjo",subj:"Music",who:"Steve Martin",sp:"The Midnight Special",yr:1975,face:"https://image.tmdb.org/t/p/h632/d0KthX8hVWU9BxTCG1QUO8FURRm.jpg"},
+ {id:"a9WowBxdhTQ",t:"Gold Digging",subj:"Money",who:"Bill Burr",sp:"You People Are All the Same",yr:2012,face:"https://image.tmdb.org/t/p/h632/4U95TX23X97OK9csaKVwzqAjFUV.jpg"},
+ {id:"xxX7QCll3oc",t:"Death Star Canteen",subj:"Star Wars",who:"Eddie Izzard",sp:"Circle",yr:2000,face:"https://image.tmdb.org/t/p/h632/6mUPuQt6ofMBHxHJQmF3Dj1nYmH.jpg"},
+ {id:"tNaXRADhvsM",t:"Comedy with a Stool",subj:"Absurdism",who:"Tig Notaro",sp:"Conan",yr:2015,face:"https://image.tmdb.org/t/p/h632/tdZ6XLzIaK0HWWPSM2B5OrOqUC0.jpg"},
+ {id:"ny2w2PJKRH8",t:"A Woman President",subj:"Politics",who:"Patton Oswalt",sp:"Annihilation",yr:2017,face:"https://image.tmdb.org/t/p/h632/ljQvjbPmcIAl205Lb2Mu4CW8WO7.jpg"},
+ {id:"3_reZyHykZg",t:"Religions, Inc.",subj:"Religion",who:"Lenny Bruce",sp:"The Sick Humor of Lenny Bruce",yr:1959,face:"https://upload.wikimedia.org/wikipedia/commons/1/16/Lenny_Bruce_1961.jpg"},
+ {id:"F3G1H-MzHX4",t:"I Ain't Scared of You",subj:"Family",who:"Bernie Mac",sp:"Kings of Comedy",yr:2000,face:"https://image.tmdb.org/t/p/h632/o1LQ83S4ZYvj84HYeWAzEV7Cg95.jpg"},
+];
+const TIERS=["Pantheon","Classic","Great","Notable"];
+const SK="gb-rank-"+LIST;
+
+// ---------- state ----------
+let st=load()||fresh();
+function fresh(){
+ const order=DATA.map((d,i)=>i);
+ // shuffle the seed so first-seen order does not bias
+ for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+ return {phase:"compare",pool:order.slice(1),ranked:[order[0]],placing:null,lo:0,hi:0,picks:0,dividers:[]};
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(st));}catch(e){}}
+function load(){try{const v=localStorage.getItem(SK);return v?JSON.parse(v):null;}catch(e){return null;}}
+
+function step(){
+ if(st.placing===null){
+  if(st.pool.length===0){st.phase="tier";save();return;}
+  st.placing=st.pool.shift();st.lo=0;st.hi=st.ranked.length;
+ }
+ if(st.lo>=st.hi){ st.ranked.splice(st.lo,0,st.placing); st.placing=null; return step(); }
+}
+function pick(placingWins){
+ const mid=Math.floor((st.lo+st.hi)/2);
+ if(placingWins){st.hi=mid;}else{st.lo=mid+1;}
+ st.picks++; step(); save(); render();
+}
+
+// ---------- render ----------
+const stage=document.getElementById("stage");
+const h1=document.getElementById("h1"),sub=document.getElementById("sub");
+function setProg(){
+ const placed=st.ranked.length-(st.placing!==null?0:0);
+ const total=DATA.length;
+ const done=st.ranked.length;
+ document.getElementById("ptxt").textContent="Placed "+Math.min(done,total)+" / "+total;
+ document.getElementById("pbar").style.width=(100*Math.min(done,total)/total)+"%";
+ document.getElementById("pcmp").textContent=st.picks+" picks";
+}
+function card(idx,side){
+ const d=DATA[idx];
+ return `<div class="card" data-side="${side}">
+  <div class="ph"><img src="${d.face}" alt="${d.who}"></div>
+  <div class="body"><span class="subj">${d.subj}</span><div class="t">${d.t}</div>
+   <div class="by">${d.who} &middot; ${d.sp} &middot; ${d.yr}</div>
+   <button class="watch" data-play="${d.id}">&#9654; Watch clip</button></div></div>`;
+}
+function renderCompare(){
+ step();
+ if(st.phase!=="compare"){return renderTier();}
+ const mid=Math.floor((st.lo+st.hi)/2);
+ const A=st.placing, B=st.ranked[mid];
+ h1.textContent="Rank the Bits";
+ stage.innerHTML=`<div class="arena">${card(A,"A")}<div class="vs">VS</div>${card(B,"B")}</div>
+  <div class="pickrow"><button class="btn kbd" data-side="A">&#8592; <b>A</b> is better</button>
+   <button class="btn kbd" data-side="B"><b>B</b> is better &#8594;</button></div>
+  <div class="hint">Use the &#8592; / &#8594; arrow keys. Click "Watch clip" to play either inline.</div>`;
+ document.getElementById("bottomActions").innerHTML=`<button class="btn" id="reset">Start over</button>`;
+ bind();
+ setProg();
+}
+function renderTier(){
+ h1.textContent="Set the tier lines";
+ sub.textContent="Your ranking is locked in. Click up to three gaps to draw tier lines. Top band is the Pantheon, then Classic, Great, Notable.";
+ let rows="";
+ const divs=st.dividers;
+ for(let i=0;i<st.ranked.length;i++){
+  const d=DATA[st.ranked[i]];
+  rows+=`<div class="rrow"><div class="rk">${String(i+1).padStart(2,"0")}</div><div class="ph"><img src="${d.face}" alt=""></div><div class="nm">${d.t}<small>${d.who} &middot; ${d.yr}</small></div></div>`;
+  if(i<st.ranked.length-1){
+   const set=divs.includes(i+1);
+   rows+=`<div class="divline ${set?'set':''}" data-div="${i+1}"><div class="ln"></div><span class="lab">${set?'&#9472; tier line':'+ line'}</span><div class="ln"></div></div>`;
+  }
+ }
+ stage.innerHTML=rows;
+ document.getElementById("bottomActions").innerHTML=`<button class="btn" id="finish">Finish &amp; get result</button><button class="btn" id="reset">Start over</button>`;
+ bind();
+ setProg();
+}
+function renderDone(){
+ h1.textContent="Done — copy your ranking";
+ sub.textContent="Paste this back into the chat and I will apply it to the live Bits list, tiers and all.";
+ const divs=[0,...st.dividers.slice().sort((a,b)=>a-b),st.ranked.length];
+ let out=[],html="";
+ let tierIdx=0;
+ for(let b=0;b<divs.length-1;b++){
+  const tier=TIERS[Math.min(b,TIERS.length-1)];
+  html+=`<div class="tierband">${tier}</div>`;
+  for(let i=divs[b];i<divs[b+1];i++){
+   const d=DATA[st.ranked[i]];
+   html+=`<div class="rrow"><div class="rk">${String(i+1).padStart(2,"0")}</div><div class="ph"><img src="${d.face}" alt=""></div><div class="nm">${d.t}<small>${d.who} &middot; ${d.yr}</small></div></div>`;
+   out.push({rank:i+1,tier:tier,id:d.id,t:d.t,who:d.who});
+  }
+ }
+ const json=JSON.stringify(out,null,1);
+ stage.innerHTML=html+`<div class="note">Result (JSON):</div><div class="out" id="out">${json.replace(/</g,"&lt;")}</div>`;
+ document.getElementById("bottomActions").innerHTML=`<button class="btn" id="copy">Copy result</button><button class="btn" id="back">Back to tiers</button><button class="btn" id="reset">Start over</button>`;
+ bind();
+ document.getElementById("copy").addEventListener("click",()=>{navigator.clipboard.writeText(json).then(()=>{document.getElementById("copy").textContent="Copied ✓";});});
+ setProg();
+}
+function render(){ if(st.phase==="compare")renderCompare(); else if(st.phase==="tier")renderTier(); else renderDone(); }
+
+function bind(){
+ stage.querySelectorAll("[data-play]").forEach(b=>b.addEventListener("click",e=>{
+  e.stopPropagation();
+  const id=b.getAttribute("data-play"),ph=b.closest(".card").querySelector(".ph");
+  ph.outerHTML=`<div class="yt"><iframe src="https://www.youtube.com/embed/${id}?autoplay=1&rel=0" allow="autoplay;encrypted-media;picture-in-picture" allowfullscreen></iframe></div>`;
+ }));
+ stage.querySelectorAll(".card").forEach(c=>c.addEventListener("click",()=>pick(c.dataset.side==="A")));
+ document.querySelectorAll(".pickrow .btn").forEach(b=>b.addEventListener("click",()=>pick(b.dataset.side==="A")));
+ stage.querySelectorAll(".divline").forEach(dl=>dl.addEventListener("click",()=>{
+  const n=+dl.dataset.div, i=st.dividers.indexOf(n);
+  if(i>=0)st.dividers.splice(i,1);
+  else{ if(st.dividers.length>=3){alert("Up to three tier lines (four tiers). Remove one first.");return;} st.dividers.push(n); }
+  save();renderTier();
+ }));
+ const fin=document.getElementById("finish");if(fin)fin.addEventListener("click",()=>{st.phase="done";save();renderDone();});
+ const back=document.getElementById("back");if(back)back.addEventListener("click",()=>{st.phase="tier";save();renderTier();});
+ const rs=document.getElementById("reset");if(rs)rs.addEventListener("click",()=>{if(confirm("Start the whole ranking over?")){st=fresh();save();render();}});
+}
+addEventListener("keydown",e=>{
+ if(st.phase!=="compare")return;
+ if(e.key==="ArrowLeft")pick(true);
+ else if(e.key==="ArrowRight")pick(false);
+});
+render();
+</script>
+</body>
+</html>
