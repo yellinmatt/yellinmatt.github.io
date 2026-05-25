@@ -246,7 +246,7 @@ function load(){if(DATA)return Promise.resolve();return Promise.all([
   (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"special.html?s="+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
 });}
 function esc(x){return (x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function render(q){q=(q||"").trim().toLowerCase();
+function render(q){q=(q||"").trim().toLowerCase();if(!DATA){res.innerHTML='<div class="empty">Loading\u2026</div>';return;}
  if(!q){res.innerHTML='<div class="empty">Type to search comics, specials, and bits.</div>';rows=[];return;}
  var hits=DATA.filter(function(d){return d.q.indexOf(q)>-1;});
  hits.sort(function(a,b){return (b.nm.toLowerCase().indexOf(q)===0?1:0)-(a.nm.toLowerCase().indexOf(q)===0?1:0);});
@@ -254,7 +254,7 @@ function render(q){q=(q||"").trim().toLowerCase();
  if(!rows.length){res.innerHTML='<div class="empty">No matches. Tough crowd.</div>';return;}
  res.innerHTML=rows.map(function(d,i){var av=d.img?('<span class="av'+(d.poster?" poster":"")+'"><img src="'+d.img+'" alt=""></span>'):'<span class="av"></span>';return '<a class="r'+(i===0?" sel":"")+'" href="'+d.href+'"><'+'div style="display:contents">'+av+'<div><div class="nm">'+esc(d.nm)+'</div><div class="sub">'+esc(d.sub||"")+'</div></div><span class="ty">'+d.ty+'</span></div></a>';}).join("");
 }
-function open(){ov.classList.add("on");ip.value="";ip.focus();load().then(function(){render("");});}
+function open(){ov.classList.add("on");ip.value="";ip.focus();render("");load().then(function(){render(ip.value);});}
 function close(){ov.classList.remove("on");}
 function move(n){if(!rows.length)return;var els=res.querySelectorAll(".r");if(els[sel])els[sel].classList.remove("sel");sel=(sel+n+rows.length)%rows.length;els[sel].classList.add("sel");els[sel].scrollIntoView({block:"nearest"});}
 if(ip)ip.addEventListener("input",function(){render(ip.value);});
