@@ -163,8 +163,8 @@ function renderProfile(c,x){
 }
 (async function(){
  let prof=null,rec=null;
- try{const r=await fetch("data/comics/"+sl+".json");if(r.ok)prof=await r.json();}catch(e){}
- if(!prof){try{const rr=await fetch("data/comedians.json");if(rr.ok){const ros=await rr.json();rec=ros.find(z=>z.id===sl);}}catch(e){}}
+ try{const r=await fetch("data/comics/"+sl+".json?v="+Date.now());if(r.ok)prof=await r.json();}catch(e){}
+ if(!prof){try{const rr=await fetch("data/comedians.json?v="+Date.now());if(rr.ok){const ros=await rr.json();rec=ros.find(z=>z.id===sl);}}catch(e){}}
  if(!prof&&!rec){notFound();return;}
  const c=prof?{name:prof.name,era:prof.era,nat:prof.nat,years:prof.years,photo:prof.photo,blurb:prof.blurb}:basics(rec);
  const x=prof||{};

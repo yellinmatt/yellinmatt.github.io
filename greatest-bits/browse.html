@@ -135,7 +135,7 @@ document.getElementById("t-grid").addEventListener("click",()=>{mode="grid";docu
 document.getElementById("t-list").addEventListener("click",()=>{mode="list";document.getElementById("t-list").classList.add("on");document.getElementById("t-grid").classList.remove("on");render();});
 document.addEventListener("keydown",e=>{if(e.key==="/"&&document.activeElement.tagName!=="INPUT"){e.preventDefault();document.getElementById("q").focus();}});
 (async function(){
- try{const r=await fetch("data/comedians.json");const ros=await r.json();
+ try{const r=await fetch("data/comedians.json?v="+Date.now());const ros=await r.json();
   D=ros.map(x=>({id:x.id,name:x.name,last:(x.name.trim().split(" ").slice(-1)[0]||x.name),era:(x.era&&x.era!=="None")?x.era:"",eraKey:(x.era&&x.era!=="None")?x.era:"unknown",nat:x.nationality||"",photo:x.photo_url||null}));
  }catch(e){document.getElementById("grid").innerHTML=`<div class="empty">Could not load the roster.</div>`;return;}
  buildEras();wireFacets();render();
