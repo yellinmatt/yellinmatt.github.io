@@ -127,6 +127,9 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .tc .btn{font-family:'Archivo',sans-serif;font-weight:800;font-size:14px;border-radius:999px;padding:13px 22px;display:inline-flex;align-items:center;gap:9px;cursor:pointer;border:2px solid transparent}
 .tc .btn.y{background:var(--yellow);color:var(--ink)}
 .tc .btn.ghostl{background:transparent;border-color:var(--yellow);color:var(--yellow)}
+.csblock{border:2px dashed #c9b98f;background:#fffaf0;padding:16px 18px;border-radius:6px;max-width:68ch}
+.csblock .lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:7px}
+.csblock .ln{font-size:14.5px;color:#3a3128;line-height:1.5}
 </style>
 </head>
 <body>
@@ -148,6 +151,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 const sl=new URLSearchParams(location.search).get("c")||"";
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 const TBD='<span class="tbd">Coming soon</span>';
+function cs(l,b){return `<div class="csblock"><span class="lbl">${l}</span><div class="ln">${b}</div></div>`;}
 function avatar(c){return c.photo?`<img src="${c.photo}" alt="${c.name}">`:`<span class="ini">${ini(c.name)}</span>`;}
 function sec(title,inner){return `<div class="sec"><div class="sk"><span class="t">${title}</span><span class="rule"></span></div>${inner}</div>`;}
 function basics(r){return {name:r.name,era:r.era||"",nat:r.nationality||"",years:(r.born&&r.died)?`${r.born}–${r.died}`:"",photo:r.photo_url||null,blurb:r.blurb||""};}
@@ -173,22 +177,22 @@ function renderProfile(c,x){
  let bitsHtml;
  if(x.bits&&x.bits.length){
    bitsHtml=`<div class="bits">`+x.bits.map((b,i)=>`<div class="bitrow"><div class="bit" data-i="${i}"><span class="pb"></span><div><span class="subj">${b.subj}</span><div class="bt">${b.t}</div><div class="by">${b.sp} · ${b.yr}</div></div><span class="go">Play &#9654;</span></div><div class="bdr"><div class="in"></div></div></div>`).join("")+`</div>`;
- } else bitsHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Their best bits, with clips, are being added.</span></p>`;
+ } else bitsHtml=cs("In the writers' room","No bits logged for this comic yet. We add clips as we verify official sources, so check back.");
  html+=sec("Best Bits",bitsHtml);
  let spHtml;
  if(x.specials&&x.specials.length){
    spHtml=`<div class="sp-grid">`+x.specials.map(s=>`<article class="sp"><div class="t">${s.t}</div><div class="m">${s.yr} · ${s.plat}</div>${s.watch?`<a class="w" href="${s.watch}" target="_blank" rel="noopener">Watch on ${s.plat} &#8599;</a>`:`<span class="soon">Watch soon</span>`}</article>`).join("")+`</div>`;
- } else spHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Their specials, with where to watch, are being added.</span></p>`;
+ } else spHtml=cs("Still on the road","No specials logged here yet. We add them with watch links as sources are verified.");
  html+=sec("Specials",spHtml);
  let tlHtml;
  if(x.timeline&&x.timeline.length){
    tlHtml=`<div class="tl">`+x.timeline.map(t=>`<div class="tlrow"><span class="yr">${t.yr}</span><span class="ev">${t.ev}</span></div>`).join("")+`</div>`;
- } else tlHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">A career timeline is on the way.</span></p>`;
+ } else tlHtml=cs("Being written","A career timeline for this comic is on the way.");
  html+=sec("Career Timeline",tlHtml);
  let acHtml;
  if(x.accolades&&x.accolades.length){
    acHtml=`<ul class="acc">`+x.accolades.map(a=>`<li>${a}</li>`).join("")+`</ul>`;
- } else acHtml=`<p>${TBD} &nbsp;<span style="color:var(--mut);font-size:14px">Awards and honors are on the way.</span></p>`;
+ } else acHtml=cs("Being compiled","Awards and honors for this comic are on the way.");
  html+=sec("Accolades",acHtml);
  app.innerHTML=html;
  app.querySelectorAll(".bit").forEach((row,i)=>{row.addEventListener("click",()=>{
