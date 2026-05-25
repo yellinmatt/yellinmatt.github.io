@@ -89,6 +89,19 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .ftr .disc{border-top:1px solid #2a2a2a;padding-top:16px;font-size:12px;line-height:1.6;color:#9a9082;max-width:92ch}
 .ftr .disc a{color:var(--yellow);text-decoration:underline}
 /*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
+/*GBDROPCSS*/
+.nav .drop{position:relative;display:inline-flex;align-items:center}
+.nav .drop::after{content:"";position:absolute;top:100%;left:0;width:100%;height:14px}
+.nav .dropt{font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em;color:var(--cream);background:none;border:0;padding:0;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.nav .dropt:hover{color:var(--yellow)}
+.nav .drop .cv{font-size:9px;transition:transform .15s}
+.nav .drop:hover .cv,.nav .drop.open .cv{transform:rotate(180deg)}
+.nav .menu{position:absolute;top:calc(100% + 14px);left:0;min-width:200px;display:flex;flex-direction:column;background:var(--ink);border:2px solid var(--yellow);box-shadow:7px 7px 0 rgba(232,52,28,.92);opacity:0;visibility:hidden;transform:translateY(-7px);transition:opacity .15s,transform .15s,visibility .15s;z-index:50}
+.nav .drop:hover .menu,.nav .drop.open .menu{opacity:1;visibility:visible;transform:none}
+.nav .menu a{padding:12px 15px;font-family:'Archivo',sans-serif;font-weight:700;font-size:12.5px;text-transform:uppercase;letter-spacing:.03em;color:#d8cfc0;border-bottom:1px solid #2a2a2a;white-space:nowrap}
+.nav .menu a:last-child{border-bottom:0}
+.nav .menu a:hover{background:var(--yellow);color:var(--ink)}
+@media(max-width:760px){.nav .drop{width:100%}.nav .drop::after{display:none}.nav .menu{position:static;display:none;opacity:1;visibility:visible;transform:none;min-width:0;width:100%;margin-top:8px;box-shadow:none;border-width:1.5px}.nav .drop.open .menu{display:flex}}
 </style>
 </head>
 <body>
@@ -96,7 +109,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 
 <nav class="nav">
   <span class="logo">Greatest <b>Bits</b></span>
-  <span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a></span>
+  <span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span>
   <span class="sp"></span><span class="search">&#9906; Search</span>
 </nav>
 
@@ -196,5 +209,6 @@ const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.bcard,.search,.indexband,.histband .cta"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
+<script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 </body>
 </html>
