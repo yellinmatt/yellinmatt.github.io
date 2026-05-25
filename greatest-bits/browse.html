@@ -61,7 +61,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .gt .cap .er{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--yellow);text-transform:uppercase;letter-spacing:.06em;margin-top:3px}
 .gt .go{position:absolute;top:9px;right:9px;z-index:2;background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10px;padding:3px 7px;border-radius:5px;opacity:0;transition:.18s}.gt:hover .go{opacity:1}
 .list{padding:8px 32px 40px;display:none}
-.letter{font-family:'Anton',sans-serif;font-size:16px;color:var(--red);letter-spacing:.1em;padding:16px 4px 6px;position:sticky;top:132px;background:linear-gradient(180deg,var(--cream) 75%,transparent)}
+.letter{font-family:'Anton',sans-serif;font-size:16px;color:var(--red);letter-spacing:.1em;padding:16px 4px 6px;position:sticky;top:196px;background:linear-gradient(180deg,var(--cream) 75%,transparent)}
 .lr{display:grid;grid-template-columns:46px 1fr auto;gap:14px;align-items:center;padding:11px 6px;border-bottom:2px solid var(--ink);cursor:pointer;transition:padding .14s}
 .lr:hover{padding-left:12px;background:linear-gradient(90deg,rgba(255,210,62,.35),transparent 80%)}
 .lr .av{width:46px;height:46px;border-radius:50%;overflow:hidden;background:#e7ddc9;flex:0 0 auto}
@@ -82,6 +82,19 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .ftr .col a{display:block;font-family:'Archivo',sans-serif;font-weight:600;font-size:14px;color:#d8cfc0;padding:3px 0}.ftr .col a:hover{color:var(--yellow)}
 .ftr .disc{border-top:1px solid #2a2a2a;padding-top:16px;font-size:12px;line-height:1.6;color:#9a9082;max-width:92ch}
 .ftr .disc a{color:var(--yellow);text-decoration:underline}
+/* Phase 2 explorer controls */
+.flabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mut);margin:13px 0 6px}
+.ribbon{display:flex;flex-wrap:nowrap;overflow-x:auto;border:2px solid var(--ink);border-radius:10px;background:#fff;-webkit-overflow-scrolling:touch}
+.ribbon .seg{flex:1 0 auto;min-width:76px;text-align:center;padding:8px 12px;border-right:2px solid var(--ink);cursor:pointer;transition:background .14s;white-space:nowrap}
+.ribbon .seg:last-child{border-right:none}
+.ribbon .seg:hover{background:#ffe9a8}
+.ribbon .seg.on{background:var(--yellow)}
+.ribbon .seg .d{font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.02em;display:block}
+.ribbon .seg .n{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);margin-top:2px;display:block}
+.ribbon .seg.on .n{color:var(--ink)}
+.sortsel{font:700 12px 'Archivo';color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:9px;padding:9px 12px;cursor:pointer}
+.surprise{font:800 12px 'Archivo';text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--yellow);border:2px solid var(--ink);border-radius:9px;padding:9px 14px;cursor:pointer;transition:box-shadow .14s}
+.surprise:hover{box-shadow:4px 4px 0 var(--red)}
 /*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 /*GBDROPCSS*/
 .nav .drop{position:relative;display:inline-flex;align-items:center}
@@ -113,9 +126,15 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
   <div class="r1">
     <label class="search"><span style="color:var(--mut)">&#9906;</span><input id="q" placeholder="Search comics, eras, nationalities…"><span class="slash">/</span></label>
     <span class="count" id="count"></span>
+    <select class="sortsel" id="sort" aria-label="Sort"><option value="surname">Sort by surname</option><option value="name">Sort by name</option><option value="era-asc">Sort by era, oldest first</option><option value="era-desc">Sort by era, newest first</option></select>
+    <button type="button" class="surprise" id="surprise">Surprise me</button>
     <div class="toggle"><button id="t-grid" class="on">Grid</button><button id="t-list">List</button></div>
   </div>
-  <div class="facets" id="facets"></div>
+  <div class="flabel">Filter by era</div>
+  <div class="ribbon" id="ribbon"></div>
+  <div class="flabel">Filter by scene</div>
+  <div class="facets" id="scenes"></div>
+  <div class="flabel">Jump to a letter</div>
   <div class="az" id="az"></div>
 </div>
 <div class="grid" id="grid"></div>
@@ -133,19 +152,27 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 <script>
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 const ERAORDER=["1950s–1960s","1970s","1980s","1990s","2000s","2010s","2020s"];
+const SCENES=[["uk","UK"],["ireland","Ireland"],["anz","ANZ"],["canada","Canada"],["foundations","Foundations"],["alt","Alt"],["podcast","Podcast"],["kill-tony","Kill Tony"],["international","International"]];
+const eraCount={},sceneCount={};
+const ERAIDX=e=>{const i=ERAORDER.indexOf(e);return i<0?99:i;};
 let D=[],ERAS=[],ELAB={};
-let q="",era="all",letter="all",mode="grid";
+let q="",era="all",scene="all",letter="all",mode="grid",sort="surname";
 function buildEras(){
  const present=[...new Set(D.map(d=>d.eraKey))];
  ERAS=ERAORDER.filter(e=>present.includes(e));
  if(present.includes("unknown"))ERAS.push("unknown");
  ELAB={};ERAS.forEach(e=>ELAB[e]=(e==="unknown"?"Unknown":e));
 }
-const filtered=()=>D.filter(d=>{const hit=!q||(d.name+" "+d.nat+" "+d.era).toLowerCase().includes(q.toLowerCase());return hit&&(era==="all"||d.eraKey===era)&&(letter==="all"||(d.last[0]||"").toUpperCase()===letter);}).sort((a,b)=>a.last.localeCompare(b.last));
+const filtered=()=>{let rows=D.filter(d=>{const hit=!q||(d.name+" "+d.nat+" "+d.era).toLowerCase().includes(q.toLowerCase());return hit&&(era==="all"||d.eraKey===era)&&(scene==="all"||d.scene.indexOf(scene)>-1)&&(letter==="all"||(d.last[0]||"").toUpperCase()===letter);});
+ if(sort==="name")rows.sort((a,b)=>a.name.localeCompare(b.name));
+ else if(sort==="era-asc")rows.sort((a,b)=>ERAIDX(a.eraKey)-ERAIDX(b.eraKey)||a.last.localeCompare(b.last));
+ else if(sort==="era-desc")rows.sort((a,b)=>ERAIDX(b.eraKey)-ERAIDX(a.eraKey)||a.last.localeCompare(b.last));
+ else rows.sort((a,b)=>a.last.localeCompare(b.last));
+ return rows;};
 const avatar=d=>d.photo?`<img src="${d.photo}" alt="${d.name}" loading="lazy">`:`<span class="ini">${ini(d.name)}</span>`;
 function meta(d){return [d.era,d.nat].filter(Boolean).join(" · ");}
 const NRMSGS=["Nothing matches that combination. Try fewer filters.","No comics fit that search. Loosen it up.","Nothing here matches. Clear a filter and try again.","You've cleared the house. Nothing fits that combo."];
-function clearFilters(){q="";era="all";letter="all";const qi=document.getElementById("q");if(qi)qi.value="";document.querySelectorAll("#facets .chip").forEach(c=>c.classList.toggle("on",c.dataset.e==="all"));document.querySelectorAll("#az button").forEach(c=>c.classList.toggle("on",c.dataset.l==="all"));render();}
+function clearFilters(){q="";era="all";scene="all";letter="all";sort="surname";const qi=document.getElementById("q");if(qi)qi.value="";const ss=document.getElementById("sort");if(ss)ss.value="surname";document.querySelectorAll("#ribbon .seg").forEach(c=>c.classList.toggle("on",c.dataset.e==="all"));document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.toggle("on",c.dataset.s==="all"));document.querySelectorAll("#az button").forEach(c=>c.classList.toggle("on",c.dataset.l==="all"));render();}
 function render(){
  const rows=filtered();
  document.getElementById("count").innerHTML=`<b>${rows.length}</b> / ${D.length} comics`;
@@ -153,26 +180,34 @@ function render(){
  grid.style.display=mode==="grid"?"grid":"none";list.style.display=mode==="list"?"block":"none";
  if(!rows.length){const m=NRMSGS[Math.floor(Math.random()*NRMSGS.length)];const h=`<div class="empty"><div class="ebig">Crickets.</div><div class="eln">${m}</div><button type="button" class="eclear">Clear filters</button></div>`;grid.innerHTML=h;list.innerHTML=h;document.querySelectorAll(".eclear").forEach(b=>b.addEventListener("click",clearFilters));return;}
  if(mode==="grid"){grid.innerHTML=rows.map(d=>`<a class="gt" href="comic.html?c=${d.id}"><span class="go">View →</span>${avatar(d)}<div class="cap"><div class="nm">${d.name}</div><div class="er">${meta(d)}</div></div></a>`).join("");}
- else{let h="",c="";rows.forEach(d=>{const L=(d.last[0]||"#").toUpperCase();if(L!==c){c=L;h+=`<div class="letter">${L}</div>`;}h+=`<a class="lr" href="comic.html?c=${d.id}"><span class="av">${avatar(d)}</span><div><div class="nm">${d.name}</div><div class="meta">${meta(d)}</div></div><span class="go">View page →</span></a>`;});list.innerHTML=h;}
+ else{let h="",c="";rows.forEach(d=>{const head=((sort==="era-asc"||sort==="era-desc")?(d.era||"Unknown"):(d.last[0]||"#").toUpperCase());if(head!==c){c=head;h+=`<div class="letter">${head}</div>`;}h+=`<a class="lr" href="comic.html?c=${d.id}"><span class="av">${avatar(d)}</span><div><div class="nm">${d.name}</div><div class="meta">${meta(d)}</div></div><span class="go">View page →</span></a>`;});list.innerHTML=h;}
 }
+function eraLabel(e){return e==="unknown"?"Unknown":(e==="1950s\u20131960s"?"1950s/60s":e);}
 function wireFacets(){
- document.getElementById("facets").innerHTML=`<button class="chip on" data-e="all">All eras</button>`+ERAS.map(e=>`<button class="chip" data-e="${e}">${ELAB[e]}</button>`).join("");
+ D.forEach(d=>{eraCount[d.eraKey]=(eraCount[d.eraKey]||0)+1;(d.scene||[]).forEach(s=>{sceneCount[s]=(sceneCount[s]||0)+1;});});
+ let rib=`<div class="seg on" data-e="all"><span class="d">All</span><span class="n">${D.length}</span></div>`;
+ rib+=ERAS.map(e=>`<div class="seg" data-e="${e}"><span class="d">${eraLabel(e)}</span><span class="n">${eraCount[e]||0}</span></div>`).join("");
+ document.getElementById("ribbon").innerHTML=rib;
+ document.getElementById("scenes").innerHTML=`<button class="chip on" data-s="all">All scenes</button>`+SCENES.filter(s=>sceneCount[s[0]]).map(s=>`<button class="chip" data-s="${s[0]}">${s[1]}</button>`).join("");
  document.getElementById("az").innerHTML=`<button class="on" data-l="all">All</button>`+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L=>`<button data-l="${L}">${L}</button>`).join("");
 }
 document.getElementById("q").addEventListener("input",e=>{q=e.target.value;render();});
-document.getElementById("facets").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#facets .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");era=b.dataset.e;render();});
+document.getElementById("ribbon").addEventListener("click",e=>{const b=e.target.closest(".seg");if(!b)return;document.querySelectorAll("#ribbon .seg").forEach(c=>c.classList.remove("on"));b.classList.add("on");era=b.dataset.e;render();});
+document.getElementById("scenes").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");scene=b.dataset.s;render();});
+document.getElementById("sort").addEventListener("change",e=>{sort=e.target.value;render();});
+document.getElementById("surprise").addEventListener("click",()=>{const pool=filtered();const arr=pool.length?pool:D;const pick=arr[Math.floor(Math.random()*arr.length)];if(pick)location.href="comic.html?c="+pick.id;});
 document.getElementById("az").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#az button").forEach(c=>c.classList.remove("on"));b.classList.add("on");letter=b.dataset.l;render();});
 document.getElementById("t-grid").addEventListener("click",()=>{mode="grid";document.getElementById("t-grid").classList.add("on");document.getElementById("t-list").classList.remove("on");render();});
 document.getElementById("t-list").addEventListener("click",()=>{mode="list";document.getElementById("t-list").classList.add("on");document.getElementById("t-grid").classList.remove("on");render();});
 document.addEventListener("keydown",e=>{if(e.key==="/"&&document.activeElement.tagName!=="INPUT"){e.preventDefault();document.getElementById("q").focus();}});
 (async function(){
  try{const r=await fetch("data/comedians.json?v="+Date.now());const ros=await r.json();
-  D=ros.map(x=>({id:x.id,name:x.name,last:(x.name.trim().split(" ").slice(-1)[0]||x.name),era:(x.era&&x.era!=="None")?x.era:"",eraKey:(x.era&&x.era!=="None")?x.era:"unknown",nat:x.nationality||"",photo:x.photo_url||null}));
+  D=ros.map(x=>({id:x.id,name:x.name,last:(x.name.trim().split(" ").slice(-1)[0]||x.name),era:(x.era&&x.era!=="None")?x.era:"",eraKey:(x.era&&x.era!=="None")?x.era:"unknown",nat:x.nationality||"",photo:x.photo_url||null,scene:Array.isArray(x.scene)?x.scene:(x.scene?[x.scene]:[])}));
  }catch(e){document.getElementById("grid").innerHTML=`<div class="empty">Could not load the roster.</div>`;return;}
  buildEras();wireFacets();render();
 }());
 const cur=document.getElementById("cur");
-addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.search"));});
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.search,.seg,.surprise"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
