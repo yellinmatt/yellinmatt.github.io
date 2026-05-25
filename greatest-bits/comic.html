@@ -103,6 +103,12 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .acc{list-style:none;display:grid;gap:9px}
 .acc li{position:relative;padding-left:20px;font-size:15px;line-height:1.45;color:#2b2419}
 .acc li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;background:var(--red);transform:rotate(45deg)}
+.films{display:flex;flex-wrap:wrap;gap:11px}
+.filmcard{border:2px solid var(--ink);background:#fff;border-radius:9px;padding:11px 14px;flex:1 1 168px;min-width:158px;max-width:236px;transition:box-shadow .14s,transform .14s}
+.filmcard:hover{box-shadow:5px 5px 0 var(--yellow);transform:translateY(-2px)}
+.filmcard .fy{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--red);letter-spacing:.04em}
+.filmcard .ft{font-family:'Archivo',sans-serif;font-weight:900;font-size:15.5px;line-height:1.06;margin-top:3px}
+.filmcard .fn{font-family:'Fraunces',Georgia,serif;font-size:13px;color:#5a4f3f;line-height:1.36;margin-top:5px}
 .csblock{border:2px dashed #c9b98f;background:#fffaf0;padding:16px 18px;border-radius:6px;max-width:68ch}
 .csblock .lbl{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:7px}
 .csblock .ln{font-size:14.5px;color:#3a3128;line-height:1.5}
@@ -247,6 +253,10 @@ function renderProfile(c,x){
    html+=sec("The Work",null,cs("Coming soon","Bits and specials for this comic are being added as we verify official sources."));
  }
 
+ if(x.films&&x.films.length){
+   const fc=x.films.map(f=>`<div class="filmcard"><div class="fy">${esc(f.yr||"")}</div><div class="ft">${esc(f.t)}</div>${f.note?`<div class="fn">${esc(f.note)}</div>`:""}</div>`).join("");
+   html+=sec("On Screen",`${x.films.length} notable credit${x.films.length>1?"s":""} · beyond the mic`,`<div class="films">${fc}</div>`);
+ }
  if(x.timeline&&x.timeline.length){html+=sec("Career Timeline",null,`<div class="tl">`+x.timeline.map(t=>`<div class="tlrow"><span class="yr">${esc(t.yr)}</span><span class="ev">${esc(t.ev)}</span></div>`).join("")+`</div>`);}
  if(x.accolades&&x.accolades.length){html+=sec("Accolades",null,`<ul class="acc">`+x.accolades.map(a=>`<li>${esc(a)}</li>`).join("")+`</ul>`);}
 
