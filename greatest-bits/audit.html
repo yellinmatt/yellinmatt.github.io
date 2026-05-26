@@ -41,6 +41,28 @@ h1{font-family:'Anton',sans-serif;font-size:clamp(40px,7vw,72px);text-transform:
 .fl{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;border:1.5px solid #c9b98f;background:#fff;color:var(--mut);border-radius:6px;padding:4px 9px;cursor:pointer;transition:.12s}
 .fl:hover{border-color:var(--red);color:var(--red)}
 .fl.on{background:var(--red);color:#fff;border-color:var(--red)}
+/* machine sweep panel */
+.msweep{background:#fff8d9;border:2px solid var(--yellow);border-left:7px solid var(--yellow);border-radius:9px;padding:10px 13px 12px;margin:14px 0 6px}
+.msweep .mh{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#7a5d00;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.msweep .mh b{background:var(--ink);color:var(--yellow);padding:2px 7px;border-radius:5px;font-weight:800;font-size:10.5px}
+.msweep .mh .ma{margin-left:auto;display:flex;gap:6px}
+.msweep .mh button{font-family:'Archivo';font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:6px;padding:4px 9px;cursor:pointer}
+.msweep .mh button:hover{background:var(--ink);color:var(--yellow)}
+.mrow{display:grid;grid-template-columns:1fr auto auto;gap:9px;align-items:center;padding:7px 0;border-top:1px solid #ebd58a}
+.mrow:first-of-type{border-top:none}
+.mrow.dismissed{opacity:.4}
+.mrow.confirmed .mlbl{color:var(--red)}
+.mlbl{font-family:'Inter',system-ui,sans-serif;font-size:13px;line-height:1.35;color:#3b2f10}
+.mlbl .mk{font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;background:var(--ink);color:var(--yellow);padding:2px 6px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.mlbl .mi{font-family:'Archivo';font-weight:800;font-size:11.5px;color:#000;margin-right:6px}
+.mlbl .mr{color:#5c4b1f;font-size:12px}
+.mbtn{font-family:'Archivo';font-weight:800;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;border:2px solid var(--ink);background:#fff;color:var(--ink);border-radius:6px;padding:5px 9px;cursor:pointer;white-space:nowrap}
+.mbtn.cf{background:var(--red);color:#fff;border-color:var(--red)}
+.mbtn.cf:hover{background:#a52410}
+.mbtn.ds:hover{background:#eee}
+.mrow.confirmed .mbtn.cf{background:#fff;color:var(--red);border-color:var(--red)}
+.mrow.dismissed .mbtn.ds{background:var(--ink);color:#fff;border-color:var(--ink)}
+.msweep .clean{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#7a5d00;font-style:italic}
 .lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:600;margin:22px 0 8px;border-top:2px solid #e3d9c5;padding-top:12px}
 /* links */
 .lk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px}
@@ -112,12 +134,20 @@ h1{font-family:'Anton',sans-serif;font-size:clamp(40px,7vw,72px);text-transform:
 
 <script>
 var KEY="gbAudit_v1";
+var MDKEY="gbAuditMD_v1"; // machine-flag dispositions: {cid:{flagKey:"confirmed"|"dismissed"}}
 var AUD=JSON.parse(localStorage.getItem(KEY)||"{}"); // {id:{status,flags:[{field,issue}],note,ts}}
+var MD=JSON.parse(localStorage.getItem(MDKEY)||"{}");
 var ROST=[],i=0,cur=null,curId=null;
 function save(){localStorage.setItem(KEY,JSON.stringify(AUD));updateProg();}
+function saveMD(){localStorage.setItem(MDKEY,JSON.stringify(MD));}
 function rec(id){if(!AUD[id])AUD[id]={status:"unseen",flags:[],note:""};return AUD[id];}
 function hasFlag(id,field,issue){return rec(id).flags.some(function(f){return f.field===field&&f.issue===issue;});}
-function toggleFlag(id,field,issue){var r=rec(id);var k=r.flags.findIndex(function(f){return f.field===field&&f.issue===issue;});if(k>-1)r.flags.splice(k,1);else r.flags.push({field:field,issue:issue});if(r.status==="unseen")r.status="issues";if(r.flags.length===0&&r.status==="issues")r.status="unseen";save();}
+function addFlag(id,field,issue){if(hasFlag(id,field,issue))return;var r=rec(id);r.flags.push({field:field,issue:issue});if(r.status==="unseen")r.status="issues";save();}
+function removeFlag(id,field,issue){var r=rec(id);var k=r.flags.findIndex(function(f){return f.field===field&&f.issue===issue;});if(k>-1)r.flags.splice(k,1);if(r.flags.length===0&&r.status==="issues")r.status="unseen";save();}
+function toggleFlag(id,field,issue){if(hasFlag(id,field,issue))removeFlag(id,field,issue);else addFlag(id,field,issue);}
+function mkey(f){return f.field+"|"+f.issue+"|"+(f.reason||"");}
+function mstate(cid,k){return (MD[cid]&&MD[cid][k])||"pending";}
+function msetState(cid,k,st){if(!MD[cid])MD[cid]={};if(st==="pending")delete MD[cid][k];else MD[cid][k]=st;if(MD[cid]&&!Object.keys(MD[cid]).length)delete MD[cid];saveMD();}
 function statusOf(id){return (AUD[id]&&AUD[id].status)||"unseen";}
 function updateProg(){var done=ROST.filter(function(c){return statusOf(c.id)!=="unseen";}).length;var flagged=ROST.filter(function(c){return statusOf(c.id)==="issues";}).length;document.getElementById("ptext").innerHTML="<b>"+done+"</b> / "+ROST.length+" audited &middot; "+flagged+" flagged";document.getElementById("pfill").style.width=(ROST.length?Math.round(done/ROST.length*100):0)+"%";}
 function chip(field,issue,id){return '<span class="fl'+(hasFlag(id,field,issue)?" on":"")+'" data-field="'+field+'" data-issue="'+issue+'">'+issue+'</span>';}
@@ -137,6 +167,20 @@ async function load(idx){
  h+='<div class="lbl" style="border:none;margin-top:0;padding-top:0">Photograph &mdash; is this actually '+esc(c.name)+'?</div><div class="flags">'+chip("photo","wrong person",c.id)+chip("photo","low quality",c.id)+chip("photo","bad crop",c.id)+chip("photo","missing",c.id)+'</div>';
  h+='<div class="lbl">Bio</div><div class="blurb">'+(esc(x.bio||c.blurb)||'<span class="empty">No bio.</span>')+'</div><div class="flags">'+chip("bio","wrong",c.id)+chip("bio","too thin",c.id)+chip("bio","rewrite",c.id)+'</div>';
  h+='</div></div>';
+ // machine sweep panel — pre-populated flags from the offline sweep
+ var MF=((x.flags||{}).machine)||[];
+ if(MF.length){
+  var pend=MF.filter(function(f){return mstate(c.id,mkey(f))==="pending";}).length;
+  var conf=MF.filter(function(f){return mstate(c.id,mkey(f))==="confirmed";}).length;
+  var dism=MF.filter(function(f){return mstate(c.id,mkey(f))==="dismissed";}).length;
+  h+='<div class="msweep" id="mswp"><div class="mh"><b>Machine sweep</b> '+MF.length+' issue'+(MF.length===1?'':'s')+' flagged &middot; '+pend+' pending &middot; '+conf+' confirmed &middot; '+dism+' dismissed <span class="ma"><button id="m-confall">Confirm all</button><button id="m-dismall">Dismiss all</button></span></div>';
+  MF.forEach(function(f,fi){
+   var k=mkey(f),st=mstate(c.id,k);
+   var fieldNice=f.field.replace(":"," #").replace("links.","link · ");
+   h+='<div class="mrow '+st+'" data-mf="'+fi+'"><div class="mlbl"><span class="mk">'+esc(fieldNice)+'</span><span class="mi">'+esc(f.issue)+'</span><span class="mr">'+esc(f.reason||"")+'</span></div><button class="mbtn cf" data-act="confirm">'+(st==="confirmed"?"&#10003; Confirmed":"&#10003; Confirm")+'</button><button class="mbtn ds" data-act="dismiss">'+(st==="dismissed"?"&times; Dismissed":"&times; Dismiss")+'</button></div>';
+  });
+  h+='</div>';
+ }
  // links
  h+='<div class="lbl">Official links</div>';
  var L=x.links||{};
@@ -162,6 +206,25 @@ async function load(idx){
  h+='<div class="lbl">Note (optional)</div><textarea class="note" id="note" placeholder="Anything else to fix for '+esc(c.name)+'…">'+esc(rec(c.id).note||"")+'</textarea>';
  app.innerHTML=h;
  app.querySelectorAll(".fl").forEach(function(el){el.addEventListener("click",function(){toggleFlag(curId,el.dataset.field,el.dataset.issue);el.classList.toggle("on");refreshStatusChip();});});
+ // machine flag handlers
+ function reRenderMF(){load(i);} // simplest correct path: re-render the comic
+ app.querySelectorAll(".mrow").forEach(function(row){
+  var fi=parseInt(row.dataset.mf,10);var f=MF[fi];var k=mkey(f);
+  row.querySelector('[data-act="confirm"]').addEventListener("click",function(){
+   var st=mstate(curId,k);
+   if(st==="confirmed"){msetState(curId,k,"pending");removeFlag(curId,f.field,f.issue);}
+   else{msetState(curId,k,"confirmed");addFlag(curId,f.field,f.issue);}
+   refreshStatusChip();reRenderMF();
+  });
+  row.querySelector('[data-act="dismiss"]').addEventListener("click",function(){
+   var st=mstate(curId,k);
+   if(st==="dismissed"){msetState(curId,k,"pending");}
+   else{msetState(curId,k,"dismissed");if(st==="confirmed")removeFlag(curId,f.field,f.issue);}
+   refreshStatusChip();reRenderMF();
+  });
+ });
+ var ca=document.getElementById("m-confall");if(ca)ca.addEventListener("click",function(){MF.forEach(function(f){if(mstate(curId,mkey(f))!=="dismissed"){msetState(curId,mkey(f),"confirmed");addFlag(curId,f.field,f.issue);}});refreshStatusChip();reRenderMF();});
+ var da=document.getElementById("m-dismall");if(da)da.addEventListener("click",function(){if(!confirm("Dismiss all machine flags for "+esc(c.name)+"? This will also remove any you previously confirmed."))return;MF.forEach(function(f){var st=mstate(curId,mkey(f));if(st==="confirmed")removeFlag(curId,f.field,f.issue);msetState(curId,mkey(f),"dismissed");});refreshStatusChip();reRenderMF();});
  app.querySelectorAll("[data-play]").forEach(function(btn){btn.addEventListener("click",function(){var slot=btn.closest(".card").querySelector(".embed");if(slot.innerHTML){slot.innerHTML="";btn.innerHTML="&#9654; Play";return;}slot.innerHTML='<iframe src="https://www.youtube.com/embed/'+btn.dataset.play+'?rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';btn.innerHTML="&#9632; Close";});});
  var nt=document.getElementById("note");if(nt)nt.addEventListener("input",function(){var r=rec(curId);r.note=nt.value;if(r.note&&r.status==="unseen")r.status="issues";save();});
  updateProg();
@@ -174,8 +237,10 @@ document.getElementById("next").addEventListener("click",function(){load(i+1);})
 document.getElementById("verify").addEventListener("click",verifyNext);
 document.getElementById("jump").addEventListener("click",function(){nextUnaudited();});
 document.getElementById("export").addEventListener("click",function(){
+ // any comic with AUD activity OR an MD disposition is exported
+ var ids={};Object.keys(AUD).forEach(function(id){if(AUD[id].flags.length||AUD[id].note||AUD[id].status==="verified")ids[id]=1;});Object.keys(MD).forEach(function(id){if(Object.keys(MD[id]||{}).length)ids[id]=1;});
  var out={generated:new Date().toISOString(),audited:ROST.filter(function(c){return statusOf(c.id)!=="unseen";}).length,total:ROST.length,
-  comics:Object.keys(AUD).filter(function(id){return AUD[id].flags.length||AUD[id].note||AUD[id].status==="verified";}).map(function(id){return {id:id,status:AUD[id].status,flags:AUD[id].flags,note:AUD[id].note||""};})};
+  comics:Object.keys(ids).map(function(id){var a=AUD[id]||{status:"unseen",flags:[],note:""};return {id:id,status:a.status,flags:a.flags||[],note:a.note||"",machine_dispositions:MD[id]||{}};})};
  var js=JSON.stringify(out,null,1);
  try{navigator.clipboard.writeText(js);}catch(e){}
  var blob=new Blob([js],{type:"application/json"});var a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="gb-audit.json";a.click();
