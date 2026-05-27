@@ -63,8 +63,11 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .bit .by{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);margin-top:4px;text-transform:uppercase}
 .bit .go{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--red);white-space:nowrap}
 .bdr{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.16,1,.3,1)}
-.bdr.open{max-height:520px}.bdr .in{padding:4px 0 16px 58px}
+.bdr.open{max-height:820px}.bdr .in{padding:4px 0 16px 58px}
 .bdr iframe{width:100%;max-width:640px;aspect-ratio:16/9;border:0;border-radius:8px}
+.bdr iframe.igframe{aspect-ratio:9/16;max-width:420px;background:#000}
+.srctag{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:2px 6px;border-radius:4px;margin-left:6px;vertical-align:2px;background:#0d0d0d;color:var(--yellow)}
+.srctag.ig{background:#72243E;color:#FBEAF0}
 .bdr .ytlink{display:inline-flex;align-items:center;gap:6px;margin-top:9px;font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;color:var(--red)}
 .starthere{border:3px solid var(--ink);border-radius:12px;background:#fff;overflow:hidden}
 .starthere .sh-h{padding:11px 16px;border-bottom:2px solid var(--ink);background:var(--cream);display:flex;align-items:baseline;gap:10px}
@@ -198,7 +201,7 @@ const esc=s=>(s||"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").repla
 function avatar(c){return c.photo?`<img src="${c.photo}" alt="${esc(c.name)}">`:`<span class="ini">${ini(c.name)}</span>`;}
 function sec(title,count,inner){return `<div class="sec"><div class="sk"><span class="t">${title}</span>${count?`<span class="c">${count}</span>`:""}<span class="rule"></span></div>${inner}</div>`;}
 function cs(l,b){return `<div class="csblock"><span class="lbl">${l}</span><div class="ln">${b}</div></div>`;}
-function bitRow(b,showFrom){return `<div class="bitrow"><div class="bit"><span class="pb"></span><div><span class="subj">${esc(b.subj)}</span><div class="bt">${esc(b.t)}</div>${showFrom&&b.sp?`<div class="by">From ${esc(b.sp)} · ${b.yr||""}</div>`:""}</div><span class="go">Play &#9654;</span></div><div class="bdr"><div class="in" data-id="${b.id}" data-t="${esc(b.t)}"></div></div></div>`;}
+function bitRow(b,showFrom){const src=b.src||"youtube";const pid=src==="instagram"?(b.shortcode||""):(b.id||"");const tag=src==="instagram"?` <span class="srctag ig">IG</span>`:"";const handle=src==="instagram"&&b.handle?` · ${esc(b.handle)}`:"";return `<div class="bitrow"><div class="bit"><span class="pb"></span><div><span class="subj">${esc(b.subj)}</span><div class="bt">${esc(b.t)}${tag}</div>${showFrom&&b.sp?`<div class="by">From ${esc(b.sp)}${b.yr?" · "+b.yr:""}${handle}</div>`:""}</div><span class="go">Play &#9654;</span></div><div class="bdr"><div class="in" data-src="${src}" data-pid="${esc(pid)}" data-t="${esc(b.t)}"></div></div></div>`;}
 function basics(r){return {name:r.name,era:r.era||"",nat:r.nationality||"",years:(r.born&&r.died)?`${r.born}–${r.died}`:(r.born?`b. ${r.born}`:""),photo:r.photo_url||null,blurb:r.blurb||""};}
 
 const TCMSGS=["Nothing here but crickets and an empty mic. Let's find you something that kills.","We don't have a page for that comic yet. The Index has everyone we've got.","That name isn't on the bill. Try a search, or let us surprise you.","Dead air. There's no profile at this address.","Tough room. We came up empty on that one."];
@@ -276,7 +279,12 @@ function renderProfile(c,x){
    if(dr.classList.contains("open")){dr.classList.remove("open");row.classList.remove("open");inn.innerHTML="";return;}
    app.querySelectorAll(".bdr.open").forEach(d=>{d.classList.remove("open");d.querySelector(".in").innerHTML="";});
    app.querySelectorAll(".bit.open").forEach(p=>p.classList.remove("open"));
-   inn.innerHTML=`<iframe src="https://www.youtube.com/embed/${inn.dataset.id}?autoplay=1&rel=0" title="${inn.dataset.t}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe><a class="ytlink" href="https://www.youtube.com/watch?v=${inn.dataset.id}" target="_blank" rel="noopener">Watch on YouTube &#8599;</a>`;
+   const src=inn.dataset.src||"youtube";const pid=inn.dataset.pid||inn.dataset.id||"";
+   if(src==="instagram"){
+     inn.innerHTML=`<iframe class="igframe" src="https://www.instagram.com/reel/${pid}/embed/" title="${inn.dataset.t}" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="no"></iframe><a class="ytlink" href="https://www.instagram.com/reel/${pid}/" target="_blank" rel="noopener">Watch on Instagram &#8599;</a>`;
+   } else {
+     inn.innerHTML=`<iframe src="https://www.youtube.com/embed/${pid}?autoplay=1&rel=0" title="${inn.dataset.t}" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen></iframe><a class="ytlink" href="https://www.youtube.com/watch?v=${pid}" target="_blank" rel="noopener">Watch on YouTube &#8599;</a>`;
+   }
    dr.classList.add("open");row.classList.add("open");
  }));
 }
