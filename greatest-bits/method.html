@@ -267,8 +267,8 @@ function load(){if(DATA)return Promise.resolve();return Promise.all([
  fetch("data/specials.json?v="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(a){var comics=a[0],sp=a[1];DATA=[];
  comics.forEach(function(c){DATA.push({ty:"Comic",nm:c.name,sub:[c.era,c.nationality].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+c.id,img:c.photo_url||null,q:(c.name+" "+(c.nationality||"")+" "+(c.era||"")).toLowerCase()});});
- Object.keys(sp).forEach(function(k){var s=sp[k];DATA.push({ty:"Special",nm:s.t,sub:[s.comic,s.yr].filter(Boolean).join(" \u00b7 "),href:"special.html?s="+k,img:s.poster?("https://image.tmdb.org/t/p/w185/"+s.poster):null,poster:true,q:(s.t+" "+(s.comic||"")).toLowerCase()});
-  (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"special.html?s="+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
+ Object.keys(sp).forEach(function(k){var s=sp[k];DATA.push({ty:"Special",nm:s.t,sub:[s.comic,s.yr].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.poster?("https://image.tmdb.org/t/p/w185/"+s.poster):null,poster:true,q:(s.t+" "+(s.comic||"")).toLowerCase()});
+  (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
 });}
 function esc(x){return (x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function render(q){q=(q||"").trim().toLowerCase();if(!DATA){res.innerHTML='<div class="empty">Loading\u2026</div>';return;}

@@ -246,12 +246,12 @@ function renderProfile(c,x){
      sb.forEach(b=>matched.add(b));
      const sbDisp=sb.filter(b=>!inTop3(b));
      const pos=s.poster?`<img src="https://image.tmdb.org/t/p/w500/${s.poster}" alt="${esc(s.t)} poster" loading="lazy">`:`<div class="none">${esc((s.t||"?")[0])}</div>`;
-     const act=`<div class="act">${s.watch?`<a class="watch" href="${s.watch}" target="_blank" rel="noopener">Watch &#8599;</a>`:`<span class="soon">Watch soon</span>`}<a class="viewsp" href="special.html?s=${ssl}">View special &#8594;</a></div>`;
+     const act=`<div class="act">${s.watch?`<a class="watch" href="${s.watch}" target="_blank" rel="noopener">Watch &#8599;</a>`:`<span class="soon">Watch soon</span>`}</div>`;
      const promoted=sb.length-sbDisp.length;
      const nbLabel=sbDisp.length?`${sbDisp.length} bit${sbDisp.length>1?"s":""}${promoted?` &middot; ${promoted} in Start Here`:""} &#9662;`:(promoted?`${promoted} in Start Here above`:`no clips yet`);
      const nb=`<div class="nbits${sbDisp.length?"":" no"}">${nbLabel}</div>`;
      const inner=sbDisp.length?`<div class="pad">${sbDisp.map(b=>bitRow(b,false)).join("")}</div>`:(promoted?`<div class="nobits">All ${promoted} clip${promoted>1?"s":""} from this special are featured in Start Here above.</div>`:`<div class="nobits">No clips logged from this special yet.</div>`);
-     return `<article class="work"><div class="wh"><div class="pos">${pos}</div><div><div class="ti">${esc(s.t)}</div><div class="mt">${s.yr||""} · ${esc(s.plat||"")}</div>${nb}</div>${act}</div><div class="wbits">${inner}</div></article>`;
+     return `<article class="work" data-spslug="${ssl}" id="sp-${ssl}"><div class="wh"><div class="pos">${pos}</div><div><div class="ti">${esc(s.t)}</div><div class="mt">${s.yr||""} · ${esc(s.plat||"")}</div>${nb}</div>${act}</div><div class="wbits">${inner}</div></article>`;
    }).join("");
    html+=sec("The Work",`${sps.length} special${sps.length>1?"s":""} · newest first · open one for its bits`,cards);
    // Elsewhere: TV, podcasts, sets, plays, other — grouped from x.appearances (new shape) or loose bits (legacy)
@@ -290,7 +290,15 @@ function renderProfile(c,x){
  if(x.accolades&&x.accolades.length){html+=sec("Accolades",null,`<ul class="acc">`+x.accolades.map(a=>`<li>${esc(a)}</li>`).join("")+`</ul>`);}
 
  app.innerHTML=html;
- app.querySelectorAll(".wh").forEach(wh=>wh.addEventListener("click",e=>{if(e.target.closest(".watch")||e.target.closest(".viewsp"))return;wh.closest(".work").classList.toggle("open");}));
+ // Anchor auto-open: when arriving via comic.html?c=X#sp-<slug>, expand that special card and scroll it in
+ (function(){
+   const m=location.hash.match(/^#sp-(.+)$/); if(!m)return;
+   const tgt=app.querySelector('article.work[data-spslug="'+m[1]+'"]');
+   if(!tgt)return;
+   tgt.classList.add("open");
+   setTimeout(()=>tgt.scrollIntoView({behavior:"smooth",block:"start"}),60);
+ })();
+ app.querySelectorAll(".wh").forEach(wh=>wh.addEventListener("click",e=>{if(e.target.closest(".watch"))return;wh.closest(".work").classList.toggle("open");}));
  app.querySelectorAll(".bit").forEach(row=>row.addEventListener("click",e=>{
    e.stopPropagation();
    const dr=row.parentElement.querySelector(".bdr"),inn=dr.querySelector(".in");
@@ -330,8 +338,8 @@ function load(){if(DATA)return Promise.resolve();return Promise.all([
  fetch("data/specials.json?v="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
 ]).then(function(a){var comics=a[0],sp=a[1];DATA=[];
  comics.forEach(function(c){DATA.push({ty:"Comic",nm:c.name,sub:[c.era,c.nationality].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+c.id,img:c.photo_url||null,q:(c.name+" "+(c.nationality||"")+" "+(c.era||"")).toLowerCase()});});
- Object.keys(sp).forEach(function(k){var s=sp[k];DATA.push({ty:"Special",nm:s.t,sub:[s.comic,s.yr].filter(Boolean).join(" \u00b7 "),href:"special.html?s="+k,img:s.poster?("https://image.tmdb.org/t/p/w185/"+s.poster):null,poster:true,q:(s.t+" "+(s.comic||"")).toLowerCase()});
-  (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"special.html?s="+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
+ Object.keys(sp).forEach(function(k){var s=sp[k];DATA.push({ty:"Special",nm:s.t,sub:[s.comic,s.yr].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.poster?("https://image.tmdb.org/t/p/w185/"+s.poster):null,poster:true,q:(s.t+" "+(s.comic||"")).toLowerCase()});
+  (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
 });}
 function esc(x){return (x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function render(q){q=(q||"").trim().toLowerCase();if(!DATA){res.innerHTML='<div class="empty">Loading\u2026</div>';return;}
