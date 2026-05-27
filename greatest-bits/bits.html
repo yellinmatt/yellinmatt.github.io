@@ -122,22 +122,26 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
   <div class="disc">Greatest Bits is a non-commercial, fan-made archive, and a work in progress. Every photograph, poster, and clip belongs to its owner and appears here only to identify the artist's work and point you to the official source. Nothing is hosted on this site: comic photos come from <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> (CC BY-SA), posters from <a href="https://www.themoviedb.org/">TMDB</a>, and clips are embedded from official YouTube and Spotify or linked to the special itself. If something is wrong, or you would like it removed, <a href="contact.html">get in touch</a> and we will take it down.</div>
 </footer>
 <script>
+function pad(r){return String(r).padStart(2,'0');}
+function wave(r){let s='',n=48,seed=r*9301+49297;for(let i=0;i<n;i++){seed=(seed*9301+49297)%233280;const h=8+Math.floor((seed/233280)*32);s+=`<i style="height:${h}px"></i>`;}return s;}
+function dot(src){const map={youtube:['#ff0033','YOUTUBE'],spotify:['#1db954','SPOTIFY'],vimeo:['#1ab7ea','VIMEO']};const v=map[src]||['#8a7a64',(src||'LINK').toUpperCase()];return `<span class="d" style="background:${v[0]}"></span>${v[1]}`;}
 (async function(){
   let B = [];
   try{ const r = await fetch("data/lists.json?v="+Date.now()); B = (await r.json()).best_bits || []; }catch(e){}
   document.getElementById("list").innerHTML=B.map(b=>`<div class="rowline"><div class="bw" data-src="${b.src}" data-id="${b.id||''}" data-url="${b.url||''}" data-plat="${b.plat||'YouTube'}"><div class="rk">${pad(b.r)}</div><div class="face"><img src="${b.face}" alt="${b.who}" loading="lazy"></div><div><span class="subj">${b.subj}</span><div class="bt">${b.t}</div><div class="by">${b.who} · ${b.sp} · ${b.yr}</div></div><div class="player"><div class="prow"><span class="playbtn"></span><div class="wave">${wave(b.r)}</div></div><div class="src">${dot(b.src)}</div></div></div><div class="drawer"><div class="inner"></div></div></div>`).join("");
+  // Re-bind click handlers since rows were just inserted
+  document.querySelectorAll("#list .bw").forEach(row=>{row.addEventListener("click",()=>{
+   const drawer=row.parentElement.querySelector(".drawer"),inner=drawer.querySelector(".inner"),btn=row.querySelector(".playbtn");
+   const open=drawer.classList.contains("open");
+   document.querySelectorAll("#list .drawer.open").forEach(d=>{if(d!==drawer){d.classList.remove("open");d.querySelector(".inner").innerHTML="";d.parentElement.querySelector(".playbtn").classList.remove("pause");}});
+   if(open){drawer.classList.remove("open");inner.innerHTML="";btn.classList.remove("pause");return;}
+   const s=row.dataset.src,id=row.dataset.id;
+   if(s==="spotify")inner.innerHTML=`<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${id}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`;
+   else if(s==="youtube")inner.innerHTML=`<iframe width="100%" height="300" src="https://www.youtube.com/embed/${id}?autoplay=1" title="clip" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen style="border-radius:8px"></iframe>`;
+   else inner.innerHTML=`<div class="lk"><a class="watch" href="${row.dataset.url||'#'}" target="_blank" rel="noopener"><span style="color:#0d0d0d">&#9654;</span> Watch on ${row.dataset.plat||'YouTube'}</a><span class="note">Opens the official ${row.dataset.plat||'YouTube'} source. A verified inline clip is on the way.</span></div>`;
+   drawer.classList.add("open");btn.classList.add("pause");
+  });});
 })();
-document.querySelectorAll("#list .bw").forEach(row=>{row.addEventListener("click",()=>{
- const drawer=row.parentElement.querySelector(".drawer"),inner=drawer.querySelector(".inner"),btn=row.querySelector(".playbtn");
- const open=drawer.classList.contains("open");
- document.querySelectorAll("#list .drawer.open").forEach(d=>{if(d!==drawer){d.classList.remove("open");d.querySelector(".inner").innerHTML="";d.parentElement.querySelector(".playbtn").classList.remove("pause");}});
- if(open){drawer.classList.remove("open");inner.innerHTML="";btn.classList.remove("pause");return;}
- const s=row.dataset.src,id=row.dataset.id;
- if(s==="spotify")inner.innerHTML=`<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/${id}?utm_source=generator" width="100%" height="152" frameborder="0" allow="autoplay;clipboard-write;encrypted-media;fullscreen;picture-in-picture" loading="lazy"></iframe>`;
- else if(s==="youtube")inner.innerHTML=`<iframe width="100%" height="300" src="https://www.youtube.com/embed/${id}?autoplay=1" title="clip" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture;web-share" allowfullscreen style="border-radius:8px"></iframe>`;
- else inner.innerHTML=`<div class="lk"><a class="watch" href="${row.dataset.url||'#'}" target="_blank" rel="noopener"><span style="color:#0d0d0d">&#9654;</span> Watch on ${row.dataset.plat||'YouTube'}</a><span class="note">Opens the official ${row.dataset.plat||'YouTube'} source. A verified inline clip is on the way.</span></div>`;
- drawer.classList.add("open");btn.classList.add("pause");
-});});
 const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.bw,.playbtn,.watch"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));

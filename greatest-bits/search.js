@@ -195,27 +195,6 @@
     });
   }
 
-  // ---------- Hero rotating chip ----------
-  function attachRotatingChip(){
-    var chip = document.querySelector(".gbhero .chip");
-    if (!chip) return;
-    var examples = (chip.dataset.examples || "horse,Hot Pockets,Seven Words,kid gorgeous,crowd work,Carlin,Mulaney")
-      .split(",").map(function(s){return s.trim();}).filter(Boolean);
-    var i = 0;
-    var lead = chip.dataset.lead || "Try";
-    function tick(){
-      chip.style.opacity = "0";
-      setTimeout(function(){
-        chip.textContent = lead + ": '" + examples[i] + "'";
-        chip.style.opacity = "1";
-        i = (i + 1) % examples.length;
-      }, 220);
-    }
-    chip.textContent = lead + ": '" + examples[0] + "'";
-    i = 1;
-    setInterval(tick, 3200);
-  }
-
   // ---------- Boot ----------
   function boot(){
     ensureOverlay();
@@ -224,7 +203,6 @@
     }
     attachTriggers();
     attachKeyboard();
-    attachRotatingChip();
     // Pre-warm the index on idle
     if ("requestIdleCallback" in window) requestIdleCallback(load);
     else setTimeout(load, 800);
