@@ -35,22 +35,24 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .head .sub{font-size:15px;color:#3a3128;max-width:62ch}
 .rule{height:4px;background:var(--red);margin:14px 32px 0}
 .ctrl{position:sticky;top:50px;z-index:8;background:var(--cream);border-bottom:2px solid var(--ink);padding:14px 32px 12px}
-.filters{padding:12px 32px 16px;border-bottom:2px solid #e3d9c5}
 .r1{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-.search{flex:1;min-width:230px;display:flex;align-items:center;gap:10px;background:#fff;border:2px solid var(--ink);border-radius:10px;padding:11px 14px}
-.search:focus-within{box-shadow:4px 4px 0 var(--yellow)}
-.search input{flex:1;border:none;outline:none;background:none;font-size:15px;color:var(--ink)}
-.search .slash{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);border:1px solid #d8cdb8;border-radius:5px;padding:2px 6px}
-.count{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);white-space:nowrap}.count b{color:var(--red)}
+.r1 .grow{flex:1}
+.count{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mut);white-space:nowrap;letter-spacing:.04em}.count b{color:var(--red);font-family:'Anton',sans-serif;font-size:22px;letter-spacing:0;font-weight:400}
 .toggle{display:flex;border:2px solid var(--ink);border-radius:9px;overflow:hidden}
 .toggle button{background:#fff;border:none;font:800 12px 'Archivo';padding:9px 14px;cursor:pointer;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
 .toggle button.on{background:var(--ink);color:var(--yellow)}
-.facets{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
-.chip{font:700 12px 'Archivo';padding:6px 12px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.14s;text-transform:uppercase}
+/* Filter rail (left-label + chip-rows alignment) */
+.frail{display:grid;grid-template-columns:84px 1fr;gap:14px 22px;padding:18px 32px 20px;border-bottom:2px solid #e3d9c5;align-items:center}
+.frail .flabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);margin:0;align-self:center;border-right:2px solid var(--ink);padding-right:14px;text-align:right;font-weight:600}
+.facets{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font:700 12px 'Archivo';padding:6px 12px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.14s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
 .chip:hover{background:#ffe9a8}.chip.on{background:var(--yellow)}
-.az{display:flex;flex-wrap:wrap;gap:3px;margin-top:11px}
+.chip .ct{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);font-weight:500}
+.chip.on .ct{color:var(--ink)}
+.az{display:flex;flex-wrap:wrap;gap:3px}
 .az button{font-family:'IBM Plex Mono',monospace;font-size:12px;width:24px;height:24px;border:none;background:none;color:var(--mut);cursor:pointer;border-radius:5px}
 .az button:hover{background:var(--ink);color:var(--yellow)}.az button.on{background:var(--red);color:#fff}
+@media(max-width:760px){.frail{grid-template-columns:1fr;gap:4px 0;padding:14px 18px 18px}.frail .flabel{border-right:0;padding-right:0;text-align:left;margin-top:8px}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:14px;padding:18px 32px 40px}
 .gt{position:relative;aspect-ratio:3/4;overflow:hidden;border:2px solid var(--ink);background:#e7ddc9;cursor:pointer;transition:transform .18s,box-shadow .18s}
 .gt:hover{transform:translateY(-5px);box-shadow:7px 7px 0 var(--red)}
@@ -94,8 +96,14 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .ribbon .seg .n{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);margin-top:2px;display:block}
 .ribbon .seg.on .n{color:var(--ink)}
 .sortsel{font:700 12px 'Archivo';color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:9px;padding:9px 12px;cursor:pointer}
-.surprise{font:800 12px 'Archivo';text-transform:uppercase;letter-spacing:.04em;color:var(--ink);background:var(--yellow);border:2px solid var(--ink);border-radius:9px;padding:9px 14px;cursor:pointer;transition:box-shadow .14s}
-.surprise:hover{box-shadow:4px 4px 0 var(--red)}
+/* Nav tools group: search + surprise side-by-side, right-aligned */
+.nav .navtools{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.nav .navtools .gbhead{margin-left:0}
+.nav .navsurprise{display:flex;align-items:center;gap:7px;height:34px;background:var(--yellow);color:var(--ink);font:900 11px 'Archivo';letter-spacing:.08em;text-transform:uppercase;padding:0 14px;border:2px solid var(--ink);cursor:pointer;transition:transform .14s,box-shadow .14s;white-space:nowrap}
+.nav .navsurprise:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--red)}
+.nav .navsurprise .dice{font-size:14px;line-height:1}
+@media(max-width:760px){.nav .navsurprise{height:30px;padding:0 10px;font-size:10px}.nav .navsurprise .dice{font-size:12px}}
+@media(max-width:540px){.nav .navsurprise span.lbl{display:none}.nav .navsurprise{padding:0 9px}}
 /*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 /*GBDROPCSS*/
 .nav .drop{position:relative;display:inline-flex;align-items:center}
@@ -139,25 +147,26 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 <body>
 <div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
-<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html" class="on">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits&hellip;" autocomplete="off"><span class="btn">/</span></div></nav>
+<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html" class="on">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><span class="navtools"><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits&hellip;" autocomplete="off"><span class="btn">/</span></div><button type="button" class="navsurprise" id="surprise" title="Open a random comic from the current filtered pool"><span class="dice">&#9856;</span><span class="lbl">Surprise me</span></button></span></nav>
 
 <div class="head"><div class="k">The complete anatomy of stand-up</div><h1>The Index</h1><div class="sub">Every comic in stand-up, browsable. Search, filter by era, and open anyone's page. The full roster is here; profiles fill in as we go.</div></div>
 <div class="rule"></div>
 <div class="ctrl">
   <div class="r1">
-    <label class="search"><span style="color:var(--mut)">&#9906;</span><input id="q" placeholder="Search comics, eras, nationalities…"><span class="slash">/</span></label>
     <span class="count" id="count"></span>
+    <span class="grow"></span>
     <select class="sortsel" id="sort" aria-label="Sort"><option value="surname">Sort by surname</option><option value="name">Sort by name</option><option value="era-asc">Sort by era, oldest first</option><option value="era-desc">Sort by era, newest first</option></select>
-    <button type="button" class="surprise" id="surprise">Surprise me</button>
     <div class="toggle"><button id="t-grid" class="on">Grid</button><button id="t-list">List</button></div>
   </div>
 </div>
-<div class="filters">
-  <div class="flabel">Filter by era</div>
+<div class="frail">
+  <div class="flabel">Era</div>
   <div class="ribbon" id="ribbon"></div>
-  <div class="flabel">Filter by scene</div>
+  <div class="flabel">Scene</div>
   <div class="facets" id="scenes"></div>
-  <div class="flabel">Jump to a letter</div>
+  <div class="flabel" id="genderlabel" hidden>Gender</div>
+  <div class="facets" id="genders" hidden></div>
+  <div class="flabel">Jump</div>
   <div class="az" id="az"></div>
 </div>
 <div class="grid" id="grid"></div>
@@ -176,17 +185,17 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 const ERAORDER=["1950s–1960s","1970s","1980s","1990s","2000s","2010s","2020s"];
 const SCENES=[["uk","UK"],["ireland","Ireland"],["anz","ANZ"],["canada","Canada"],["foundations","Foundations"],["alt","Alt"],["podcast","Podcast"],["kill-tony","Kill Tony"],["international","International"]];
-const eraCount={},sceneCount={};
+const eraCount={},sceneCount={},genderCount={m:0,f:0};
 const ERAIDX=e=>{const i=ERAORDER.indexOf(e);return i<0?99:i;};
 let D=[],ERAS=[],ELAB={};
-let q="",era="all",scene="all",letter="all",mode="grid",sort="surname";
+let era="all",scene="all",letter="all",gender="all",mode="grid",sort="surname";
 function buildEras(){
  const present=[...new Set(D.map(d=>d.eraKey))];
  ERAS=ERAORDER.filter(e=>present.includes(e));
  if(present.includes("unknown"))ERAS.push("unknown");
  ELAB={};ERAS.forEach(e=>ELAB[e]=(e==="unknown"?"Unknown":e));
 }
-const filtered=()=>{let rows=D.filter(d=>{const hit=!q||(d.name+" "+d.nat+" "+d.era).toLowerCase().includes(q.toLowerCase());return hit&&(era==="all"||d.eraKey===era)&&(scene==="all"||d.scene.indexOf(scene)>-1)&&(letter==="all"||(d.last[0]||"").toUpperCase()===letter);});
+const filtered=()=>{let rows=D.filter(d=>{return (era==="all"||d.eraKey===era)&&(scene==="all"||d.scene.indexOf(scene)>-1)&&(letter==="all"||(d.last[0]||"").toUpperCase()===letter)&&(gender==="all"||d.gender===gender);});
  if(sort==="name")rows.sort((a,b)=>a.name.localeCompare(b.name));
  else if(sort==="era-asc")rows.sort((a,b)=>ERAIDX(a.eraKey)-ERAIDX(b.eraKey)||a.last.localeCompare(b.last));
  else if(sort==="era-desc")rows.sort((a,b)=>ERAIDX(b.eraKey)-ERAIDX(a.eraKey)||a.last.localeCompare(b.last));
@@ -195,7 +204,7 @@ const filtered=()=>{let rows=D.filter(d=>{const hit=!q||(d.name+" "+d.nat+" "+d.
 const avatar=d=>d.photo?`<img src="${d.photo}" alt="${d.name}" loading="lazy">`:`<span class="ini">${ini(d.name)}</span>`;
 function meta(d){return [d.era,d.nat].filter(Boolean).join(" · ");}
 const NRMSGS=["Nothing matches that combination. Try fewer filters.","No comics fit that search. Loosen it up.","Nothing here matches. Clear a filter and try again.","You've cleared the house. Nothing fits that combo."];
-function clearFilters(){q="";era="all";scene="all";letter="all";sort="surname";const qi=document.getElementById("q");if(qi)qi.value="";const ss=document.getElementById("sort");if(ss)ss.value="surname";document.querySelectorAll("#ribbon .seg").forEach(c=>c.classList.toggle("on",c.dataset.e==="all"));document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.toggle("on",c.dataset.s==="all"));document.querySelectorAll("#az button").forEach(c=>c.classList.toggle("on",c.dataset.l==="all"));render();}
+function clearFilters(){era="all";scene="all";letter="all";gender="all";sort="surname";const ss=document.getElementById("sort");if(ss)ss.value="surname";document.querySelectorAll("#ribbon .seg").forEach(c=>c.classList.toggle("on",c.dataset.e==="all"));document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.toggle("on",c.dataset.s==="all"));document.querySelectorAll("#genders .chip").forEach(c=>c.classList.toggle("on",c.dataset.g==="all"));document.querySelectorAll("#az button").forEach(c=>c.classList.toggle("on",c.dataset.l==="all"));render();}
 function render(){
  const rows=filtered();
  document.getElementById("count").innerHTML=`<b>${rows.length}</b> / ${D.length} comics`;
@@ -207,16 +216,18 @@ function render(){
 }
 function eraLabel(e){return e==="unknown"?"Unknown":(e==="1950s\u20131960s"?"1950s/60s":e);}
 function wireFacets(){
- D.forEach(d=>{eraCount[d.eraKey]=(eraCount[d.eraKey]||0)+1;(d.scene||[]).forEach(s=>{sceneCount[s]=(sceneCount[s]||0)+1;});});
+ D.forEach(d=>{eraCount[d.eraKey]=(eraCount[d.eraKey]||0)+1;(d.scene||[]).forEach(s=>{sceneCount[s]=(sceneCount[s]||0)+1;});if(d.gender==="m")genderCount.m++;else if(d.gender==="f")genderCount.f++;});
  let rib=`<div class="seg on" data-e="all"><span class="d">All</span><span class="n">${D.length}</span></div>`;
  rib+=ERAS.map(e=>`<div class="seg" data-e="${e}"><span class="d">${eraLabel(e)}</span><span class="n">${eraCount[e]||0}</span></div>`).join("");
  document.getElementById("ribbon").innerHTML=rib;
- document.getElementById("scenes").innerHTML=`<button class="chip on" data-s="all">All scenes</button>`+SCENES.filter(s=>sceneCount[s[0]]).map(s=>`<button class="chip" data-s="${s[0]}">${s[1]}</button>`).join("");
+ document.getElementById("scenes").innerHTML=`<button class="chip on" data-s="all">All scenes <span class="ct">${D.length}</span></button>`+SCENES.filter(s=>sceneCount[s[0]]).map(s=>`<button class="chip" data-s="${s[0]}">${s[1]} <span class="ct">${sceneCount[s[0]]}</span></button>`).join("");
+ const gtotal=genderCount.m+genderCount.f;
+ if(gtotal>0){document.getElementById("genderlabel").hidden=false;const gel=document.getElementById("genders");gel.hidden=false;gel.innerHTML=`<button class="chip on" data-g="all">All <span class="ct">${gtotal}</span></button><button class="chip" data-g="m">Men <span class="ct">${genderCount.m}</span></button><button class="chip" data-g="f">Women <span class="ct">${genderCount.f}</span></button>`;}
  document.getElementById("az").innerHTML=`<button class="on" data-l="all">All</button>`+"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L=>`<button data-l="${L}">${L}</button>`).join("");
 }
-document.getElementById("q").addEventListener("input",e=>{q=e.target.value;render();});
 document.getElementById("ribbon").addEventListener("click",e=>{const b=e.target.closest(".seg");if(!b)return;document.querySelectorAll("#ribbon .seg").forEach(c=>c.classList.remove("on"));b.classList.add("on");era=b.dataset.e;render();});
 document.getElementById("scenes").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");scene=b.dataset.s;render();});
+document.getElementById("genders").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#genders .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");gender=b.dataset.g;render();});
 document.getElementById("sort").addEventListener("change",e=>{sort=e.target.value;render();});
 document.getElementById("surprise").addEventListener("click",()=>{const pool=filtered();const arr=pool.length?pool:D;const pick=arr[Math.floor(Math.random()*arr.length)];if(pick)location.href="comic.html?c="+pick.id;});
 document.getElementById("az").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#az button").forEach(c=>c.classList.remove("on"));b.classList.add("on");letter=b.dataset.l;render();});
@@ -225,12 +236,12 @@ document.getElementById("t-list").addEventListener("click",()=>{mode="list";docu
 
 (async function(){
  try{const r=await fetch("data/comedians.json?v="+Date.now());const ros=await r.json();
-  D=ros.map(x=>({id:x.id,name:x.name,last:(x.name.trim().split(" ").slice(-1)[0]||x.name),era:(x.era&&x.era!=="None")?x.era:"",eraKey:(x.era&&x.era!=="None")?x.era:"unknown",nat:x.nationality||"",photo:x.photo_url||null,scene:Array.isArray(x.scene)?x.scene:(x.scene?[x.scene]:[])}));
+  D=ros.map(x=>({id:x.id,name:x.name,last:(x.name.trim().split(" ").slice(-1)[0]||x.name),era:(x.era&&x.era!=="None")?x.era:"",eraKey:(x.era&&x.era!=="None")?x.era:"unknown",nat:x.nationality||"",photo:x.photo_url||null,scene:Array.isArray(x.scene)?x.scene:(x.scene?[x.scene]:[]),gender:(x.gender==="m"||x.gender==="f")?x.gender:null}));
  }catch(e){document.getElementById("grid").innerHTML=`<div class="empty">Could not load the roster.</div>`;return;}
  buildEras();wireFacets();render();
 }());
 const cur=document.getElementById("cur");
-addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.search,.seg,.surprise"));});
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.seg,.chip,.navsurprise,.toggle,.sortsel,.gbhead"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
