@@ -254,8 +254,26 @@ function renderProfile(c,x){
      return `<article class="work"><div class="wh"><div class="pos">${pos}</div><div><div class="ti">${esc(s.t)}</div><div class="mt">${s.yr||""} · ${esc(s.plat||"")}</div>${nb}</div>${act}</div><div class="wbits">${inner}</div></article>`;
    }).join("");
    html+=sec("The Work",`${sps.length} special${sps.length>1?"s":""} · newest first · open one for its bits`,cards);
-   const loose=bits.filter(b=>!matched.has(b) && !inTop3(b));
-   if(loose.length){html+=sec("More Bits",`${loose.length} clip${loose.length>1?"s":""}`,`<div>${loose.map(b=>bitRow(b,true)).join("")}</div>`);}
+   // Elsewhere: TV, podcasts, sets, plays, other — grouped from x.appearances (new shape) or loose bits (legacy)
+   const KIND_TITLES={tv:"On TV",podcast:"On Podcasts",set:"Live Sets & Club Posts",play:"On Stage",other:"Elsewhere"};
+   const KIND_ORDER=["tv","podcast","set","play","other"];
+   const apps=Array.isArray(x.appearances)?x.appearances:null;
+   if(apps){
+     KIND_ORDER.forEach(kind=>{
+       const inKind=apps.filter(a=>a.kind===kind);
+       const rows=[];
+       inKind.forEach(a=>{(a.bits||[]).forEach(b=>{
+         if(inTop3(b))return;
+         const decorated=Object.assign({},b,{sp:a.t,yr:b.yr||a.yr||""});
+         rows.push(decorated);
+       });});
+       if(!rows.length)return;
+       html+=sec(KIND_TITLES[kind],`${rows.length} clip${rows.length>1?"s":""}`,`<div>${rows.map(b=>bitRow(b,true)).join("")}</div>`);
+     });
+   }else{
+     const loose=bits.filter(b=>!matched.has(b) && !inTop3(b));
+     if(loose.length){html+=sec("More Bits",`${loose.length} clip${loose.length>1?"s":""}`,`<div>${loose.map(b=>bitRow(b,true)).join("")}</div>`);}
+   }
  } else if(bits.length){
    const rest=bits.filter(b=>!inTop3(b));
    if(rest.length){html+=sec("More Bits",`${rest.length} clip${rest.length>1?"s":""}`,`<div>${rest.map(b=>bitRow(b,true)).join("")}</div>`);}

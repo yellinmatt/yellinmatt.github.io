@@ -270,11 +270,22 @@ const names=["George Carlin","Richard Pryor","Eddie Murphy","Robin Williams","Ch
 document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("")).repeat(2);
 // Bit-of-the-day chip + Index stats — single combined async fetch (cache-busted, live counts)
 (async function(){
- let comics=null,idx=null;
+ let comics=null,idx=null,bitsTotal=0;
  try{const [r1,r2]=await Promise.all([
    fetch("data/comedians.json?v="+Date.now()),
    fetch("data/specials.json?v="+Date.now())
- ]);comics=await r1.json();idx=await r2.json();}catch(e){}
+ ]);comics=await r1.json();idx=await r2.json();
+ // True bit count: walk per-comic JSONs (covers bits whose sp doesn't match a special title)
+ try{
+  const ids=comics.map(c=>c.id);
+  const settled=await Promise.allSettled(ids.map(id=>fetch("data/comics/"+id+".json?v="+Date.now()).then(r=>r.ok?r.json():null)));
+  settled.forEach(s=>{if(s.status!=="fulfilled"||!s.value)return;const d=s.value;
+   // Prefer new appearances[] shape; fall back to flat bits[]
+   if(Array.isArray(d.appearances)){d.appearances.forEach(a=>(a.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;}));}
+   else{(d.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;});}
+  });
+ }catch(e){}
+ }catch(e){}
  // Bit of the day chip -> the special it lives in
  if(idx){
    const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({slug,t:b.t});});});
@@ -282,8 +293,7 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
  }
  // Index stats — live counts from JSON, count-up on scroll into view
  if(comics&&idx){
-   let nBits=0;Object.values(idx).forEach(v=>(v.bits||[]).forEach(b=>{if(b.id)nBits++;}));
-   const targets={comics:comics.length,specials:Object.keys(idx).length,bits:nBits};
+   const targets={comics:comics.length,specials:Object.keys(idx).length,bits:bitsTotal};
    const stats=document.getElementById("ixstats");if(!stats)return;
    stats.querySelectorAll('[data-stat]').forEach(el=>{el.dataset.target=targets[el.dataset.stat];});
    const ease=t=>1-Math.pow(1-t,3);
