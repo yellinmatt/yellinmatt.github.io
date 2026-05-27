@@ -48,6 +48,15 @@ figcaption { font-style: italic; font-size: 13px; color: var(--muted); text-alig
 .read-body { font-family: var(--serif); font-size: 16.5px; line-height: 1.7; color: var(--ink); padding: 0 24px; }
 .read-body p { margin: 0; }
 .read-source { font-style: italic; font-size: 12.5px; color: var(--muted); text-align: right; margin: 14px 4px 0 0; }
+.gloss { font: inherit; background: none; border: 0; padding: 0; margin: 0; color: inherit; cursor: help; display: inline; position: relative; text-decoration: underline dotted var(--rule); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.gloss:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.gloss-body { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 12px); width: 280px; max-width: calc(100vw - 44px); background: var(--bg); color: var(--ink); border: 0.5px solid var(--rule); border-radius: 3px; padding: 12px 14px; font-family: var(--serif); font-size: 13.5px; line-height: 1.55; text-align: left; font-style: normal; font-weight: 400; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 80ms ease; z-index: 10; }
+.gloss-body::before { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: var(--bg); border-right: 0.5px solid var(--rule); border-bottom: 0.5px solid var(--rule); transform: translateX(-50%) rotate(45deg); }
+.gloss[data-open="true"] > .gloss-body, .gloss:hover > .gloss-body { opacity: 1; visibility: visible; pointer-events: auto; }
+.gloss[data-flip="true"] > .gloss-body { bottom: auto; top: calc(100% + 12px); }
+.gloss[data-flip="true"] > .gloss-body::before { bottom: auto; top: -6px; border-right: 0; border-bottom: 0; border-left: 0.5px solid var(--rule); border-top: 0.5px solid var(--rule); }
+.gloss-kind { display: block; font-family: var(--sans); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+@media print { .gloss { text-decoration: none; cursor: auto } .gloss > .gloss-body { display: none } }
 .watch-embed { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; margin: 0 0 6px; }
 .watch-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 .endmatter { margin-top: 48px; padding-top: 26px; border-top: 0.5px solid var(--rule); }
@@ -103,7 +112,7 @@ em { font-style: italic; }
     <p>The line everyone quotes is the first. The argument is in the next three. Is it nobler &ldquo;to suffer / The slings and arrows of outrageous fortune, / Or to take arms against a sea of troubles, / And by opposing end them?&rdquo; The question turns on action, with death as one form of action and outrageous fortune as the alternative. Suicide enters around line eight (&ldquo;To die, to sleep&rdquo;) and stays through the middle of the speech. It is never the only thing on the table.</p>
 
     <div class="read">
-      <div class="read-head"><span>Read</span><span class="who">Hamlet, 3.1.64&ndash;98</span></div>
+      <div class="read-head"><span>Read</span><span class="who">Hamlet, 3.1.64&ndash;98 &middot; tap the dotted words for a gloss</span></div>
       <div class="read-body">
         <p>To be, or not to be: that is the question:<br>
         Whether &rsquo;tis nobler in the mind to suffer<br>
@@ -114,18 +123,18 @@ em { font-style: italic; }
         The heart-ache and the thousand natural shocks<br>
         That flesh is heir to, &rsquo;tis a consummation<br>
         Devoutly to be wish&rsquo;d. To die, to sleep;<br>
-        To sleep: perchance to dream: ay, there&rsquo;s the rub;<br>
+        To sleep: perchance to dream: ay, there&rsquo;s the <button type="button" class="gloss" aria-haspopup="dialog">rub<span class="gloss-body" role="dialog"><span class="gloss-kind">Origin</span>From lawn bowling. A rub is any unevenness on the green that diverts the bowl off its line. Hamlet borrows the word for death&rsquo;s unknown, the thing he cannot see past.</span></button>;<br>
         For in that sleep of death what dreams may come<br>
         When we have shuffled off this mortal coil,<br>
         Must give us pause: there&rsquo;s the respect<br>
         That makes calamity of so long life;<br>
         For who would bear the whips and scorns of time,<br>
-        The oppressor&rsquo;s wrong, the proud man&rsquo;s contumely,<br>
+        The oppressor&rsquo;s wrong, the proud man&rsquo;s <button type="button" class="gloss" aria-haspopup="dialog">contumely<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>Insolent or contemptuous treatment; the kind of scorn that humiliates as it wounds. Stress falls on the first syllable: CON-tum-ly. From Latin <em>contumelia</em>.</span></button>,<br>
         The pangs of despised love, the law&rsquo;s delay,<br>
         The insolence of office and the spurns<br>
         That patient merit of the unworthy takes,<br>
-        When he himself might his quietus make<br>
-        With a bare bodkin? who would fardels bear,<br>
+        When he himself might his <button type="button" class="gloss" aria-haspopup="dialog">quietus<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>A formal release. From Latin <em>quietus est</em>, &ldquo;he is quit,&rdquo; the phrase a medieval auditor wrote when an account was settled. In Hamlet&rsquo;s mouth the sense is closing the books on a life.</span></button> make<br>
+        With a <button type="button" class="gloss" aria-haspopup="dialog">bare bodkin<span class="gloss-body" role="dialog"><span class="gloss-kind">Phrase</span>A bodkin is a small dagger or stiletto; <em>bare</em> is unsheathed. The line asks who would suffer when a plain knife would settle the matter.</span></button>? who would <button type="button" class="gloss" aria-haspopup="dialog">fardels<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>Burdens; packs. From Old French <em>fardel</em>, the bundle on a traveller&rsquo;s back. To bear fardels is to carry the load.</span></button> bear,<br>
         To grunt and sweat under a weary life,<br>
         But that the dread of something after death,<br>
         The undiscover&rsquo;d country from whose bourn<br>
@@ -138,7 +147,7 @@ em { font-style: italic; }
         And enterprises of great pith and moment<br>
         With this regard their currents turn awry,<br>
         And lose the name of action.&mdash;Soft you now!<br>
-        The fair Ophelia! Nymph, in thy orisons<br>
+        The fair Ophelia! Nymph, in thy <button type="button" class="gloss" aria-haspopup="dialog">orisons<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>Prayers. From Old French <em>oreison</em>, from Latin <em>oratio</em>, a speech or address. Hamlet asks Ophelia to remember him in hers.</span></button><br>
         Be all my sins remember&rsquo;d.</p>
       </div>
       <p class="read-source">Hamlet, Act 3, Scene 1, in the Second Quarto (1604&ndash;5) and First Folio (1623). Text per the Academy of American Poets.</p>
@@ -202,6 +211,18 @@ em { font-style: italic; }
 
 <footer class="page-foot"><a href="index.html">&larr; Back to Library</a></footer>
 <script>
+(function(){
+  var open=null,openedAt=0,openedY=0;
+  function close(){if(open){open.removeAttribute("data-open");open.removeAttribute("data-flip");var b=open.querySelector(".gloss-body");if(b){b.style.left="";b.style.right="";b.style.transform=""}open=null}}
+  function show(g){close();g.setAttribute("data-open","true");open=g;openedAt=Date.now();openedY=window.scrollY;var b=g.querySelector(".gloss-body");if(!b)return;var r=b.getBoundingClientRect();if(r.top<8)g.setAttribute("data-flip","true");var r2=b.getBoundingClientRect();if(r2.left<8){b.style.left="8px";b.style.right="auto";b.style.transform="none"}else if(r2.right>window.innerWidth-8){b.style.left="auto";b.style.right="8px";b.style.transform="none"}}
+  document.querySelectorAll(".gloss").forEach(function(g){
+    g.addEventListener("click",function(e){e.preventDefault();e.stopPropagation();if(open===g){close();return}show(g);});
+    g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();if(open===g){close()}else{show(g)}}});
+  });
+  document.addEventListener("click",function(e){if(open&&!open.contains(e.target))close();});
+  document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+  window.addEventListener("scroll",function(){if(!open)return;if(Date.now()-openedAt<200)return;if(Math.abs(window.scrollY-openedY)<30)return;close();},{passive:true});
+})();
 function wvRandomLesson(){
   var L=["to-be-or-not-to-be.html","morphy-opera-game.html","omega-speedmaster.html","ecstasy-of-saint-teresa.html","special-relativity.html","champagne.html","rashomon.html","daedalus-and-icarus.html","hubble-deep-field.html","fall-of-constantinople.html","goldberg-variations.html","ozymandias.html","pantheon.html","marcus-aurelius.html","neoclassicism.html","negroni.html"];
   var here=location.pathname.split("/").pop();
