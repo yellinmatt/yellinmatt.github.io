@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab — Magnify Card · 5 sub-variations</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--cream);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}
+.labwrap{max-width:1120px;margin:0 auto;padding:40px 24px 80px}
+.labhead{margin-bottom:32px}
+.labhead .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
+.labhead h1{font-family:'Anton',sans-serif;font-size:48px;line-height:1;margin:8px 0;text-transform:uppercase;color:#fff}
+.labhead p{color:#cfc6b4;font-size:14px;max-width:65ch}
+.labhead p code{background:#0d0d0d;padding:2px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--yellow)}
+.variant{margin:48px 0;border:1px solid #2a2a2a}
+.variant .meta{padding:18px 22px;background:#0d0d0d;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.variant .vk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow)}
+.variant .vt{font-family:'Anton',sans-serif;font-size:30px;text-transform:uppercase;line-height:.95;color:#fff}
+.variant .vd{flex:1;text-align:right;color:#9a9082;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.variant .twocol{display:grid;grid-template-columns:1fr;background:var(--cream);color:var(--ink)}
+.variant .sublabel{padding:14px 22px;background:#222;color:#9a9082;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;border-top:1px solid #2a2a2a}
+.variant .notes{padding:20px 22px;background:#0d0d0d;color:#cfc6b4;font-size:13px;line-height:1.6;border-top:1px solid #2a2a2a}
+.variant .notes b{color:var(--yellow);font-weight:700}
+.variant .notes ul{margin:8px 0 0 20px}.variant .notes li{margin:4px 0}
+
+/* HOME-PAGE CONTEXT (mini) — used in every variation */
+.home{padding:0}
+.home .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;max-width:1000px;margin:0 auto;padding:24px 26px 0}
+.home .bcard{border:3px solid var(--ink);background:#fff;padding:14px 16px;min-height:88px}
+.home .bcard .tt{font-family:'Anton',sans-serif;font-size:19px;text-transform:uppercase;line-height:.95;margin-bottom:6px}
+.home .bcard .dd{color:#3a3128;font-size:12px;line-height:1.4}
+.home .gap{height:22px}
+.home .indexband{max-width:1000px;margin:18px auto 30px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);padding:18px 22px;display:grid;grid-template-columns:1fr auto auto;gap:14px 24px;align-items:center}
+.home .indexband .ttl{font-family:'Anton',sans-serif;font-size:26px;text-transform:uppercase;line-height:.92}
+.home .indexband .ttl .y{color:var(--yellow)}
+.home .indexband .sb{color:#cfc6b4;font-size:12px;margin-top:4px;max-width:42ch}
+.home .indexband .stats{display:flex;gap:18px;border-left:1px solid #2a2a2a;padding-left:18px}
+.home .indexband .stats .n{font-family:'Anton',sans-serif;font-size:30px;line-height:.85;color:var(--yellow);font-variant-numeric:tabular-nums;min-width:4.5ch}
+.home .indexband .stats .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cfc6b4;margin-top:3px}
+.home .indexband .cta{justify-self:end;font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;background:var(--yellow);color:var(--ink);border-radius:999px;padding:9px 16px;white-space:nowrap}
+.cardholder{max-width:1000px;margin:0 auto;padding:22px 26px 0}
+
+/* INNER-PAGE NAV CONTEXT — used for the paired header strip */
+.nav{display:flex;align-items:center;gap:22px;padding:14px 26px;background:var(--ink);color:var(--cream)}
+.nav .logo{font-family:'Anton',sans-serif;font-size:20px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
+.nav .links{display:flex;gap:18px;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--cream)}
+.nav .sp{flex:1}
+
+/* ============== C1 · Wide-Loud — Cream + yellow column ============== */
+.c1-card{display:grid;grid-template-columns:1fr auto;border:3px solid var(--ink);background:#fff;transition:box-shadow .16s}
+.c1-card:hover{box-shadow:9px 9px 0 var(--red)}
+.c1-card .left{padding:18px 22px}
+.c1-card .left .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
+.c1-card .left input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:32px;color:var(--ink);text-transform:uppercase;padding:8px 0 4px;outline:none;letter-spacing:-.005em}
+.c1-card .left input::placeholder{color:var(--mut)}
+.c1-card .left .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.c1-card .right{background:var(--yellow);width:96px;display:flex;align-items:center;justify-content:center;border-left:3px solid var(--ink);font-size:38px;color:var(--ink)}
+.c1-head{margin-left:auto;display:flex;align-items:center;gap:0;background:#fff;border:2px solid var(--ink);height:36px}
+.c1-head .lens{padding:0 10px;display:flex;align-items:center;font-size:14px;color:var(--ink)}
+.c1-head input{border:0;background:transparent;padding:8px 6px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:180px;color:var(--ink);outline:none}
+.c1-head input::placeholder{color:var(--mut)}
+.c1-head .key{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:0 10px;border-left:2px solid var(--ink);display:flex;align-items:center;height:100%}
+
+/* ============== C2 · Black-Mirror — Ink + yellow ============== */
+.c2-card{display:grid;grid-template-columns:1fr auto;border:3px solid var(--ink);background:var(--ink);color:var(--cream);transition:box-shadow .16s}
+.c2-card:hover{box-shadow:9px 9px 0 var(--yellow)}
+.c2-card .left{padding:18px 22px}
+.c2-card .left .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--yellow);font-weight:600}
+.c2-card .left input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:32px;color:var(--cream);text-transform:uppercase;padding:8px 0 4px;outline:none;letter-spacing:-.005em}
+.c2-card .left input::placeholder{color:#7a716a}
+.c2-card .left .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9a9082}
+.c2-card .right{background:var(--yellow);width:96px;display:flex;align-items:center;justify-content:center;border-left:3px solid var(--ink);font-size:38px;color:var(--ink)}
+.c2-head{margin-left:auto;display:flex;align-items:center;gap:0;background:#262626;border:2px solid #3a3a3a;height:36px}
+.c2-head .lens{padding:0 10px;display:flex;align-items:center;font-size:14px;color:var(--yellow)}
+.c2-head input{border:0;background:transparent;padding:8px 6px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:180px;color:var(--cream);outline:none}
+.c2-head input::placeholder{color:#7a716a}
+.c2-head .key{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:0 10px;display:flex;align-items:center;height:100%}
+
+/* ============== C3 · Collage-Stamp — tilted yellow stamp ============== */
+.c3-card{position:relative;border:3px solid var(--ink);background:#fff;padding:22px 110px 22px 24px;transition:box-shadow .16s}
+.c3-card:hover{box-shadow:9px 9px 0 var(--red)}
+.c3-card .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
+.c3-card input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:32px;color:var(--ink);text-transform:uppercase;padding:8px 0 4px;outline:none;letter-spacing:-.005em}
+.c3-card input::placeholder{color:var(--mut)}
+.c3-card .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.c3-card .stamp{position:absolute;top:-12px;right:-12px;width:84px;height:84px;background:var(--yellow);border:3px solid var(--ink);transform:rotate(-8deg);display:flex;align-items:center;justify-content:center;font-size:36px;color:var(--ink);box-shadow:4px 4px 0 rgba(13,13,13,.18);transition:transform .2s}
+.c3-card:hover .stamp{transform:rotate(0deg) scale(1.05)}
+.c3-head{margin-left:auto;display:flex;align-items:center;gap:0;background:#fff;border:2px solid var(--ink);height:36px;position:relative}
+.c3-head input{border:0;background:transparent;padding:8px 12px 8px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:200px;color:var(--ink);outline:none}
+.c3-head .stamp{position:absolute;top:-6px;right:-6px;width:30px;height:30px;background:var(--yellow);border:2px solid var(--ink);transform:rotate(-10deg);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--ink);box-shadow:2px 2px 0 rgba(13,13,13,.2)}
+
+/* ============== C4 · Red-Banner — signal red bg, yellow magnify ============== */
+.c4-card{display:grid;grid-template-columns:1fr auto;border:3px solid var(--ink);background:var(--red);color:var(--cream);transition:box-shadow .16s}
+.c4-card:hover{box-shadow:9px 9px 0 var(--ink)}
+.c4-card .left{padding:18px 22px}
+.c4-card .left .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--yellow);font-weight:600}
+.c4-card .left input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:32px;color:#fff;text-transform:uppercase;padding:8px 0 4px;outline:none;letter-spacing:-.005em}
+.c4-card .left input::placeholder{color:#fbd2c8}
+.c4-card .left .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#fbd2c8}
+.c4-card .right{background:var(--yellow);width:96px;display:flex;align-items:center;justify-content:center;border-left:3px solid var(--ink);font-size:38px;color:var(--ink)}
+.c4-head{margin-left:auto;display:flex;align-items:center;gap:0;background:var(--red);border:2px solid var(--yellow);height:36px}
+.c4-head .lens{padding:0 10px;display:flex;align-items:center;font-size:14px;color:var(--yellow)}
+.c4-head input{border:0;background:transparent;padding:8px 6px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:180px;color:var(--cream);outline:none}
+.c4-head input::placeholder{color:#fbd2c8}
+.c4-head .key{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;padding:0 10px;display:flex;align-items:center;height:100%}
+
+/* ============== C5 · Split-Poster — type-as-design ============== */
+.c5-card{display:grid;grid-template-columns:1fr 1fr;border:3px solid var(--ink);background:#fff;transition:box-shadow .16s;overflow:hidden}
+.c5-card:hover{box-shadow:9px 9px 0 var(--red)}
+.c5-card .L{background:var(--ink);color:var(--cream);padding:22px 24px;display:flex;flex-direction:column;justify-content:center}
+.c5-card .L .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--yellow);font-weight:600;margin-bottom:6px}
+.c5-card .L h2{font-family:'Anton',sans-serif;font-size:56px;text-transform:uppercase;line-height:.85;color:#fff}
+.c5-card .L h2 .y{color:var(--yellow)}
+.c5-card .L .sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#cfc6b4;margin-top:8px;letter-spacing:.06em}
+.c5-card .R{padding:22px 24px;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.c5-card .R input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:26px;color:var(--ink);text-transform:uppercase;padding:4px 0;outline:none;letter-spacing:-.005em;border-bottom:3px solid var(--ink)}
+.c5-card .R input::placeholder{color:var(--mut)}
+.c5-card .R input:focus{border-bottom-color:var(--red)}
+.c5-card .R .row{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.c5-card .R .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.c5-card .R .go{font-family:'Archivo',sans-serif;font-weight:900;font-size:13px;letter-spacing:.04em;text-transform:uppercase;background:var(--yellow);color:var(--ink);padding:10px 18px;display:inline-flex;align-items:center;gap:8px}
+.c5-head{margin-left:auto;display:flex;align-items:stretch;gap:0;background:var(--ink);border:2px solid var(--yellow);height:36px}
+.c5-head .lbl{font-family:'Anton',sans-serif;font-size:14px;letter-spacing:.05em;text-transform:uppercase;color:var(--yellow);padding:0 12px;display:flex;align-items:center;border-right:2px solid var(--yellow)}
+.c5-head input{border:0;background:transparent;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:170px;color:var(--cream);outline:none}
+.c5-head input::placeholder{color:#7a716a}
+</style>
+</head>
+<body>
+<div class="labwrap">
+
+<div class="labhead">
+  <div class="k">Design Lab · Magnify-Card v2</div>
+  <h1>5 ways to treat the Magnify Card</h1>
+  <p>You picked the magnify-card placement (between the trio cards and the Index band). Below are 5 sub-variations of <i>how</i> the card looks, each paired with its matching <b>inner-page header search treatment</b> so the visual language carries to every other page (comics.html, comic.html, specials.html, browse.html, etc.). Pick a letter <i>(C1–C5)</i> or hybrid. Real counts: <code>430 · 1,221 · 879</code>.</p>
+</div>
+
+<!-- ========== C1 · Wide-Loud ========== -->
+<section class="variant">
+  <div class="meta"><span class="vk">C1</span><span class="vt">Wide-Loud (the baseline)</span><span class="vd">cream card, yellow magnify column</span></div>
+  <div class="sublabel">↓ Home page · between trio and Index band</div>
+  <div class="home">
+    <div class="trio">
+      <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney, ranked.</div></div>
+      <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+      <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+    </div>
+    <div class="cardholder">
+      <div class="c1-card">
+        <div class="left">
+          <div class="k">Find a bit · 430 comics · 1,221 specials · 879 bits</div>
+          <input type="text" placeholder="A joke about a horse…">
+          <div class="hint">Press <b>/</b> anywhere to focus · Enter to open</div>
+        </div>
+        <div class="right">⌕</div>
+      </div>
+    </div>
+    <div class="indexband">
+      <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">Every comic, special, and bit.</div></div>
+      <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+      <span class="cta">Browse the Index &#8594;</span>
+    </div>
+  </div>
+  <div class="sublabel">↓ Inner-page header strip (comic.html, browse.html, etc.)</div>
+  <nav class="nav"><a class="logo">Greatest <b>Bits</b></a><span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span><span class="sp"></span><div class="c1-head"><span class="lens">⌕</span><input type="text" placeholder="Search comics, specials, bits…"><span class="key">/</span></div></nav>
+  <div class="notes">
+    <b>What this is:</b> the baseline magnify card from lab v1. Cream bg, ink border, fat yellow magnify column on the right. Inner pages get a compact mirror — same ink border, same yellow accent key — sitting where the current ⌖ Search pill is.
+    <ul>
+      <li><b>Pro:</b> safest mapping; cream-on-cream means the card recedes politely into the page</li>
+      <li><b>Con:</b> may read as just-another-card next to the trio; the magnify column does the heavy lifting</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== C2 · Black-Mirror ========== -->
+<section class="variant">
+  <div class="meta"><span class="vk">C2</span><span class="vt">Black-Mirror</span><span class="vd">ink card, yellow magnify, twins the Index band below</span></div>
+  <div class="sublabel">↓ Home page · between trio and Index band</div>
+  <div class="home">
+    <div class="trio">
+      <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney, ranked.</div></div>
+      <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+      <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+    </div>
+    <div class="cardholder">
+      <div class="c2-card">
+        <div class="left">
+          <div class="k">Find a bit · 430 · 1,221 · 879</div>
+          <input type="text" placeholder="A joke about a horse…">
+          <div class="hint">Press <b>/</b> to focus · Enter to open</div>
+        </div>
+        <div class="right">⌕</div>
+      </div>
+    </div>
+    <div class="indexband">
+      <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">Every comic, special, and bit.</div></div>
+      <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+      <span class="cta">Browse the Index &#8594;</span>
+    </div>
+  </div>
+  <div class="sublabel">↓ Inner-page header strip</div>
+  <nav class="nav"><a class="logo">Greatest <b>Bits</b></a><span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span><span class="sp"></span><div class="c2-head"><span class="lens">⌕</span><input type="text" placeholder="Search comics, specials, bits…"><span class="key">/</span></div></nav>
+  <div class="notes">
+    <b>What this is:</b> the card goes dark — ink bg, yellow accent. Now it pairs visually with the Index band immediately below it (same black + yellow palette). The two together read as a single "search-and-browse" black-band moment. Inner-page header: the existing nav already has an ink bg, so the search treatment just feels like a dark continuation of the card.
+    <ul>
+      <li><b>Pro:</b> visually unifies search + Index into one dark zone; the inner-page header is already dark, so consistency is free</li>
+      <li><b>Con:</b> two black bands stacked may feel heavy; less "card grammar" with the trio above</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== C3 · Collage-Stamp ========== -->
+<section class="variant">
+  <div class="meta"><span class="vk">C3</span><span class="vt">Collage-Stamp</span><span class="vd">tilted yellow stamp echoes the masthead's collage</span></div>
+  <div class="sublabel">↓ Home page · between trio and Index band</div>
+  <div class="home">
+    <div class="trio">
+      <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney, ranked.</div></div>
+      <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+      <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+    </div>
+    <div class="cardholder">
+      <div class="c3-card">
+        <div class="k">Find a bit · 430 comics · 1,221 specials · 879 bits</div>
+        <input type="text" placeholder="A joke about a horse…">
+        <div class="hint">Press <b>/</b> anywhere to focus · Enter to open</div>
+        <div class="stamp">⌕</div>
+      </div>
+    </div>
+    <div class="indexband">
+      <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">Every comic, special, and bit.</div></div>
+      <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+      <span class="cta">Browse the Index &#8594;</span>
+    </div>
+  </div>
+  <div class="sublabel">↓ Inner-page header strip — stamp aesthetic shrinks but stays tilted</div>
+  <nav class="nav"><a class="logo">Greatest <b>Bits</b></a><span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span><span class="sp"></span><div class="c3-head"><input type="text" placeholder="Search comics, specials, bits…"><span class="stamp">⌕</span></div></nav>
+  <div class="notes">
+    <b>What this is:</b> the magnify-glass becomes a tilted yellow stamp pinned to the top-right corner of the card (rotated -8°, with a real drop shadow). The input takes the full width. Echoes the kinetic tilted collage in the red masthead. On hover, the stamp un-rotates and grows slightly. Inner-page header: the same tilted stamp lives on a compact search field, top-right.
+    <ul>
+      <li><b>Pro:</b> playful, kinetic, and the stamp ties the card visually to the masthead's tilted B/W collage above; most "Greatest Bits" personality of the five</li>
+      <li><b>Con:</b> shrinks awkwardly on narrow viewports (stamp may overlap input); the tilt may feel too cute next to the formal Index band</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== C4 · Red-Banner ========== -->
+<section class="variant">
+  <div class="meta"><span class="vk">C4</span><span class="vt">Red-Banner</span><span class="vd">signal-red card, max volume, yellow magnify</span></div>
+  <div class="sublabel">↓ Home page · between trio and Index band</div>
+  <div class="home">
+    <div class="trio">
+      <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney, ranked.</div></div>
+      <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+      <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+    </div>
+    <div class="cardholder">
+      <div class="c4-card">
+        <div class="left">
+          <div class="k">Find a bit · 430 · 1,221 · 879</div>
+          <input type="text" placeholder="A joke about a horse…">
+          <div class="hint">Press <b>/</b> to focus · Enter to open</div>
+        </div>
+        <div class="right">⌕</div>
+      </div>
+    </div>
+    <div class="indexband">
+      <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">Every comic, special, and bit.</div></div>
+      <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+      <span class="cta">Browse the Index &#8594;</span>
+    </div>
+  </div>
+  <div class="sublabel">↓ Inner-page header strip — red micro-card with yellow accent</div>
+  <nav class="nav"><a class="logo">Greatest <b>Bits</b></a><span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span><span class="sp"></span><div class="c4-head"><span class="lens">⌕</span><input type="text" placeholder="Search comics, specials, bits…"><span class="key">/</span></div></nav>
+  <div class="notes">
+    <b>What this is:</b> goes loudest. Signal-red bg, cream/yellow type, yellow magnify column. Maximum brand-color statement; matches the red masthead more than the trio. The inner-page header echoes red-on-yellow even in the dark nav.
+    <ul>
+      <li><b>Pro:</b> brand maximalism — the search becomes a brand surface, not just a UI; impossible to miss</li>
+      <li><b>Con:</b> red on cream on red can feel relentless above the dark Index band; less restful</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ========== C5 · Split-Poster ========== -->
+<section class="variant">
+  <div class="meta"><span class="vk">C5</span><span class="vt">Split-Poster</span><span class="vd">type-as-design · giant "FIND IT" wordmark left, input right</span></div>
+  <div class="sublabel">↓ Home page · between trio and Index band</div>
+  <div class="home">
+    <div class="trio">
+      <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney, ranked.</div></div>
+      <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+      <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+    </div>
+    <div class="cardholder">
+      <div class="c5-card">
+        <div class="L">
+          <div class="k">A joke about a horse?</div>
+          <h2>Find <span class="y">it</span></h2>
+          <div class="sub">430 · 1,221 · 879</div>
+        </div>
+        <div class="R">
+          <input type="text" placeholder="A comic, a special, a bit…">
+          <div class="row">
+            <span class="hint">Press <b>/</b> to focus</span>
+            <span class="go">Search ⌕</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="indexband">
+      <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">Every comic, special, and bit.</div></div>
+      <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+      <span class="cta">Browse the Index &#8594;</span>
+    </div>
+  </div>
+  <div class="sublabel">↓ Inner-page header strip — anton "FIND" lockup + input</div>
+  <nav class="nav"><a class="logo">Greatest <b>Bits</b></a><span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span><span class="sp"></span><div class="c5-head"><span class="lbl">Find</span><input type="text" placeholder="A comic, a special, a bit…"></div></nav>
+  <div class="notes">
+    <b>What this is:</b> the card splits in half. Left side: black panel with "FIND <span style="color:#ffd23e">IT</span>" in giant Anton, the inviting question above as a kicker. Right side: cream panel with the input + a yellow Search pill. The card frames the search as a deliberate moment instead of a utility row. Inner-page header: the same "FIND" wordmark mini'd next to the input.
+    <ul>
+      <li><b>Pro:</b> most editorial — the card reads as a section heading + form, not a control; reinforces the Curator-magazine register</li>
+      <li><b>Con:</b> tallest of the five; eats more vertical space; the giant headline competes with the Index band's title for "this is the section heading" attention</li>
+    </ul>
+  </div>
+</section>
+
+<div class="variant" style="margin-top:60px;padding:20px 22px;background:#0d0d0d">
+  <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9a9082;line-height:1.7">
+    <b style="color:#ffd23e">Notes on the inner-page header treatment.</b><br>
+    Whichever C you pick, the inner-page header search strip uses the SAME visual language miniaturized: same border, same magnify treatment, same color. The current ⌖ Search pill goes away; an always-visible input takes its slot. The "/" key still focuses it from anywhere. <br><br>
+    Want a hybrid? Tell me letters + adjustments — e.g., <i>"C2 for the home card, C1 for the inner-page header"</i> or <i>"C3 but make the stamp red instead of yellow."</i>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
