@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Lab — Greatest Bits</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;
+ --ig-pink:#E1306C;--ig-purple:#833AB4;--ig-cream:#FBEAF0;--ig-ink:#72243E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:var(--ink)}
+img{display:block;max-width:100%}
+
+/* page frame */
+.frame{max-width:1180px;margin:0 auto;padding:32px 28px 80px}
+.lab-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600;display:inline-block;border:2px solid var(--red);padding:5px 12px;border-radius:999px}
+h1{font-family:'Anton',sans-serif;font-size:clamp(56px,9vw,108px);text-transform:uppercase;line-height:.86;letter-spacing:-.01em;margin:20px 0 14px}
+.deck{font-family:'Fraunces',Georgia,serif;font-size:clamp(18px,2.2vw,22px);line-height:1.45;max-width:60ch;color:#332c22}
+.rule{height:4px;background:var(--ink);margin:30px 0 36px;max-width:80px}
+
+h2{font-family:'Anton',sans-serif;font-size:clamp(28px,3.6vw,40px);text-transform:uppercase;letter-spacing:-.005em;line-height:.92;margin-bottom:14px}
+h3{font-family:'Archivo',sans-serif;font-weight:900;font-size:18px;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+section{margin-bottom:56px}
+.sec-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:10px}
+p{font-size:16px;line-height:1.65;color:#1a1a17;max-width:64ch}
+
+/* schema diff */
+.schema{background:var(--ink);color:var(--cream);border-radius:14px;padding:24px 26px;font-family:'IBM Plex Mono',monospace;font-size:14px;line-height:1.7}
+.schema .cmt{color:#9d8b6c}
+.schema .new{color:var(--yellow);font-weight:600}
+.schema .ig{color:#ff7aa2;font-weight:600}
+
+/* side-by-side cards */
+.row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px}
+@media(max-width:820px){.row{grid-template-columns:1fr}}
+.card{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:16px 18px 18px;position:relative}
+.card.ig{border-color:var(--ig-ink)}
+.kicker{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.kicker .badge{font-family:'Archivo',sans-serif;font-weight:900;font-size:10.5px;background:var(--ink);color:var(--yellow);padding:3px 9px;border-radius:5px;letter-spacing:.06em}
+.card.ig .kicker .badge{background:var(--ig-ink);color:var(--ig-cream)}
+.bit-meta{display:flex;align-items:flex-start;gap:14px;margin-bottom:14px}
+.play-btn{font-family:'Archivo',sans-serif;font-weight:900;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:7px;padding:9px 13px;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+.card.ig .play-btn{background:var(--ig-cream);color:var(--ig-ink);border-color:var(--ig-ink)}
+.play-btn:hover{transform:translate(1px,1px);box-shadow:none}
+.bit-title{font-family:'Archivo',sans-serif;font-weight:900;font-size:18px;line-height:1.18;margin-bottom:4px}
+.bit-desc{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--mut);line-height:1.5}
+.player-slot{margin-top:4px}
+.player-slot .yt-iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:8px;background:#000}
+.player-slot .ig-iframe{width:100%;max-width:420px;aspect-ratio:9/16;border:0;border-radius:8px;background:#000;margin:0 auto;display:block}
+
+/* try-it panel */
+.try{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:20px 22px}
+.try label{display:block;font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;color:var(--ink)}
+.try input{width:100%;font-family:'IBM Plex Mono',monospace;font-size:14px;border:2px solid var(--ink);background:var(--cream);padding:11px 13px;border-radius:8px;outline:0}
+.try input:focus{border-color:var(--red)}
+.try .row2{display:flex;gap:10px;margin-top:12px;align-items:center}
+.try button{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--red);color:#fff;border:0;padding:11px 18px;border-radius:8px;cursor:pointer}
+.try button.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink);padding:9px 16px}
+.try .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.try-out{margin-top:16px;min-height:120px}
+
+/* trade-offs table */
+.compare{width:100%;border-collapse:collapse;font-size:14px;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:#fff}
+.compare th,.compare td{padding:12px 14px;border-bottom:1px solid #e3d9c5;text-align:left;vertical-align:top}
+.compare thead th{font-family:'Archivo',sans-serif;font-weight:900;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;background:var(--ink);color:var(--cream);border-bottom:0}
+.compare tbody tr:last-child td{border-bottom:0}
+.compare th:first-child,.compare td:first-child{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);width:25%}
+.compare .ig-cell{background:#fdf5f8}
+
+/* pilot */
+.pilot{background:#fff;border-left:7px solid var(--red);padding:18px 22px;border-radius:8px;margin-top:8px}
+.pilot ol{padding-left:22px;line-height:1.8;font-size:15px}
+.pilot ol li{margin-bottom:5px}
+.pilot .approve{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);border-top:1px solid #e3d9c5;padding-top:12px}
+.pilot .approve b{color:var(--ink)}
+
+/* nav back */
+.back{display:inline-block;margin-bottom:18px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);text-decoration:none}
+.back:hover{color:var(--red)}
+</style>
+</head>
+<body>
+<div class="frame">
+
+<a class="back" href="../audit.html">&larr; back to audit</a>
+<span class="lab-tag">Design Lab · Reels</span>
+<h1>Reels.</h1>
+<p class="deck">A working preview of the Instagram-reel embed pattern for Greatest Bits bit cards. Real cards, real embeds, real schema. Approve here, then it rolls out.</p>
+<div class="rule"></div>
+
+<!-- ─────────── 1) Schema diff -->
+<section>
+ <div class="sec-tag">1 / Schema</div>
+ <h2>One field added. Default stays YouTube.</h2>
+ <p>The current bit-object gets one optional <code style="font-family:'IBM Plex Mono',monospace">src</code> key. When it's omitted or set to <code style="font-family:'IBM Plex Mono',monospace">"youtube"</code>, every existing bit renders exactly as today. When it's <code style="font-family:'IBM Plex Mono',monospace">"instagram"</code>, the bit-player swaps the YouTube iframe for an Instagram-reel iframe and reads the shortcode instead of a video id.</p>
+ <div class="schema" style="margin-top:14px">
+  <div class="cmt">// existing YouTube bit (unchanged — no migration needed)</div>
+  <div>{ t, subj, sp, yr, id }</div>
+  <div style="height:10px"></div>
+  <div class="cmt">// extended — src defaults to "youtube" when omitted</div>
+  <div>{ t, subj, sp, yr, id, <span class="new">src: "youtube"</span> }</div>
+  <div style="height:10px"></div>
+  <div class="cmt">// NEW — Instagram reel bit</div>
+  <div>{ t, subj, sp, yr, <span class="ig">src: "instagram", shortcode: "DRLq4H_jPiW"</span> }</div>
+ </div>
+</section>
+
+<!-- ─────────── 2) Side-by-side cards -->
+<section>
+ <div class="sec-tag">2 / Bit cards · side by side</div>
+ <h2>Hit play on both.</h2>
+ <p>Left is a real YouTube bit from the catalogue (Pinette · Chinese Buffet, Just For Laughs). Right is a real Instagram reel (Quiet Piggy commentary). Same bit-card frame, same play affordance, different player.</p>
+ <div class="row">
+
+  <!-- YouTube card -->
+  <div class="card">
+   <div class="kicker">Bit card · existing path<span class="badge">YT</span></div>
+   <div class="bit-meta">
+    <button class="play-btn" data-src="youtube" data-id="oRo6DCvJWIU">&#9654; Play</button>
+    <div>
+     <div class="bit-title">All You Can Eat (Chinese Buffet)</div>
+     <div class="bit-desc">Food &middot; from Just For Laughs Festival 2007 &middot; id oRo6DCvJWIU</div>
+    </div>
+   </div>
+   <div class="player-slot" id="slot-yt"></div>
+  </div>
+
+  <!-- Instagram card -->
+  <div class="card ig">
+   <div class="kicker">Bit card · proposed reel path<span class="badge">IG</span></div>
+   <div class="bit-meta">
+    <button class="play-btn" data-src="instagram" data-id="DRLq4H_jPiW">&#9654; Play</button>
+    <div>
+     <div class="bit-title">Quiet Piggy &mdash; reaction reel</div>
+     <div class="bit-desc">Politics &middot; @itsmaddykelly-style reel &middot; shortcode DRLq4H_jPiW</div>
+    </div>
+   </div>
+   <div class="player-slot" id="slot-ig"></div>
+  </div>
+
+ </div>
+</section>
+
+<!-- ─────────── 3) Try-it panel -->
+<section>
+ <div class="sec-tag">3 / Try it</div>
+ <h2>Paste a shortcode, see it render.</h2>
+ <p>Any Instagram reel URL works — the shortcode is the 11-character string after <code style="font-family:'IBM Plex Mono',monospace">/reel/</code>. Drop the shortcode below and the player below renders it inline using the same iframe the production code will use.</p>
+ <div class="try" style="margin-top:14px">
+  <label for="sc">Shortcode (e.g. <span style="color:var(--red)">DRLq4H_jPiW</span>)</label>
+  <input id="sc" type="text" placeholder="DRLq4H_jPiW" value="DRLq4H_jPiW">
+  <div class="row2">
+   <button id="go">Render reel</button>
+   <button class="ghost" id="clr">Clear</button>
+   <div class="hint">iframe src · instagram.com/reel/&lt;shortcode&gt;/embed/</div>
+  </div>
+  <div class="try-out" id="try-out"></div>
+ </div>
+</section>
+
+<!-- ─────────── 4) Tradeoffs -->
+<section>
+ <div class="sec-tag">4 / Tradeoffs</div>
+ <h2>What you give up, what you gain.</h2>
+ <p>Reels are how a growing share of contemporary stand-ups distribute their best short-form material. The catch is the verification gate that YouTube oembed gives us for free doesn't exist on Instagram, so each reel-bit needs a curator-level pick instead of a machine-verified one.</p>
+ <table class="compare" style="margin-top:14px">
+  <thead>
+   <tr><th></th><th>YouTube</th><th class="ig-cell">Instagram reel</th></tr>
+  </thead>
+  <tbody>
+   <tr><td>Verification</td><td>oembed API · author + title returned</td><td class="ig-cell">no oembed · manual visit, curator confirms</td></tr>
+   <tr><td>Embed shape</td><td>16:9 horizontal iframe</td><td class="ig-cell">9:16 vertical iframe (max 420px wide)</td></tr>
+   <tr><td>Stability</td><td>good · official channels rarely delete</td><td class="ig-cell">poor · creator can delete a reel anytime</td></tr>
+   <tr><td>Title source</td><td>YT title we match against `t`</td><td class="ig-cell">no title field · curator names the bit</td></tr>
+   <tr><td>Rights posture</td><td>sanctioned by official channel</td><td class="ig-cell">sanctioned by account holder</td></tr>
+   <tr><td>Audit-game flag</td><td>full chip set (wrong clip / title / etc.)</td><td class="ig-cell">"reel removed" / "wrong attribution"</td></tr>
+  </tbody>
+ </table>
+</section>
+
+<!-- ─────────── 5) Pilot -->
+<section>
+ <div class="sec-tag">5 / Pilot</div>
+ <h2>Five comics first. Then open the door.</h2>
+ <div class="pilot">
+  <ol>
+   <li>Land schema + bit-player branch on the three rendering surfaces: <b>audit.html</b> (already done), <b>comic.html</b>, <b>special.html</b>.</li>
+   <li>Add one canonical reel each for five IG-first comics: <b>Maddy Kelly</b> (Quiet Piggy), <b>Hannah Berner</b>, <b>Patti Harrison</b>, <b>Catherine Cohen</b>, plus one Matthew picks.</li>
+   <li>Verify each reel renders inline on the live comic page; confirm the audit-game IG flag chips behave.</li>
+   <li>Open the door to bulk-adding reel-bits across the catalogue's modern comics — IG-first creators are now in-scope for top-N consideration.</li>
+   <li>Add an "IG reel" filter facet on the Index so reel-bits surface visibly.</li>
+  </ol>
+  <div class="approve"><b>Approval gate:</b> if this lab page reads right and both embeds play, approve and the rollout begins in the next round.</div>
+ </div>
+</section>
+
+</div>
+
+<script>
+function ytFrame(id){return '<iframe class="yt-iframe" src="https://www.youtube.com/embed/'+id+'?rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';}
+function igFrame(sc){return '<iframe class="ig-iframe" src="https://www.instagram.com/reel/'+sc+'/embed/" allowtransparency="true" allowfullscreen="true" frameborder="0" scrolling="no"></iframe>';}
+
+document.querySelectorAll('.play-btn').forEach(function(btn){
+ btn.addEventListener('click', function(){
+  var src = btn.dataset.src, id = btn.dataset.id;
+  var slot = btn.closest('.card').querySelector('.player-slot');
+  if(slot.innerHTML){ slot.innerHTML=''; btn.innerHTML='&#9654; Play'; return; }
+  slot.innerHTML = (src==='instagram'? igFrame(id) : ytFrame(id));
+  btn.innerHTML='&#9632; Close';
+ });
+});
+
+document.getElementById('go').addEventListener('click', function(){
+ var sc = document.getElementById('sc').value.trim();
+ if(!sc){ return; }
+ document.getElementById('try-out').innerHTML = igFrame(sc);
+});
+document.getElementById('clr').addEventListener('click', function(){
+ document.getElementById('try-out').innerHTML = '';
+ document.getElementById('sc').value = '';
+});
+</script>
+
+</body>
+</html>

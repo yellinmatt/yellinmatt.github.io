@@ -225,9 +225,13 @@ function renderProfile(c,x){
   </div></div>`;
 
  const bits=x.bits||[];
+ // dedup: bits shown in Start Here are excluded from More Bits + flagged inside The Work
+ // so the same clip never renders twice in any always-visible band
+ const top3=bits.slice(0,3);
+ const top3Ids=new Set(top3.map(b=>(b.id||b.shortcode||"")));
+ const inTop3=b=>top3Ids.has(b.id||b.shortcode||"");
  if(bits.length){
-   const top=bits.slice(0,3).map(b=>bitRow(b,true)).join("");
-   html+=sec("Start Here",`new to ${esc(c.name)}? these first`,`<div class="starthere"><div class="sh-h"><span class="t">The essentials</span><span class="s">play inline</span></div><div class="row">${top}</div></div>`);
+   html+=sec("Start Here",`new to ${esc(c.name)}? these first`,`<div class="starthere"><div class="sh-h"><span class="t">The essentials</span><span class="s">play inline</span></div><div class="row">${top3.map(b=>bitRow(b,true)).join("")}</div></div>`);
  }
 
  const sps=(x.specials||[]).slice().sort((a,b)=>(b.yr||0)-(a.yr||0));
@@ -237,17 +241,21 @@ function renderProfile(c,x){
      const ssl=slug(id+"-"+s.t);
      const sb=bits.filter(b=>norm(b.sp)===norm(s.t));
      sb.forEach(b=>matched.add(b));
+     const sbDisp=sb.filter(b=>!inTop3(b));
      const pos=s.poster?`<img src="https://image.tmdb.org/t/p/w500/${s.poster}" alt="${esc(s.t)} poster" loading="lazy">`:`<div class="none">${esc((s.t||"?")[0])}</div>`;
      const act=`<div class="act">${s.watch?`<a class="watch" href="${s.watch}" target="_blank" rel="noopener">Watch &#8599;</a>`:`<span class="soon">Watch soon</span>`}<a class="viewsp" href="special.html?s=${ssl}">View special &#8594;</a></div>`;
-     const nb=sb.length?`<div class="nbits">${sb.length} bit${sb.length>1?"s":""} &#9662;</div>`:`<div class="nbits no">no clips yet</div>`;
-     const inner=sb.length?`<div class="pad">${sb.map(b=>bitRow(b,false)).join("")}</div>`:`<div class="nobits">No clips logged from this special yet.</div>`;
+     const promoted=sb.length-sbDisp.length;
+     const nbLabel=sbDisp.length?`${sbDisp.length} bit${sbDisp.length>1?"s":""}${promoted?` &middot; ${promoted} in Start Here`:""} &#9662;`:(promoted?`${promoted} in Start Here above`:`no clips yet`);
+     const nb=`<div class="nbits${sbDisp.length?"":" no"}">${nbLabel}</div>`;
+     const inner=sbDisp.length?`<div class="pad">${sbDisp.map(b=>bitRow(b,false)).join("")}</div>`:(promoted?`<div class="nobits">All ${promoted} clip${promoted>1?"s":""} from this special are featured in Start Here above.</div>`:`<div class="nobits">No clips logged from this special yet.</div>`);
      return `<article class="work"><div class="wh"><div class="pos">${pos}</div><div><div class="ti">${esc(s.t)}</div><div class="mt">${s.yr||""} · ${esc(s.plat||"")}</div>${nb}</div>${act}</div><div class="wbits">${inner}</div></article>`;
    }).join("");
    html+=sec("The Work",`${sps.length} special${sps.length>1?"s":""} · newest first · open one for its bits`,cards);
-   const loose=bits.filter(b=>!matched.has(b));
+   const loose=bits.filter(b=>!matched.has(b) && !inTop3(b));
    if(loose.length){html+=sec("More Bits",`${loose.length} clip${loose.length>1?"s":""}`,`<div>${loose.map(b=>bitRow(b,true)).join("")}</div>`);}
  } else if(bits.length){
-   html+=sec("Bits",`${bits.length} clip${bits.length>1?"s":""}`,`<div>${bits.map(b=>bitRow(b,true)).join("")}</div>`);
+   const rest=bits.filter(b=>!inTop3(b));
+   if(rest.length){html+=sec("More Bits",`${rest.length} clip${rest.length>1?"s":""}`,`<div>${rest.map(b=>bitRow(b,true)).join("")}</div>`);}
    html+=sec("Specials",null,cs("Coming soon","Specials, with posters and where to watch, are being added for this comic."));
  } else {
    html+=sec("The Work",null,cs("Coming soon","Bits and specials for this comic are being added as we verify official sources."));
