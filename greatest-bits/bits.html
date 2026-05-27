@@ -103,11 +103,12 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .gbsearch .r .ty{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:3px 7px;border-radius:4px}
 .gbsearch .empty{padding:22px 16px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7a64}
 </style>
+<link rel="stylesheet" href="search.css">
 </head>
 <body>
 <div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
-<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html" class="on">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><button type="button" class="navsearch" aria-label="Search">&#9906; Search</button></nav>
+<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html" class="on">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits&hellip;" autocomplete="off"><span class="btn">/</span></div></nav>
 <div class="head"><div class="k">The atom of the whole thing</div><h1>100 Best Bits</h1><div class="sub">The single jokes, runs, and act-outs that changed comedy. A bit is the clip you play, so press play. A provisional starter set drawn from the canon and r/Standup's legendary-bits thread, limited to clips with a verified official source. We re-rank as our own canon forms.</div></div>
 <div class="rule"></div>
 <div class="list" id="list"></div>
@@ -143,41 +144,6 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 <div class="gbsearch" id="gbsearch"><div class="panel"><div class="ip"><span style="color:#8a7a64">&#9906;</span><input id="gbq" placeholder="Search comics, specials, bits…" autocomplete="off"><span class="esc">ESC</span></div><div class="res" id="gbres"></div></div></div>
-<script>/*GBSEARCHJS*/(function(){
-var ov=document.getElementById("gbsearch"),ip=document.getElementById("gbq"),res=document.getElementById("gbres");
-if(!ov)return;var DATA=null,sel=0,rows=[];
-function load(){if(DATA)return Promise.resolve();return Promise.all([
- fetch("data/comedians.json?v="+Date.now()).then(function(r){return r.json();}).catch(function(){return [];}),
- fetch("data/specials.json?v="+Date.now()).then(function(r){return r.json();}).catch(function(){return {};})
-]).then(function(a){var comics=a[0],sp=a[1];DATA=[];
- comics.forEach(function(c){DATA.push({ty:"Comic",nm:c.name,sub:[c.era,c.nationality].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+c.id,img:c.photo_url||null,q:(c.name+" "+(c.nationality||"")+" "+(c.era||"")).toLowerCase()});});
- Object.keys(sp).forEach(function(k){var s=sp[k];DATA.push({ty:"Special",nm:s.t,sub:[s.comic,s.yr].filter(Boolean).join(" \u00b7 "),href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.poster?("https://image.tmdb.org/t/p/w185/"+s.poster):null,poster:true,q:(s.t+" "+(s.comic||"")).toLowerCase()});
-  (s.bits||[]).forEach(function(b){if(b.id)DATA.push({ty:"Bit",nm:b.t,sub:(s.comic||"")+" \u00b7 "+s.t,href:"comic.html?c="+(s.comicId||"")+"#sp-"+k,img:s.comicPhoto||null,q:(b.t+" "+(s.comic||"")).toLowerCase()});});});
-});}
-function esc(x){return (x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
-function render(q){q=(q||"").trim().toLowerCase();if(!DATA){res.innerHTML='<div class="empty">Loading\u2026</div>';return;}
- if(!q){res.innerHTML='<div class="empty">Type to search comics, specials, and bits.</div>';rows=[];return;}
- var hits=DATA.filter(function(d){return d.q.indexOf(q)>-1;});
- hits.sort(function(a,b){return (b.nm.toLowerCase().indexOf(q)===0?1:0)-(a.nm.toLowerCase().indexOf(q)===0?1:0);});
- rows=hits.slice(0,24);sel=0;
- if(!rows.length){res.innerHTML='<div class="empty">No matches. Tough crowd.</div>';return;}
- res.innerHTML=rows.map(function(d,i){var av=d.img?('<span class="av'+(d.poster?" poster":"")+'"><img src="'+d.img+'" alt=""></span>'):'<span class="av"></span>';return '<a class="r'+(i===0?" sel":"")+'" href="'+d.href+'"><'+'div style="display:contents">'+av+'<div><div class="nm">'+esc(d.nm)+'</div><div class="sub">'+esc(d.sub||"")+'</div></div><span class="ty">'+d.ty+'</span></div></a>';}).join("");
-}
-function open(){ov.classList.add("on");ip.value="";ip.focus();render("");load().then(function(){render(ip.value);});}
-function close(){ov.classList.remove("on");}
-function move(n){if(!rows.length)return;var els=res.querySelectorAll(".r");if(els[sel])els[sel].classList.remove("sel");sel=(sel+n+rows.length)%rows.length;els[sel].classList.add("sel");els[sel].scrollIntoView({block:"nearest"});}
-if(ip)ip.addEventListener("input",function(){render(ip.value);});
-document.addEventListener("keydown",function(e){
- var ae=document.activeElement||{};
- if(e.key==="/"&&!/^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName||"")&&!ov.classList.contains("on")){e.preventDefault();open();return;}
- if(!ov.classList.contains("on"))return;
- if(e.key==="Escape")close();
- else if(e.key==="ArrowDown"){e.preventDefault();move(1);}
- else if(e.key==="ArrowUp"){e.preventDefault();move(-1);}
- else if(e.key==="Enter"){var el=res.querySelectorAll(".r")[sel];if(el)location.href=el.getAttribute("href");}
-});
-ov.addEventListener("click",function(e){if(e.target===ov)close();});
-document.querySelectorAll(".nav .search,.nav .navsearch").forEach(function(el){el.addEventListener("click",function(e){e.preventDefault();open();});});
-})();</script>
+<script src="search.js" defer></script>
 </body>
 </html>
