@@ -178,10 +178,11 @@ const C=[
  [31,"Stavros Halkias","2020s",P.halkias,"The self-deprecating id of the podcast scene."],
  [32,"Matt Rife","2020s",P.rife,"The crowd-work phenomenon of the social-media era."],
 ];
-const ORDER=[[1,"richard-pryor"],[2,"george-carlin"],[3,"lenny-bruce"],[4,"louis-ck"],[5,"chris-rock"],[6,"joan-rivers"],[7,"jerry-seinfeld"],[8,"bill-cosby"],[9,"dave-chappelle"],[10,"mort-sahl"],[11,"steve-martin"],[12,"robin-williams"],[13,"bill-hicks"],[14,"andy-kaufman"],[15,"steven-wright"],[16,"billy-connolly"],[17,"bill-burr"],[18,"kevin-hart"],[19,"albert-brooks"],[20,"mitch-hedberg"],[21,"bob-newhart"],[22,"jonathan-winters"],[23,"don-rickles"],[24,"eddie-izzard"],[25,"eddie-murphy"],[26,"rodney-dangerfield"],[27,"redd-foxx"],[28,"robert-klein"],[29,"dick-gregory"],[30,"sarah-silverman"],[31,"patrice-oneal"],[32,"janeane-garofalo"],[33,"patton-oswalt"],[34,"tig-notaro"],[35,"sam-kinison"],[36,"roseanne-barr"],[37,"moms-mabley"],[38,"garry-shandling"],[39,"bernie-mac"],[40,"phyllis-diller"],[41,"russell-peters"],[42,"freddie-prinze"],[43,"reggie-watts"],[44,"elayne-boosler"],[45,"margaret-cho"],[46,"aziz-ansari"],[47,"wanda-sykes"],[48,"norm-macdonald"],[49,"maria-bamford"],[50,"john-mulaney"],[51,"bo-burnham"],[52,"hannah-gadsby"],[53,"ali-wong"],[54,"brian-regan"],[55,"jim-gaffigan"],[56,"anthony-jeselnik"],[57,"marc-maron"],[58,"hannibal-buress"],[59,"demetri-martin"],[60,"dave-attell"],[61,"greg-giraldo"],[62,"ron-white"],[63,"katt-williams"],[64,"sebastian-maniscalco"],[65,"nate-bargatze"],[66,"mike-birbiglia"],[67,"gary-gulman"],[68,"doug-stanhope"],[69,"todd-barry"],[70,"pete-holmes"],[71,"tom-segura"],[72,"bert-kreischer"],[73,"theo-von"],[74,"taylor-tomlinson"],[75,"nikki-glaser"],[76,"iliza-shlesinger"],[77,"shane-gillis"],[78,"mark-normand"],[79,"matt-rife"],[80,"stavros-halkias"],[81,"hasan-minhaj"],[82,"gabriel-iglesias"],[83,"george-lopez"],[84,"jeff-foxworthy"],[85,"jim-jefferies"],[86,"daniel-tosh"],[87,"kathy-griffin"]];
+const ORDER_PROMISE = fetch("data/lists.json?v="+Date.now()).then(r=>r.json()).then(d=>d.best_comics||[]).catch(()=>[]);
 const ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
 (async function(){
  let R={};try{const r=await fetch("data/comedians.json?v="+Date.now());(await r.json()).forEach(c=>{R[c.id]=c;});}catch(e){}
+  const ORDER = await ORDER_PROMISE;
  document.getElementById("list").innerHTML=ORDER.map(o=>{
   const rk=o[0],id=o[1],c=R[id];
   const name=c?c.name:(o[2]||id),era=(c&&c.era&&c.era!=="None")?c.era:"",photo=c?c.photo_url:null,take=c?(c.blurb||""):"";
