@@ -195,6 +195,52 @@
     });
   }
 
+  // ---------- Surprise Me — global "open a random comic" affordance ----------
+  // Injects a .gbsurprise button next to every .gbhead (inner-page nav) and inside every
+  // .gbhero-wrap (home page). Skips if the page already provides its own .navsurprise
+  // (e.g. browse.html has a filter-aware version we don't want to clobber).
+  var ROSTER = null;
+  function loadRoster(){
+    if (ROSTER) return Promise.resolve(ROSTER);
+    return fetch("data/comedians.json?v="+Date.now())
+      .then(function(r){return r.ok ? r.json() : [];})
+      .catch(function(){return [];})
+      .then(function(d){ROSTER = d || []; return ROSTER;});
+  }
+  function surpriseComic(){
+    loadRoster().then(function(d){
+      if (!d || !d.length) return;
+      var pick = d[Math.floor(Math.random()*d.length)];
+      if (pick && pick.id) location.href = "comic.html?c="+pick.id;
+    });
+  }
+  function makeSurpriseBtn(){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "gbsurprise";
+    b.title = "Open a random comic";
+    b.innerHTML = '<span class="dice">&#9856;</span><span class="lbl">Surprise me</span>';
+    b.addEventListener("click", function(e){ e.preventDefault(); surpriseComic(); });
+    return b;
+  }
+  function injectSurprise(){
+    document.querySelectorAll(".gbhead").forEach(function(h){
+      var parent = h.parentElement;
+      if (!parent) return;
+      // Skip if the page already provides a custom Surprise button (browse.html's filter-aware one)
+      if (parent.querySelector(".navsurprise")) return;
+      if (parent.querySelector(".gbsurprise")) return;
+      h.insertAdjacentElement("afterend", makeSurpriseBtn());
+    });
+    document.querySelectorAll(".gbhero-wrap").forEach(function(w){
+      if (w.querySelector(".gbsurprise")) return;
+      w.appendChild(makeSurpriseBtn());
+    });
+  }
+  // Expose for the home page (BotD chip + any future caller)
+  window.gbSurprise = surpriseComic;
+  window.gbLoadRoster = loadRoster;
+
   // ---------- Boot ----------
   function boot(){
     ensureOverlay();
@@ -203,6 +249,7 @@
     }
     attachTriggers();
     attachKeyboard();
+    injectSurprise();
     // Pre-warm the index on idle
     if ("requestIdleCallback" in window) requestIdleCallback(load);
     else setTimeout(load, 800);

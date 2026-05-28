@@ -171,7 +171,7 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 <nav class="nav">
   <a class="logo" href="index.html">Greatest <b>Bits</b></a>
   <span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span>
-  <span class="sp"></span><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits…" autocomplete="off"><span class="btn">/</span></div>
+  <span class="sp"></span>
 </nav>
 
 <header class="hh">
@@ -294,10 +294,17 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
   });
  }catch(e){}
  }catch(e){}
- // Bit of the day chip -> the special it lives in
+ // Bit of the day chip -> plays the clip in a lightbox; "Go to comic page" inside the lightbox
  if(idx){
-   const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({slug,t:b.t});});});
-   if(pool.length){const b=pool[Math.floor(Date.now()/864e5)%pool.length];const chip=document.getElementById("botdchip");chip.innerHTML=`<span>Bit of the day:</span> <b>${b.t}</b> &#8594;`;chip.href="comic.html?c="+((idx[b.slug]||{}).comicId||"")+"#sp-"+b.slug;}
+   const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic});});});
+   if(pool.length){
+     const b=pool[Math.floor(Date.now()/864e5)%pool.length];
+     const chip=document.getElementById("botdchip");
+     chip.innerHTML=`<span>Bit of the day:</span> <b>${b.t}</b> &#9658;`;
+     chip.setAttribute("href","#");
+     chip.style.cursor="pointer";
+     chip.addEventListener("click",e=>{e.preventDefault();openBitLB(b);});
+   }
  }
  // Index stats — live counts from JSON, count-up on scroll into view
  if(comics&&idx){
@@ -316,6 +323,32 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 <div class="gbsearch" id="gbsearch"><div class="panel"><div class="ip"><span style="color:#8a7a64">&#9906;</span><input id="gbq" placeholder="Search comics, specials, bits…" autocomplete="off"><span class="esc">ESC</span></div><div class="res" id="gbres"></div></div></div>
+<!-- Bit-of-the-Day lightbox: plays the clip inline; "View on comic page" opens the comic at the special anchor -->
+<div class="gblightbox" id="gblb"><div class="lbpanel">
+  <button class="lbx" type="button" id="lbx" aria-label="Close">&times;</button>
+  <div class="lbk">Bit of the day</div>
+  <div class="lbttl" id="lbttl"></div>
+  <div class="lbby" id="lbby"></div>
+  <div class="lbplayer" id="lbplayer"></div>
+  <a class="lbview" id="lbview" href="#">View on comic page &#8594;</a>
+</div></div>
+<script>
+(function(){
+  const lb=document.getElementById("gblb"),lbttl=document.getElementById("lbttl"),lbby=document.getElementById("lbby"),lbpl=document.getElementById("lbplayer"),lbvw=document.getElementById("lbview");
+  window.openBitLB=function(b){
+    lbttl.textContent=b.t||"";
+    lbby.textContent=b.comic?("Bit by "+b.comic):"";
+    lbpl.innerHTML='<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    lbvw.href="comic.html?c="+(b.comicId||"")+"#sp-"+b.slug;
+    lb.classList.add("on");
+    document.body.style.overflow="hidden";
+  };
+  function close(){lb.classList.remove("on");lbpl.innerHTML="";document.body.style.overflow="";}
+  document.getElementById("lbx").addEventListener("click",close);
+  lb.addEventListener("click",e=>{if(e.target===lb)close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&lb.classList.contains("on"))close();});
+})();
+</script>
 <script src="search.js" defer></script>
 </body>
 </html>
