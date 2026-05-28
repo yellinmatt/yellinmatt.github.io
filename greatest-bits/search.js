@@ -174,11 +174,10 @@
       var ae = document.activeElement || {};
       var isTyping = /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName || "");
       var inHeroOrHead = isTyping && (ae.closest && (ae.closest(".gbhero") || ae.closest(".gbhead")));
-      if (e.key === "/" && !isTyping && !ov && !document.querySelector("#gbsearch.on")){
+      // "/" from anywhere opens the search overlay. Old condition had a stray `!ov` check
+      // that was always false after boot(), so the shortcut never fired.
+      if (e.key === "/" && !isTyping && !document.querySelector("#gbsearch.on")){
         e.preventDefault(); open(""); return;
-      }
-      if (e.key === "/" && inHeroOrHead && !document.querySelector("#gbsearch.on")){
-        // typing "/" inside the trigger inputs: ignore (let it type)
       }
       if (!ov || !ov.classList.contains("on")) return;
       if (e.key === "Escape") close();
