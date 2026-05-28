@@ -41,16 +41,22 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .toggle{display:flex;border:2px solid var(--ink);border-radius:9px;overflow:hidden}
 .toggle button{background:#fff;border:none;font:800 12px 'Archivo';padding:9px 14px;cursor:pointer;color:var(--ink);text-transform:uppercase;letter-spacing:.04em}
 .toggle button.on{background:var(--ink);color:var(--yellow)}
-/* Filter rail (left-label + chip-rows alignment) */
-.frail{display:grid;grid-template-columns:84px 1fr;gap:14px 22px;padding:18px 32px 20px;border-bottom:2px solid #e3d9c5;align-items:center}
+/* Filter rail — tighter, single-row alphabet, integrated visual rhythm.
+   The [hidden] guard below is load-bearing: .facets has class display:flex which
+   overrides the [hidden] attribute, leaving Gender's empty cell in the grid flow
+   and pushing JUMP/AZ into wrong columns. The !important + attribute selector wins. */
+[hidden]{display:none !important}
+.frail{display:grid;grid-template-columns:84px 1fr;gap:12px 22px;padding:18px 32px 18px;border-bottom:2px solid #e3d9c5;align-items:center}
 .frail .flabel{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);margin:0;align-self:center;border-right:2px solid var(--ink);padding-right:14px;text-align:right;font-weight:600}
 .facets{display:flex;flex-wrap:wrap;gap:7px}
 .chip{font:700 12px 'Archivo';padding:6px 12px;border-radius:999px;border:2px solid var(--ink);background:transparent;color:var(--ink);cursor:pointer;transition:.14s;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px}
 .chip:hover{background:#ffe9a8}.chip.on{background:var(--yellow)}
 .chip .ct{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);font-weight:500}
 .chip.on .ct{color:var(--ink)}
-.az{display:flex;flex-wrap:wrap;gap:3px}
-.az button{font-family:'IBM Plex Mono',monospace;font-size:12px;width:24px;height:24px;border:none;background:none;color:var(--mut);cursor:pointer;border-radius:5px}
+/* Alphabet jump — one tidy horizontal row, even spacing, with All as a distinctive lead */
+.az{display:flex;flex-wrap:nowrap;gap:2px;align-items:center;overflow-x:auto;padding-bottom:2px}
+.az button{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;min-width:28px;height:28px;border:none;background:transparent;color:#3a3128;cursor:pointer;border-radius:4px;flex:0 0 auto;transition:background .12s,color .12s}
+.az button:first-child{min-width:46px;font-family:'Archivo';font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
 .az button:hover{background:var(--ink);color:var(--yellow)}.az button.on{background:var(--red);color:#fff}
 @media(max-width:760px){.frail{grid-template-columns:1fr;gap:4px 0;padding:14px 18px 18px}.frail .flabel{border-right:0;padding-right:0;text-align:left;margin-top:8px}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:14px;padding:18px 32px 40px}
@@ -96,14 +102,6 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .ribbon .seg .n{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mut);margin-top:2px;display:block}
 .ribbon .seg.on .n{color:var(--ink)}
 .sortsel{font:700 12px 'Archivo';color:var(--ink);background:#fff;border:2px solid var(--ink);border-radius:9px;padding:9px 12px;cursor:pointer}
-/* Nav tools group: search + surprise side-by-side, right-aligned */
-.nav .navtools{margin-left:auto;display:flex;align-items:center;gap:8px;flex:0 0 auto}
-.nav .navtools .gbhead{margin-left:0}
-.nav .navsurprise{display:flex;align-items:center;gap:7px;height:34px;background:var(--yellow);color:var(--ink);font:900 11px 'Archivo';letter-spacing:.08em;text-transform:uppercase;padding:0 14px;border:2px solid var(--ink);cursor:pointer;transition:transform .14s,box-shadow .14s;white-space:nowrap}
-.nav .navsurprise:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--red)}
-.nav .navsurprise .dice{font-size:14px;line-height:1}
-@media(max-width:760px){.nav .navsurprise{height:30px;padding:0 10px;font-size:10px}.nav .navsurprise .dice{font-size:12px}}
-@media(max-width:540px){.nav .navsurprise span.lbl{display:none}.nav .navsurprise{padding:0 9px}}
 /*GBMOB*/@media(max-width:760px){html,body{overflow-x:hidden;max-width:100vw}.nav{flex-wrap:wrap;gap:8px 14px;padding:12px 18px}.nav .links{display:flex !important;order:3;width:100%;margin-left:0;gap:14px;font-size:12px;flex-wrap:wrap}.nav .sp,.nav .search{display:none}}
 /*GBDROPCSS*/
 .nav .drop{position:relative;display:inline-flex;align-items:center}
@@ -142,12 +140,12 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .gbsearch .r .ty{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:3px 7px;border-radius:4px}
 .gbsearch .empty{padding:22px 16px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8a7a64}
 </style>
-<link rel="stylesheet" href="search.css?v=202605281232">
+<link rel="stylesheet" href="search.css?v=202605281245">
 </head>
 <body>
 <div id="cur"></div>
 <nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a>
-<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html" class="on">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><span class="navtools"><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits&hellip;" autocomplete="off"><span class="btn">/</span></div><button type="button" class="navsurprise" id="surprise" title="Open a random comic from the current filtered pool"><span class="dice">&#9856;</span><span class="lbl">Surprise me</span></button></span></nav>
+<span class="links"><a href="comics.html">Comics</a><a href="specials.html">Specials</a><a href="bits.html">Bits</a><a href="browse.html" class="on">Index</a><a href="history.html">History</a><span class="drop"><button type="button" class="dropt" aria-expanded="false" aria-haspopup="true">About <span class="cv">&#9662;</span></button><span class="menu"><a href="about.html">The Project</a><a href="method.html">Method &amp; Sources</a></span></span></span><span class="sp"></span><div class="gbhead"><span class="lens">&#9906;</span><input type="text" placeholder="Search comics, specials, bits&hellip;" autocomplete="off"><span class="btn">/</span></div></nav>
 
 <div class="head"><div class="k">The complete anatomy of stand-up</div><h1>The Index</h1><div class="sub">Every comic in stand-up, browsable. Search, filter by era, and open anyone's page. The full roster is here; profiles fill in as we go.</div></div>
 <div class="rule"></div>
@@ -229,7 +227,9 @@ document.getElementById("ribbon").addEventListener("click",e=>{const b=e.target.
 document.getElementById("scenes").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#scenes .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");scene=b.dataset.s;render();});
 document.getElementById("genders").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;document.querySelectorAll("#genders .chip").forEach(c=>c.classList.remove("on"));b.classList.add("on");gender=b.dataset.g;render();});
 document.getElementById("sort").addEventListener("change",e=>{sort=e.target.value;render();});
-document.getElementById("surprise").addEventListener("click",()=>{const pool=filtered();const arr=pool.length?pool:D;const pick=arr[Math.floor(Math.random()*arr.length)];if(pick)location.href="comic.html?c="+pick.id;});
+// The standard global Surprise Me (injected by search.js into .gbhead) defers to this hook
+// so the Index keeps its filter-aware behavior — random from the current visible pool, not the full roster.
+window.gbSurpriseOverride=function(){const pool=filtered();const arr=pool.length?pool:D;const pick=arr[Math.floor(Math.random()*arr.length)];if(pick)location.href="comic.html?c="+pick.id;};
 document.getElementById("az").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;document.querySelectorAll("#az button").forEach(c=>c.classList.remove("on"));b.classList.add("on");letter=b.dataset.l;render();});
 document.getElementById("t-grid").addEventListener("click",()=>{mode="grid";document.getElementById("t-grid").classList.add("on");document.getElementById("t-list").classList.remove("on");render();});
 document.getElementById("t-list").addEventListener("click",()=>{mode="list";document.getElementById("t-list").classList.add("on");document.getElementById("t-grid").classList.remove("on");render();});
@@ -241,11 +241,11 @@ document.getElementById("t-list").addEventListener("click",()=>{mode="list";docu
  buildEras();wireFacets();render();
 }());
 const cur=document.getElementById("cur");
-addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.seg,.chip,.navsurprise,.toggle,.sortsel,.gbhead"));});
+addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,button,.gt,.lr,.seg,.chip,.gbsurprise,.toggle,.sortsel,.gbhead"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 <div class="gbsearch" id="gbsearch"><div class="panel"><div class="ip"><span style="color:#8a7a64">&#9906;</span><input id="gbq" placeholder="Search comics, specials, bits…" autocomplete="off"><span class="esc">ESC</span></div><div class="res" id="gbres"></div></div></div>
-<script src="search.js?v=202605281232" defer></script>
+<script src="search.js?v=202605281245" defer></script>
 </body>
 </html>

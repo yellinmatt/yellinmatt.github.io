@@ -208,6 +208,11 @@
       .then(function(d){ROSTER = d || []; return ROSTER;});
   }
   function surpriseComic(){
+    // Pages can override the global "random comic" behavior by defining window.gbSurpriseOverride
+    // (browse.html does this to respect the current filter selection).
+    if (typeof window.gbSurpriseOverride === "function") {
+      try { window.gbSurpriseOverride(); return; } catch(e){}
+    }
     loadRoster().then(function(d){
       if (!d || !d.length) return;
       var pick = d[Math.floor(Math.random()*d.length)];

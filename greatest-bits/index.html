@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="search.css?v=202605281232">
+<link rel="stylesheet" href="search.css?v=202605281245">
 <style>
 :root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--maroon:#7a1003;--mut:#8a7a64}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -179,10 +179,23 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
   <h1>Greatest&nbsp;B<span class="y">I</span>TS</h1>
   <p class="swap">Every comic. Every special. Every <em id="swap">bit</em>.</p>
   <div class="gbhero-wrap">
-    <div class="gbhero">
-      <span class="lens">&#9906;</span>
-      <input type="text" id="gbq-hero" autocomplete="off" placeholder="Search 430 comics &middot; 1,221 specials &middot; 879 bits">
-      <button class="btn" type="button">Search</button>
+    <div class="gbhero-frame">
+      <span class="gbhero-tag">Search the canon</span>
+      <span class="gbhero-counts" id="gbCounts">430 &middot; 1,221 &middot; 879</span>
+      <div class="gbhero">
+        <span class="lens">&#9906;</span>
+        <input type="text" id="gbq-hero" autocomplete="off" placeholder="Search comics, specials, bits&hellip;">
+        <button class="btn" type="button">Search</button>
+      </div>
+      <div class="gbhero-examples" id="gbExamples">
+        <span class="lbl">Try</span>
+        <button class="ex" type="button" data-q="Mulaney">Mulaney</button>
+        <button class="ex" type="button" data-q="Carlin Seven Words">Carlin Seven Words</button>
+        <button class="ex" type="button" data-q="Horse in the Hospital">Horse in the Hospital</button>
+        <button class="ex" type="button" data-q="Pryor">Pryor</button>
+        <button class="ex" type="button" data-q="crowd work">crowd work</button>
+        <span class="kbd">press <kbd>/</kbd> from anywhere</span>
+      </div>
     </div>
   </div>
   <div class="cotd"><a id="cotd" href="browse.html"><span>Comic of the day:</span> <b>&hellip;</b> &#8594;</a><a id="botdchip" href="browse.html"><span>Bit of the day:</span> <b>&hellip;</b> &#8594;</a></div>
@@ -262,10 +275,23 @@ const COLL=[["carlin","george-carlin","George Carlin"],["pryor","richard-pryor",
 document.getElementById("collage").innerHTML=COLL.map(c=>`<a href="comic.html?c=${c[1]}" title="${c[2]}"><img src="${P[c[0]]}" alt="${c[2]}"></a>`).join("");
 const WORDS=["bit","story","act-out","one-liner","callback","crowd-work"];let wi=0;const sw=document.getElementById("swap");
 setInterval(()=>{wi=(wi+1)%WORDS.length;sw.textContent=WORDS[wi];},2200);
-const COTD=[["George Carlin","george-carlin"],["Richard Pryor","richard-pryor"],["Dave Chappelle","dave-chappelle"],["Robin Williams","robin-williams"],["Eddie Murphy","eddie-murphy"],["Bill Burr","bill-burr"],["John Mulaney","john-mulaney"]];
+// Comic-of-the-day — chip opens a small lightbox with photo + blurb + "View their full page" CTA,
+// matching the Bit-of-the-day UX. {id, name, blurb, photoKey-into-P}.
+const COTD=[["george-carlin","George Carlin","carlin","Counterculture philosopher of language and taboo. Seven Words, A Place for My Stuff, Class Clown."],
+            ["richard-pryor","Richard Pryor","pryor","The most influential stand-up who ever lived. Confessional, lyrical, brutal — the modern form starts with him."],
+            ["dave-chappelle","Dave Chappelle","chappelle","Killing Them Softly through The Closer — three decades of canonical hours, the most cited working comic."],
+            ["robin-williams","Robin Williams","williams","Improv hurricane. Live at the Met. Riff-as-jazz, manic, virtuosic."],
+            ["eddie-murphy","Eddie Murphy","murphy","Raw and Delirious. The leather-suit charisma act that recalibrated stand-up cool in the '80s."],
+            ["bill-burr","Bill Burr","burr","Modern master of the long take. Paper Tiger, You People Are All The Same — the genre's most reliable hour-maker."],
+            ["john-mulaney","John Mulaney","mulaney","Tight construction, callbacks, Horse in the Hospital. The premier joke architect of his generation."]];
 const cd=COTD[Math.floor(Date.now()/864e5)%COTD.length];
-document.getElementById("cotd").innerHTML=`<span>Comic of the day:</span> <b>${cd[0]}</b> &#8594;`;
-document.getElementById("cotd").href="comic.html?c="+cd[1];
+(function(){
+  const chip=document.getElementById("cotd");
+  chip.innerHTML=`<span>Comic of the day:</span> <b>${cd[1]}</b> &#9658;`;
+  chip.setAttribute("href","#");
+  chip.style.cursor="pointer";
+  chip.addEventListener("click",e=>{e.preventDefault();(window.openComicLB||function(){})({id:cd[0],name:cd[1],blurb:cd[3],photo:P[cd[2]]||null});});
+})();
 // 100 Best trio collages
 fc("f1",["carlin","pryor","murphy","williams"]);
 fc("f2",["murphy","chappelle","rock","gadsby"]);
@@ -303,6 +329,11 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
  }
  // Mark COTD ready too (it was already populated synchronously above; just flag the fade-in class).
  const cotdEl=document.getElementById("cotd"); if(cotdEl) cotdEl.classList.add("ready");
+ // Live counts in the hero tag (comics + specials immediately; bits fills in after Phase 2)
+ if(comics && idx){
+   const c=document.getElementById("gbCounts");
+   if(c) c.textContent=comics.length.toLocaleString()+" · "+Object.keys(idx).length.toLocaleString()+" · …";
+ }
  // Phase 2 — slow: walk per-comic JSONs to get the TRUE bit count for the Index card.
  if(comics){try{
   const ids=comics.map(c=>c.id);
@@ -312,6 +343,11 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
    else{(d.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;});}
   });
  }catch(e){}}
+ // Now that we have the true bit count, finish the hero-tag triple
+ if(comics && idx){
+   const c=document.getElementById("gbCounts");
+   if(c) c.textContent=comics.length.toLocaleString()+" · "+Object.keys(idx).length.toLocaleString()+" · "+bitsTotal.toLocaleString();
+ }
  // Index stats — live counts from JSON, count-up on scroll into view
  if(comics&&idx){
    const targets={comics:comics.length,specials:Object.keys(idx).length,bits:bitsTotal};
@@ -338,23 +374,57 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
   <div class="lbplayer" id="lbplayer"></div>
   <a class="lbview" id="lbview" href="#">View on comic page &#8594;</a>
 </div></div>
+<!-- Comic-of-the-Day lightbox: photo + blurb + "View their full page" CTA. Mirrors the BotD shape. -->
+<div class="gblightbox" id="gblbc"><div class="lbpanel lbcomic">
+  <button class="lbx" type="button" id="lbcx" aria-label="Close">&times;</button>
+  <div class="lbk">Comic of the day</div>
+  <div class="lbcrow">
+    <div class="lbphoto" id="lbcphoto"></div>
+    <div class="lbcbody">
+      <div class="lbttl" id="lbcttl"></div>
+      <p class="lbcblurb" id="lbcblurb"></p>
+      <a class="lbview" id="lbcview" href="#">View their full page &#8594;</a>
+    </div>
+  </div>
+</div></div>
 <script>
 (function(){
+  // Shared close behavior for any .gblightbox.on
+  function closeAll(){document.querySelectorAll(".gblightbox.on").forEach(el=>{el.classList.remove("on");const ifr=el.querySelector("#lbplayer");if(ifr)ifr.innerHTML="";});document.body.style.overflow="";}
+  // BotD
   const lb=document.getElementById("gblb"),lbttl=document.getElementById("lbttl"),lbby=document.getElementById("lbby"),lbpl=document.getElementById("lbplayer"),lbvw=document.getElementById("lbview");
   window.openBitLB=function(b){
+    closeAll();
     lbttl.textContent=b.t||"";
     lbby.textContent=b.comic?("Bit by "+b.comic):"";
     lbpl.innerHTML='<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
     lbvw.href="comic.html?c="+(b.comicId||"")+"#sp-"+b.slug;
-    lb.classList.add("on");
-    document.body.style.overflow="hidden";
+    lb.classList.add("on");document.body.style.overflow="hidden";
   };
-  function close(){lb.classList.remove("on");lbpl.innerHTML="";document.body.style.overflow="";}
-  document.getElementById("lbx").addEventListener("click",close);
-  lb.addEventListener("click",e=>{if(e.target===lb)close();});
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&lb.classList.contains("on"))close();});
+  // COTD
+  const lbc=document.getElementById("gblbc"),lbcph=document.getElementById("lbcphoto"),lbcttl=document.getElementById("lbcttl"),lbcblurb=document.getElementById("lbcblurb"),lbcvw=document.getElementById("lbcview");
+  window.openComicLB=function(c){
+    closeAll();
+    lbcph.innerHTML=c.photo?('<img src="'+c.photo+'" alt="'+(c.name||"")+'" loading="lazy">'):'<span class="ini">'+((c.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""))+'</span>';
+    lbcttl.textContent=c.name||"";
+    lbcblurb.textContent=c.blurb||"";
+    lbcvw.href="comic.html?c="+(c.id||"");
+    lbc.classList.add("on");document.body.style.overflow="hidden";
+  };
+  document.getElementById("lbx").addEventListener("click",closeAll);
+  document.getElementById("lbcx").addEventListener("click",closeAll);
+  document.querySelectorAll(".gblightbox").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)closeAll();}));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
+  // Example searches in the hero — populate the hero input + focus to trigger the global overlay
+  document.querySelectorAll("#gbExamples .ex").forEach(b=>b.addEventListener("click",e=>{
+    e.preventDefault();
+    const input=document.getElementById("gbq-hero");
+    if(!input)return;
+    input.value=b.dataset.q||"";
+    input.focus(); // search.js opens the overlay on focus and mirrors the input value
+  }));
 })();
 </script>
-<script src="search.js?v=202605281232" defer></script>
+<script src="search.js?v=202605281245" defer></script>
 </body>
 </html>
