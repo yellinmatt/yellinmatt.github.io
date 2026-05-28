@@ -232,9 +232,11 @@
       if (parent.querySelector(".gbsurprise")) return;
       h.insertAdjacentElement("afterend", makeSurpriseBtn());
     });
-    document.querySelectorAll(".gbhero-wrap").forEach(function(w){
-      if (w.querySelector(".gbsurprise")) return;
-      w.appendChild(makeSurpriseBtn());
+    // Home page: append INSIDE the .gbhero postcard, after the Search button,
+    // so it sits inline with the search controls (not below).
+    document.querySelectorAll(".gbhero").forEach(function(h){
+      if (h.querySelector(".gbsurprise")) return;
+      h.appendChild(makeSurpriseBtn());
     });
   }
   // Expose for the home page (BotD chip + any future caller)

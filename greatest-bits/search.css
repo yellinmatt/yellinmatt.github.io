@@ -64,20 +64,32 @@
 @media(max-width:820px){.gbsurprise{padding:0 10px;font-size:10px}.gbsurprise .dice{font-size:12px}}
 @media(max-width:640px){.gbsurprise{margin-left:0}}
 @media(max-width:540px){.gbsurprise .lbl{display:none}.gbsurprise{padding:0 9px}}
-/* Home-page variant: sits below the cream postcard, inside .gbhero-wrap, on the red masthead */
-.gbhero-wrap .gbsurprise{display:inline-flex;margin:10px auto 0;background:transparent;color:var(--cream);border-color:var(--cream)}
-.gbhero-wrap .gbsurprise:hover{background:var(--yellow);color:var(--ink);border-color:var(--ink);box-shadow:3px 3px 0 rgba(13,13,13,.45)}
+/* Home-page variant: sits INSIDE the cream postcard, to the RIGHT of the Search button.
+   Mirrors .gbhero .btn exactly (yellow / Archivo 900 / 14×18 padding / ink border-left for separation)
+   so the two buttons read as a matched pair. The dice icon precedes the label. */
+.gbhero .gbsurprise{margin:0;height:auto;align-self:stretch;font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.04em;text-transform:uppercase;background:var(--yellow);color:var(--ink);padding:14px 18px;border:0;border-left:3px solid var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;transition:background .15s}
+.gbhero .gbsurprise:hover{transform:none;box-shadow:none;background:#ffdf6a}
+.gbhero .gbsurprise .dice{font-size:16px;line-height:1}
+@media(max-width:540px){.gbhero .gbsurprise{padding:14px 14px;font-size:11px;gap:6px}.gbhero .gbsurprise .lbl{display:none}}
 
-/* ===== BIT LIGHTBOX — used by the home Bit-of-the-Day chip to open the clip inline ===== */
+/* Chip fade-in — kill the "Bit of the day: …" flicker while data loads.
+   .cotd a starts invisible and fades in once JS adds .ready (BotD after specials.json, COTD immediately). */
+.hh .cotd a{opacity:0;transition:opacity .25s ease}
+.hh .cotd a.ready{opacity:1}
+
+/* ===== BIT LIGHTBOX — opens the home Bit-of-the-Day clip inline.
+   Echoes the home identity: cream panel, ink border, red 9px shadow (matches .bcard hover),
+   Anton title with a yellow underline accent (matches .hh .swap em). */
 .gblightbox{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;background:rgba(13,13,13,.86);padding:24px}
 .gblightbox.on{display:flex}
-.gblightbox .lbpanel{position:relative;max-width:900px;width:100%;background:var(--cream);border:3px solid var(--ink);padding:20px 22px 22px;border-radius:6px;box-shadow:14px 14px 0 var(--red)}
-.gblightbox .lbx{position:absolute;top:10px;right:12px;background:var(--ink);color:var(--cream);border:0;font-family:'IBM Plex Mono',monospace;font-size:14px;cursor:pointer;padding:5px 12px;border-radius:3px;line-height:1}
+.gblightbox .lbpanel{position:relative;max-width:820px;width:100%;background:var(--cream);border:3px solid var(--ink);padding:18px 20px 18px;border-radius:6px;box-shadow:9px 9px 0 var(--red)}
+.gblightbox .lbx{position:absolute;top:8px;right:10px;background:var(--ink);color:var(--cream);border:0;font-family:'IBM Plex Mono',monospace;font-size:14px;cursor:pointer;padding:4px 10px;border-radius:3px;line-height:1;transition:background .15s}
 .gblightbox .lbx:hover{background:var(--red)}
-.gblightbox .lbk{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);font-weight:600}
-.gblightbox .lbttl{font-family:'Anton',sans-serif;font-size:clamp(24px,4vw,38px);text-transform:uppercase;line-height:.95;padding-right:60px;margin-top:6px}
-.gblightbox .lbby{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.1em;margin-top:5px}
-.gblightbox .lbplayer{margin:14px 0 12px}
+.gblightbox .lbk{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
+.gblightbox .lbttl{font-family:'Anton',sans-serif;font-size:clamp(26px,4.2vw,40px);text-transform:uppercase;line-height:.95;padding-right:60px;margin-top:4px;display:inline-block;border-bottom:4px solid var(--yellow);padding-bottom:2px}
+.gblightbox .lbby{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.14em;margin-top:8px}
+.gblightbox .lbplayer{margin:14px 0 14px}
 .gblightbox iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:6px;background:#000;display:block}
-.gblightbox .lbview{display:inline-flex;align-items:center;gap:6px;font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;color:var(--red);text-decoration:none;border:2px solid var(--red);padding:8px 14px;border-radius:4px;transition:.15s}
-.gblightbox .lbview:hover{background:var(--red);color:var(--cream)}
+.gblightbox .lbview{display:inline-flex;align-items:center;gap:6px;font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);text-decoration:none;background:var(--yellow);padding:10px 16px;border:2px solid var(--ink);border-radius:0;transition:transform .14s,box-shadow .14s}
+.gblightbox .lbview:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--red)}
+@media(max-width:540px){.gblightbox{padding:14px}.gblightbox .lbpanel{padding:14px}.gblightbox .lbttl{font-size:22px;padding-right:48px}}

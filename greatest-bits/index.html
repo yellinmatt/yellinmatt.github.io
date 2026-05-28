@@ -276,36 +276,42 @@ document.getElementById("mosaic").innerHTML=order.slice(0,12).map(k=>`<img src="
 // ticker
 const names=["George Carlin","Richard Pryor","Eddie Murphy","Robin Williams","Chris Rock","Dave Chappelle","Bill Hicks","Hannah Gadsby","Ali Wong","Bo Burnham","John Mulaney","Norm Macdonald","Tig Notaro","Bill Burr"];
 document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("")).repeat(2);
-// Bit-of-the-day chip + Index stats — single combined async fetch (cache-busted, live counts)
+// Chips load in two phases so the BotD chip is wired the MOMENT specials.json is back
+// (don't make it wait for the 430-file per-comic walk that's only needed for the Index counts).
 (async function(){
  let comics=null,idx=null,bitsTotal=0;
+ // Phase 1 — quick: comedians + specials (drives both chips and 2 of 3 Index counts immediately).
  try{const [r1,r2]=await Promise.all([
    fetch("data/comedians.json?v="+Date.now()),
    fetch("data/specials.json?v="+Date.now())
- ]);comics=await r1.json();idx=await r2.json();
- // True bit count: walk per-comic JSONs (covers bits whose sp doesn't match a special title)
- try{
-  const ids=comics.map(c=>c.id);
-  const settled=await Promise.allSettled(ids.map(id=>fetch("data/comics/"+id+".json?v="+Date.now()).then(r=>r.ok?r.json():null)));
-  settled.forEach(s=>{if(s.status!=="fulfilled"||!s.value)return;const d=s.value;
-   // Prefer new appearances[] shape; fall back to flat bits[]
-   if(Array.isArray(d.appearances)){d.appearances.forEach(a=>(a.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;}));}
-   else{(d.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;});}
-  });
- }catch(e){}
- }catch(e){}
- // Bit of the day chip -> plays the clip in a lightbox; "Go to comic page" inside the lightbox
+ ]);comics=await r1.json();idx=await r2.json();}catch(e){}
+ // Bit of the day chip — wire it NOW so an early click never escapes to browse.html.
  if(idx){
-   const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{if(b.id)pool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic});});});
+   const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{
+     // Only include real YouTube ids (11 chars, [A-Za-z0-9_-]) — guards against IG shortcodes leaking in.
+     if(b.id && !b.shortcode && /^[A-Za-z0-9_-]{11}$/.test(b.id)) pool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic});
+   });});
    if(pool.length){
      const b=pool[Math.floor(Date.now()/864e5)%pool.length];
      const chip=document.getElementById("botdchip");
      chip.innerHTML=`<span>Bit of the day:</span> <b>${b.t}</b> &#9658;`;
      chip.setAttribute("href","#");
+     chip.classList.add("ready");
      chip.style.cursor="pointer";
-     chip.addEventListener("click",e=>{e.preventDefault();openBitLB(b);});
+     chip.addEventListener("click",e=>{e.preventDefault();(window.openBitLB||function(){})(b);});
    }
  }
+ // Mark COTD ready too (it was already populated synchronously above; just flag the fade-in class).
+ const cotdEl=document.getElementById("cotd"); if(cotdEl) cotdEl.classList.add("ready");
+ // Phase 2 — slow: walk per-comic JSONs to get the TRUE bit count for the Index card.
+ if(comics){try{
+  const ids=comics.map(c=>c.id);
+  const settled=await Promise.allSettled(ids.map(id=>fetch("data/comics/"+id+".json?v="+Date.now()).then(r=>r.ok?r.json():null)));
+  settled.forEach(s=>{if(s.status!=="fulfilled"||!s.value)return;const d=s.value;
+   if(Array.isArray(d.appearances)){d.appearances.forEach(a=>(a.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;}));}
+   else{(d.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;});}
+  });
+ }catch(e){}}
  // Index stats — live counts from JSON, count-up on scroll into view
  if(comics&&idx){
    const targets={comics:comics.length,specials:Object.keys(idx).length,bits:bitsTotal};
