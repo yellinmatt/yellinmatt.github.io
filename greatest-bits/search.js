@@ -138,7 +138,7 @@
   function attachTriggers(){
     // gbhero (home page card input) and gbhead (inner-page header strip input):
     // both ACT as inputs but actually open the overlay and pre-fill it.
-    document.querySelectorAll(".gbhero input, .gbhead input").forEach(function(el){
+    document.querySelectorAll(".gbhero input, .gbhead input, .gbhero-mega input").forEach(function(el){
       el.setAttribute("autocomplete","off");
       el.addEventListener("focus", function(){
         var v = el.value;
@@ -156,10 +156,12 @@
       });
     });
     // Also bind buttons inside the gbhero/gbhead that act as "Search" submits
-    document.querySelectorAll(".gbhero .btn, .gbhead .btn, .gbhero button, .gbhead button").forEach(function(btn){
+    document.querySelectorAll(".gbhero .btn, .gbhead .btn, .gbhero button, .gbhead button, .gbhero-mega .btn.go").forEach(function(btn){
       btn.addEventListener("click", function(e){
+        // Skip Surprise-Me buttons — they have their own click handlers
+        if (btn.classList.contains("lucky") || btn.id === "gbHeroLucky") return;
         e.preventDefault();
-        var input = btn.parentElement.querySelector("input");
+        var input = btn.closest(".gbhero, .gbhead, .gbhero-mega")?.querySelector("input");
         open(input ? input.value : "");
       });
     });
@@ -173,7 +175,7 @@
     document.addEventListener("keydown", function(e){
       var ae = document.activeElement || {};
       var isTyping = /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName || "");
-      var inHeroOrHead = isTyping && (ae.closest && (ae.closest(".gbhero") || ae.closest(".gbhead")));
+      var inHeroOrHead = isTyping && (ae.closest && (ae.closest(".gbhero") || ae.closest(".gbhead") || ae.closest(".gbhero-mega")));
       // "/" from anywhere opens the search overlay. Old condition had a stray `!ov` check
       // that was always false after boot(), so the shortcut never fired.
       if (e.key === "/" && !isTyping && !document.querySelector("#gbsearch.on")){
@@ -194,11 +196,10 @@
     });
   }
 
-  // ---------- Surprise Me — global "open a random comic" affordance ----------
-  // Injects a .gbsurprise button next to every .gbhead (inner-page nav) and inside every
-  // .gbhero-wrap (home page). Skips if the page already provides its own .navsurprise
-  // (e.g. browse.html has a filter-aware version we don't want to clobber).
-  var ROSTER = null;
+  // ---------- Surprise Me — opens a random verified bit in the cream BotD lightbox.
+  // Pages can override with window.gbSurpriseOverride (browse.html keeps filter-aware comic-pick).
+  // The cream lightbox markup is injected if the page didn't define one (so inner pages get it free).
+  var ROSTER = null, SPECIALS = null, BITPOOL = null;
   function loadRoster(){
     if (ROSTER) return Promise.resolve(ROSTER);
     return fetch("data/comedians.json?v="+Date.now())
@@ -206,18 +207,85 @@
       .catch(function(){return [];})
       .then(function(d){ROSTER = d || []; return ROSTER;});
   }
-  function surpriseComic(){
-    // Pages can override the global "random comic" behavior by defining window.gbSurpriseOverride
-    // (browse.html does this to respect the current filter selection).
+  function loadBitPool(){
+    if (BITPOOL) return Promise.resolve(BITPOOL);
+    return fetch("data/specials.json?v="+Date.now())
+      .then(function(r){return r.ok ? r.json() : {};})
+      .catch(function(){return {};})
+      .then(function(idx){
+        SPECIALS = idx || {};
+        var pool = [];
+        Object.entries(SPECIALS).forEach(function(entry){
+          var slug = entry[0], v = entry[1];
+          (v.bits || []).forEach(function(b){
+            if (b.id && !b.shortcode && /^[A-Za-z0-9_-]{11}$/.test(b.id)) {
+              pool.push({slug: slug, t: b.t, id: b.id, comicId: v.comicId, comic: v.comic});
+            }
+          });
+        });
+        BITPOOL = pool;
+        return BITPOOL;
+      });
+  }
+  // Auto-create the cream BotD lightbox markup if a page didn't define one. Returns the controller.
+  function ensureBitLightbox(){
+    if (window.openBitLB) return; // home page already provides it
+    var lb = document.getElementById("gblb");
+    if (!lb) {
+      lb = document.createElement("div");
+      lb.id = "gblb";
+      lb.className = "gblightbox";
+      lb.innerHTML = '<div class="lbpanel">'
+        + '<button class="lbx" type="button" id="gblbx" aria-label="Close">&times;</button>'
+        + '<div class="lbk" id="gblbk">Bit of the day</div>'
+        + '<div class="lbttl" id="gblbttl"></div>'
+        + '<div class="lbby" id="gblbby"></div>'
+        + '<div class="lbplayer" id="gblbplayer"></div>'
+        + '<div class="lbview-row">'
+        + '<a class="lbview" id="gblbview" href="#">View on comic page &#8594;</a>'
+        + '<button type="button" class="lbagain" id="gblbagain">&#9856; Surprise me again</button>'
+        + '</div>'
+        + '</div>';
+      document.body.appendChild(lb);
+    }
+    var pl = document.getElementById("gblbplayer");
+    function close(){lb.classList.remove("on");if(pl)pl.innerHTML="";document.body.style.overflow="";}
+    window.openBitLB = function(b){
+      var ttl = document.getElementById("gblbttl");
+      var by = document.getElementById("gblbby");
+      var vw = document.getElementById("gblbview");
+      if (ttl) ttl.textContent = b.t || "";
+      if (by) by.textContent = b.comic ? ("Bit by " + b.comic) : "";
+      if (pl) pl.innerHTML = '<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+      if (vw) vw.href = "comic.html?c=" + (b.comicId||"") + "#sp-" + b.slug;
+      lb.classList.add("on");
+      document.body.style.overflow = "hidden";
+    };
+    var xbtn = document.getElementById("gblbx"); if (xbtn) xbtn.addEventListener("click", close);
+    lb.addEventListener("click", function(e){if (e.target === lb) close();});
+    document.addEventListener("keydown", function(e){if (e.key === "Escape" && lb.classList.contains("on")) close();});
+  }
+  function wireSurpriseAgain(){
+    document.addEventListener("click", function(e){
+      var btn = e.target.closest && e.target.closest("#gblbagain, .lbagain");
+      if (!btn) return;
+      e.preventDefault();
+      surpriseBit();
+    });
+  }
+  function surpriseBit(){
+    // Per-page override wins (browse.html keeps filter-aware comic-pick)
     if (typeof window.gbSurpriseOverride === "function") {
       try { window.gbSurpriseOverride(); return; } catch(e){}
     }
-    loadRoster().then(function(d){
-      if (!d || !d.length) return;
-      var pick = d[Math.floor(Math.random()*d.length)];
-      if (pick && pick.id) location.href = "comic.html?c="+pick.id;
+    ensureBitLightbox();
+    loadBitPool().then(function(pool){
+      if (!pool || !pool.length) return;
+      var pick = pool[Math.floor(Math.random()*pool.length)];
+      if (pick && window.openBitLB) window.openBitLB(pick);
     });
   }
+  var surpriseComic = surpriseBit; // alias for any legacy callers
   function makeSurpriseBtn(){
     var b = document.createElement("button");
     b.type = "button";
@@ -256,6 +324,11 @@
     attachTriggers();
     attachKeyboard();
     injectSurprise();
+    ensureBitLightbox();
+    wireSurpriseAgain();
+    // Pre-warm the bit pool so the first Surprise Me click is instant
+    if ("requestIdleCallback" in window) requestIdleCallback(loadBitPool);
+    else setTimeout(loadBitPool, 1200);
     // Pre-warm the index on idle
     if ("requestIdleCallback" in window) requestIdleCallback(load);
     else setTimeout(load, 800);

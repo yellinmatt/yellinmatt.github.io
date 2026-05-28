@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="search.css?v=202605281256">
+<link rel="stylesheet" href="search.css?v=202605281350">
 <style>
 :root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--maroon:#7a1003;--mut:#8a7a64}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -179,28 +179,44 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
   <h1>Greatest&nbsp;B<span class="y">I</span>TS</h1>
   <p class="swap">Every comic. Every special. Every <em id="swap">bit</em>.</p>
   <div class="gbhero-wrap">
-    <div class="gbhero-frame">
-      <span class="gbhero-tag">Search the canon</span>
-      <span class="gbhero-counts" id="gbCounts">430 &middot; 1,221 &middot; 879</span>
-      <div class="gbhero">
-        <span class="lens">&#9906;</span>
-        <input type="text" id="gbq-hero" autocomplete="off" placeholder="Search comics, specials, bits&hellip;">
-        <button class="btn" type="button">Search</button>
+    <div class="gbhero-mega">
+      <input type="text" id="gbq-hero" autocomplete="off" placeholder="Search comics, specials, bits">
+      <div class="row">
+        <button class="btn go" type="button">Search</button>
+        <button class="btn lucky" type="button" id="gbHeroLucky">Surprise me</button>
       </div>
-      <div class="gbhero-examples" id="gbExamples">
-        <span class="lbl">Try</span>
-        <button class="ex" type="button" data-q="Mulaney">Mulaney</button>
-        <button class="ex" type="button" data-q="Carlin Seven Words">Carlin Seven Words</button>
-        <button class="ex" type="button" data-q="Horse in the Hospital">Horse in the Hospital</button>
-        <button class="ex" type="button" data-q="Pryor">Pryor</button>
-        <button class="ex" type="button" data-q="crowd work">crowd work</button>
-        <span class="kbd">press <kbd>/</kbd> from anywhere</span>
-      </div>
+      <div class="kbd">or press <kbd>/</kbd> from anywhere</div>
     </div>
   </div>
-  <div class="cotd"><a id="cotd" href="browse.html"><span>Comic of the day:</span> <b>&hellip;</b> &#8594;</a><a id="botdchip" href="browse.html"><span>Bit of the day:</span> <b>&hellip;</b> &#8594;</a></div>
   <div class="tick"><div class="trk" id="trk"></div></div>
 </header>
+
+<!-- Today's Picks — twin hero tiles (BotD inline player + COTD full-bleed portrait) -->
+<section class="sec sec-today">
+  <div class="glabel"><span class="t">Today's picks</span><span class="rule"></span></div>
+  <div class="today-twin">
+    <a class="bit" id="botdTile" href="#" aria-label="Play bit of the day">
+      <div class="player" id="botdPlayer">
+        <span class="kicker">Bit of the Day</span>
+        <span class="play-hint">Click to play</span>
+        <div class="poster" id="botdPoster"><div class="pb"></div></div>
+      </div>
+      <div class="body">
+        <div class="nm" id="botdTitle">&hellip;</div>
+        <div class="meta" id="botdMeta">&hellip;</div>
+        <span class="link" id="botdLink">View on comic page &#8594;</span>
+      </div>
+    </a>
+    <a class="com" id="cotdTile" href="#" aria-label="Open comic of the day">
+      <span class="kicker">Comic of the Day</span>
+      <div class="overlay">
+        <div class="nm" id="cotdName">&hellip;</div>
+        <div class="meta" id="cotdMeta">&hellip;</div>
+        <span class="link">View their full page &#8594;</span>
+      </div>
+    </a>
+  </div>
+</section>
 
 <main>
   <section class="sec">
@@ -275,22 +291,44 @@ const COLL=[["carlin","george-carlin","George Carlin"],["pryor","richard-pryor",
 document.getElementById("collage").innerHTML=COLL.map(c=>`<a href="comic.html?c=${c[1]}" title="${c[2]}"><img src="${P[c[0]]}" alt="${c[2]}"></a>`).join("");
 const WORDS=["bit","story","act-out","one-liner","callback","crowd-work"];let wi=0;const sw=document.getElementById("swap");
 setInterval(()=>{wi=(wi+1)%WORDS.length;sw.textContent=WORDS[wi];},2200);
-// Comic-of-the-day — chip opens a small lightbox with photo + blurb + "View their full page" CTA,
-// matching the Bit-of-the-day UX. {id, name, blurb, photoKey-into-P}.
-const COTD=[["george-carlin","George Carlin","carlin","Counterculture philosopher of language and taboo. Seven Words, A Place for My Stuff, Class Clown."],
-            ["richard-pryor","Richard Pryor","pryor","The most influential stand-up who ever lived. Confessional, lyrical, brutal — the modern form starts with him."],
-            ["dave-chappelle","Dave Chappelle","chappelle","Killing Them Softly through The Closer — three decades of canonical hours, the most cited working comic."],
-            ["robin-williams","Robin Williams","williams","Improv hurricane. Live at the Met. Riff-as-jazz, manic, virtuosic."],
-            ["eddie-murphy","Eddie Murphy","murphy","Raw and Delirious. The leather-suit charisma act that recalibrated stand-up cool in the '80s."],
-            ["bill-burr","Bill Burr","burr","Modern master of the long take. Paper Tiger, You People Are All The Same — the genre's most reliable hour-maker."],
-            ["john-mulaney","John Mulaney","mulaney","Tight construction, callbacks, Horse in the Hospital. The premier joke architect of his generation."]];
+// Comic-of-the-day data — {id, name, photoKey, era, rank}.
+// Tile uses the full-bleed portrait design; click navigates directly to the comic page (no popup).
+const COTD=[["george-carlin","George Carlin","carlin","1970s","#02"],
+            ["richard-pryor","Richard Pryor","pryor","1970s","#01"],
+            ["dave-chappelle","Dave Chappelle","chappelle","1990s","#09"],
+            ["robin-williams","Robin Williams","williams","1980s","#12"],
+            ["eddie-murphy","Eddie Murphy","murphy","1980s","#25"],
+            ["bill-burr","Bill Burr","burr","1990s","#17"],
+            ["john-mulaney","John Mulaney","mulaney","2000s","#50"]];
 const cd=COTD[Math.floor(Date.now()/864e5)%COTD.length];
+
+// Yellow-letter algorithm: highlight ONE letter in the surname for visual rhythm.
+// Priority: stroke letters (I/L/T/J/F/K/Y) — these are visually thin against Anton's chunky letterforms,
+// matching the I in B(I)TS. Falls back to a non-first vowel (U/A/O/E), then second letter, then first.
+function yellowSurname(name){
+  const parts=(name||"").trim().split(/\s+/);
+  if(!parts.length) return "";
+  const surname=parts[parts.length-1];
+  const upper=surname.toUpperCase();
+  const stroke="ILTJFKY";
+  let idx=-1;
+  for(const ch of stroke){const i=upper.indexOf(ch);if(i>=0){idx=i;break;}}
+  if(idx<0){const vowels="UAOE";for(const ch of vowels){const i=upper.indexOf(ch,1);if(i>=0){idx=i;break;}}}
+  if(idx<0) idx=Math.min(1,surname.length-1);
+  const before=surname.slice(0,idx),letter=surname[idx],after=surname.slice(idx+1);
+  const prefix=parts.slice(0,-1).join(" ");
+  return (prefix?prefix+" ":"")+before+'<span class="y">'+letter+'</span>'+after;
+}
+// Wire COTD tile — direct navigation to the comic page, photo set as background
 (function(){
-  const chip=document.getElementById("cotd");
-  chip.innerHTML=`<span>Comic of the day:</span> <b>${cd[1]}</b> &#9658;`;
-  chip.setAttribute("href","#");
-  chip.style.cursor="pointer";
-  chip.addEventListener("click",e=>{e.preventDefault();(window.openComicLB||function(){})({id:cd[0],name:cd[1],blurb:cd[3],photo:P[cd[2]]||null});});
+  const tile=document.getElementById("cotdTile");
+  const nm=document.getElementById("cotdName");
+  const meta=document.getElementById("cotdMeta");
+  if(!tile) return;
+  if(P[cd[2]]) tile.style.backgroundImage="url('"+P[cd[2]]+"')";
+  nm.innerHTML=yellowSurname(cd[1]);
+  meta.textContent=cd[3]+" · "+cd[4]+" on the 100 Best";
+  tile.setAttribute("href","comic.html?c="+cd[0]);
 })();
 // 100 Best trio collages
 fc("f1",["carlin","pryor","murphy","williams"]);
@@ -302,38 +340,56 @@ document.getElementById("mosaic").innerHTML=order.slice(0,12).map(k=>`<img src="
 // ticker
 const names=["George Carlin","Richard Pryor","Eddie Murphy","Robin Williams","Chris Rock","Dave Chappelle","Bill Hicks","Hannah Gadsby","Ali Wong","Bo Burnham","John Mulaney","Norm Macdonald","Tig Notaro","Bill Burr"];
 document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span class="s">&#10022;</span>`).join("")).repeat(2);
-// Chips load in two phases so the BotD chip is wired the MOMENT specials.json is back
-// (don't make it wait for the 430-file per-comic walk that's only needed for the Index counts).
+// Data loads in two phases: Phase 1 (specials.json) drives the BotD tile + Surprise Me pool;
+// Phase 2 walks per-comic JSONs for the true bit count used in the Index stats only.
 (async function(){
- let comics=null,idx=null,bitsTotal=0;
- // Phase 1 — quick: comedians + specials (drives both chips and 2 of 3 Index counts immediately).
+ let comics=null,idx=null,bitsTotal=0,bitPool=null;
  try{const [r1,r2]=await Promise.all([
    fetch("data/comedians.json?v="+Date.now()),
    fetch("data/specials.json?v="+Date.now())
  ]);comics=await r1.json();idx=await r2.json();}catch(e){}
- // Bit of the day chip — wire it NOW so an early click never escapes to browse.html.
+ // Build the bit pool (verified YouTube IDs only — guard against IG shortcodes)
  if(idx){
-   const pool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{
-     // Only include real YouTube ids (11 chars, [A-Za-z0-9_-]) — guards against IG shortcodes leaking in.
-     if(b.id && !b.shortcode && /^[A-Za-z0-9_-]{11}$/.test(b.id)) pool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic});
+   bitPool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{
+     if(b.id && !b.shortcode && /^[A-Za-z0-9_-]{11}$/.test(b.id)) bitPool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic,comicPhoto:v.comicPhoto});
    });});
-   if(pool.length){
-     const b=pool[Math.floor(Date.now()/864e5)%pool.length];
-     const chip=document.getElementById("botdchip");
-     chip.innerHTML=`<span>Bit of the day:</span> <b>${b.t}</b> &#9658;`;
-     chip.setAttribute("href","#");
-     chip.classList.add("ready");
-     chip.style.cursor="pointer";
-     chip.addEventListener("click",e=>{e.preventDefault();(window.openBitLB||function(){})(b);});
-   }
  }
- // Mark COTD ready too (it was already populated synchronously above; just flag the fade-in class).
- const cotdEl=document.getElementById("cotd"); if(cotdEl) cotdEl.classList.add("ready");
- // Live counts in the hero tag (comics + specials immediately; bits fills in after Phase 2)
- if(comics && idx){
-   const c=document.getElementById("gbCounts");
-   if(c) c.textContent=comics.length.toLocaleString()+" · "+Object.keys(idx).length.toLocaleString()+" · …";
+ // BOTD tile — pick today's bit, wire the click-to-play handler
+ if(bitPool && bitPool.length){
+   const b=bitPool[Math.floor(Date.now()/864e5)%bitPool.length];
+   const tile=document.getElementById("botdTile");
+   const player=document.getElementById("botdPlayer");
+   const poster=document.getElementById("botdPoster");
+   const ttl=document.getElementById("botdTitle");
+   const meta=document.getElementById("botdMeta");
+   const link=document.getElementById("botdLink");
+   if(ttl) ttl.textContent=b.t;
+   if(meta) meta.textContent=(b.comic||"")+(b.comicId?" · ":"")+(idx[b.slug]?.t || "");
+   if(link){link.textContent="View on comic page →";}
+   tile.setAttribute("href","comic.html?c="+(b.comicId||"")+"#sp-"+b.slug);
+   // Set the poster background if we have a comic photo
+   if(poster && b.comicPhoto){poster.style.backgroundImage="url('https://image.tmdb.org/t/p/h632"+(b.comicPhoto.startsWith("/")?b.comicPhoto:"/"+b.comicPhoto)+"')";}
+   // Click handler: first click swaps the poster for the YouTube iframe (in-section playback)
+   let played=false;
+   tile.addEventListener("click",e=>{
+     // Allow modifier-clicks / middle-click to open the comic page in new tab
+     if(e.metaKey||e.ctrlKey||e.shiftKey||e.button===1) return;
+     if(played) return; // second click goes to the comic page
+     e.preventDefault();
+     played=true;
+     player.querySelector(".poster")?.remove();
+     player.insertAdjacentHTML("beforeend",'<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>');
+     const ph=player.querySelector(".play-hint"); if(ph) ph.textContent="Playing";
+   });
  }
+ // Wire hero Surprise Me — random bit in cream lightbox (search.js provides the lightbox)
+ const lucky=document.getElementById("gbHeroLucky");
+ if(lucky) lucky.addEventListener("click",e=>{
+   e.preventDefault();
+   if(!bitPool||!bitPool.length) return;
+   const pick=bitPool[Math.floor(Math.random()*bitPool.length)];
+   if(window.openBitLB) window.openBitLB(pick);
+ });
  // Phase 2 — slow: walk per-comic JSONs to get the TRUE bit count for the Index card.
  if(comics){try{
   const ids=comics.map(c=>c.id);
@@ -343,11 +399,6 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
    else{(d.bits||[]).forEach(b=>{if(b.id||b.shortcode)bitsTotal++;});}
   });
  }catch(e){}}
- // Now that we have the true bit count, finish the hero-tag triple
- if(comics && idx){
-   const c=document.getElementById("gbCounts");
-   if(c) c.textContent=comics.length.toLocaleString()+" · "+Object.keys(idx).length.toLocaleString()+" · "+bitsTotal.toLocaleString();
- }
  // Index stats — live counts from JSON, count-up on scroll into view
  if(comics&&idx){
    const targets={comics:comics.length,specials:Object.keys(idx).length,bits:bitsTotal};
@@ -365,66 +416,37 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 <div class="gbsearch" id="gbsearch"><div class="panel"><div class="ip"><span style="color:#8a7a64">&#9906;</span><input id="gbq" placeholder="Search comics, specials, bits…" autocomplete="off"><span class="esc">ESC</span></div><div class="res" id="gbres"></div></div></div>
-<!-- Bit-of-the-Day lightbox: plays the clip inline; "View on comic page" opens the comic at the special anchor -->
+<!-- Bit-of-the-Day lightbox — used by Surprise Me (random bit) and any other "open a bit" caller.
+     "Surprise me again" reshuffles in place without closing the lightbox. -->
 <div class="gblightbox" id="gblb"><div class="lbpanel">
   <button class="lbx" type="button" id="lbx" aria-label="Close">&times;</button>
-  <div class="lbk">Bit of the day</div>
+  <div class="lbk" id="lbk">Bit of the day</div>
   <div class="lbttl" id="lbttl"></div>
   <div class="lbby" id="lbby"></div>
   <div class="lbplayer" id="lbplayer"></div>
-  <a class="lbview" id="lbview" href="#">View on comic page &#8594;</a>
-</div></div>
-<!-- Comic-of-the-Day lightbox: photo + blurb + "View their full page" CTA. Mirrors the BotD shape. -->
-<div class="gblightbox" id="gblbc"><div class="lbpanel lbcomic">
-  <button class="lbx" type="button" id="lbcx" aria-label="Close">&times;</button>
-  <div class="lbk">Comic of the day</div>
-  <div class="lbcrow">
-    <div class="lbphoto" id="lbcphoto"></div>
-    <div class="lbcbody">
-      <div class="lbttl" id="lbcttl"></div>
-      <p class="lbcblurb" id="lbcblurb"></p>
-      <a class="lbview" id="lbcview" href="#">View their full page &#8594;</a>
-    </div>
+  <div class="lbview-row">
+    <a class="lbview" id="lbview" href="#">View on comic page &#8594;</a>
+    <button class="lbagain" id="lbagain" type="button">&#9856; Surprise me again</button>
   </div>
 </div></div>
 <script>
 (function(){
-  // Shared close behavior for any .gblightbox.on
-  function closeAll(){document.querySelectorAll(".gblightbox.on").forEach(el=>{el.classList.remove("on");const ifr=el.querySelector("#lbplayer");if(ifr)ifr.innerHTML="";});document.body.style.overflow="";}
-  // BotD
   const lb=document.getElementById("gblb"),lbttl=document.getElementById("lbttl"),lbby=document.getElementById("lbby"),lbpl=document.getElementById("lbplayer"),lbvw=document.getElementById("lbview");
+  function close(){lb.classList.remove("on");lbpl.innerHTML="";document.body.style.overflow="";}
   window.openBitLB=function(b){
-    closeAll();
     lbttl.textContent=b.t||"";
     lbby.textContent=b.comic?("Bit by "+b.comic):"";
     lbpl.innerHTML='<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
     lbvw.href="comic.html?c="+(b.comicId||"")+"#sp-"+b.slug;
     lb.classList.add("on");document.body.style.overflow="hidden";
   };
-  // COTD
-  const lbc=document.getElementById("gblbc"),lbcph=document.getElementById("lbcphoto"),lbcttl=document.getElementById("lbcttl"),lbcblurb=document.getElementById("lbcblurb"),lbcvw=document.getElementById("lbcview");
-  window.openComicLB=function(c){
-    closeAll();
-    lbcph.innerHTML=c.photo?('<img src="'+c.photo+'" alt="'+(c.name||"")+'" loading="lazy">'):'<span class="ini">'+((c.name||"?").split(" ").map(w=>w[0]).slice(0,2).join(""))+'</span>';
-    lbcttl.textContent=c.name||"";
-    lbcblurb.textContent=c.blurb||"";
-    lbcvw.href="comic.html?c="+(c.id||"");
-    lbc.classList.add("on");document.body.style.overflow="hidden";
-  };
-  document.getElementById("lbx").addEventListener("click",closeAll);
-  document.getElementById("lbcx").addEventListener("click",closeAll);
-  document.querySelectorAll(".gblightbox").forEach(el=>el.addEventListener("click",e=>{if(e.target===el)closeAll();}));
-  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeAll();});
-  // Example searches in the hero — populate the hero input + focus to trigger the global overlay
-  document.querySelectorAll("#gbExamples .ex").forEach(b=>b.addEventListener("click",e=>{
-    e.preventDefault();
-    const input=document.getElementById("gbq-hero");
-    if(!input)return;
-    input.value=b.dataset.q||"";
-    input.focus(); // search.js opens the overlay on focus and mirrors the input value
-  }));
+  document.getElementById("lbx").addEventListener("click",close);
+  lb.addEventListener("click",e=>{if(e.target===lb)close();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&lb.classList.contains("on"))close();});
+  // "Surprise me again" — reshuffle in place using search.js?v=202605281350's surpriseBit (or window.gbSurprise)
+  document.getElementById("lbagain").addEventListener("click",e=>{e.preventDefault();if(window.gbSurprise)window.gbSurprise();});
 })();
 </script>
-<script src="search.js?v=202605281256" defer></script>
+<script src="search.js?v=202605281350" defer></script>
 </body>
 </html>
