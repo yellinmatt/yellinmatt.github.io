@@ -18,46 +18,89 @@
   color-scheme:light dark;
   --paper:#f8f4ea;--ink:#1a1a1a;--ink-soft:#2a2a2a;--muted:#5f5e5a;--faint:#888780;
   --rule:#d3d1c7;--rule-strong:#888780;--accent:#b53636;--link:#1a4a8e;
+  --cover-overlay-1:rgba(13,13,13,.95);--cover-overlay-2:rgba(13,13,13,.55);
   --serif:'Spectral',Georgia,'Times New Roman',serif;
   --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#1c1b18;--ink:#f0ece2;--ink-soft:#d8d4c8;--muted:#a8a59b;--faint:#7b7972;
   --rule:#36342f;--rule-strong:#56544d;--accent:#d4604f;--link:#88b0e8;
+  --cover-overlay-1:rgba(0,0,0,.95);--cover-overlay-2:rgba(0,0,0,.55);
 }}
 *{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-size-adjust:100%;-webkit-text-size-adjust:100%}
-body{max-width:680px;margin:0 auto;padding:max(56px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+body{max-width:680px;margin:0 auto;padding:max(40px,env(safe-area-inset-top)) max(22px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
 a{color:inherit;text-decoration:none}
-.mast{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:18px}
-.wordmark{font-size:46px;font-weight:500;letter-spacing:-.015em;line-height:1;color:var(--ink)}
-.mast-meta{font-family:var(--sans);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:10px}
-.intro{font-size:15px;font-style:italic;color:var(--muted);text-align:center;line-height:1.5;max-width:520px;margin:0 auto 30px}
+
+/* M1 masthead: tighter kerning, 2px red rule */
+.mast{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:14px;margin-bottom:18px}
+.wordmark{font-size:42px;font-weight:500;letter-spacing:-.022em;line-height:1;color:var(--ink)}
+.mast-meta{font-family:var(--sans);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.intro{font-size:14px;font-style:italic;color:var(--muted);text-align:center;line-height:1.55;max-width:520px;margin:0 auto 22px}
+
+/* B-VAR 4 cover (today's brief promoted) — degrades gracefully if 
+  <a class="cover" href="2026-05-28.html">
+    <div class="photo" style="background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Warner_Bros._Studios_Water_Tower_2020.jpg?width=1400')"></div>
+    <div class="grad"></div>
+    <div class="topleft">Vol. I · No. 10<br>Thu, May 28</div>
+    <div class="body">
+      <div class="kicker">Today &middot; 6 items · ~8 min read</div>
+      <h2>DOJ staff signal they will clear Paramount&rsquo;s $110 billion takeover of Warner Bros. Discovery</h2>
+      <div class="teaser"><b>Inside &rarr;</b>Paramount edges DOJ; Cognition jumps to $26 billion; the wires of capital, AI, and a tightening Hormuz.</div>
+    </div>
+  </a> isn't filled */
+.cover{position:relative;display:block;margin:0 -22px 22px;color:#f8f4ea;overflow:hidden;height:clamp(280px,80vw,420px);background:#1a1410}
+.cover .photo{position:absolute;inset:0;background-size:cover;background-position:center 25%;background-color:#1a1410}
+.cover .grad{position:absolute;inset:0;background:linear-gradient(0deg,var(--cover-overlay-1) 0%,var(--cover-overlay-2) 55%,rgba(13,13,13,.15) 100%)}
+.cover .topleft{position:absolute;top:14px;left:22px;font-family:var(--sans);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(248,244,234,.85);z-index:2;line-height:1.65;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.cover .topleft b{color:#d4604f;font-weight:600}
+.cover .body{position:absolute;left:22px;right:22px;bottom:18px;z-index:2}
+.cover .kicker{font-family:var(--sans);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#d4604f;margin-bottom:9px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.cover h2{font-family:var(--serif);font-size:clamp(22px,5.4vw,28px);font-weight:600;line-height:1.08;letter-spacing:-.012em;color:#f8f4ea;margin:0 0 12px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.cover .teaser{font-family:var(--serif);font-size:13px;line-height:1.5;color:rgba(248,244,234,.88);border-top:.5px solid rgba(248,244,234,.28);padding-top:11px;margin-top:11px;font-style:italic}
+.cover .teaser b{color:#d4604f;font-weight:600;font-style:normal;font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-right:6px}
+
+/* Archive list — quieter, smaller */
+.more-label{font-family:var(--sans);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:18px 0 4px;font-weight:600}
 ul.days{list-style:none;padding:0;margin:0;border-top:.5px solid var(--rule)}
 ul.days li{border-bottom:.5px solid var(--rule)}
-ul.days a{display:block;padding:18px 4px;transition:background .15s ease}
-ul.days a:hover,ul.days a:active{background:rgba(0,0,0,.02)}
-ul.days .d{display:block;font-family:var(--sans);font-size:11px;color:var(--faint);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px}
-ul.days .l{display:block;font-size:18px;font-weight:500;line-height:1.3;color:var(--ink);letter-spacing:-.005em}
-.footer{margin-top:36px;padding-top:16px;border-top:.5px solid var(--rule);font-size:11px;font-style:italic;color:var(--faint);text-align:center;letter-spacing:.04em}
+ul.days a{display:block;padding:16px 4px;transition:background .15s ease}
+ul.days a:hover,ul.days a:active{background:rgba(0,0,0,.025)}
+ul.days .d{display:block;font-family:var(--sans);font-size:10px;color:var(--faint);letter-spacing:.16em;text-transform:uppercase;margin-bottom:5px}
+ul.days .l{display:block;font-size:17px;font-weight:500;line-height:1.3;color:var(--ink);letter-spacing:-.005em}
+
+.footer{margin-top:32px;padding-top:16px;border-top:.5px solid var(--rule);font-size:11px;font-style:italic;color:var(--faint);text-align:center;letter-spacing:.04em}
 .footer a{color:var(--link);font-style:normal}
 </style>
 </head>
 <body>
   <header class="mast">
     <div class="wordmark">The Yellin Brief</div>
-    <div class="mast-meta">A daily world brief &middot; Established 19 May 2026</div>
+    <div class="mast-meta">A daily world brief &middot; Est. 19 May 2026</div>
   </header>
-  <p class="intro">A daily lens for a JD/MBA heading into capital markets and entertainment law. Rolling seven-day window, today on top.</p>
+  <p class="intro">A daily lens for a JD/MBA heading into capital markets and entertainment law.</p>
+
+  <a class="cover" href="2026-05-28.html">
+    <div class="photo" style="background-image:url('https://commons.wikimedia.org/wiki/Special:FilePath/Warner_Bros._Studios_Water_Tower_2020.jpg?width=1400')"></div>
+    <div class="grad"></div>
+    <div class="topleft">Vol. I · No. 10<br>Thu, May 28</div>
+    <div class="body">
+      <div class="kicker">Today &middot; 6 items · ~8 min read</div>
+      <h2>DOJ staff signal they will clear Paramount&rsquo;s $110 billion takeover of Warner Bros. Discovery</h2>
+      <div class="teaser"><b>Inside &rarr;</b>Paramount edges DOJ; Cognition jumps to $26 billion; the wires of capital, AI, and a tightening Hormuz.</div>
+    </div>
+  </a>
+  <div class="more-label">Recent briefs</div>
   <ul class="days">
-    <li><a href="2026-05-28.html"><span class="d">Thursday, May 28</span><span class="l">DOJ staff signal they will clear Paramount's $110 billion takeover of Warner Bros. Discovery</span></a></li>
-    <li><a href="2026-05-27.html"><span class="d">Wednesday, May 27</span><span class="l">S&P 500 and Nasdaq close at fresh records as Treasury yields slide on Iran-deal hopes; Micron tops a trillion-dollar market cap</span></a></li>
+    <li><a href="2026-05-27.html"><span class="d">Wednesday, May 27</span><span class="l">S&amp;P 500 and Nasdaq close at fresh records as Treasury yields slide on Iran-deal hopes; Micron tops a trillion-dollar market cap</span></a></li>
     <li><a href="2026-05-26.html"><span class="d">Tuesday, May 26</span><span class="l">Pope Leo XIV releases first encyclical on AI, calls autonomous weapons impermissible and just-war theory outdated</span></a></li>
     <li><a href="2026-05-25.html"><span class="d">Monday, May 25</span><span class="l">Russia hits Kyiv with its largest barrage of the war, including a nuclear-capable Oreshnik</span></a></li>
     <li><a href="2026-05-24.html"><span class="d">Sunday, May 24</span><span class="l">OpenAI files confidentially for what could be the largest IPO ever</span></a></li>
     <li><a href="2026-05-23.html"><span class="d">Saturday, May 23</span><span class="l">Anthropic nears a $30 billion raise that would make it the world's most valuable AI startup</span></a></li>
     <li><a href="2026-05-22.html"><span class="d">Friday, May 22</span><span class="l">Trump pulls his AI executive order days before signing, citing overregulation concerns</span></a></li>
     <li><a href="2026-05-21.html"><span class="d">Thursday, May 21</span><span class="l">OpenAI lines up the largest tech IPO ever, with a confidential filing due as soon as Friday</span></a></li>
+    <li><a href="2026-05-20.html"><span class="d">Wednesday, May 20</span><span class="l">Anthropic's Mythos finds tens of thousands of zero-days, and bank regulators hit pause</span></a></li>
+    <li><a href="2026-05-19.html"><span class="d">Tuesday, May 19</span><span class="l">SEC moves to rewrite the offerings rulebook, its biggest overhaul in two decades</span></a></li>
   </ul>
   <div class="footer">Compiled by Matthew Yellin &middot; <a href="https://github.com/yellinmatt/morning-news">Source on GitHub</a></div>
 </body>
