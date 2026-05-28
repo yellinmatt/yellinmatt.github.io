@@ -193,7 +193,7 @@ async function load(idx){
  var sps=x.specials||[];
  h+='<div class="lbl">Specials ('+sps.length+')</div>';
  if(!sps.length)h+='<div class="flags">'+chip("specials","none / add",c.id)+'</div>';
- sps.forEach(function(s,si){var f="special:"+si;var pos=s.poster?'<img src="https://image.tmdb.org/t/p/w185/'+esc(s.poster)+'" alt="">':'<div class="none">'+esc((s.t||"?")[0])+'</div>';
+ sps.forEach(function(s,si){var f="special:"+si;var posterUrl=s.poster?(s.poster.indexOf("http")===0||s.poster.indexOf("data/")===0?s.poster:"https://image.tmdb.org/t/p/w185"+s.poster):"";var pos=posterUrl?'<img src="'+esc(posterUrl)+'" alt="">':'<div class="none">'+esc((s.t||"?")[0])+'</div>';
   h+='<div class="card"><div class="row"><div class="pos">'+pos+'</div><div style="flex:1"><div class="t">'+esc(s.t)+'</div><div class="m">'+esc(s.yr||"")+' &middot; '+esc(s.plat||"")+(s.watch?' &middot; <a class="w" href="'+esc(s.watch)+'" target="_blank" rel="noopener">watch</a>':' &middot; no watch link')+'</div><div class="flags">'+chip(f,"wrong special",c.id)+chip(f,"wrong/no poster",c.id)+chip(f,"wrong year",c.id)+chip(f,"add watch",c.id)+chip(f,"remove",c.id)+'</div></div></div></div>';});
  // bits
  var bits=x.bits||[];

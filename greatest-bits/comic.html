@@ -246,7 +246,8 @@ function renderProfile(c,x){
      const sb=bits.filter(b=>norm(b.sp)===norm(s.t));
      sb.forEach(b=>matched.add(b));
      const sbDisp=sb.filter(b=>!inTop3(b));
-     const pos=s.poster?`<img src="https://image.tmdb.org/t/p/w500/${s.poster}" alt="${esc(s.t)} poster" loading="lazy">`:`<div class="none">${esc((s.t||"?")[0])}</div>`;
+     const posterUrl = s.poster ? (s.poster.startsWith("http")||s.poster.startsWith("data/")?s.poster:"https://image.tmdb.org/t/p/w500"+s.poster) : "";
+     const pos=posterUrl?`<img src="${posterUrl}" alt="${esc(s.t)} poster" loading="lazy">`:`<div class="none">${esc((s.t||"?")[0])}</div>`;
      const act=`<div class="act">${s.watch?`<a class="watch" href="${s.watch}" target="_blank" rel="noopener">Watch &#8599;</a>`:`<span class="soon">Watch soon</span>`}</div>`;
      const promoted=sb.length-sbDisp.length;
      const nbLabel=sbDisp.length?`${sbDisp.length} bit${sbDisp.length>1?"s":""}${promoted?` &middot; ${promoted} in Start Here`:""} &#9662;`:(promoted?`${promoted} in Start Here above`:`no clips yet`);
