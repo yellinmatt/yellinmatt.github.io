@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Library &mdash; Well-Versed</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="description" content="Every Well-Versed lesson, one place. Search the shelf, filter by family, switch between gallery and index.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Library &mdash; Well-Versed">
+<meta property="og:description" content="Every Well-Versed lesson, one place. Search, filter, browse.">
+<meta property="og:url" content="https://yellinmatt.github.io/well-versed/library.html">
+<meta property="og:site_name" content="Well-Versed">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light dark;
+  --bg:#f4eee2; --soft:#ece3d2; --ink:#1d1a16; --muted:#6e6557;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --accent:#9c3b2f; --midnight:#1a1712; --cream:#f0e7d6;
+  --plate:#241f17; --onaccent:#ffffff;
+  --serif:'Spectral',Georgia,"Times New Roman",serif;
+  --mono:'IBM Plex Mono',"SF Mono",Menlo,monospace;
+  --dL:0.54; --dC:0.142;
+  --shadow:0 2px 6px rgba(20,15,8,.05), 0 22px 50px -22px rgba(20,15,8,.30);
+  --shadow-sm:0 1px 3px rgba(20,15,8,.06), 0 10px 24px -14px rgba(20,15,8,.26);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#15120d; --soft:#1d1912; --ink:#ece4d4; --muted:#9a8f7e;
+  --rule:#322a20; --rule-soft:#262019; --accent:#d6775f; --midnight:#0e0c09; --cream:#f0e7d6;
+  --plate:#241f17; --onaccent:#19120a; --dL:0.745; --dC:0.135;
+}}
+.fam-arts{--dc:oklch(var(--dL) var(--dC) 25)}.fam-letters{--dc:oklch(var(--dL) var(--dC) 330)}
+.fam-thought{--dc:oklch(var(--dL) var(--dC) 290)}.fam-sciences{--dc:oklch(var(--dL) var(--dC) 205)}
+.fam-table{--dc:oklch(var(--dL) var(--dC) 62)}.fam-craft{--dc:oklch(var(--dL) var(--dC) 140)}.fam-world{--dc:oklch(var(--dL) var(--dC) 255)}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px}
+.inner{max-width:1140px;margin:0 auto;padding:0 28px}
+section{position:relative;z-index:3}
+.masthead{padding:24px 0 0}
+.mast-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.brand{font-family:var(--serif);font-weight:700;font-size:clamp(28px,4.2vw,44px);letter-spacing:-.02em;line-height:.9;text-decoration:none;color:var(--ink)}
+.brand em{font-style:italic;font-weight:500}
+.mast-meta{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.7}
+.nav{display:flex;gap:24px;padding:14px 0 0}
+.nav a{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--ink)}.nav a.here{color:var(--ink);border-bottom-color:var(--accent)}
+.ptitle{padding:40px 0 26px;border-bottom:2px solid var(--ink);margin-bottom:30px}
+.ptitle .k{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
+.ptitle h1{font-family:var(--serif);font-weight:700;font-size:clamp(2.4rem,5vw,3.6rem);letter-spacing:-.025em;line-height:1;margin:12px 0 0}
+.ptitle .deck{font-family:var(--serif);font-style:italic;font-size:clamp(1.05rem,1.6vw,1.25rem);color:var(--muted);margin:14px 0 0;max-width:32em}
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:16px}
+.search{flex:1;min-width:240px;padding:13px 16px;border:1px solid var(--rule);border-radius:6px;background:var(--soft);font-family:var(--serif);font-size:15px;color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent)}.search::placeholder{color:var(--muted);font-style:italic}
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;padding:8px 13px;border:1px solid var(--rule);border-radius:999px;cursor:pointer;background:transparent;color:var(--muted)}
+.pill:hover{color:var(--ink)}.pill.on{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+.viewbar{display:flex;gap:8px;margin:0 0 26px}
+.viewbar button{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;padding:8px 15px;border:1px solid var(--rule);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.viewbar button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:30px 26px}
+.lcard{display:block;text-decoration:none;color:inherit;transition:transform .3s var(--ease)}
+.lcard:hover{transform:translateY(-4px)}
+.lplate{position:relative;background:var(--plate);padding:11px;border-radius:5px;box-shadow:var(--shadow);border-top:4px solid var(--dc,var(--accent))}
+.lplate img{width:100%;height:188px;object-fit:cover;object-position:top center;display:block;border-radius:2px}
+.lno{position:absolute;top:0;left:0;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--cream);background:rgba(0,0,0,.42);padding:4px 7px;border-radius:0 0 5px 0}
+.lcard .ltag{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dc);font-weight:500;margin:13px 0 0}
+.lcard .ltt{font-family:var(--serif);font-weight:600;font-size:1.28rem;letter-spacing:-.01em;line-height:1.12;margin:5px 0 0}
+.lcard .ldk{font-family:var(--serif);font-size:.9rem;color:var(--muted);line-height:1.5;margin:7px 0 0}
+.lcard .ldt{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:9px 0 0}
+.idxgroup{margin-bottom:30px}
+.idx-h{display:flex;align-items:baseline;gap:12px;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--dc);font-weight:500;border-bottom:2px solid var(--dc);padding-bottom:9px;margin-bottom:4px}
+.idx-h .c{color:var(--muted);font-weight:400}
+.idxrow{display:grid;grid-template-columns:58px 1fr auto;gap:16px;align-items:baseline;padding:13px 4px;border-bottom:1px solid var(--rule-soft);text-decoration:none;color:inherit}
+.idxrow:hover{background:var(--soft)}
+.idxrow .n{font-family:var(--mono);font-size:11px;color:var(--dc)}
+.idxrow .t{font-family:var(--serif);font-size:1.18rem;font-weight:500}.idxrow .t small{color:var(--muted);font-size:.78rem;font-style:italic;margin-left:8px}
+.idxrow .d{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.empty{text-align:center;padding:50px 0;color:var(--muted);font-style:italic}
+.foot{margin-top:74px;background:var(--midnight);color:var(--cream)}
+.foot .inner{padding:44px 28px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.78}
+@media (max-width:880px){.lgrid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.nav{gap:15px;flex-wrap:wrap}.brand{font-size:24px}.lgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+<section class="masthead"><div class="inner">
+  <div class="mast-top">
+    <a class="brand" href="index.html">Well<em>-</em>Versed</a>
+    <div class="mast-meta">The Library<br>17 lessons</div>
+  </div>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a class="here" href="library.html">Library</a>
+    <a href="coverage.html">Coverage</a>
+    <a href="about.html">About</a>
+  </nav>
+</div></section>
+
+<section><div class="inner">
+  <div class="ptitle"><div class="k">The Library</div><h1>Every lesson, one place</h1>
+    <p class="deck">Seventeen so far, one a morning. Search the shelf, filter by family, switch between gallery and index.</p></div>
+  <div class="controls">
+    <input class="search" id="search" type="search" placeholder="Search titles, subjects, summaries...">
+    <div class="pills" id="lib-pills"></div>
+  </div>
+  <div class="viewbar" id="lib-view"><button data-v="gallery" class="on">Gallery</button><button data-v="index">Index</button></div>
+  <div id="lib-results"></div>
+  <div class="empty" id="lib-empty" style="display:none">No lessons match.</div>
+</div></section>
+
+<footer class="foot"><div class="inner">Compiled by Matthew Yellin &middot; Est. May 2026 &middot; 17 lessons across 17 subjects</div></footer>
+
+<script>
+var LESSONS=[
+ {no:"017",t:"The Five Mother Sauces",sub:"Cooking",f:"Food",k:"Five sauces and the family tree behind two hundred classical ones.",dt:"28 May 2026",h:"five-mother-sauces.html",img:"Auguste%20Escoffier%2001%20%28cropped%29.jpg"},
+ {no:"016",t:"To be, or not to be",sub:"Theater",f:"Film & Performing Arts",k:"The most quoted lines in English drama, and what they are really about.",dt:"27 May 2026",h:"to-be-or-not-to-be.html",img:"William_Shakespeare_by_John_Taylor%2C_edited.jpg"},
+ {no:"015",t:"The Opera Game",sub:"Chess",f:"Games & Pastimes",k:"Morphy beats two noblemen in seventeen moves while the opera plays on.",dt:"26 May 2026",h:"morphy-opera-game.html",img:"Paul_Charles_Morphy,_1837-1884,_half-length_portrait_facing_left,_seated_at_chess_board_LCCN2001697701.jpg"},
+ {no:"014",t:"The Omega Speedmaster",sub:"Objects & Style",f:"Objects & Style",k:"A racing chronograph that passed NASA's torture tests and went to the Moon.",dt:"25 May 2026",h:"omega-speedmaster.html",img:"Moonwatch%20%2824023224706%29.jpg"},
+ {no:"013",t:"The Ecstasy of Saint Teresa",sub:"Sculpture",f:"Visual Arts & Architecture",k:"Bernini carved a private vision into marble and started a four-century argument.",dt:"24 May 2026",h:"ecstasy-of-saint-teresa.html",img:"Ecstasy%20of%20Saint%20Teresa%20September%202015-2a.jpg"},
+ {no:"012",t:"Special Relativity",sub:"Physics",f:"Sciences & Mathematics",k:"A patent clerk reset space and time, and a sliver of mass became E=mc2.",dt:"23 May 2026",h:"special-relativity.html",img:"Einstein_1921_by_F_Schmutzer_-_restoration.jpg"},
+ {no:"011",t:"Rashomon",sub:"Cinema",f:"Film & Performing Arts",k:"Four people describe the same event, and all four accounts contradict.",dt:"22 May 2026",h:"rashomon.html",img:"Rashomon%20poster.jpg"},
+ {no:"010",t:"Champagne",sub:"Wine",f:"Drinks",k:"The bubbles are a second fermentation, trapped inside the sealed bottle.",dt:"22 May 2026",h:"champagne.html",img:"A%20glass%20of%20champagne.jpg"},
+ {no:"009",t:"Daedalus and Icarus",sub:"Mythology",f:"Literature & Letters",k:"Everyone remembers the wrong half of this myth.",dt:"21 May 2026",h:"daedalus-and-icarus.html",img:"Canova%20-%20Dedalo%20e%20Icaro%20-%20Marmo%20di%20Carrara%2C%20Cl.%20XXV%20n.%201060.jpg"},
+ {no:"008",t:"The Hubble Deep Field",sub:"Astronomy",f:"Sciences & Mathematics",k:"They aimed the finest telescope at empty sky and found three thousand galaxies.",dt:"21 May 2026",h:"hubble-deep-field.html",img:"HubbleDeepField.800px.jpg"},
+ {no:"007",t:"The Fall of Constantinople",sub:"History",f:"History",k:"The Roman Empire actually ended on a Tuesday in 1453.",dt:"20 May 2026",h:"fall-of-constantinople.html",img:"Gentile_Bellini_003.jpg"},
+ {no:"006",t:"The Goldberg Variations",sub:"Music",f:"Music",k:"One aria, thirty variations, and the piece that made Gould famous at twenty-two.",dt:"19 May 2026",h:"goldberg-variations.html",img:"Johann_Sebastian_Bach.jpg"},
+ {no:"005",t:"Ozymandias",sub:"Poetry",f:"Literature & Letters",k:"The most famous poem about the arrogance of power began as a Christmas bet.",dt:"18 May 2026",h:"ozymandias.html",img:"Percy_Bysshe_Shelley_by_Alfred_Clint_crop.jpg"},
+ {no:"004",t:"The Pantheon",sub:"Architecture",f:"Visual Arts & Architecture",k:"The largest unreinforced concrete dome on Earth has no steel inside it.",dt:"17 May 2026",h:"pantheon.html",img:"0%20Pantheon%20-%20Piazza%20della%20Rotonda%20-%20Rome%20%281a%29.JPG"},
+ {no:"003",t:"The Negroni",sub:"Cocktails",f:"Drinks",k:"A Florentine count asked his bartender to put gin where the soda used to be.",dt:"16 May 2026",h:"negroni.html",img:"Negroni%20on%20the%20Rocks.jpg"},
+ {no:"002",t:"Neoclassicism",sub:"Visual Arts",f:"Visual Arts & Architecture",k:"The look of the French Revolution began with painters digging up ancient Rome.",dt:"16 May 2026",h:"neoclassicism.html",img:"Jacques-Louis%20David%20-%20Oath%20of%20the%20Horatii%20-%20Google%20Art%20Project.jpg"},
+ {no:"001",t:"Marcus Aurelius",sub:"Philosophy",f:"Philosophy & Religion",k:"The most powerful man alive kept a private notebook he never meant anyone to read.",dt:"16 May 2026",h:"marcus-aurelius.html",img:"0%20Marcus%20Aurelius%20-%20Palazzo%20Nuovo%20-%20Musei%20Capitolini%20%281%29.JPG"}
+];
+var DOMAINS=[
+ {key:"Arts",slug:"arts",fields:["Visual Arts & Architecture","Film & Performing Arts","Music"]},
+ {key:"Letters",slug:"letters",fields:["Literature & Letters","Language & Rhetoric"]},
+ {key:"Thought",slug:"thought",fields:["Philosophy & Religion","History"]},
+ {key:"Sciences",slug:"sciences",fields:["Sciences & Mathematics","Medicine & the Body","Technology"]},
+ {key:"The Table",slug:"table",fields:["Drinks","Food","Smoke"]},
+ {key:"Craft",slug:"craft",fields:["Practical Skills","Outdoors & Survival","Outdoor Pursuits","Physical & Self-Defense","Games & Pastimes","Sports"]},
+ {key:"The World",slug:"world",fields:["Objects & Style","Civic & Money","Social Living","The Animal World"]}
+];
+var F2SLUG={};DOMAINS.forEach(function(D){D.fields.forEach(function(f){F2SLUG[f]=D.slug;});});
+function slugOf(L){return F2SLUG[L.f]||"thought";}
+function fp(n,w){return "https://commons.wikimedia.org/wiki/Special:FilePath/"+n+"?width="+w;}
+function domLessons(s){return LESSONS.filter(function(L){return slugOf(L)===s;});}
+var libPills='<button class="pill on" data-fam="">All &middot; '+LESSONS.length+'</button>';
+DOMAINS.forEach(function(D){var n=domLessons(D.slug).length;if(n)libPills+='<button class="pill" data-fam="'+D.slug+'">'+D.key+' &middot; '+n+'</button>';});
+document.getElementById('lib-pills').innerHTML=libPills;
+var libFam='',libQ='',libView='gallery';
+function lcard(L){return '<a class="lcard fam-'+slugOf(L)+'" href="'+L.h+'"><span class="lplate"><span class="lno">No. '+L.no+'</span><img loading="lazy" src="'+fp(L.img,500)+'" alt=""></span><span class="ltag">'+L.sub+'</span><span class="ltt">'+L.t+'</span><span class="ldk">'+L.k+'</span><span class="ldt">'+L.dt+'</span></a>';}
+function renderLib(){
+  var list=LESSONS.filter(function(L){var okF=!libFam||slugOf(L)===libFam;var okQ=!libQ||(L.t+' '+L.sub+' '+L.f+' '+L.k).toLowerCase().indexOf(libQ)>-1;return okF&&okQ;});
+  var box=document.getElementById('lib-results');
+  if(!list.length){box.innerHTML='';document.getElementById('lib-empty').style.display='block';return;}
+  document.getElementById('lib-empty').style.display='none';
+  if(libView==='gallery'){box.innerHTML='<div class="lgrid">'+list.map(lcard).join('')+'</div>';}
+  else{var html='';DOMAINS.forEach(function(D){var g=list.filter(function(L){return slugOf(L)===D.slug;});if(!g.length)return;g.sort(function(a,b){return a.no<b.no?-1:1;});
+    html+='<div class="idxgroup fam-'+D.slug+'"><div class="idx-h">'+D.key+'<span class="c">'+g.length+'</span></div>'+g.map(function(L){return '<a class="idxrow fam-'+D.slug+'" href="'+L.h+'"><span class="n">No. '+L.no+'</span><span class="t">'+L.t+'<small>'+L.sub+'</small></span><span class="d">'+L.dt+'</span></a>';}).join('')+'</div>';});box.innerHTML=html;}
+}
+document.getElementById('lib-pills').addEventListener('click',function(e){var b=e.target.closest('.pill');if(!b)return;libFam=b.getAttribute('data-fam');[].slice.call(this.children).forEach(function(p){p.classList.toggle('on',p===b);});renderLib();});
+document.getElementById('search').addEventListener('input',function(e){libQ=e.target.value.trim().toLowerCase();renderLib();});
+document.getElementById('lib-view').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;libView=b.getAttribute('data-v');[].slice.call(this.children).forEach(function(p){p.classList.toggle('on',p===b);});renderLib();});
+renderLib();
+</script>
+</body>
+</html>
