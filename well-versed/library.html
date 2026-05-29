@@ -119,7 +119,7 @@ section{position:relative;z-index:3}
     <input class="search" id="search" type="search" placeholder="Search titles, subjects, summaries..." aria-label="Search lessons">
     <div class="pills" id="lib-pills"></div>
   </div>
-  <div class="viewbar" id="lib-view"><button data-v="gallery" class="on">Gallery</button><button data-v="index">Index</button></div>
+  <div class="viewbar" id="lib-view"><button data-v="index" class="on">Index</button><button data-v="gallery">Gallery</button></div>
   <div id="lib-results"></div>
   <div class="empty" id="lib-empty" style="display:none">No lessons match.</div>
 </div></section></main>
@@ -168,16 +168,21 @@ document.getElementById('foot-stats').innerHTML='Compiled by Matthew Yellin &mid
 var libPills='<button class="pill on" data-fam="">All &middot; '+nLessons+'</button>';
 DOMAINS.forEach(function(D){var n=domLessons(D.slug).length;if(n)libPills+='<button class="pill" data-fam="'+D.slug+'">'+D.key+' &middot; '+n+'</button>';});
 document.getElementById('lib-pills').innerHTML=libPills;
-var libFam='',libQ='',libView='gallery';
+var libFam='',libQ='',libView='index';
 function lcard(L){return '<a class="lcard fam-'+slugOf(L)+'" href="'+L.h+'"><span class="lplate"><img loading="lazy" src="'+fp(L.img,500)+'" alt="'+L.t+'"></span><span class="lmeta"><span class="lno">No. '+L.no+'</span> &middot; '+L.dt+'</span><span class="ltag">'+L.sub+'</span><span class="ltt">'+L.t+'</span><span class="ldk">'+L.k+'</span></a>';}
 function renderLib(){
   var list=LESSONS.filter(function(L){var okF=!libFam||slugOf(L)===libFam;var okQ=!libQ||(L.t+' '+L.sub+' '+L.f+' '+L.k).toLowerCase().indexOf(libQ)>-1;return okF&&okQ;});
   var box=document.getElementById('lib-results');
   if(!list.length){box.innerHTML='';document.getElementById('lib-empty').style.display='block';return;}
   document.getElementById('lib-empty').style.display='none';
+  function idxrow(L,fam){return '<a class="idxrow fam-'+fam+'" href="'+L.h+'"><span class="n">No. '+L.no+'</span><span class="t">'+L.t+'<small>'+L.sub+'</small></span><span class="d">'+L.dt+'</span></a>';}
   if(libView==='gallery'){box.innerHTML='<div class="lgrid">'+list.map(lcard).join('')+'</div>';}
-  else{var html='';DOMAINS.forEach(function(D){var g=list.filter(function(L){return slugOf(L)===D.slug;});if(!g.length)return;g.sort(function(a,b){return a.no<b.no?-1:1;});
-    html+='<div class="idxgroup fam-'+D.slug+'"><div class="idx-h">'+D.key+'<span class="c">'+g.length+'</span></div>'+g.map(function(L){return '<a class="idxrow fam-'+D.slug+'" href="'+L.h+'"><span class="n">No. '+L.no+'</span><span class="t">'+L.t+'<small>'+L.sub+'</small></span><span class="d">'+L.dt+'</span></a>';}).join('')+'</div>';});box.innerHTML=html;}
+  else if(!libFam){
+    // "All": one flat list, newest first (LESSONS is already in accession-descending order)
+    box.innerHTML='<div class="idxgroup">'+list.map(function(L){return idxrow(L,slugOf(L));}).join('')+'</div>';
+  }
+  else{var html='';DOMAINS.forEach(function(D){if(D.slug!==libFam)return;var g=list.slice();g.sort(function(a,b){return a.no<b.no?1:-1;});
+    html+='<div class="idxgroup fam-'+D.slug+'"><div class="idx-h">'+D.key+'<span class="c">'+g.length+'</span></div>'+g.map(function(L){return idxrow(L,D.slug);}).join('')+'</div>';});box.innerHTML=html;}
 }
 document.getElementById('lib-pills').addEventListener('click',function(e){var b=e.target.closest('.pill');if(!b)return;libFam=b.getAttribute('data-fam');[].slice.call(this.children).forEach(function(p){p.classList.toggle('on',p===b);});renderLib();});
 document.getElementById('search').addEventListener('input',function(e){libQ=e.target.value.trim().toLowerCase();renderLib();});
