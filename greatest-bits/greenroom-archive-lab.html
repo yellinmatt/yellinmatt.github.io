@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Greenroom Dispatch — Archive (design)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;--paper:#fffaf0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+.nav{background:var(--ink);color:var(--cream);display:flex;align-items:center;gap:18px;padding:13px 28px;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.nav .logo{font-family:'Anton';font-size:19px}.nav .logo b{color:var(--yellow);font-weight:400}
+.nav a{color:#cbbfa9}.sample-flag{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:7px}
+
+/* page head */
+.head{padding:34px 0 18px}
+.head .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--red);font-weight:600}
+.head h1{font-family:'Anton',sans-serif;font-size:clamp(40px,7vw,88px);text-transform:uppercase;line-height:.86;margin:8px 0 12px}
+.head h1 .y{color:var(--yellow);-webkit-text-stroke:2px var(--ink)}
+.head p{font-family:'Fraunces',Georgia,serif;font-size:18px;color:#48402f;max-width:70ch;line-height:1.5}
+.head .rule{height:3px;background:var(--ink);margin-top:18px}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:18px 0 8px}
+.filters .lab{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-right:4px}
+.fchip{font-family:'IBM Plex Mono';font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border:2px solid var(--ink);border-radius:999px;padding:6px 13px;cursor:pointer;background:#fff}
+.fchip.on{background:var(--ink);color:var(--cream)}
+
+/* week group */
+.week{padding:26px 0 6px}
+.weekhead{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.weekhead .wt{font-family:'Anton',sans-serif;font-size:26px;text-transform:uppercase;line-height:1}
+.weekhead .wn{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.weekhead .rl{flex:1;height:2px;background:var(--ink);opacity:.25}
+.agrid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+@media(max-width:720px){.agrid{grid-template-columns:1fr}}
+
+/* archive card (same elevated mini-card language as the home briefs) */
+.acard{display:grid;grid-template-columns:74px 1fr;gap:15px;align-items:center;background:#fff;border:2px solid var(--ink);border-radius:12px;padding:14px 16px;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s;text-align:left}
+.acard:hover{transform:translateY(-2px);box-shadow:6px 6px 0 var(--ink);background:var(--paper)}
+.acard .tile{width:74px;height:74px;border-radius:9px;border:2px solid var(--ink);background-size:cover;background-position:50% 16%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden}
+.acard .tile .g{font-family:'Anton';font-size:28px;line-height:1}
+.tile.special{background-color:var(--red)}.tile.tour{background-color:var(--ink);color:var(--yellow)}
+.tile.podcast{background-color:var(--yellow)}.tile.award{background-color:#6b3fc4;color:#fff}
+.tile.fest{background-color:#2c6e49;color:#fff}.tile.obit{background-color:#564f44;color:var(--cream)}
+.acard .ktop{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.kick{font-family:'IBM Plex Mono';font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.kick.special{color:var(--red)}.kick.tour{color:#1c1c1c}.kick.podcast{color:#9a7b00}.kick.award{color:#6b3fc4}.kick.fest{color:#2c6e49}.kick.obit{color:#6b6155}
+.acard .dt{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--mut);letter-spacing:.04em}
+.acard .bh{font-family:'Archivo';font-weight:800;font-size:16.5px;line-height:1.13;margin-bottom:3px}
+.acard .bd{font-family:'Fraunces',Georgia,serif;font-size:13px;color:#5a5040;line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.acard .bsrc{font-family:'IBM Plex Mono';font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
+.acard .bsrc b{color:var(--ink);border-bottom:2px solid var(--yellow);font-weight:600}
+.older{text-align:center;padding:30px 0 60px}
+.older a{font-family:'Archivo';font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.05em;border:2px solid var(--ink);border-radius:999px;padding:11px 20px;display:inline-block}
+
+/* popup (same as home section) */
+.gdmodal{position:fixed;inset:0;background:rgba(13,13,13,.78);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gdmodal.on{display:flex}
+.gdpanel{background:var(--cream);border:3px solid var(--ink);border-radius:16px;box-shadow:14px 14px 0 rgba(13,13,13,.35);max-width:760px;width:100%;max-height:90vh;overflow:hidden;position:relative;display:flex}
+.gdpanel .ph{flex:0 0 270px;align-self:stretch;min-height:380px;background-size:cover;background-position:50% 18%;border-right:3px solid var(--ink)}
+.gdpanel .ph.band{display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;font-family:'IBM Plex Mono';font-weight:600;font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:#fff}
+.gdpanel .pad{flex:1;padding:26px 30px 28px;overflow-y:auto}
+.gdpanel .mk{margin-bottom:9px}.gdpanel h3{font-family:'Anton';font-size:clamp(26px,3.4vw,34px);text-transform:uppercase;line-height:.96;margin-bottom:12px}
+.gdpanel .mdl{font-family:'IBM Plex Mono';font-size:11px;font-weight:600;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}.gdpanel .mdl .d{color:var(--ink)}
+.gdpanel .body{font-family:'Fraunces',Georgia,serif;font-size:17px;line-height:1.55;color:#322c22}
+.gdpanel .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.gdpanel .btn{font-family:'Archivo';font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.03em;padding:11px 16px;border:2px solid var(--ink);border-radius:9px;cursor:pointer}
+.gdpanel .btn.read{background:var(--yellow)}.gdpanel .btn.comic{background:#fff}
+.gdpanel .x{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--cream);border:0;font-size:18px;cursor:pointer;z-index:2}
+.gdpanel .src-note{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--mut);margin-top:14px}
+@media(max-width:640px){.gdpanel{flex-direction:column}.gdpanel .ph{flex:0 0 auto;width:100%;min-height:0;aspect-ratio:4/5;max-height:300px;border-right:0;border-bottom:3px solid var(--ink)}.gdpanel .ph.band{writing-mode:horizontal-tb;aspect-ratio:auto;min-height:120px}}
+</style>
+</head>
+<body>
+<div class="nav"><span class="logo">GREATEST <b>BITS</b></span><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></div>
+<div class="sample-flag">Archive design — sample data. Click any card for the detail popup. Live page is built from the weekly greenroom.json files.</div>
+
+<div class="wrap">
+  <header class="head">
+    <div class="k">The week in stand-up, filed</div>
+    <h1>GREENROOM DISPA<span class="y">T</span>CH</h1>
+    <p>Every dispatch we've filed — new specials, tours, deals, festival and award news, the podcasts worth your time, and the comics we've lost — newest week first, each linking out to its source and into the comic's page.</p>
+    <div class="rule"></div>
+    <div class="filters"><span class="lab">Filter</span>
+      <span class="fchip on">All</span><span class="fchip">New Special</span><span class="fchip">Tour</span><span class="fchip">Podcast</span><span class="fchip">Award</span><span class="fchip">Festival</span><span class="fchip">Obit</span>
+    </div>
+  </header>
+
+  <!-- WEEK 1 -->
+  <section class="week">
+    <div class="weekhead"><div class="wt">Week of Jun 2</div><div class="wn">No. 14</div><div class="rl"></div></div>
+    <div class="agrid">
+      <button class="acard" data-kc="special" data-kick="New Special" data-date="Jun 2, 2026" data-hl="Shane Gillis dates his third Netflix hour" data-dek="Netflix has set a spring release for the follow-up to Beautiful Dogs, Shane Gillis's most-streamed special to date — the biggest test yet of whether a podcast-era club star can open like a marquee Netflix name." data-src="Deadline" data-url="#" data-comic="Shane Gillis" data-cid="shane-gillis" data-photo="https://image.tmdb.org/t/p/h632/ijRXBDjfazwne2jxjWEaaWqPw2.jpg">
+        <div class="tile special" style="background-image:url('https://image.tmdb.org/t/p/h632/ijRXBDjfazwne2jxjWEaaWqPw2.jpg')"></div>
+        <div><div class="ktop"><span class="kick special">New Special</span><span class="dt">· Jun 2</span></div><div class="bh">Shane Gillis dates his third Netflix hour</div><div class="bd">A spring slot for the Beautiful Dogs follow-up.</div><div class="bsrc">via <b>Deadline</b></div></div>
+      </button>
+      <button class="acard" data-kc="tour" data-kick="Tour" data-date="Jun 1, 2026" data-hl="Bargatze books 18 new fall arena dates" data-dek="The clean-comedy juggernaut extends the 'Big Dumb Eyes' tour with eighteen arena stops across the Midwest and South." data-src="The Comic's Comic" data-url="#" data-comic="Nate Bargatze" data-cid="nate-bargatze" data-photo="https://image.tmdb.org/t/p/h632/60KdELrwXRuNAKJveTaZIpHyDUU.jpg">
+        <div class="tile tour" style="background-image:url('https://image.tmdb.org/t/p/h632/60KdELrwXRuNAKJveTaZIpHyDUU.jpg')"></div>
+        <div><div class="ktop"><span class="kick tour">Tour</span><span class="dt">· Jun 1</span></div><div class="bh">Bargatze books 18 fall arena dates</div><div class="bd">The "Big Dumb Eyes" run grows again.</div><div class="bsrc">via <b>The Comic's Comic</b></div></div>
+      </button>
+      <button class="acard" data-kc="podcast" data-kick="Podcast" data-date="May 31, 2026" data-hl="What a road feature actually clears, in numbers" data-dek="Joke Wrld puts hard figures to the club-pay fight every working comic is having." data-src="Joke Wrld" data-url="#" data-comic="" data-cid="">
+        <div class="tile podcast"><span class="g">♪</span></div>
+        <div><div class="ktop"><span class="kick podcast">Podcast</span><span class="dt">· May 31</span></div><div class="bh">What a road feature actually clears</div><div class="bd">Hard numbers on the club-pay fight.</div><div class="bsrc">via <b>Joke Wrld</b></div></div>
+      </button>
+      <button class="acard" data-kc="award" data-kick="Award" data-date="May 30, 2026" data-hl="Mark Twain Prize names this year's honoree" data-dek="The Kennedy Center names its next Mark Twain Prize recipient, the genre's top lifetime honor." data-src="Kennedy Center" data-url="#" data-comic="" data-cid="">
+        <div class="tile award"><span class="g">★</span></div>
+        <div><div class="ktop"><span class="kick award">Award</span><span class="dt">· May 30</span></div><div class="bh">Mark Twain Prize names its honoree</div><div class="bd">The genre's top lifetime honor.</div><div class="bsrc">via <b>Kennedy Center</b></div></div>
+      </button>
+      <button class="acard" data-kc="fest" data-kick="Festival" data-date="May 29, 2026" data-hl="Netflix Is A Joke Fest unveils its 2026 lineup" data-dek="Two weeks of LA shows spanning arenas and clubs, with dozens of roster names on the bill." data-src="Netflix" data-url="#" data-comic="" data-cid="">
+        <div class="tile fest"><span class="g">✦</span></div>
+        <div><div class="ktop"><span class="kick fest">Festival</span><span class="dt">· May 29</span></div><div class="bh">Netflix Is A Joke Fest lineup is out</div><div class="bd">Two weeks of LA shows; dozens of names.</div><div class="bsrc">via <b>Netflix</b></div></div>
+      </button>
+      <button class="acard" data-kc="obit" data-kick="In Memoriam" data-date="May 28, 2026" data-hl="Remembering a club-circuit headliner, 1948–2026" data-dek="A road-comedy lifer whose decades on the circuit shaped a generation of openers." data-src="Chortle" data-url="#" data-comic="" data-cid="">
+        <div class="tile obit"><span class="g">✝</span></div>
+        <div><div class="ktop"><span class="kick obit">In Memoriam</span><span class="dt">· May 28</span></div><div class="bh">Remembering a club-circuit headliner</div><div class="bd">A road-comedy lifer, 1948–2026.</div><div class="bsrc">via <b>Chortle</b></div></div>
+      </button>
+    </div>
+  </section>
+
+  <!-- WEEK 2 -->
+  <section class="week">
+    <div class="weekhead"><div class="wt">Week of May 26</div><div class="wn">No. 13</div><div class="rl"></div></div>
+    <div class="agrid">
+      <button class="acard" data-kc="special" data-kick="New Special" data-date="May 27, 2026" data-hl="Taylor Tomlinson tapes her fourth special" data-dek="Cameras roll on the follow-up to Have It All, her first since taking over the late-night slot." data-src="Vulture" data-url="#" data-comic="Taylor Tomlinson" data-cid="taylor-tomlinson">
+        <div class="tile special"><span class="g">★</span></div>
+        <div><div class="ktop"><span class="kick special">New Special</span><span class="dt">· May 27</span></div><div class="bh">Taylor Tomlinson tapes her fourth special</div><div class="bd">The follow-up to Have It All is in the can.</div><div class="bsrc">via <b>Vulture</b></div></div>
+      </button>
+      <button class="acard" data-kc="podcast" data-kick="Podcast" data-date="May 26, 2026" data-hl="Good One breaks down the year's best opener" data-dek="Jesse David Fox dissects the cold open everyone's been quoting, joke by joke." data-src="Vulture · Good One" data-url="#" data-comic="" data-cid="">
+        <div class="tile podcast"><span class="g">♪</span></div>
+        <div><div class="ktop"><span class="kick podcast">Podcast</span><span class="dt">· May 26</span></div><div class="bh">Good One breaks down the year's best opener</div><div class="bd">A cold open, dissected joke by joke.</div><div class="bsrc">via <b>Good One</b></div></div>
+      </button>
+      <button class="acard" data-kc="tour" data-kick="Tour" data-date="May 25, 2026" data-hl="Matt Rife announces a 40-city world run" data-dek="The crowd-work phenomenon takes the road international for the first time." data-src="Billboard" data-url="#" data-comic="Matt Rife" data-cid="matt-rife">
+        <div class="tile tour"><span class="g">●</span></div>
+        <div><div class="ktop"><span class="kick tour">Tour</span><span class="dt">· May 25</span></div><div class="bh">Matt Rife announces a 40-city world run</div><div class="bd">Crowd-work goes international.</div><div class="bsrc">via <b>Billboard</b></div></div>
+      </button>
+      <button class="acard" data-kc="fest" data-kick="Festival" data-date="May 24, 2026" data-hl="Just For Laughs sets its 2026 New Faces" data-dek="Montreal's launch-pad class is announced; a dozen unknowns about to not be." data-src="The Comic's Comic" data-url="#" data-comic="" data-cid="">
+        <div class="tile fest"><span class="g">✦</span></div>
+        <div><div class="ktop"><span class="kick fest">Festival</span><span class="dt">· May 24</span></div><div class="bh">JFL sets its 2026 New Faces class</div><div class="bd">Montreal's launch-pad names, revealed.</div><div class="bsrc">via <b>The Comic's Comic</b></div></div>
+      </button>
+    </div>
+  </section>
+
+  <div class="older"><a href="#">Older weeks →</a></div>
+</div>
+
+<div class="gdmodal" id="gdModal"><div class="gdpanel"><button class="x" id="gdX">&times;</button><div class="ph" id="gdPh"></div><div class="pad"><div class="mk"><span class="kick" id="gdKick"></span></div><h3 id="gdHl"></h3><div class="mdl" id="gdDate"></div><div class="body" id="gdBody"></div><div class="acts" id="gdActs"></div><div class="src-note">Greatest Bits indexes and links to the original reporting; we never republish full articles.</div></div></div></div>
+<script>
+(function(){
+  const m=document.getElementById('gdModal'),x=document.getElementById('gdX'),ph=document.getElementById('gdPh'),kick=document.getElementById('gdKick'),hl=document.getElementById('gdHl'),date=document.getElementById('gdDate'),body=document.getElementById('gdBody'),acts=document.getElementById('gdActs');
+  const C={special:'#e8341c',tour:'#0d0d0d',podcast:'#9a7b00',award:'#6b3fc4',fest:'#2c6e49',obit:'#564f44'};
+  function open(el){const d=el.dataset;
+    if(d.photo){ph.className='ph';ph.style.background='';ph.style.backgroundImage="url('"+d.photo+"')";ph.textContent='';}
+    else{ph.className='ph band';ph.style.backgroundImage='';ph.style.background=C[d.kc]||'#0d0d0d';ph.textContent=d.kick;}
+    kick.textContent=d.kick;kick.className='kick '+d.kc;hl.textContent=d.hl;date.innerHTML='<span class="d">'+d.date+'</span> · via '+d.src;body.textContent=d.dek;
+    let a='<a class="btn read" href="'+d.url+'" target="_blank" rel="noopener">Read at '+d.src+' ↗</a>';if(d.comic)a+='<a class="btn comic" href="comic.html?c='+d.cid+'">→ '+d.comic+'’s page</a>';acts.innerHTML=a;
+    m.classList.add('on');document.body.style.overflow='hidden';}
+  function close(){m.classList.remove('on');document.body.style.overflow='';}
+  document.querySelectorAll('.acard').forEach(b=>b.addEventListener('click',()=>open(b)));
+  x.addEventListener('click',close);m.addEventListener('click',e=>{if(e.target===m)close();});document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+})();
+</script>
+</body>
+</html>
