@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Recent-News Section — Design Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+/* lab chrome */
+.labtop{background:var(--ink);color:var(--cream);padding:26px 0 22px}
+.labtop .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
+.labtop h1{font-family:'Anton',sans-serif;font-size:clamp(34px,6vw,62px);text-transform:uppercase;line-height:.9;margin:8px 0 10px}
+.labtop p{font-family:'Fraunces',Georgia,serif;font-size:17px;color:#e8ddc9;max-width:74ch;line-height:1.5}
+.labtop .where{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#cbbfa9;margin-top:12px}
+.labtop .where b{color:var(--yellow);font-weight:400}
+
+.sample-flag{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;text-align:center;padding:7px}
+
+/* names */
+.names{padding:34px 0 8px}
+.names h2,.concept h2{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--red);margin-bottom:16px}
+.namegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.namec{border:2px solid var(--ink);background:#fff;border-radius:10px;padding:14px 16px}
+.namec .n{font-family:'Anton',sans-serif;font-size:23px;text-transform:uppercase;letter-spacing:.01em}
+.namec .n .y{color:var(--yellow);-webkit-text-stroke:1px var(--ink)}
+.namec .why{font-family:'Fraunces',Georgia,serif;font-size:14px;color:#48402f;margin-top:4px;line-height:1.4}
+.namec.pick{background:var(--ink);color:var(--cream)}.namec.pick .why{color:#d8cfc0}
+
+/* concept frame */
+.concept{padding:40px 0}
+.concept+.concept{border-top:2px dashed #d8ccaf}
+.concept .lead{font-family:'Fraunces',Georgia,serif;font-size:15px;color:#48402f;max-width:78ch;margin:-6px 0 22px;line-height:1.5}
+.cbadge{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;background:var(--ink);color:var(--cream);padding:4px 10px;border-radius:5px;margin-bottom:10px}
+
+/* shared section header used inside concepts */
+.sh{display:flex;align-items:baseline;gap:14px;margin-bottom:18px}
+.sh .t{font-family:'Anton',sans-serif;font-size:34px;text-transform:uppercase;line-height:1}
+.sh .t .y{color:var(--yellow);-webkit-text-stroke:1.5px var(--ink)}
+.sh .rule{flex:1;height:2px;background:var(--ink)}
+.sh .stamp{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);white-space:nowrap}
+
+.chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:4px}
+.chip.special{background:var(--red);color:#fff}.chip.tour{background:var(--ink);color:var(--yellow)}
+.chip.podcast{background:var(--yellow);color:var(--ink)}.chip.deal{background:#2c6e49;color:#fff}
+.chip.award{background:#7a4ed6;color:#fff}.chip.obit{background:#564f44;color:var(--cream)}
+.via{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em}
+.xc{font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);background:var(--yellow);border:1.5px solid var(--ink);border-radius:999px;padding:2px 9px;white-space:nowrap}
+
+/* ============ CONCEPT A — Dispatch Rail (horizontal scroll) ============ */
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:300px;gap:16px;overflow-x:auto;padding:4px 2px 18px;scroll-snap-type:x mandatory}
+.rail::-webkit-scrollbar{height:10px}.rail::-webkit-scrollbar-thumb{background:var(--ink);border-radius:99px}.rail::-webkit-scrollbar-track{background:#e7ddc9;border-radius:99px}
+.rc{scroll-snap-align:start;border:2.5px solid var(--ink);background:#fff;border-radius:12px;box-shadow:6px 6px 0 var(--ink);padding:16px;display:flex;flex-direction:column;min-height:210px}
+.rc .hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.rc .dt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.rc .hl{font-family:'Archivo',sans-serif;font-weight:900;font-size:19px;line-height:1.08;letter-spacing:-.01em}
+.rc .syn{font-family:'Fraunces',Georgia,serif;font-size:14.5px;color:#48402f;line-height:1.45;margin-top:8px;flex:1}
+.rc .ft{display:flex;justify-content:space-between;align-items:center;margin-top:14px;gap:8px}
+
+/* ============ CONCEPT B — Marquee Board (departure board) ============ */
+.board{background:var(--ink);border:3px solid var(--ink);border-radius:14px;box-shadow:8px 8px 0 rgba(13,13,13,.18);overflow:hidden}
+.board .bh{display:flex;align-items:baseline;justify-content:space-between;padding:16px 22px;border-bottom:2px solid #2a2014}
+.board .bh .t{font-family:'Anton',sans-serif;font-size:30px;text-transform:uppercase;color:var(--cream)}
+.board .bh .t .y{color:var(--yellow)}
+.board .bh .stamp{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#9c8f78}
+.brow{display:grid;grid-template-columns:120px 1fr auto;gap:18px;align-items:center;padding:15px 22px;border-bottom:1px solid #221a10;transition:background .14s}
+.brow:last-child{border-bottom:0}
+.brow:hover{background:#1a130c}
+.brow .gate{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);background:var(--yellow);padding:4px 7px;border-radius:4px;text-align:center}
+.brow .gate.r{background:var(--red);color:#fff}.brow .gate.p{background:#e8ddc9}.brow .gate.g{background:#3fa06a;color:#fff}
+.brow .bhl{font-family:'Archivo',sans-serif;font-weight:800;font-size:18px;color:var(--cream);line-height:1.12}
+.brow .bhl .sub{display:block;font-family:'IBM Plex Mono',monospace;font-weight:400;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#9c8f78;margin-top:4px}
+.brow .bmeta{font-family:'IBM Plex Mono',monospace;font-size:11px;color:#cbbfa9;text-align:right;white-space:nowrap}
+.brow .bmeta .x{display:block;margin-top:6px}
+
+/* ============ CONCEPT C — Lead + Briefs (editorial front) ============ */
+.front{display:grid;grid-template-columns:1.25fr 1fr;gap:26px;align-items:stretch}
+.lead-card{background:var(--red);color:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:8px 8px 0 var(--ink);padding:24px 26px;display:flex;flex-direction:column}
+.lead-card .chip{background:var(--ink);color:var(--yellow)}
+.lead-card .lhl{font-family:'Anton',sans-serif;font-size:clamp(30px,3.4vw,44px);text-transform:uppercase;line-height:.92;margin:14px 0 12px}
+.lead-card .lsyn{font-family:'Fraunces',Georgia,serif;font-size:18px;line-height:1.5;color:#ffe9e4;flex:1}
+.lead-card .lft{display:flex;justify-content:space-between;align-items:center;margin-top:18px;gap:10px}
+.lead-card .via{color:#ffd9d1}
+.lead-card .xc{background:var(--yellow)}
+.briefs{display:flex;flex-direction:column;gap:0;border:2.5px solid var(--ink);border-radius:14px;background:#fff;overflow:hidden}
+.brief{padding:15px 18px;border-bottom:1.5px solid #ece2cf;display:flex;flex-direction:column;gap:5px;transition:background .14s}
+.brief:last-child{border-bottom:0}.brief:hover{background:#fff8ec}
+.brief .bt{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;line-height:1.12}
+.brief .bm{display:flex;align-items:center;gap:10px}
+
+.note{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:14px;color:var(--mut);margin-top:14px}
+@media(max-width:780px){.front{grid-template-columns:1fr}.brow{grid-template-columns:84px 1fr;}.brow .bmeta{display:none}}
+</style>
+</head>
+<body>
+
+<div class="labtop">
+  <div class="wrap">
+    <div class="k">Greatest Bits · Section Design Lab</div>
+    <h1>Recent Stand-Up News</h1>
+    <p>A weekly-refreshed band that sits between the 100 Best and Today's Picks: synthesized dispatches on what's happening in stand-up right now — special drops, tours, deals, festival and award news, notable podcast episodes, obituaries — each linking out to the source and, where the subject is in our roster, into their Greatest Bits page.</p>
+    <div class="where">Pick a <b>name</b> + a <b>concept</b>. Same sample data across all three so you compare layouts, not copy.</div>
+  </div>
+</div>
+<div class="sample-flag">Sample dispatches — layout demo only. The live section pulls from the weekly synthesis pipeline.</div>
+
+<div class="wrap">
+
+  <!-- NAMES -->
+  <section class="names">
+    <h2>Name options</h2>
+    <div class="namegrid">
+      <div class="namec pick"><div class="n">The Greenroom</div><div class="why">Where comics wait before they go up — the insider, backstage register. Reads as industry news from the inside. (my pick)</div></div>
+      <div class="namec"><div class="n">Hot Mic</div><div class="why">Punchy, comedy-native, says "candid + right now." Pairs naturally with the marquee-board look.</div></div>
+      <div class="namec"><div class="n">New Material</div><div class="why">A comic's term for fresh jokes — doubles cleanly as "new news." Clever, on-theme.</div></div>
+      <div class="namec"><div class="n">The Lineup</div><div class="why">What's on / who's up next. Clean and obvious; a little generic.</div></div>
+      <div class="namec"><div class="n">Last Call</div><div class="why">Club-closing-time energy; recency with a wink. Slightly bar-coded.</div></div>
+      <div class="namec"><div class="n">The Wire</div><div class="why">Newswire feel (the working title). Strong but borrowed from news/TV.</div></div>
+    </div>
+  </section>
+
+  <!-- CONCEPT A -->
+  <section class="concept">
+    <span class="cbadge">Concept A</span>
+    <h2>Dispatch Rail — horizontal scroll of cards</h2>
+    <p class="lead">A side-scrolling rail of bold dispatch cards. Compact vertically, holds a lot, feels alive and browsable. Best if the section should feel like a living feed you flick through.</p>
+    <div class="sh"><div class="t">THE GREEN<span class="y">R</span>OOM</div><div class="rule"></div><div class="stamp">Updated weekly · Jun 2</div></div>
+    <div class="rail">
+      <div class="rc"><div class="hd"><span class="chip special">New Special</span><span class="dt">2d</span></div><div class="hl">Shane Gillis sets a drop date for his third hour</div><div class="syn">Netflix dates the follow-up to <i>Beautiful Dogs</i>, his most-streamed special yet.</div><div class="ft"><span class="via">via Deadline ↗</span><a class="xc">→ Shane Gillis</a></div></div>
+      <div class="rc"><div class="hd"><span class="chip podcast">Podcast</span><span class="dt">3d</span></div><div class="hl">Joke Wrld digs into club-pay economics</div><div class="syn">The episode every headliner is arguing about: what a feature really clears on the road.</div><div class="ft"><span class="via">via Joke Wrld ↗</span></div></div>
+      <div class="rc"><div class="hd"><span class="chip tour">Tour</span><span class="dt">4d</span></div><div class="hl">Bargatze adds 18 arena dates</div><div class="syn">The clean-comedy juggernaut extends the run into the fall across the Midwest and South.</div><div class="ft"><span class="via">via The Comic's Comic ↗</span><a class="xc">→ Nate Bargatze</a></div></div>
+      <div class="rc"><div class="hd"><span class="chip award">Award</span><span class="dt">5d</span></div><div class="hl">Mark Twain Prize names this year's honoree</div><div class="syn">The Kennedy Center's top comedy honor goes to a four-decade stand-up career.</div><div class="ft"><span class="via">via Kennedy Center ↗</span></div></div>
+      <div class="rc"><div class="hd"><span class="chip deal">Fest</span><span class="dt">6d</span></div><div class="hl">Netflix Is A Joke Fest unveils the lineup</div><div class="syn">Two weeks of LA shows; dozens of roster names on the bill.</div><div class="ft"><span class="via">via Netflix ↗</span></div></div>
+    </div>
+  </section>
+
+  <!-- CONCEPT B -->
+  <section class="concept">
+    <span class="cbadge">Concept B</span>
+    <h2>Marquee Board — a comedy "departure board"</h2>
+    <p class="lead">A dark split-flap board: each item a row with a category "gate," monospace dateline, and a strong headline. The most distinctive and ownable — reads like the marquee outside a club. Best if the section should feel like a signature fixture.</p>
+    <div class="board">
+      <div class="bh"><div class="t">HOT <span class="y">MIC</span></div><div class="stamp">Now on the circuit · refreshed weekly</div></div>
+      <div class="brow"><span class="gate r">New Special</span><div class="bhl">Shane Gillis sets a drop date for his third hour<span class="sub">Netflix dates the follow-up to Beautiful Dogs</span></div><div class="bmeta">Deadline · 2d<span class="x"><a class="xc">→ Shane Gillis</a></span></div></div>
+      <div class="brow"><span class="gate">Tour</span><div class="bhl">Nate Bargatze adds 18 arena dates<span class="sub">Fall run across the Midwest and South</span></div><div class="bmeta">The Comic's Comic · 4d<span class="x"><a class="xc">→ Nate Bargatze</a></span></div></div>
+      <div class="brow"><span class="gate p">Podcast</span><div class="bhl">Joke Wrld digs into club-pay economics<span class="sub">What a feature really clears on the road</span></div><div class="bmeta">Joke Wrld · 3d</div></div>
+      <div class="brow"><span class="gate g">Fest</span><div class="bhl">Netflix Is A Joke Fest unveils the lineup<span class="sub">Two weeks of LA shows, dozens of names</span></div><div class="bmeta">Netflix · 6d</div></div>
+      <div class="brow"><span class="gate">Award</span><div class="bhl">Mark Twain Prize names this year's honoree<span class="sub">Four decades of stand-up, honored</span></div><div class="bmeta">Kennedy Center · 5d</div></div>
+    </div>
+  </section>
+
+  <!-- CONCEPT C -->
+  <section class="concept">
+    <span class="cbadge">Concept C</span>
+    <h2>Lead + Briefs — an editorial front page</h2>
+    <p class="lead">One big lead dispatch beside a tight stack of one-line briefs. The most "curated/edited" feel — signals judgment and hierarchy. Best if you want it to read like a front page rather than a feed.</p>
+    <div class="sh"><div class="t">NEW MATE<span class="y">R</span>IAL</div><div class="rule"></div><div class="stamp">The week in stand-up · Jun 2</div></div>
+    <div class="front">
+      <div class="lead-card">
+        <span class="chip">New Special</span>
+        <div class="lhl">Shane Gillis dates his third hour</div>
+        <div class="lsyn">Netflix sets a drop for the follow-up to <i>Beautiful Dogs</i> — his most-streamed special yet, and the biggest test of whether the podcast-era club star can carry a marquee Netflix slot.</div>
+        <div class="lft"><span class="via">via Deadline ↗</span><a class="xc">→ Shane Gillis</a></div>
+      </div>
+      <div class="briefs">
+        <div class="brief"><div class="bt">Bargatze adds 18 arena dates</div><div class="bm"><span class="chip tour">Tour</span><span class="via">The Comic's Comic · 4d</span></div></div>
+        <div class="brief"><div class="bt">Joke Wrld digs into club-pay economics</div><div class="bm"><span class="chip podcast">Podcast</span><span class="via">Joke Wrld · 3d</span></div></div>
+        <div class="brief"><div class="bt">Mark Twain Prize names its honoree</div><div class="bm"><span class="chip award">Award</span><span class="via">Kennedy Center · 5d</span></div></div>
+        <div class="brief"><div class="bt">Netflix Is A Joke Fest lineup is out</div><div class="bm"><span class="chip deal">Fest</span><span class="via">Netflix · 6d</span></div></div>
+        <div class="brief"><div class="bt">Remembering a club-circuit legend</div><div class="bm"><span class="chip obit">Obit</span><span class="via">Chortle · 1w</span></div></div>
+      </div>
+    </div>
+    <p class="note">All three concepts share the house palette and type; each is an original layout, not a port of The Yellin Brief. Tell me a name + a concept (mix-and-match is fine — e.g. "Greenroom on the board") and I'll build it for real against the weekly pipeline.</p>
+  </section>
+
+</div>
+</body>
+</html>
