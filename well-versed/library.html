@@ -5,12 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>The Library &mdash; Well-Versed</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#f4eee2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#15120d" media="(prefers-color-scheme: dark)">
 <meta name="description" content="Every Well-Versed lesson, one place. Search the shelf, filter by family, switch between gallery and index.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="The Library &mdash; Well-Versed">
 <meta property="og:description" content="Every Well-Versed lesson, one place. Search, filter, browse.">
 <meta property="og:url" content="https://yellinmatt.github.io/well-versed/library.html">
 <meta property="og:site_name" content="Well-Versed">
+<meta property="og:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/0%20Pantheon%20-%20Piazza%20della%20Rotonda%20-%20Rome%20%281a%29.JPG?width=1200">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/0%20Pantheon%20-%20Piazza%20della%20Rotonda%20-%20Rome%20%281a%29.JPG?width=1200">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -38,6 +43,9 @@
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased}
 a{color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;font-family:var(--mono);font-size:12px;padding:10px 16px;border-radius:0 0 6px 0;text-decoration:none}
+.skip:focus{left:0}
 .grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px}
 .inner{max-width:1140px;margin:0 auto;padding:0 28px}
 section{position:relative;z-index:3}
@@ -89,13 +97,14 @@ section{position:relative;z-index:3}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 <div class="grain"></div>
 <section class="masthead"><div class="inner">
   <div class="mast-top">
     <a class="brand" href="index.html">Well<em>-</em>Versed</a>
-    <div class="mast-meta">The Library<br>18 lessons</div>
+    <div class="mast-meta" id="mast-meta">The Library</div>
   </div>
-  <nav class="nav">
+  <nav class="nav" aria-label="Primary">
     <a href="index.html">Home</a>
     <a class="here" href="library.html">Library</a>
     <a href="coverage.html">Coverage</a>
@@ -103,23 +112,23 @@ section{position:relative;z-index:3}
   </nav>
 </div></section>
 
-<section><div class="inner">
+<main id="main"><section><div class="inner">
   <div class="ptitle"><div class="k">The Library</div><h1>Every lesson, one place</h1>
-    <p class="deck">Eighteen so far, one a morning. Search the shelf, filter by family, switch between gallery and index.</p></div>
+    <p class="deck">One a morning, kept for good. Search the shelf, filter by family, switch between gallery and index.</p></div>
   <div class="controls">
-    <input class="search" id="search" type="search" placeholder="Search titles, subjects, summaries...">
+    <input class="search" id="search" type="search" placeholder="Search titles, subjects, summaries..." aria-label="Search lessons">
     <div class="pills" id="lib-pills"></div>
   </div>
   <div class="viewbar" id="lib-view"><button data-v="gallery" class="on">Gallery</button><button data-v="index">Index</button></div>
   <div id="lib-results"></div>
   <div class="empty" id="lib-empty" style="display:none">No lessons match.</div>
-</div></section>
+</div></section></main>
 
-<footer class="foot"><div class="inner">Compiled by Matthew Yellin &middot; Est. May 2026 &middot; 18 lessons across 18 subjects</div></footer>
+<footer class="foot"><div class="inner" id="foot-stats">Compiled by Matthew Yellin &middot; Est. May 2026</div></footer>
 
 <script>
 var LESSONS=[
- {no:"018",t:"Chiasmus & Antimetabole",sub:"Rhetoric",f:"Language & Rhetoric",k:"The crossing figure every orator reaches for, and the test that tells the real one from the fortune cookie.",dt:"29 May 2026",h:"chiasmus-and-antimetabole.html",img:"President%20Kennedy%20inaugural%20address%20%28color%29.jpg"},
+ {no:"018",t:"Chiasmus &amp; Antimetabole",sub:"Rhetoric",f:"Language & Rhetoric",k:"The oldest crossing trick in oratory, and how to tell a line that earns it from one that only sounds like it.",dt:"29 May 2026",h:"chiasmus-and-antimetabole.html",img:"President%20Kennedy%20inaugural%20address%20(color).jpg"},
  {no:"017",t:"The Five Mother Sauces",sub:"Cooking",f:"Food",k:"Five sauces and the family tree behind two hundred classical ones.",dt:"28 May 2026",h:"five-mother-sauces.html",img:"Auguste%20Escoffier%2001%20%28cropped%29.jpg"},
  {no:"016",t:"To be, or not to be",sub:"Theater",f:"Film & Performing Arts",k:"The most quoted lines in English drama, and what they are really about.",dt:"27 May 2026",h:"to-be-or-not-to-be.html",img:"William_Shakespeare_by_John_Taylor%2C_edited.jpg"},
  {no:"015",t:"The Opera Game",sub:"Chess",f:"Games & Pastimes",k:"Morphy beats two noblemen in seventeen moves while the opera plays on.",dt:"26 May 2026",h:"morphy-opera-game.html",img:"Paul_Charles_Morphy,_1837-1884,_half-length_portrait_facing_left,_seated_at_chess_board_LCCN2001697701.jpg"},
@@ -148,14 +157,19 @@ var DOMAINS=[
  {key:"The World",slug:"world",fields:["Objects & Style","Civic & Money","Social Living","The Animal World"]}
 ];
 var F2SLUG={};DOMAINS.forEach(function(D){D.fields.forEach(function(f){F2SLUG[f]=D.slug;});});
+var TOTAL_FIELDS=0;DOMAINS.forEach(function(D){TOTAL_FIELDS+=D.fields.length;});
 function slugOf(L){return F2SLUG[L.f]||"thought";}
 function fp(n,w){return "https://commons.wikimedia.org/wiki/Special:FilePath/"+n+"?width="+w;}
 function domLessons(s){return LESSONS.filter(function(L){return slugOf(L)===s;});}
-var libPills='<button class="pill on" data-fam="">All &middot; '+LESSONS.length+'</button>';
+var nLessons=LESSONS.length;
+var fieldsEntered=0;DOMAINS.forEach(function(D){D.fields.forEach(function(f){if(LESSONS.some(function(L){return L.f===f;}))fieldsEntered++;});});
+document.getElementById('mast-meta').innerHTML='The Library<br>'+nLessons+' lessons';
+document.getElementById('foot-stats').innerHTML='Compiled by Matthew Yellin &middot; Est. May 2026 &middot; '+nLessons+' lessons &middot; '+fieldsEntered+' of '+TOTAL_FIELDS+' fields';
+var libPills='<button class="pill on" data-fam="">All &middot; '+nLessons+'</button>';
 DOMAINS.forEach(function(D){var n=domLessons(D.slug).length;if(n)libPills+='<button class="pill" data-fam="'+D.slug+'">'+D.key+' &middot; '+n+'</button>';});
 document.getElementById('lib-pills').innerHTML=libPills;
 var libFam='',libQ='',libView='gallery';
-function lcard(L){return '<a class="lcard fam-'+slugOf(L)+'" href="'+L.h+'"><span class="lplate"><img loading="lazy" src="'+fp(L.img,500)+'" alt=""></span><span class="lmeta"><span class="lno">No. '+L.no+'</span> &middot; '+L.dt+'</span><span class="ltag">'+L.sub+'</span><span class="ltt">'+L.t+'</span><span class="ldk">'+L.k+'</span></a>';}
+function lcard(L){return '<a class="lcard fam-'+slugOf(L)+'" href="'+L.h+'"><span class="lplate"><img loading="lazy" src="'+fp(L.img,500)+'" alt="'+L.t+'"></span><span class="lmeta"><span class="lno">No. '+L.no+'</span> &middot; '+L.dt+'</span><span class="ltag">'+L.sub+'</span><span class="ltt">'+L.t+'</span><span class="ldk">'+L.k+'</span></a>';}
 function renderLib(){
   var list=LESSONS.filter(function(L){var okF=!libFam||slugOf(L)===libFam;var okQ=!libQ||(L.t+' '+L.sub+' '+L.f+' '+L.k).toLowerCase().indexOf(libQ)>-1;return okF&&okQ;});
   var box=document.getElementById('lib-results');
