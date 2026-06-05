@@ -96,9 +96,10 @@ a{color:inherit;text-decoration:none}
     if(m)show("live-news",m[1].replace(/&amp;/g,"&"),110);
   }).catch(function(){});
   fetch("well-versed/index.html").then(function(r){return r.ok?r.text():""}).then(function(t){
-    var m=t.match(/hero:\{[^}]*?t:"([^"]+)"/);
-    var c=t.match(/hero:\{[^}]*?cat:"([^"]+)"/);
-    if(m)show("live-versed",(c?c[1].replace(/&amp;/g,"&")+" · ":"")+m[1],110);
+    var hb=t.match(/hero:\{[^}]*\}/);if(!hb)return;
+    var m=hb[0].match(/[,{]t:"([^"]+)"/);
+    var c=hb[0].match(/[,{]cat:"([^"]+)"/);
+    if(m)show("live-versed",m[1]+(c?" · "+c[1].replace(/&amp;/g,"&"):""),110);
   }).catch(function(){});
 })();
 </script>
