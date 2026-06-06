@@ -246,19 +246,21 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
     var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2),parts=[],mouse={x:-9999,y:-9999},t=0,raf=0;
     var SZ=coarse?2.3:1.8;
     var PAL=['#f2876a','#f2a878','#ec9a7e','#dcb47e'];
+    /* Reduce Motion (common on iPhone / Low-Power) no longer freezes the hero — it just GENTLES it, so there is always motion. */
+    var SPD=reduce?0.5:1,TD=reduce?9:16;
     var resize=function(){
       W=cv.clientWidth;H=cv.clientHeight;if(W<2||H<2)return;
       cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
       var floor=coarse?640:560;
-      var n=Math.min(reduce?900:1400,Math.max(floor,Math.floor(W*H/900)));
+      var n=Math.min(1400,Math.max(floor,Math.floor(W*H/900)));
       parts=[];for(var i=0;i<n;i++)parts.push({x:Math.random()*W,y:Math.random()*H,c:PAL[i%PAL.length],life:60+Math.random()*280,s:SZ+Math.random()*0.9});
       ctx.fillStyle='#0c0a09';ctx.fillRect(0,0,W,H);
     };
     var field=function(x,y){return (Math.sin(x*0.0024+t*0.00028)+Math.cos(y*0.0026-t*0.00035)+Math.sin((x+y)*0.0013+t*0.0002))*1.7;};
     var frame=function(){
-      t+=16;ctx.fillStyle='rgba(12,10,9,0.08)';ctx.fillRect(0,0,W,H);
+      t+=TD;ctx.fillStyle='rgba(12,10,9,0.08)';ctx.fillRect(0,0,W,H);
       for(var i=0;i<parts.length;i++){
-        var p=parts[i],a=field(p.x,p.y),vx=Math.cos(a)*0.8,vy=Math.sin(a)*0.8;
+        var p=parts[i],a=field(p.x,p.y),vx=Math.cos(a)*0.8*SPD,vy=Math.sin(a)*0.8*SPD;
         var dx=p.x-mouse.x,dy=p.y-mouse.y,d2=dx*dx+dy*dy;
         if(d2<24000){var d=Math.sqrt(d2)||1,f=(1-d/155)*1.9;vx+=dx/d*f;vy+=dy/d*f;}
         p.x+=vx;p.y+=vy;
@@ -268,10 +270,9 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
       }
       ctx.globalAlpha=1;raf=requestAnimationFrame(frame);
     };
-    var staticField=function(){ctx.fillStyle='#0c0a09';ctx.fillRect(0,0,W,H);for(var s=0;s<200;s++){for(var i=0;i<parts.length;i++){var p=parts[i],a=field(p.x,p.y);p.x+=Math.cos(a)*0.8;p.y+=Math.sin(a)*0.8;if(p.x<0)p.x+=W;else if(p.x>W)p.x-=W;if(p.y<0)p.y+=H;else if(p.y>H)p.y-=H;ctx.fillStyle=p.c;ctx.globalAlpha=.55;ctx.fillRect(p.x,p.y,p.s,p.s);}}ctx.globalAlpha=1;};
-    var go=function(){resize();if(W<2){requestAnimationFrame(go);return;}if(reduce)staticField();else frame();};
+    var go=function(){resize();if(W<2){requestAnimationFrame(go);return;}frame();};
     go();
-    window.addEventListener('resize',function(){if(raf)cancelAnimationFrame(raf);resize();if(reduce)staticField();else frame();});
+    window.addEventListener('resize',function(){if(raf)cancelAnimationFrame(raf);resize();frame();});
     if(!coarse){window.addEventListener('pointermove',function(e){mouse.x=e.clientX;mouse.y=e.clientY;},{passive:true});window.addEventListener('pointerout',function(){mouse.x=-9999;mouse.y=-9999;});}
   }catch(e){}
 
