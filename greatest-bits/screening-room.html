@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="search.css?v=202606060605">
+<link rel="stylesheet" href="search.css?v=202606060621">
 <style>
 :root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;
   --bg:#100f0d;--tile:#1b1a18;--line:#2b2a27;--dim:#9a948c}
@@ -90,6 +90,22 @@ a{color:inherit;text-decoration:none}
 .tile:hover .play,.tile:focus-visible .play{opacity:1;transform:translate(-50%,-50%) scale(1)}
 .tile .play svg{width:18px;height:18px;margin-left:2px}
 .loading{padding:60px 28px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.08em}
+/* rail scroll arrows (desktop, on hover) */
+.railbtn{position:absolute;top:40px;bottom:18px;width:54px;border:0;cursor:pointer;z-index:6;display:none;align-items:center;justify-content:center;color:var(--cream);opacity:0;transition:opacity .16s}
+.row:hover .railbtn{opacity:1}
+.railbtn.l{left:0;background:linear-gradient(90deg,var(--bg) 34%,transparent)}
+.railbtn.r{right:0;background:linear-gradient(270deg,var(--bg) 34%,transparent)}
+.railbtn:hover{color:var(--yellow)}
+.railbtn svg{width:28px;height:28px}
+.railbtn:disabled{opacity:0 !important;pointer-events:none}
+@media(hover:hover) and (min-width:761px){.railbtn{display:flex}}
+/* skeleton shimmer */
+.skrow{margin:26px 0}
+.skhead{height:13px;width:170px;margin:0 28px 16px;border-radius:3px;background:#1d1c1a}
+.sktrack{display:flex;gap:12px;padding:0 28px;overflow:hidden}
+.sktile{flex:0 0 auto;width:250px;aspect-ratio:16/9;border-radius:5px;background:linear-gradient(100deg,#1a1917 30%,#27241f 50%,#1a1917 70%);background-size:200% 100%;animation:shimmer 1.3s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.sktile{animation:none}}
 
 /* footer (house) */
 .ftr{background:var(--ink);color:#cfc6b4;padding:40px 26px 32px;margin-top:30px;border-top:1px solid var(--line)}
@@ -115,7 +131,8 @@ a{color:inherit;text-decoration:none}
   <div class="lt"><b>The lean-back way in.</b> The Index is for looking something up; this is for falling in. Scroll the rows, click a tile, then swipe up and down to move through the row like a feed.</div>
 </div>
 
-<main class="rows" id="rows"><div class="loading">Loading the reels&hellip;</div></main>
+<div class="rows" id="personal"></div>
+<main class="rows" id="rows"></main>
 
 <footer class="ftr">
   <div class="big">Greatest <b>Bits</b></div>
@@ -129,20 +146,110 @@ a{color:inherit;text-decoration:none}
   <div class="disc">Greatest Bits is a non-commercial, fan-made archive, and a work in progress. Every clip embeds from its owner's official YouTube channel and appears here only to identify the artist's work and point you to the source. Photos via <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> and posters via <a href="https://www.themoviedb.org/">TMDB</a>. <a href="contact.html">Get in touch</a> to correct or remove anything.</div>
 </footer>
 
-<script src="search.js?v=202606060605" defer></script>
+<script src="search.js?v=202606060621" defer></script>
 <script>/*GBDROPJS*/(function(){document.querySelectorAll('.nav .dropt').forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var d=b.closest('.drop');var o=d.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});});document.addEventListener('click',function(e){if(!e.target.closest('.drop')){document.querySelectorAll('.nav .drop.open').forEach(function(d){d.classList.remove('open');var t=d.querySelector('.dropt');if(t){t.setAttribute('aria-expanded','false');}});}});})();</script>
 <script>
-/* Screening Room — render rails from data/screening.json; tiles open the
-   shared theater lightbox (search.js) with the row as the feed. */
+/* Screening Room — render rails from data/screening.json. Tiles open the shared
+   theater lightbox (search.js) with the row as the feed. Adds client-side
+   personalization (watch history -> Continue Watching + Because You Watched)
+   and a daily-seeded Tonight's Lineup. No backend; localStorage only. */
 (function(){
   var PLAY='<svg viewBox="0 0 24 24" fill="#fff3e4"><path d="M8 5v14l11-7z"/></svg>';
+  var CHEVL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>';
+  var CHEVR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 6l6 6-6 6"/></svg>';
   var thumb=function(id){return 'https://i.ytimg.com/vi/'+id+'/mqdefault.jpg';};
   var hq=function(id){return 'https://i.ytimg.com/vi/'+id+'/hqdefault.jpg';};
   function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
   function open(list,i,label){ if(window.openBitLB) window.openBitLB(list[i],{list:list,index:i,label:label}); }
 
+  /* ---------- watch history (localStorage) ---------- */
+  var HKEY='gb_sr_hist_v1';
+  function loadHist(){try{return JSON.parse(localStorage.getItem(HKEY))||[];}catch(e){return [];}}
+  function saveHist(h){try{localStorage.setItem(HKEY,JSON.stringify(h.slice(0,60)));}catch(e){}}
+  function pushHist(b){
+    var h=loadHist(), id=b.id; if(!id) return;
+    h=h.filter(function(x){return x.id!==id;});
+    h.unshift({id:id,t:b.t,c:b.c||b.comic||'',cid:b.cid||b.comicId||'',su:b.su||b.subj||'',e:b.e||b.era||'',ts:Date.now()});
+    saveHist(h);
+  }
+
+  /* ---------- recommender: Because You Watched ---------- */
+  function recommend(pool,hist){
+    if(!pool||hist.length<2) return null;
+    var subj={},comic={},era={},seen={};
+    hist.forEach(function(x,i){var w=1+(hist.length-i)/hist.length; seen[x.id]=1;
+      if(x.su)subj[x.su]=(subj[x.su]||0)+w; if(x.cid)comic[x.cid]=(comic[x.cid]||0)+w; if(x.e)era[x.e]=(era[x.e]||0)+w;});
+    var scored=pool.filter(function(c){return !seen[c.id];}).map(function(c){
+      var sc=(subj[c.su]||0)*2+(comic[c.cid]||0)*3+(era[c.e]||0)*1+(c.s||0)/200;
+      return {c:c,sc:sc};
+    }).filter(function(x){return x.sc>0;}).sort(function(a,b){return b.sc-a.sc;});
+    var per={},out=[];
+    for(var k=0;k<scored.length&&out.length<24;k++){var cc=scored[k].c;per[cc.c]=(per[cc.c]||0)+1;if(per[cc.c]<=3)out.push(cc);}
+    return out;
+  }
+
+  /* ---------- Tonight's Lineup: deterministic daily shuffle ---------- */
+  function hashStr(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+  function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  function tonight(pool){
+    if(!pool||!pool.length) return null;
+    var top=pool.slice(0,160), r=mulberry32(hashStr(new Date().toISOString().slice(0,10)));
+    for(var i=top.length-1;i>0;i--){var j=Math.floor(r()*(i+1));var t=top[i];top[i]=top[j];top[j]=t;}
+    return top.slice(0,24);
+  }
+
+  /* ---------- one rail (header + arrows + track) ---------- */
+  function makeRow(row){
+    var isCanon=row.tag==='EDITORIAL';
+    var sec=document.createElement('section'); sec.className='row';
+    sec.innerHTML='<div class="head"><span class="rtag">'+esc(row.tag)+'</span><h2>'+esc(row.title)+'</h2><span class="count">'+row.clips.length+'</span></div>'
+      +'<button class="railbtn l" aria-label="Scroll left" tabindex="-1">'+CHEVL+'</button>'
+      +'<button class="railbtn r" aria-label="Scroll right" tabindex="-1">'+CHEVR+'</button>';
+    var track=document.createElement('div'); track.className='track';
+    row.clips.forEach(function(c,ci){
+      var tile=document.createElement('div'); tile.className='tile'; tile.tabIndex=0;
+      tile.setAttribute('role','button'); tile.setAttribute('aria-label','Play: '+(c.t||'clip')+' by '+(c.c||''));
+      tile.innerHTML='<img loading="lazy" src="'+thumb(c.id)+'" alt="" onerror="this.style.opacity=.25">'
+        +'<div class="grad"></div>'
+        +(isCanon?'<div class="rank">'+(ci+1)+'</div>':'')
+        +'<div class="play">'+PLAY+'</div>'
+        +'<div class="cap"><div class="ct">'+esc(c.t)+'</div><div class="cc">'+esc(c.c)+'</div></div>';
+      tile.addEventListener('click',function(){open(row.clips,ci,row.title);});
+      tile.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(row.clips,ci,row.title);}});
+      track.appendChild(tile);
+    });
+    sec.appendChild(track);
+    var L=sec.querySelector('.railbtn.l'), R=sec.querySelector('.railbtn.r');
+    function upd(){var max=track.scrollWidth-track.clientWidth-4;L.disabled=track.scrollLeft<=2;R.disabled=track.scrollLeft>=max;}
+    L.addEventListener('click',function(){track.scrollBy({left:-track.clientWidth*0.85,behavior:'smooth'});});
+    R.addEventListener('click',function(){track.scrollBy({left:track.clientWidth*0.85,behavior:'smooth'});});
+    track.addEventListener('scroll',function(){requestAnimationFrame(upd);},{passive:true});
+    setTimeout(upd,0);
+    return sec;
+  }
+
+  function skeleton(host){
+    var tiles=new Array(7).join('<div class="sktile"></div>');
+    host.innerHTML=new Array(4).join('<div class="skrow"><div class="skhead"></div><div class="sktrack">'+tiles+'</div></div>');
+  }
+
+  var DATA=null, refreshT=null;
+  function renderPersonal(){
+    if(!DATA) return;
+    var host=document.getElementById('personal'); if(!host) return;
+    var hist=loadHist(), frag=document.createDocumentFragment();
+    if(hist.length){ frag.appendChild(makeRow({title:'Continue Watching',tag:'YOUR HISTORY',clips:hist.slice(0,18)})); }
+    var rec=recommend(DATA.pool,hist);
+    if(rec&&rec.length){ frag.appendChild(makeRow({title:'Because You Watched '+(hist[0].c||'That'),tag:'FOR YOU',clips:rec})); }
+    host.innerHTML=''; host.appendChild(frag);
+  }
+  /* search.js calls this on every clip view (entry + each swipe/next) */
+  window.onBitView=function(b){ pushHist(b); clearTimeout(refreshT); refreshT=setTimeout(renderPersonal,400); };
+
+  var skelHost=document.getElementById('rows'); skeleton(skelHost);
+
   fetch('data/screening.json?v='+Date.now()).then(function(r){return r.json();}).then(function(D){
-    // hero
+    DATA=D;
     var h=D.hero, hero=document.getElementById('hero');
     if(h){
       hero.innerHTML='<div class="bg" style="background-image:url(\''+hq(h.id)+'\')"></div>'
@@ -151,32 +258,13 @@ a{color:inherit;text-decoration:none}
         +'<h1>'+esc(h.t)+'</h1><div class="who">'+esc(h.c)+'</div>'
         +'<div class="sub">'+(D.total||0).toLocaleString()+' clips, ready to roll. Scroll the rows, fall into a feed.</div>'
         +'<button class="cta" id="heroPlay">'+PLAY+'<span>Play</span></button></div>';
-      // hero plays inside the canon row (row 0) at index 0
-      document.getElementById('heroPlay').addEventListener('click',function(){
-        if(D.rows[0]) open(D.rows[0].clips,0,D.rows[0].title);
-      });
+      document.getElementById('heroPlay').addEventListener('click',function(){ if(D.rows[0]) open(D.rows[0].clips,0,D.rows[0].title); });
     }
-    // rows
     var root=document.getElementById('rows'); root.innerHTML='';
-    D.rows.forEach(function(row){
-      var isCanon=row.tag==='EDITORIAL';
-      var sec=document.createElement('section'); sec.className='row';
-      sec.innerHTML='<div class="head"><span class="rtag">'+esc(row.tag)+'</span><h2>'+esc(row.title)+'</h2><span class="count">'+row.clips.length+'</span></div>';
-      var track=document.createElement('div'); track.className='track';
-      row.clips.forEach(function(c,ci){
-        var tile=document.createElement('div'); tile.className='tile'; tile.tabIndex=0;
-        tile.setAttribute('role','button'); tile.setAttribute('aria-label','Play: '+(c.t||'clip')+' by '+(c.c||''));
-        tile.innerHTML='<img loading="lazy" src="'+thumb(c.id)+'" alt="" onerror="this.style.opacity=.25">'
-          +'<div class="grad"></div>'
-          +(isCanon?'<div class="rank">'+(ci+1)+'</div>':'')
-          +'<div class="play">'+PLAY+'</div>'
-          +'<div class="cap"><div class="ct">'+esc(c.t)+'</div><div class="cc">'+esc(c.c)+'</div></div>';
-        tile.addEventListener('click',function(){open(row.clips,ci,row.title);});
-        tile.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();open(row.clips,ci,row.title);}});
-        track.appendChild(tile);
-      });
-      sec.appendChild(track); root.appendChild(sec);
-    });
+    var tl=tonight(D.pool);
+    if(tl){ root.appendChild(makeRow({title:"Tonight's Lineup",tag:'FRESH DAILY',clips:tl})); }
+    D.rows.forEach(function(row){ root.appendChild(makeRow(row)); });
+    renderPersonal();
   }).catch(function(){
     document.getElementById('rows').innerHTML='<div class="loading">Could not load the reels. Please reload.</div>';
   });

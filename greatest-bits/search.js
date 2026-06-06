@@ -258,14 +258,58 @@
         + '</div>';
       document.body.appendChild(lb);
     }
+    lb.setAttribute("role", "dialog");
+    lb.setAttribute("aria-modal", "true");
     var pl = document.getElementById("gblbplayer");
-    var seq = null, idx = 0;   // theater sequence state
+    var seq = null, idx = 0, opener = null;   // theater sequence state
+
+    // --- YouTube IFrame API (lazy): enables autoplay-next in theater ---
+    var ytReady = null, ytp = null;
+    function loadYT(){
+      if (window.YT && window.YT.Player) return Promise.resolve();
+      if (ytReady) return ytReady;
+      ytReady = new Promise(function(res, rej){
+        var prev = window.onYouTubeIframeAPIReady;
+        window.onYouTubeIframeAPIReady = function(){ if (prev) try{prev();}catch(e){} res(); };
+        var s = document.createElement("script");
+        s.src = "https://www.youtube.com/iframe_api"; s.onerror = rej;
+        document.head.appendChild(s);
+        setTimeout(rej, 6000); // fall back to a plain iframe if the API is slow/blocked
+      });
+      return ytReady;
+    }
+    function clearPlayer(){
+      if (ytp && ytp.destroy){ try{ytp.destroy();}catch(e){} ytp = null; }
+      var fr = pl.querySelector("iframe"); if (fr) fr.remove();
+      var host = pl.querySelector(".lbyt"); if (host) host.remove();
+    }
+    function plainIframe(id){
+      pl.insertAdjacentHTML("afterbegin",
+        '<iframe src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>');
+    }
+    function theaterPlayer(id){
+      // reuse the API player across moves; auto-advance when a clip ends
+      if (ytp && ytp.loadVideoById){ try{ ytp.loadVideoById(id); return; }catch(e){} }
+      var host = document.createElement("div"); host.className = "lbyt";
+      pl.insertAdjacentElement("afterbegin", host);
+      var mount = document.createElement("div"); host.appendChild(mount);
+      loadYT().then(function(){
+        ytp = new YT.Player(mount, {
+          videoId: id,
+          playerVars: {autoplay:1, rel:0, modestbranding:1},
+          events: { onStateChange: function(e){
+            if (e.data === YT.PlayerState.ENDED && lb.classList.contains("theater")) move(1);
+          }}
+        });
+      }).catch(function(){ host.innerHTML = ""; plainIframe(id); });
+    }
 
     function close(){
       lb.classList.remove("on","theater");
-      var fr = pl && pl.querySelector("iframe"); if (fr) fr.remove();
+      clearPlayer();
       seq = null;
       document.body.style.overflow = "";
+      if (opener && opener.focus){ try{opener.focus();}catch(e){} opener = null; }
     }
     function bf(b, a, c){ return b[a] != null ? b[a] : b[c]; } // field-or-fallback
     function paint(b){
@@ -276,9 +320,8 @@
           slug = bf(b,"slug","sp"), subj = bf(b,"subj","su"), era = bf(b,"era","e");
       if (ttl) ttl.textContent = b.t || "";
       if (by)  by.textContent  = comic ? ("Bit by " + comic) : "";
-      var fr = pl.querySelector("iframe"); if (fr) fr.remove();
-      pl.insertAdjacentHTML("beforeend",
-        '<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>');
+      clearPlayer();
+      if (seq) theaterPlayer(b.id); else plainIframe(b.id);
       if (vw) vw.href = "comic.html?c=" + (cid||"") + (slug ? "#sp-"+slug : "");
       // theater chrome
       var pos = document.getElementById("gblbpos");
@@ -286,11 +329,13 @@
       var rl = document.getElementById("gblbrowlabel");
       if (rl) rl.innerHTML = (seq && lb.__label) ? ("In <b>"+lb.__label+"</b>") : "";
       var k = document.getElementById("gblbk");
-      if (k) k.textContent = seq ? [subj, era].filter(Boolean).join(" · ") || "Now playing" : "Bit of the day";
+      if (k) k.textContent = seq ? ([subj, era].filter(Boolean).join(" · ") || "Now playing") : "Bit of the day";
+      if (typeof window.onBitView === "function"){ try{ window.onBitView(b); }catch(e){} }
     }
     function move(d){ if(!seq) return; idx = (idx + d + seq.length) % seq.length; paint(seq[idx]); }
 
     window.openBitLB = function(b, opts){
+      opener = document.activeElement;
       if (opts && opts.list && opts.list.length){
         seq = opts.list; idx = opts.index || 0; lb.__label = opts.label || "";
         lb.classList.add("theater");
@@ -301,6 +346,7 @@
       }
       lb.classList.add("on");
       document.body.style.overflow = "hidden";
+      var x = document.getElementById("gblbx"); if (x) x.focus();
     };
     window.__gbCloseBitLB = close;
 
