@@ -61,8 +61,9 @@ a{color:inherit;text-decoration:none}
 .foot{border-top:1px solid var(--line);margin-top:40px;padding:40px 0 56px;text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
 .foot a{color:var(--muted)}.foot a:hover{color:var(--accent)}
 
-.rv{opacity:0;transform:translateY(26px);filter:blur(7px);transition:opacity .85s cubic-bezier(.2,.7,.15,1),transform .85s cubic-bezier(.2,.7,.15,1),filter .85s ease}
-.rv.in{opacity:1;transform:none;filter:none}
+.rv{transition:opacity .85s cubic-bezier(.2,.7,.15,1),transform .85s cubic-bezier(.2,.7,.15,1),filter .85s ease}
+html.js .rv{opacity:0;transform:translateY(26px);filter:blur(7px)}
+html.js .rv.in{opacity:1;transform:none;filter:none}
 .rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}
 
 @media (max-width:760px){.body{grid-template-columns:1fr;gap:30px}.portrait{max-width:330px}}
@@ -107,13 +108,20 @@ a{color:inherit;text-decoration:none}
 
 <script>
 (function(){
-  var nav=document.getElementById('nav');
-  function sc(){nav.classList.toggle('stuck',window.scrollY>16);}
-  sc();window.addEventListener('scroll',sc,{passive:true});
-  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var rvs=[].slice.call(document.querySelectorAll('.rv'));
-  if(reduce||!('IntersectionObserver'in window)){rvs.forEach(function(e){e.classList.add('in');});}
-  else{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.16});rvs.forEach(function(e){io.observe(e);});}
+  document.documentElement.classList.add('js');
+  function revealAll(){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
+  setTimeout(revealAll,1600);
+  try{
+    var nav=document.getElementById('nav');
+    function sc(){nav.classList.toggle('stuck',window.scrollY>16);}
+    sc();window.addEventListener('scroll',sc,{passive:true});
+  }catch(e){}
+  try{
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var rvs=[].slice.call(document.querySelectorAll('.rv'));
+    if(reduce||!('IntersectionObserver'in window)){revealAll();}
+    else{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.16});rvs.forEach(function(e){io.observe(e);});}
+  }catch(e){revealAll();}
 })();
 </script>
 </body>
