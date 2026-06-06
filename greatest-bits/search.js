@@ -227,9 +227,14 @@
         return BITPOOL;
       });
   }
-  // Auto-create the cream BotD lightbox markup if a page didn't define one. Returns the controller.
+  // Auto-create the shared bit lightbox if a page didn't define one.
+  // Two modes from ONE component:
+  //   openBitLB(bit)                       -> cream single-clip (Bit of the Day / Surprise Me)
+  //   openBitLB(bit, {list, index, label}) -> dark "theater" with prev/next + position + swipe
+  //                                           (the Screening Room: a row IS the feed)
+  // Bit fields are tolerant: comic|c, comicId|cid, slug|sp, subj|su, era|e.
   function ensureBitLightbox(){
-    if (window.openBitLB) return; // home page already provides it
+    if (window.openBitLB) return; // home page already provides its own cream version
     var lb = document.getElementById("gblb");
     if (!lb) {
       lb = document.createElement("div");
@@ -237,33 +242,89 @@
       lb.className = "gblightbox";
       lb.innerHTML = '<div class="lbpanel">'
         + '<button class="lbx" type="button" id="gblbx" aria-label="Close">&times;</button>'
+        + '<div class="lbrow" id="gblbrowlabel"></div>'
         + '<div class="lbk" id="gblbk">Bit of the day</div>'
         + '<div class="lbttl" id="gblbttl"></div>'
         + '<div class="lbby" id="gblbby"></div>'
-        + '<div class="lbplayer" id="gblbplayer"></div>'
+        + '<div class="lbplayer" id="gblbplayer">'
+        +   '<button type="button" class="lbnav prev" id="gblbprev" aria-label="Previous clip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 15l-6-6-6 6"/></svg></button>'
+        +   '<button type="button" class="lbnav next" id="gblbnext" aria-label="Next clip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg></button>'
+        + '</div>'
         + '<div class="lbview-row">'
         + '<a class="lbview" id="gblbview" href="#">View on comic page &#8594;</a>'
+        + '<span class="lbpos" id="gblbpos"></span>'
         + '<button type="button" class="lbagain" id="gblbagain">&#9856; Surprise me again</button>'
         + '</div>'
         + '</div>';
       document.body.appendChild(lb);
     }
     var pl = document.getElementById("gblbplayer");
-    function close(){lb.classList.remove("on");if(pl)pl.innerHTML="";document.body.style.overflow="";}
-    window.openBitLB = function(b){
+    var seq = null, idx = 0;   // theater sequence state
+
+    function close(){
+      lb.classList.remove("on","theater");
+      var fr = pl && pl.querySelector("iframe"); if (fr) fr.remove();
+      seq = null;
+      document.body.style.overflow = "";
+    }
+    function bf(b, a, c){ return b[a] != null ? b[a] : b[c]; } // field-or-fallback
+    function paint(b){
       var ttl = document.getElementById("gblbttl");
-      var by = document.getElementById("gblbby");
-      var vw = document.getElementById("gblbview");
+      var by  = document.getElementById("gblbby");
+      var vw  = document.getElementById("gblbview");
+      var comic = bf(b,"comic","c"), cid = bf(b,"comicId","cid"),
+          slug = bf(b,"slug","sp"), subj = bf(b,"subj","su"), era = bf(b,"era","e");
       if (ttl) ttl.textContent = b.t || "";
-      if (by) by.textContent = b.comic ? ("Bit by " + b.comic) : "";
-      if (pl) pl.innerHTML = '<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-      if (vw) vw.href = "comic.html?c=" + (b.comicId||"") + "#sp-" + b.slug;
+      if (by)  by.textContent  = comic ? ("Bit by " + comic) : "";
+      var fr = pl.querySelector("iframe"); if (fr) fr.remove();
+      pl.insertAdjacentHTML("beforeend",
+        '<iframe src="https://www.youtube.com/embed/'+b.id+'?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>');
+      if (vw) vw.href = "comic.html?c=" + (cid||"") + (slug ? "#sp-"+slug : "");
+      // theater chrome
+      var pos = document.getElementById("gblbpos");
+      if (pos) pos.textContent = seq ? (idx+1) + " / " + seq.length : "";
+      var rl = document.getElementById("gblbrowlabel");
+      if (rl) rl.innerHTML = (seq && lb.__label) ? ("In <b>"+lb.__label+"</b>") : "";
+      var k = document.getElementById("gblbk");
+      if (k) k.textContent = seq ? [subj, era].filter(Boolean).join(" · ") || "Now playing" : "Bit of the day";
+    }
+    function move(d){ if(!seq) return; idx = (idx + d + seq.length) % seq.length; paint(seq[idx]); }
+
+    window.openBitLB = function(b, opts){
+      if (opts && opts.list && opts.list.length){
+        seq = opts.list; idx = opts.index || 0; lb.__label = opts.label || "";
+        lb.classList.add("theater");
+        paint(seq[idx]);
+      } else {
+        seq = null; lb.classList.remove("theater");
+        paint(b);
+      }
       lb.classList.add("on");
       document.body.style.overflow = "hidden";
     };
+    window.__gbCloseBitLB = close;
+
     var xbtn = document.getElementById("gblbx"); if (xbtn) xbtn.addEventListener("click", close);
+    var pv = document.getElementById("gblbprev"); if (pv) pv.addEventListener("click", function(e){e.stopPropagation();move(-1);});
+    var nx = document.getElementById("gblbnext"); if (nx) nx.addEventListener("click", function(e){e.stopPropagation();move(1);});
     lb.addEventListener("click", function(e){if (e.target === lb) close();});
-    document.addEventListener("keydown", function(e){if (e.key === "Escape" && lb.classList.contains("on")) close();});
+    document.addEventListener("keydown", function(e){
+      if (!lb.classList.contains("on")) return;
+      if (e.key === "Escape") close();
+      else if (lb.classList.contains("theater")){
+        if (e.key === "ArrowDown" || e.key === "ArrowRight"){ e.preventDefault(); move(1); }
+        else if (e.key === "ArrowUp" || e.key === "ArrowLeft"){ e.preventDefault(); move(-1); }
+      }
+    });
+    // vertical swipe = the feed (theater only)
+    var ty = null;
+    lb.addEventListener("touchstart", function(e){ ty = e.changedTouches[0].clientY; }, {passive:true});
+    lb.addEventListener("touchend", function(e){
+      if (ty === null || !lb.classList.contains("theater")) { ty = null; return; }
+      var dy = e.changedTouches[0].clientY - ty;
+      if (Math.abs(dy) > 55) move(dy < 0 ? 1 : -1);
+      ty = null;
+    }, {passive:true});
   }
   function wireSurpriseAgain(){
     document.addEventListener("click", function(e){
