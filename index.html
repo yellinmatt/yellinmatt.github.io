@@ -129,6 +129,20 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 .foot .mk{font-weight:500;font-size:21px;letter-spacing:-.01em}
 .foot .cl{font-family:var(--sans);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-top:14px}
 
+/* ===== dynamics (added 2026-06-06) ===== */
+.prog{position:fixed;top:0;left:0;height:2px;width:100%;z-index:95;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--accent),var(--accent-2));pointer-events:none}
+.clock:empty{display:none}
+.clock::before{content:" · "}
+.hero .wrap{will-change:transform}
+.scrollcue{will-change:opacity,transform}
+.pub{--mx:50%;--my:50%}
+.pub .spot{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .35s ease;background:radial-gradient(440px circle at var(--mx) var(--my),var(--pub),transparent 46%);mix-blend-mode:screen}
+.pub:hover .spot{opacity:.13}
+.pub .aura,.pub .enter{will-change:transform}
+.pub .live{opacity:0;transform:translateY(8px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.15,1)}
+.pub .live.lit{opacity:1;transform:none}
+@media (pointer:coarse){.pub .spot{display:none}}
+
 @media (max-width:820px){
   .intro .grid{grid-template-columns:1fr;gap:34px}
   .portrait{max-width:360px}
@@ -141,6 +155,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 </style>
 </head>
 <body>
+<div class="prog" id="prog" aria-hidden="true"></div>
 <div class="cur" id="cur" aria-hidden="true"></div>
 <div class="cur-d" id="curd" aria-hidden="true"></div>
 <div class="grain" aria-hidden="true"></div>
@@ -150,7 +165,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 <header class="hero">
   <canvas id="field" aria-hidden="true"></canvas>
   <div class="wrap">
-    <p class="kicker">Published each morning from Miami</p>
+    <p class="kicker">Published each morning from Miami<span class="clock" id="clock" aria-hidden="true"></span></p>
     <h1 class="name"><span class="w">Matthew</span> <span class="w">Yellin</span></h1>
     <p class="lede">A daily news brief, a daily lesson, and an archive of great stand-up.</p>
   </div>
@@ -168,7 +183,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
       <div class="num rv">01 · Published daily</div>
       <h2 class="rv d1">The Morning Brief</h2>
       <p class="tag rv d2">The day's news in six items: recency-gated, sourced across the spectrum, and scored for what is actually worth knowing.</p>
-      <p class="live rv d2" id="live-news"><span class="li">This morning</span><span class="live-text"></span></p>
+      <p class="live" id="live-news"><span class="li">This morning</span><span class="live-text"></span></p>
       <a class="enter stretch rv d3" target="_blank" rel="noopener" href="news/">Read today <span class="ar">&rarr;</span></a>
     </div>
   </section>
@@ -179,7 +194,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
       <div class="num rv">02 · Published daily</div>
       <h2 class="rv d1">Well-Versed</h2>
       <p class="tag rv d2">A general education, one concept a day toward a well-rounded mind.</p>
-      <p class="live rv d2" id="live-versed"><span class="li">Today's lesson</span><span class="live-text"></span></p>
+      <p class="live" id="live-versed"><span class="li">Today's lesson</span><span class="live-text"></span></p>
       <a class="enter stretch rv d3" target="_blank" rel="noopener" href="well-versed/">Take the lesson <span class="ar">&rarr;</span></a>
     </div>
   </section>
@@ -260,7 +275,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
       for(var i=0;i<parts.length;i++){
         var p=parts[i],a=field(p.x,p.y),vx=Math.cos(a)*0.8*SPD,vy=Math.sin(a)*0.8*SPD;
         var dx=p.x-mouse.x,dy=p.y-mouse.y,d2=dx*dx+dy*dy;
-        if(d2<24000){var d=Math.sqrt(d2)||1,f=(1-d/155)*1.9;vx+=dx/d*f;vy+=dy/d*f;}
+        if(d2<32400){var d=Math.sqrt(d2)||1,f=(1-d/180)*2.2;vx+=dx/d*f;vy+=dy/d*f;}
         p.x+=vx;p.y+=vy;
         if(--p.life<=0){p.x=Math.random()*W;p.y=Math.random()*H;p.life=60+Math.random()*280;}
         else{if(p.x<0)p.x+=W;else if(p.x>W)p.x-=W;if(p.y<0)p.y+=H;else if(p.y>H)p.y-=H;}
@@ -272,6 +287,13 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
     go();
     window.addEventListener('resize',function(){if(raf)cancelAnimationFrame(raf);resize();frame();});
     if(!coarse){window.addEventListener('pointermove',function(e){mouse.x=e.clientX;mouse.y=e.clientY;},{passive:true});window.addEventListener('pointerout',function(){mouse.x=-9999;mouse.y=-9999;});}
+    else{
+      /* touch ripple: dragging a finger over the hero pushes the particles, so mobile feels alive too */
+      var setT=function(e){var tt=e.touches&&e.touches[0];if(tt){mouse.x=tt.clientX;mouse.y=tt.clientY;}};
+      window.addEventListener('touchstart',setT,{passive:true});
+      window.addEventListener('touchmove',setT,{passive:true});
+      window.addEventListener('touchend',function(){mouse.x=-9999;mouse.y=-9999;},{passive:true});
+    }
   }catch(e){}
 
   /* ---------- custom cursor (pointer devices only) ---------- */
@@ -285,6 +307,49 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
     }
   }catch(e){}
 
+  /* ---------- scroll progress bar + parallax (transform/opacity only; reduce zeroes the motion) ---------- */
+  try{
+    var prog=document.getElementById('prog');
+    var hero=document.querySelector('.hero'),heroWrap=document.querySelector('.hero .wrap'),cue=document.querySelector('.scrollcue');
+    var auras=[].slice.call(document.querySelectorAll('.pub .aura'));
+    var PF=reduce?0:1,ticking=false;
+    var onScroll=function(){
+      var y=window.pageYOffset||0;
+      var doch=(document.documentElement.scrollHeight-window.innerHeight)||1;
+      if(prog)prog.style.transform='scaleX('+Math.min(1,Math.max(0,y/doch))+')';
+      var hh=hero?hero.offsetHeight:1;
+      if(heroWrap){heroWrap.style.transform='translateY('+(y*0.18*PF)+'px)';heroWrap.style.opacity=String(Math.max(0,1-y/(hh*0.92)));}
+      if(cue)cue.style.opacity=String(Math.max(0,1-y/200));
+      if(PF){for(var i=0;i<auras.length;i++){var r=auras[i].parentNode.getBoundingClientRect();auras[i].style.transform='translateY('+((r.top-window.innerHeight/2)*-0.06)+'px)';}}
+      ticking=false;
+    };
+    window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(onScroll);}},{passive:true});
+    window.addEventListener('resize',onScroll,{passive:true});
+    onScroll();
+  }catch(e){}
+
+  /* ---------- interactive publication bands: pointer spotlight + magnetic CTA ---------- */
+  try{
+    [].forEach.call(document.querySelectorAll('.pub'),function(pub){
+      var spot=document.createElement('span');spot.className='spot';spot.setAttribute('aria-hidden','true');pub.insertBefore(spot,pub.firstChild);
+      if(coarse)return;
+      var enter=pub.querySelector('.enter');
+      pub.addEventListener('pointermove',function(e){
+        var r=pub.getBoundingClientRect();
+        pub.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');
+        pub.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');
+        if(enter&&!reduce){var er=enter.getBoundingClientRect(),ex=e.clientX-(er.left+er.width/2),ey=e.clientY-(er.top+er.height/2),dd=Math.sqrt(ex*ex+ey*ey)||1,pull=Math.min(10,dd*0.12);enter.style.transform='translate('+(ex/dd*pull)+'px,'+(ey/dd*pull)+'px)';}
+      },{passive:true});
+      pub.addEventListener('pointerleave',function(){if(enter)enter.style.transform='';});
+    });
+  }catch(e){}
+
+  /* ---------- live Miami time in the kicker ---------- */
+  try{
+    var clk=document.getElementById('clock');
+    if(clk){var tick=function(){try{clk.textContent=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'2-digit'}).format(new Date());}catch(_){}};tick();setInterval(tick,30000);}
+  }catch(e){}
+
   /* ---------- scroll reveal ---------- */
   try{
     var rvs=[].slice.call(document.querySelectorAll('.rv'));
@@ -294,7 +359,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 
   /* ---------- live today lines (same-origin) ---------- */
   try{
-    var show=function(id,text,max){if(!text)return;text=text.trim();if(text.length>max)text=text.slice(0,max-1).trimEnd()+'…';var p=document.getElementById(id);if(!p)return;p.querySelector('.live-text').textContent=text;p.style.display='block';};
+    var show=function(id,text,max){if(!text)return;text=text.trim();if(text.length>max)text=text.slice(0,max-1).trimEnd()+'…';var p=document.getElementById(id);if(!p)return;p.querySelector('.live-text').textContent=text;p.style.display='block';requestAnimationFrame(function(){p.classList.add('lit');});};
     fetch('news/index.html').then(function(r){return r.ok?r.text():'';}).then(function(t){var m=t.match(/<span class="l">([^<]+)</);if(m)show('live-news',m[1].replace(/&amp;/g,'&'),120);}).catch(function(){});
     fetch('well-versed/index.html').then(function(r){return r.ok?r.text():'';}).then(function(t){var hb=t.match(/hero:\{[^}]*\}/);if(!hb)return;var m=hb[0].match(/[,{]t:"([^"]+)"/);var c=hb[0].match(/[,{]cat:"([^"]+)"/);if(m)show('live-versed',m[1]+(c?' · '+c[1].replace(/&amp;/g,'&'):''),120);}).catch(function(){});
   }catch(e){}
