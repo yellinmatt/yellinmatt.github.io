@@ -67,7 +67,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 .rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}.rv.d3{transition-delay:.3s}
 
 @media (max-width:760px){.body{grid-template-columns:1fr;gap:30px}.portrait{max-width:330px}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto}.rv{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -110,7 +110,6 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
 (function(){
   document.documentElement.classList.add('js');
   function revealAll(){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
-  setTimeout(revealAll,1600);
   try{
     var nav=document.getElementById('nav');
     function sc(){nav.classList.toggle('stuck',window.scrollY>16);}
@@ -119,7 +118,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
   try{
     var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var rvs=[].slice.call(document.querySelectorAll('.rv'));
-    if(reduce||!('IntersectionObserver'in window)){revealAll();}
+    if(!('IntersectionObserver'in window)){revealAll();}
     else{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.16});rvs.forEach(function(e){io.observe(e);});}
   }catch(e){revealAll();}
 })();

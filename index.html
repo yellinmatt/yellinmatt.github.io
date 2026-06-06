@@ -134,10 +134,9 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
   .portrait{max-width:360px}
 }
 @media (prefers-reduced-motion:reduce){
-  *{animation:none!important;scroll-behavior:auto}
-  .kicker,h1.name .w,.lede,.scrollcue{opacity:1!important;transform:none!important;filter:none!important}
-  .rv{opacity:1!important;transform:none!important;filter:none!important;transition:none!important}
-  .portrait img{transform:none!important}
+  html{scroll-behavior:auto}
+  /* Reduce Motion keeps the gentle hero + the scroll-in reveals (Matthew prefers motion); only the one-shot CSS entrance is calmed to no-op. */
+  .kicker,h1.name .w,.lede,.scrollcue{opacity:1!important;transform:none!important;filter:none!important;animation:none!important}
 }
 </style>
 </head>
@@ -214,9 +213,8 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
 
-  /* reveal failsafe — scheduled FIRST so no later error can ever leave content hidden */
+  /* revealAll is the safety fallback if IntersectionObserver is missing or its setup throws (no-JS is handled by the html.js CSS gate) */
   function revealAll(){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
-  setTimeout(revealAll,1600);
 
   /* ====== GROW THE PORTFOLIO HERE ======
      Add a public project = push an object to PROJECTS. It renders into the grid automatically.
@@ -244,7 +242,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
   try{
     var cv=document.getElementById('field'),ctx=cv.getContext('2d');
     var W=0,H=0,DPR=Math.min(window.devicePixelRatio||1,2),parts=[],mouse={x:-9999,y:-9999},t=0,raf=0;
-    var SZ=coarse?2.3:1.8;
+    var SZ=coarse?1.4:1.8,SPR=coarse?0.6:0.9;
     var PAL=['#f2876a','#f2a878','#ec9a7e','#dcb47e'];
     /* Reduce Motion (common on iPhone / Low-Power) no longer freezes the hero — it just GENTLES it, so there is always motion. */
     var SPD=reduce?0.5:1,TD=reduce?9:16;
@@ -253,7 +251,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
       cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
       var floor=coarse?640:560;
       var n=Math.min(1400,Math.max(floor,Math.floor(W*H/900)));
-      parts=[];for(var i=0;i<n;i++)parts.push({x:Math.random()*W,y:Math.random()*H,c:PAL[i%PAL.length],life:60+Math.random()*280,s:SZ+Math.random()*0.9});
+      parts=[];for(var i=0;i<n;i++)parts.push({x:Math.random()*W,y:Math.random()*H,c:PAL[i%PAL.length],life:60+Math.random()*280,s:SZ+Math.random()*SPR});
       ctx.fillStyle='#0c0a09';ctx.fillRect(0,0,W,H);
     };
     var field=function(x,y){return (Math.sin(x*0.0024+t*0.00028)+Math.cos(y*0.0026-t*0.00035)+Math.sin((x+y)*0.0013+t*0.0002))*1.7;};
@@ -290,7 +288,7 @@ html.js .rv.in{opacity:1;transform:none;filter:none}
   /* ---------- scroll reveal ---------- */
   try{
     var rvs=[].slice.call(document.querySelectorAll('.rv'));
-    if(reduce||!('IntersectionObserver'in window)){revealAll();}
+    if(!('IntersectionObserver'in window)){revealAll();}
     else{var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.18,rootMargin:'0px 0px -8% 0px'});rvs.forEach(function(e){io.observe(e);});}
   }catch(e){revealAll();}
 
