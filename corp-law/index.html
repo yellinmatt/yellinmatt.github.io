@@ -146,9 +146,13 @@
     }
     var st=JSON.parse(localStorage.getItem("hotshot_tracker_v3")||"{}");
     var n=Object.keys(st).filter(function(k){return st[k];}).length;
-    if(n>0){
+    var rd=JSON.parse(localStorage.getItem("cle_read")||"{}");
+    var m=Object.keys(rd).filter(function(k){return rd[k];}).length;
+    if(n>0||m>0){
       document.getElementById("ledger-n").textContent=n;
-      document.getElementById("ledger").style.display="block";
+      var lg=document.getElementById("ledger");
+      if(m>0)lg.insertAdjacentHTML("beforeend"," &middot; <b>"+m+"</b> lessons read.");
+      lg.style.display="block";
     }
   }catch(e){}
 })();
