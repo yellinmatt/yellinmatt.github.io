@@ -1,0 +1,503 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lessons &mdash; Dealcraft</title>
+<meta name="description" content="Every Dealcraft lesson, one place. The six-lane ladder, foundations first, filtered by lane and searchable. Your reading ledger stays in your browser.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- Dealcraft LESSONS INDEX · DC-09 infra · Lora + Terracotta · lives at /dealcraft/lessons/ -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17;
+  --live:#7d2c22; --soon:#8c8272;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+  --dL:0.50; --dC:0.09;
+  --shadow-sm:0 1px 3px rgba(20,15,8,.06), 0 10px 24px -14px rgba(20,15,8,.26);
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19; --plate:#241f17;
+  --live:#d6775f; --soon:#9a8f7e; --dL:0.72; --dC:0.085;
+}}
+/* per-lane accents (oklch, light+dark via --dL/--dC) */
+.lane-a{--dc:oklch(var(--dL) var(--dC) 255)} /* Doctrine — blue */
+.lane-b{--dc:oklch(var(--dL) var(--dC) 150)} /* Accounting & finance — green */
+.lane-c{--dc:oklch(var(--dL) var(--dC) 195)} /* Excel & modeling — teal */
+.lane-d{--dc:oklch(var(--dL) var(--dC) 70)}  /* Word & PPT craft — amber */
+.lane-e{--dc:oklch(var(--dL) calc(var(--dC) + .05) 32)} /* Doc-model bridge — terracotta (flagship) */
+.lane-f{--dc:oklch(var(--dL) var(--dC) 300)} /* Legal-tech & AI — violet */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+a{color:inherit}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--accent);color:#fff;font-family:var(--sans);font-size:12px;padding:10px 16px;border-radius:0 0 6px 0;text-decoration:none}
+.skip:focus{left:0}
+.inner{max-width:1040px;margin:0 auto;padding:0 28px}
+
+/* masthead */
+.site-head{max-width:1040px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px}
+.site-head a:hover{color:var(--accent)}
+.mast{padding:20px 0 0}
+.mast-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;border-bottom:2px solid var(--ink);padding-bottom:16px}
+.brand{font-family:var(--serif);font-weight:600;font-size:clamp(28px,4.2vw,42px);letter-spacing:-.02em;line-height:.9;text-decoration:none;color:var(--ink)}
+.mast-meta{font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:right;line-height:1.7}
+.nav{display:flex;gap:24px;padding:14px 0 0;flex-wrap:wrap;align-items:baseline}
+.nav a{font-family:var(--sans);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:3px;border-bottom:2px solid transparent}
+.nav a:hover{color:var(--ink)}.nav a.here{color:var(--ink);border-bottom-color:var(--accent)}
+.nav .soon{font-family:var(--sans);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);padding-bottom:3px}
+.nav .soon small{font-size:8.5px;letter-spacing:.12em;border:1px solid var(--rule-strong);border-radius:20px;padding:2px 6px;margin-left:5px;vertical-align:middle}
+
+/* page title */
+.ptitle{padding:38px 0 22px;border-bottom:2px solid var(--ink);margin-bottom:8px}
+.ptitle .k{font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.ptitle h1{font-family:var(--serif);font-weight:600;font-size:clamp(2.3rem,5vw,3.4rem);letter-spacing:-.025em;line-height:1;margin:12px 0 0}
+.ptitle .deck{font-family:var(--serif);font-style:italic;font-size:clamp(1.05rem,1.6vw,1.25rem);color:var(--muted);margin:14px 0 0;max-width:40em;line-height:1.5}
+
+/* pulse ledger */
+.pulse{display:flex;flex-wrap:wrap;gap:8px 26px;align-items:baseline;margin:18px 2px 26px;font-family:var(--sans);font-size:13px;color:var(--muted)}
+.pulse .stat b{font-family:var(--mono);font-size:16px;color:var(--accent-deep);font-variant-numeric:tabular-nums;margin-right:6px}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px}
+.search{flex:1;min-width:240px;padding:13px 16px;border:1px solid var(--rule);border-radius:8px;background:var(--card);font-family:var(--serif);font-size:15px;color:var(--ink)}
+.search:focus{outline:none;border-color:var(--accent)}.search::placeholder{color:var(--faint);font-style:italic}
+.pills{display:flex;flex-wrap:wrap;gap:7px}
+.pill{font-family:var(--sans);font-size:10.5px;letter-spacing:.05em;padding:8px 13px;border:1px solid var(--rule);border-radius:999px;cursor:pointer;background:transparent;color:var(--muted);font-weight:600}
+.pill:hover{color:var(--ink)}.pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pill .c{opacity:.72;font-variant-numeric:tabular-nums}
+.viewbar{display:flex;gap:8px;margin:0 0 30px}
+.viewbar button{font-family:var(--sans);font-size:10.5px;letter-spacing:.05em;padding:8px 15px;border:1px solid var(--rule);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer;font-weight:600}
+.viewbar button.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* index groups */
+.lanegroup{margin-bottom:34px}
+.lane-h{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--dc,var(--accent));padding-bottom:9px}
+.lane-h .code{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--dc);letter-spacing:.04em}
+.lane-h .nm{font-family:var(--serif);font-weight:600;font-size:1.32rem;letter-spacing:-.01em;color:var(--ink)}
+.lane-h .c{font-family:var(--sans);font-size:11px;letter-spacing:.06em;color:var(--muted);margin-left:auto}
+.lane-end{font-family:var(--serif);font-style:italic;font-size:.98rem;color:var(--muted);margin:9px 0 14px;line-height:1.5;max-width:56em}
+.lvl-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dc);font-weight:700;margin:18px 0 2px}
+.lvl-h .lock{color:var(--faint);font-weight:600;letter-spacing:.02em;text-transform:none;font-style:italic;font-family:var(--serif);font-size:12.5px}
+.idxrow{display:grid;grid-template-columns:78px 1fr auto;gap:16px;align-items:baseline;padding:12px 6px;border-bottom:1px solid var(--rule-soft);text-decoration:none;color:inherit}
+.idxrow.live:hover{background:var(--card)}
+.idxrow .n{font-family:var(--mono);font-size:11px;color:var(--dc);white-space:nowrap}
+.idxrow .t{font-family:var(--serif);font-size:1.1rem;line-height:1.35}
+.idxrow.up .t{color:var(--muted)}
+.idxrow .s{font-family:var(--sans);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.tag{padding:3px 9px;border-radius:20px;border:1px solid currentColor}
+.tag.today{color:var(--accent)}
+.tag.read{color:var(--live)}
+.tag.up{color:var(--soon);border-color:var(--rule-strong);font-weight:600}
+.cap{font-family:var(--serif);font-style:italic;font-size:.92rem;color:var(--faint);padding:11px 6px 0;line-height:1.45;border-top:1px dashed var(--rule);margin-top:2px}
+.cap b{font-style:normal;font-weight:600;color:var(--muted)}
+
+/* gallery */
+.lgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px 20px}
+.lcard{display:flex;flex-direction:column;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--rule);border-top:3px solid var(--dc,var(--accent));border-radius:8px;padding:18px 18px 16px;transition:transform .25s var(--ease),border-color .18s}
+.lcard.live:hover{transform:translateY(-4px);border-color:var(--dc)}
+.lcard.up{opacity:.72}
+.lcard .lno{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--dc)}
+.lcard .ltag{font-family:var(--sans);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:9px}
+.lcard .ltt{font-family:var(--serif);font-weight:600;font-size:1.16rem;letter-spacing:-.01em;line-height:1.2;margin:5px 0 0;color:var(--ink)}
+.lcard .lst{margin-top:auto;padding-top:14px;font-family:var(--sans);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700}
+
+.empty{text-align:center;padding:50px 0;color:var(--muted);font-style:italic}
+footer{font-family:var(--sans);font-size:12.5px;color:var(--muted);border-top:1px solid var(--rule);margin-top:54px;padding:22px 0 44px;text-align:center}
+footer a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent)}
+@media(max-width:820px){.lgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.nav{gap:14px}.brand{font-size:26px}.lgrid{grid-template-columns:1fr}.idxrow{grid-template-columns:64px 1fr auto;gap:10px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="site-head"><a href="https://mattyellin.com/">mattyellin.com</a><span>Dealcraft</span></div>
+
+<header class="mast"><div class="inner">
+  <div class="mast-top">
+    <a class="brand" href="../index.html">Dealcraft</a>
+    <div class="mast-meta" id="mast-meta">Lessons</div>
+  </div>
+  <nav class="nav" aria-label="Primary">
+    <a href="../index.html">Today</a>
+    <a class="here" href="index.html">Lessons</a>
+    <a href="../encyclopedia.html">Encyclopedia</a>
+    <a href="../deals/">Deal Breakdowns</a>
+    <span class="soon">Toolkit<small>Soon</small></span>
+  </nav>
+</div></header>
+
+<main id="main"><section><div class="inner">
+  <div class="ptitle">
+    <div class="k">The Lessons</div>
+    <h1>Every lesson, one place</h1>
+    <p class="deck">One capability a day across six lanes, foundations first, levels that unlock only by capstone. Search the ladder, filter by lane, switch between index and gallery.</p>
+  </div>
+
+  <div class="pulse" id="pulse">
+    <span class="stat" id="pulse-count"></span>
+    <span class="stat" id="pulse-note" style="color:var(--muted)"></span>
+  </div>
+
+  <div class="controls">
+    <input class="search" id="search" type="search" placeholder="Search lesson titles..." aria-label="Search lessons">
+    <div class="pills" id="pills"></div>
+  </div>
+  <div class="viewbar" id="viewbar"><button data-v="index" class="on">Index</button><button data-v="gallery">Gallery</button></div>
+
+  <div id="results"></div>
+  <div class="empty" id="empty" style="display:none">No lessons match.</div>
+</div></section></main>
+
+<footer><div class="inner">
+  Dealcraft &middot; <a href="../index.html">Today</a> &middot; <a href="../encyclopedia.html">Encyclopedia</a> &middot; the ladder grows one lesson a day &middot; progress saves only in your browser.
+</div></footer>
+
+<script>
+"use strict";
+/* ------------------------------------------------------------------
+   The six lane ladders (verbatim from Career/Dealcraft/lessons/CURRICULUM.md,
+   2026-07-02). PUB + TODAY drive live status; everything else is Upcoming
+   until the daily task ships it (then it sets PUB[id]=href and, if it is the
+   current lesson, TODAY=id). Read state is browser-local under
+   dealcraft_lessons_read, the same key the cover's pulse counts.
+------------------------------------------------------------------ */
+var LANES=[
+ {code:"B",cls:"lane-b",name:"Accounting & finance",end:"The financial literacy of a banker-fluent lawyer: statements, valuation, deal math, sponsor economics.",levels:[
+   {lvl:0,name:"Accounting foundations",cap:"Statement-linkage memo on a real 10-K: trace one transaction through all three statements.",L:[
+     "Financial statements as a system: one transaction, three statements, one story",
+     "The income statement: revenue to net income, and what each line hides",
+     "The balance sheet: what the company owns, owes, and is worth on paper",
+     "The cash flow statement: the reconciliation that keeps everyone honest",
+     "Working capital and accrual timing: where cash and profit part ways",
+     "EBITDA and its discontents: the number everyone uses and no one defines the same",
+     "Debt and interest: instruments, seniority, and how leverage reads on the statements",
+     "Equity accounts and cap table math: shares, options, and fully diluted counts",
+     "Footnotes and the audit: where the bodies are buried and what an opinion means",
+     "Reading a full 10-K: a guided pass through a real filing, cover to cover"]},
+   {lvl:1,name:"Finance core",cap:"Written valuation walkthrough of a real public company from its filings.",L:[
+     "Time value of money: discounting as the price of waiting",
+     "Risk and return: what CAPM claims and what betas actually measure",
+     "Cost of capital: building a WACC that survives scrutiny",
+     "Free cash flow: from accounting earnings to cash the owners can take",
+     "Growth and reinvestment: the return-on-capital engine behind every forecast",
+     "Terminal value: where most of the value hides and most of the errors live",
+     "The DCF assembled: intrinsic valuation end to end",
+     "Relative valuation: multiples, comparables, and their honest limits",
+     "Enterprise value vs. equity value: the bridge and its classic traps",
+     "Price vs. value: market efficiency and why the gap is the lawyer's concern too"]},
+   {lvl:2,name:"Deal finance",cap:"Paper LBO plus accretion/dilution memo on a real announced deal.",L:[
+     "LBO math from first principles: the paper LBO in your head",
+     "Sources and uses: how a deal's funding actually assembles",
+     "The capital stack: instruments, pricing, and priority from revolver to common",
+     "Credit metrics and covenant math: leverage, coverage, and the ratios lenders live by",
+     "Merger consideration and accretion/dilution: the buyer's EPS arithmetic",
+     "Synergies: how they are valued, and how much of that is fiction",
+     "Purchase accounting: goodwill, step-ups, and why the balance sheet changes shape",
+     "Fairness opinion anatomy: what the banker's book actually says"]},
+   {lvl:3,name:"Sponsor economics",cap:"Tiered distribution waterfall worked by hand, with memo.",L:[
+     "Fund structures: GP, LP, management company, and where the money flows",
+     "Waterfalls and carry: the distribution math that pays everyone",
+     "Incentive analysis: what GP/LP economics do to deal behavior",
+     "Portfolio company math: roll-ups, multiple arbitrage, and platform logic",
+     "Recaps and dividends: getting money out before exit",
+     "Returns attribution: separating leverage, growth, and multiple in an IRR"]}]},
+ {code:"C",cls:"lane-c",name:"Excel & modeling technique",end:"Banker-grade Excel: fast, structured, audit-clean. Lessons teach; toolkit cards prove.",levels:[
+   {lvl:0,name:"Fluency and discipline",cap:"Toolkit E1 + E2 proofs: timed mouse-free rebuild; rubric-passing model sheet.",L:[
+     "Setup and keyboard discipline: the no-mouse contract and your settings baseline",
+     "Navigation and selection: moving through a workbook at speed",
+     "Formula fundamentals: anchoring, precedence, and reading formulas aloud",
+     "Named ranges and structure: workbooks that explain themselves",
+     "Banker formatting conventions: color codes, number formats, and why they exist",
+     "Error checks and integrity flags: the self-auditing sheet",
+     "Page setup and print/PDF discipline: output that survives the printer",
+     "Speed drills: the timed rebuild as a training instrument"]},
+   {lvl:1,name:"The three-statement engine",cap:"Toolkit E3 proof: working three-statement model from a real 10-K.",L:[
+     "Model architecture: inputs, engine, outputs, and the one-direction flow rule",
+     "Revenue builds: drivers, segments, and defensible assumptions",
+     "Cost builds and margins: fixed, variable, and operating leverage",
+     "The working capital schedule: days metrics driving the balance sheet",
+     "PP&E and depreciation: the capex schedule and its long tail",
+     "The debt schedule: revolver logic and the cash sweep",
+     "Linking the three statements: the wiring diagram",
+     "Circularity and switches: interest on average debt without breaking the model",
+     "Balance checks: proving the model closes",
+     "Scenario toggles: cases without copy-paste"]},
+   {lvl:2,name:"Valuation and deal models",cap:"Toolkit E6 + E7 proofs: full LBO; merger model on a real announced deal.",L:[
+     "The DCF build: from the engine to enterprise value",
+     "The WACC build: inputs sourced, not asserted",
+     "Trading comps: spreading a real sector from filings",
+     "Transaction comps: precedent deals and their adjustments",
+     "The merger model: consideration mix to pro forma EPS",
+     "The LBO build: sources and uses to returns",
+     "Sensitivities and data tables: showing the answer's shape",
+     "Charting model output: exhibits a partner would show a client"]},
+   {lvl:3,name:"The reviewer's level",cap:"Toolkit E9 + E10 proofs: waterfall model; audit memo on a third-party model.",L:[
+     "The covenant compliance model: credit-agreement math in a workbook",
+     "The fund waterfall build: tiered distributions, tested against hand math",
+     "Model audit technique: interrogating someone else's model fast",
+     "Modern Excel: dynamic arrays, LAMBDA, and when to use them",
+     "Automation basics: recorded macros and simple VBA for repeated tasks",
+     "The model review workflow: how a reviewer documents and communicates findings"]}]},
+ {code:"A",cls:"lane-a",name:"Doctrine & market practice",end:"The market-norm and precedent literacy of seasoned deal counsel: reads any document fast, knows what is market.",levels:[
+   {lvl:0,name:"Reading the deal record",cap:"Annotated architecture map of a real public merger agreement pulled from EDGAR.",L:[
+     "How to read a merger agreement fast: the architecture map every deal lawyer carries",
+     "The deal timeline in documents: what gets signed when, from NDA to closing set",
+     "Public vs. private deal technology, side by side",
+     "The disclosure schedule: what it is, who builds it, why deals live and die there",
+     "What “market” means: deal points studies, the Buyer Power Ratio, how norms get measured",
+     "EDGAR fluency: where every deal document lives and how to pull it in five minutes",
+     "The working group: who drafts what, who marks what, and the rhythm of turns",
+     "LOI and term sheet anatomy: binding vs. non-binding, and what exclusivity buys"]},
+   {lvl:1,name:"The negotiated core",cap:"Issue-spotting memo: a rep article marked against a market checklist.",L:[
+     "Reps as risk allocation in the wild: qualifier patterns across real agreements",
+     "Double materiality and the materiality scrape: finding them in live deals",
+     "MAE clauses across recent deals: carve-out drift and what survived litigation",
+     "Interim operating covenants: the ordinary-course fight and its pandemic-era lessons",
+     "Closing conditions vs. termination rights: the distinction that decides walk-away fights",
+     "Indemnification architecture in private deals: baskets, caps, escrows, survival",
+     "Sandbagging: doctrine, drafting, and what the market data shows",
+     "Purchase price adjustments in practice: working capital true-ups and how they get gamed",
+     "Earn-outs: why they litigate, and the drafting that prevents it",
+     "Fiduciary-out packages in recent public deals: no-shops, match rights, fee ladders"]},
+   {lvl:2,name:"Precedent and process mastery",cap:"Full mock issues list on a real announced deal, built from public filings only.",L:[
+     "Deal protection economics: termination-fee sizing and the current market band",
+     "Two-step deals and §251(h): tender-offer mechanics in the documents",
+     "Appraisal in practice: who seeks it, what it yields, how deals plan for it",
+     "Regulatory conditionality: HSR and CFIUS timelines read from real merger agreements",
+     "Financing conditionality and the certain-funds architecture of commitment papers",
+     "Auction process: process letters, staple financing, and the banker's choreography",
+     "Cross-border overlays: what changes when the target or buyer is offshore",
+     "Remedies fights on the public record: specific performance and damages theories"]},
+   {lvl:3,name:"Counsel judgment",cap:"A publishable Deal Breakdown authored end to end (public record only).",L:[
+     "Materiality calls: how partners decide what to flag, escalate, or let go",
+     "Negotiation sequencing: which points to lead with, trade, and hold",
+     "Board process and the record: minutes, decks, and fiduciary hygiene",
+     "Opinion practice: what legal opinions actually cover and the negotiation around them",
+     "Deal postmortems from litigation records: what the documents reveal in hindsight",
+     "Writing the client alert: turning a market shift into a firm-quality memo"]}]},
+ {code:"E",cls:"lane-e",name:"The doc-model bridge",end:"Dealcraft's most original lane: reads every negotiated term against the number it moves.",levels:[
+   {lvl:0,name:"The thesis, term by term",cap:"Annotate a real purchase price section with every number it moves and where each lives in the model.",L:[
+     "Why documents price: every clause allocates value, risk, or time; the bridge thesis",
+     "The purchase price clause vs. the model: where the headline number actually comes from",
+     "The working capital adjustment vs. the balance sheet: the true-up as applied accounting",
+     "EBITDA definitions in credit documents vs. the accountant's EBITDA: the add-back game",
+     "The cap table vs. the charter: preferences and conversion read as arithmetic",
+     "Reading a fairness opinion against its own DCF: assumptions as negotiating positions"]},
+   {lvl:1,name:"Negotiated terms, priced",cap:"Memo pricing one negotiated term from a real deal, public filings only.",L:[
+     "The earn-out clause vs. the projection model: contingent price as a forecast dispute",
+     "Escrow and indemnity sizing vs. quantified risk: why 10% and 18 months",
+     "Exchange ratios and collars: who bears market risk between signing and closing",
+     "Leverage covenants vs. the credit model: headroom as a negotiated quantity",
+     "MAE and quantitative materiality: what the cases say the numbers must show",
+     "Option and RSU treatment: the equity-award clause as a spreadsheet",
+     "Dividends and recaps vs. distributable reserves: what the documents let out",
+     "Anti-dilution formulas worked: weighted average vs. ratchet with real numbers"]},
+   {lvl:2,name:"Full-document reads",cap:"Covenant memo + compliance model pair on a real credit agreement (seeds C3).",L:[
+     "The covenant compliance read: a real credit agreement walked into its model",
+     "Merger consideration mechanics end to end: proration, elections, the payment spreadsheet",
+     "Waterfall provisions vs. the distribution model: the LPA's math, tested",
+     "Purchase accounting in the agreement: basis, step-ups, and 338(h)(10) logic",
+     "Adjustment disputes: what purchase price arbitrations reveal about drafting",
+     "Reps that carry numbers: the financial statements rep and no-undisclosed-liabilities",
+     "Solvency and fraudulent transfer math: the opinion behind the LBO",
+     "Commitment papers vs. the funding model: certain funds as arithmetic"]},
+   {lvl:3,name:"The bridge as judgment",cap:"The doc-model bridge portfolio (= cross-track capstone C3).",L:[
+     "Negotiating with the model in the room: live term-pricing during a markup",
+     "Term sheet to model and back: translation in both directions",
+     "The quality-of-earnings read: what the QofE report changes in the documents",
+     "Structuring alternatives priced: the same deal three ways, after tax",
+     "The GC dashboard: the numbers a general counsel actually watches and why",
+     "Doc-model postmortems: deals where the drafting and the math diverged, expensively"]}]},
+ {code:"D",cls:"lane-d",name:"Word & PPT craft",end:"Documents that never break and decks that argue; the office-craft standard in both tools.",levels:[
+   {lvl:0,name:"Foundations in both tools",cap:"Toolkit W1 + P1 proofs: auto-numbered agreement shell; storyline one-pager.",L:[
+     "Styles architecture: why manual formatting is the original sin of legal Word",
+     "The pyramid principle: governing thought first, groupings MECE",
+     "Multilevel numbering: the agreement skeleton that survives every edit",
+     "Storylining and action titles: the deck reads from its titles alone",
+     "Document sanitation: purging manual formatting from an inherited document",
+     "Slide layout fundamentals: alignment, whitespace, and the grid",
+     "House template anatomy: what lives in a firm's normal.dotm and masters",
+     "The one-pager: a single page that carries a complete argument"]},
+   {lvl:1,name:"Working documents and working decks",cap:"Toolkit W2 + W3 + P2 + P3 proofs.",L:[
+     "Cross-references and fields: text that updates itself",
+     "Defined-terms hygiene: every term defined once, used exactly",
+     "TOC and TOA: generated, never typed",
+     "Redline mechanics: compare, combine, and clean without casualties",
+     "Reading a markup like a partner: what the redline is really telling you",
+     "Horizontal logic: the title-only test across a full deck",
+     "Slide craft to the office standard: type, alignment, and restraint",
+     "Chart choice: matching the chart to the claim",
+     "Agreement shell practice: a 40-page shell that survives heavy editing",
+     "The deck rebuild: taking an ugly deck to the standard"]},
+   {lvl:2,name:"Production grade",cap:"Toolkit W4 + W5 + P4 + P5 proofs.",L:[
+     "Full agreement anatomy in Word: building an SPA shell article by article",
+     "Exhibits and schedules: wiring the annexes so nothing orphans",
+     "Quick Parts and building blocks: the personal clause library",
+     "Macros for document work: three automations that pay rent daily",
+     "Exhibits that argue: turning model output into evidence",
+     "Tables as evidence: layout, shading, and the readable dense table",
+     "The deal deck: situation, structure, terms, risks, ask in twelve slides",
+     "Version workflow at scale: managing turns across a working group"]},
+   {lvl:3,name:"Closing range",cap:"Toolkit W6 + P6 proofs: mock closing set; paired memo + deck.",L:[
+     "Signature pages: counterparts, blocks, and the execution-version discipline",
+     "The closing set: assembly, indexing, and the binder that answers every question",
+     "Memo to deck: converting a board memo into an IC deck without losing the argument",
+     "Deck to memo: the reverse conversion and when each form wins",
+     "Board-paper craft: what directors actually read and how to write for it",
+     "The house style guide: writing your own standard down (the teach-back)"]}]},
+ {code:"F",cls:"lane-f",name:"Legal-tech & AI",end:"The 2028 associate's edge: AI-assisted practice with verification discipline, plus the builder's habit.",levels:[
+   {lvl:0,name:"AI practice discipline",cap:"Toolkit T1 proof: documented AI workflow with verification gates.",L:[
+     "AI-assisted practice principles: capability, confidentiality, and the verification contract",
+     "Prompting for legal work: context, constraints, and asking for checkable output",
+     "The drafting workflow with gates: where AI drafts and where hands verify",
+     "Hallucination and citation checking: the failure modes and the catch protocol",
+     "The tool landscape: what exists, what firms deploy, what it costs",
+     "The personal knowledge system: notes, prompts, and precedents that compound"]},
+   {lvl:1,name:"Automation and diligence tech",cap:"Toolkit T2 + T3 proofs: automated template; diligence system for a mock deal.",L:[
+     "Document automation concepts: templates, variables, and the assembly mindset",
+     "Fields and content controls: the self-filling agreement",
+     "Template systems: from one automated document to a house system",
+     "Data rooms: structure, permissions, and index discipline",
+     "Document review platforms: what the tools do and where they fail",
+     "The diligence tracker: requests, status, and findings as a system",
+     "Extraction workflows: pulling structured data out of document sets",
+     "Workflow mapping: drawing the process before automating it"]},
+   {lvl:2,name:"The builder's level",cap:"Toolkit T4 + T5 proofs: verified AI-assisted model audit; one shipped tool.",L:[
+     "AI × Excel: formula generation and explanation with verification",
+     "AI model audit: using AI to interrogate a workbook, checked by hand",
+     "Data extraction pipelines: filings to spreadsheet, reliably",
+     "Building small tools I: spec, scope, and the single-file pattern",
+     "Building small tools II: ship, test, and iterate (the §83(b) tracker pattern)",
+     "Dashboards: status surfaces that answer questions before they are asked",
+     "Evaluation and guardrails: knowing when the tool is wrong",
+     "Professional responsibility for the toolbuilder: competence, supervision, disclosure"]},
+   {lvl:3,name:"The modern legal function",cap:"Toolkit T6 proof: closing-workflow system design memo.",L:[
+     "Closing tech: e-signature stack, mechanics, and enforceability basics",
+     "Matter systems: intake, status, and the single source of truth",
+     "Knowledge management design: precedents that get found and reused",
+     "Legal ops metrics: measuring a legal function without gaming it",
+     "The lean legal function blueprint: people, systems, and outside counsel leverage",
+     "Build vs. buy: the judgment call, with a real evaluation framework"]}]}
+];
+
+/* live status wiring — the daily task edits THESE two as lessons ship */
+var TODAY="B0.1";                                                  // the current lesson
+var PUB={ "B0.1":"001-financial-statements-as-a-system.html" };    // id -> published href (canonical /lessons/ URL)
+
+/* flatten */
+var ALL=[];
+LANES.forEach(function(Ln){Ln.levels.forEach(function(Lv){Lv.L.forEach(function(t,i){
+  var id=Ln.code+Lv.lvl+"."+(i+1);
+  ALL.push({id:id,lane:Ln.code,cls:Ln.cls,laneName:Ln.name,lvl:Lv.lvl,pos:i+1,t:t});
+});});});
+
+/* read ledger (browser-local; same key the cover reads) */
+function readSet(){try{var o=JSON.parse(localStorage.getItem("dealcraft_lessons_read")||"{}");return o;}catch(e){return {};}}
+var READ=readSet();
+function isRead(id){return !!READ[id];}
+function isLive(id){return !!PUB[id];}
+function statusOf(id){if(isRead(id))return "read";if(id===TODAY)return "today";if(isLive(id))return "live";return "up";}
+
+/* counts */
+var nTotal=ALL.length;
+var nLive=ALL.filter(function(l){return isLive(l.id);}).length;
+var nRead=ALL.filter(function(l){return isRead(l.id);}).length;
+document.getElementById("mast-meta").innerHTML="The Lessons<br>"+nTotal+" on the ladder";
+(function(){
+  var pc=document.getElementById("pulse-count"), pn=document.getElementById("pulse-note");
+  if(nRead>0){pc.innerHTML='<b>'+nRead+'</b>read';pn.textContent=nLive+" live · "+nTotal+" mapped across six lanes · your ledger is private to this browser.";}
+  else{pc.innerHTML='<b>'+nLive+'</b>live now';pn.textContent="The ladder maps "+nTotal+" lessons across six lanes; one publishes a day. Your reading ledger will fill here, private to this browser.";}
+})();
+
+/* pills */
+var laneOrder=["B","C","A","E","D","F"];
+var laneMeta={}; LANES.forEach(function(L){laneMeta[L.code]=L;});
+var pills='<button class="pill on" data-lane="">All <span class="c">'+nTotal+'</span></button>';
+laneOrder.forEach(function(c){var n=ALL.filter(function(l){return l.lane===c;}).length;
+  pills+='<button class="pill '+laneMeta[c].cls+'" data-lane="'+c+'">'+c+' &middot; '+laneMeta[c].name.split(" ")[0]+' <span class="c">'+n+'</span></button>';});
+document.getElementById("pills").innerHTML=pills;
+
+var curLane="", curQ="", curView="index";
+
+function statusTag(id){
+  var s=statusOf(id);
+  if(s==="read")return '<span class="s tag read">&#10003; Read</span>';
+  if(s==="today")return '<span class="s tag today">Today</span>';
+  if(s==="live")return '<span class="s tag read">Live</span>';
+  return '<span class="s tag up">Upcoming</span>';
+}
+function href(id){return isLive(id)?PUB[id]:null;}
+
+function idxRow(l){
+  var h=href(l.id), live=!!h;
+  var open=live?'<a class="idxrow live '+l.cls+'" href="'+h+'">':'<div class="idxrow up '+l.cls+'">';
+  var close=live?'</a>':'</div>';
+  return open+'<span class="n">'+l.id+'</span><span class="t">'+l.t+'</span>'+statusTag(l.id)+close;
+}
+function card(l){
+  var h=href(l.id), live=!!h;
+  var open=live?'<a class="lcard live '+l.cls+'" href="'+h+'">':'<div class="lcard up '+l.cls+'">';
+  var close=live?'</a>':'</div>';
+  var st=statusOf(l.id);
+  var stTxt=st==="today"?'<span style="color:var(--accent)">Today</span>':st==="read"?'<span style="color:var(--live)">&#10003; Read</span>':st==="live"?'<span style="color:var(--live)">Live</span>':'<span style="color:var(--soon)">Upcoming</span>';
+  return open+'<span class="lno">'+l.id+'</span><span class="ltag">Lane '+l.lane+' &middot; Level '+l.lvl+'</span><span class="ltt">'+l.t+'</span><span class="lst">'+stTxt+'</span>'+close;
+}
+
+function matches(l){
+  var okLane=!curLane||l.lane===curLane;
+  var okQ=!curQ||(l.t+" "+l.laneName+" "+l.id).toLowerCase().indexOf(curQ)>-1;
+  return okLane&&okQ;
+}
+
+function render(){
+  var list=ALL.filter(matches);
+  var box=document.getElementById("results"), empty=document.getElementById("empty");
+  if(!list.length){box.innerHTML="";empty.style.display="block";return;}
+  empty.style.display="none";
+
+  if(curView==="gallery"){
+    box.innerHTML='<div class="lgrid">'+list.map(card).join("")+'</div>';
+    return;
+  }
+  var html="";
+  laneOrder.forEach(function(c){
+    if(curLane&&c!==curLane)return;
+    var Ln=laneMeta[c];
+    var laneList=list.filter(function(l){return l.lane===c;});
+    if(!laneList.length)return;
+    html+='<div class="lanegroup '+Ln.cls+'"><div class="lane-h"><span class="code">Lane '+c+'</span><span class="nm">'+Ln.name+'</span><span class="c">'+laneList.length+' lesson'+(laneList.length===1?"":"s")+'</span></div>';
+    html+='<p class="lane-end">'+Ln.end+'</p>';
+    Ln.levels.forEach(function(Lv){
+      var lv=laneList.filter(function(l){return l.lvl===Lv.lvl;});
+      if(!lv.length)return;
+      var anyLive=lv.some(function(l){return isLive(l.id);});
+      var lockNote = (Lv.lvl>0 && !anyLive) ? '<span class="lock">unlocks when the Level '+(Lv.lvl-1)+' capstone passes</span>' : '';
+      html+='<div class="lvl-h">Level '+Lv.lvl+' &middot; '+Lv.name+' '+lockNote+'</div>';
+      html+=lv.map(idxRow).join("");
+      html+='<div class="cap"><b>Capstone '+c+'-'+Lv.lvl+':</b> '+Lv.cap+'</div>';
+    });
+    html+='</div>';
+  });
+  box.innerHTML=html;
+}
+
+document.getElementById("pills").addEventListener("click",function(e){var b=e.target.closest(".pill");if(!b)return;curLane=b.getAttribute("data-lane");[].slice.call(this.children).forEach(function(p){p.classList.toggle("on",p===b);});render();});
+document.getElementById("search").addEventListener("input",function(e){curQ=e.target.value.trim().toLowerCase();render();});
+document.getElementById("viewbar").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;curView=b.getAttribute("data-v");[].slice.call(this.children).forEach(function(p){p.classList.toggle("on",p===b);});render();});
+render();
+</script>
+</body>
+</html>
