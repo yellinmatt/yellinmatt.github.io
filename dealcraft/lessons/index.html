@@ -101,6 +101,12 @@ a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(-
 .tag.today{color:var(--accent)}
 .tag.read{color:var(--live)}
 .tag.up{color:var(--soon);border-color:var(--rule-strong);font-weight:600}
+.tag.live{color:var(--live)}
+.lbadge{display:inline-block;font-family:var(--sans);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dc,var(--muted));border:1px solid currentColor;border-radius:20px;padding:2px 7px;margin-left:9px;white-space:nowrap;vertical-align:middle;font-weight:700;opacity:.9}
+.chrono{margin-top:2px}
+.idxrow .t .ttl{font-family:var(--serif);font-size:1.08rem;line-height:1.3;color:inherit}
+.idxrow .t .gl{display:block;font-family:var(--serif);font-style:italic;font-size:.85rem;color:var(--faint);line-height:1.4;margin-top:3px}
+.lcard .lgl{font-family:var(--serif);font-style:italic;font-size:.9rem;color:var(--faint);line-height:1.45;margin-top:6px}
 .cap{font-family:var(--serif);font-style:italic;font-size:.92rem;color:var(--faint);padding:11px 6px 0;line-height:1.45;border-top:1px dashed var(--rule);margin-top:2px}
 .cap b{font-style:normal;font-weight:600;color:var(--muted)}
 
@@ -143,7 +149,7 @@ footer a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--ac
   <div class="ptitle">
     <div class="k">The Lessons</div>
     <h1>Every lesson, one place</h1>
-    <p class="deck">One capability a day across six lanes, foundations first, levels that unlock only by capstone. Search the ladder, filter by lane, switch between index and gallery.</p>
+    <p class="deck">One capability a day across six lanes. The <b>shelf</b> holds what has published, newest lessons in order; the <b>roadmap</b> lays out the full six-lane ladder ahead, foundations first. Search and filter by lane in either.</p>
   </div>
 
   <div class="pulse" id="pulse">
@@ -155,7 +161,7 @@ footer a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--ac
     <input class="search" id="search" type="search" placeholder="Search lesson titles..." aria-label="Search lessons">
     <div class="pills" id="pills"></div>
   </div>
-  <div class="viewbar" id="viewbar"><button data-v="index" class="on">Index</button><button data-v="gallery">Gallery</button></div>
+  <div class="viewbar" id="viewbar" role="group" aria-label="View mode"><button data-v="shelf" class="on" aria-pressed="true">Shelf</button><button data-v="gallery" aria-pressed="false">Gallery</button><button data-v="roadmap" aria-pressed="false">Roadmap</button></div>
 
   <div id="results"></div>
   <div class="empty" id="empty" style="display:none">No lessons match.</div>
@@ -422,38 +428,70 @@ document.getElementById("mast-meta").innerHTML="The Lessons<br>"+nTotal+" on the
   else{pc.innerHTML='<b>'+nLive+'</b>live now';pn.textContent="The ladder maps "+nTotal+" lessons across six lanes; one publishes a day. Your reading ledger will fill here, private to this browser.";}
 })();
 
-/* pills */
-var laneOrder=["B","C","A","E","D","F"];
+/* display order = A–F (natural, in order); rotation = the ship order of the ladder */
+var laneOrder=["A","B","C","D","E","F"];
+var rotation=["B","C","A","E","D","F"];
+var laneShort={A:"Doctrine",B:"Accounting",C:"Excel",D:"Word & PPT",E:"Doc-model bridge",F:"Legal-tech & AI"};
 var laneMeta={}; LANES.forEach(function(L){laneMeta[L.code]=L;});
-var pills='<button class="pill on" data-lane="">All <span class="c">'+nTotal+'</span></button>';
+
+/* chronological ship order: round-robin the lanes in rotation, each lane in ladder
+   order. Matches the live numbering (B0.1 -> 001, C0.1 -> 002, A0.1 -> 003, ...). */
+(function(){
+  var byLane={}; rotation.forEach(function(c){byLane[c]=ALL.filter(function(l){return l.lane===c;});});
+  var idx={}, seqN=0; rotation.forEach(function(c){idx[c]=0;});
+  for(;;){ var any=false;
+    for(var i=0;i<rotation.length;i++){var c=rotation[i]; if(idx[c]<byLane[c].length){byLane[c][idx[c]].seq=++seqN; idx[c]++; any=true;}}
+    if(!any)break; }
+})();
+function shipNo(l){return String(l.seq).padStart(3,"0");}
+
+/* pills (lane filter), A–F order, correct short names */
+var pills='<button class="pill on" data-lane="" aria-pressed="true">All <span class="c">'+nTotal+'</span></button>';
 laneOrder.forEach(function(c){var n=ALL.filter(function(l){return l.lane===c;}).length;
-  pills+='<button class="pill '+laneMeta[c].cls+'" data-lane="'+c+'">'+c+' &middot; '+laneMeta[c].name.split(" ")[0]+' <span class="c">'+n+'</span></button>';});
+  pills+='<button class="pill '+laneMeta[c].cls+'" data-lane="'+c+'" aria-pressed="false">'+c+' &middot; '+laneShort[c]+' <span class="c">'+n+'</span></button>';});
 document.getElementById("pills").innerHTML=pills;
 
-var curLane="", curQ="", curView="index";
+function loadPref(k,d){try{return localStorage.getItem(k)||d;}catch(e){return d;}}
+function savePref(k,v){try{localStorage.setItem(k,v);}catch(e){}}
+var curLane=loadPref("dealcraft_lessons_lane",""), curQ="", curView=loadPref("dealcraft_lessons_view","shelf");
+var _vmap={chrono:"shelf",lane:"roadmap",index:"roadmap"}; if(_vmap[curView])curView=_vmap[curView]; // normalize older saved names
+if(["shelf","gallery","roadmap"].indexOf(curView)<0)curView="shelf";
 
 function statusTag(id){
   var s=statusOf(id);
   if(s==="read")return '<span class="s tag read">&#10003; Read</span>';
   if(s==="today")return '<span class="s tag today">Today</span>';
-  if(s==="live")return '<span class="s tag read">Live</span>';
+  if(s==="live")return '<span class="s tag live">Live</span>';
   return '<span class="s tag up">Upcoming</span>';
 }
 function href(id){return isLive(id)?PUB[id]:null;}
+function laneBadge(l){return '<span class="lbadge '+l.cls+'">Lane '+l.lane+' &middot; L'+l.lvl+'</span>';}
+/* split the long sentence-title into a short title + gloss on the first colon (Well-Versed style) */
+function split(l){var i=l.t.indexOf(": ");return i>0?{t:l.t.slice(0,i),g:l.t.slice(i+2)}:{t:l.t,g:""};}
+function titleCell(l,badge){var s=split(l);
+  return '<span class="t"><span class="ttl">'+s.t+'</span>'+(badge?laneBadge(l):"")+(s.g?'<span class="gl">'+s.g+'</span>':"")+'</span>';}
 
+/* shelf row (published, chronological): ship number · short title + gloss + lane badge · status */
+function shelfRow(l){
+  var h=href(l.id), live=!!h;
+  var open=live?'<a class="idxrow live '+l.cls+'" href="'+h+'">':'<div class="idxrow up '+l.cls+'">';
+  var close=live?'</a>':'</div>';
+  return open+'<span class="n">'+shipNo(l)+'</span>'+titleCell(l,true)+statusTag(l.id)+close;
+}
+/* roadmap row (grouped by lane): id · short title + gloss · status */
 function idxRow(l){
   var h=href(l.id), live=!!h;
   var open=live?'<a class="idxrow live '+l.cls+'" href="'+h+'">':'<div class="idxrow up '+l.cls+'">';
   var close=live?'</a>':'</div>';
-  return open+'<span class="n">'+l.id+'</span><span class="t">'+l.t+'</span>'+statusTag(l.id)+close;
+  return open+'<span class="n">'+l.id+'</span>'+titleCell(l,false)+statusTag(l.id)+close;
 }
 function card(l){
-  var h=href(l.id), live=!!h;
+  var h=href(l.id), live=!!h, s=split(l);
   var open=live?'<a class="lcard live '+l.cls+'" href="'+h+'">':'<div class="lcard up '+l.cls+'">';
   var close=live?'</a>':'</div>';
   var st=statusOf(l.id);
   var stTxt=st==="today"?'<span style="color:var(--accent)">Today</span>':st==="read"?'<span style="color:var(--live)">&#10003; Read</span>':st==="live"?'<span style="color:var(--live)">Live</span>':'<span style="color:var(--soon)">Upcoming</span>';
-  return open+'<span class="lno">'+l.id+'</span><span class="ltag">Lane '+l.lane+' &middot; Level '+l.lvl+'</span><span class="ltt">'+l.t+'</span><span class="lst">'+stTxt+'</span>'+close;
+  return open+'<span class="lno">'+shipNo(l)+' &middot; '+l.id+'</span><span class="ltag">Lane '+l.lane+' &middot; Level '+l.lvl+'</span><span class="ltt">'+s.t+'</span>'+(s.g?'<span class="lgl">'+s.g+'</span>':"")+'<span class="lst">'+stTxt+'</span>'+close;
 }
 
 function matches(l){
@@ -465,13 +503,17 @@ function matches(l){
 function render(){
   var list=ALL.filter(matches);
   var box=document.getElementById("results"), empty=document.getElementById("empty");
-  if(!list.length){box.innerHTML="";empty.style.display="block";return;}
-  empty.style.display="none";
 
-  if(curView==="gallery"){
-    box.innerHTML='<div class="lgrid">'+list.map(card).join("")+'</div>';
+  if(curView==="shelf"||curView==="gallery"){
+    var pub=list.filter(function(l){return isLive(l.id);}).sort(function(a,b){return a.seq-b.seq;});
+    if(!pub.length){box.innerHTML="";empty.textContent=(curLane||curQ)?"No published lessons match. Try the Roadmap for what's coming.":"No lessons published here yet. The shelf fills one a morning; see the Roadmap for the full ladder.";empty.style.display="block";return;}
+    empty.style.display="none";
+    box.innerHTML = curView==="gallery" ? '<div class="lgrid">'+pub.map(card).join("")+'</div>' : '<div class="chrono">'+pub.map(shelfRow).join("")+'</div>';
     return;
   }
+  /* roadmap: the full six-lane ladder */
+  if(!list.length){box.innerHTML="";empty.textContent="No lessons match.";empty.style.display="block";return;}
+  empty.style.display="none";
   var html="";
   laneOrder.forEach(function(c){
     if(curLane&&c!==curLane)return;
@@ -494,9 +536,15 @@ function render(){
   box.innerHTML=html;
 }
 
-document.getElementById("pills").addEventListener("click",function(e){var b=e.target.closest(".pill");if(!b)return;curLane=b.getAttribute("data-lane");[].slice.call(this.children).forEach(function(p){p.classList.toggle("on",p===b);});render();});
+document.getElementById("pills").addEventListener("click",function(e){var b=e.target.closest(".pill");if(!b)return;curLane=b.getAttribute("data-lane");savePref("dealcraft_lessons_lane",curLane);[].slice.call(this.children).forEach(function(p){var on=p===b;p.classList.toggle("on",on);p.setAttribute("aria-pressed",on?"true":"false");});render();});
 document.getElementById("search").addEventListener("input",function(e){curQ=e.target.value.trim().toLowerCase();render();});
-document.getElementById("viewbar").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;curView=b.getAttribute("data-v");[].slice.call(this.children).forEach(function(p){p.classList.toggle("on",p===b);});render();});
+document.getElementById("viewbar").addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;curView=b.getAttribute("data-v");savePref("dealcraft_lessons_view",curView);[].slice.call(this.children).forEach(function(p){var on=p===b;p.classList.toggle("on",on);p.setAttribute("aria-pressed",on?"true":"false");});render();});
+
+/* restore saved control states (lane + view) before first paint */
+(function(){
+  document.querySelectorAll("#pills .pill").forEach(function(p){var on=(p.getAttribute("data-lane")||"")===curLane;p.classList.toggle("on",on);p.setAttribute("aria-pressed",on?"true":"false");});
+  document.querySelectorAll("#viewbar button").forEach(function(p){var on=p.getAttribute("data-v")===curView;p.classList.toggle("on",on);p.setAttribute("aria-pressed",on?"true":"false");});
+})();
 render();
 </script>
 </body>
