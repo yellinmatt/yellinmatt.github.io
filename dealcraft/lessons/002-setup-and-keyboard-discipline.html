@@ -1,0 +1,351 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Setup and keyboard discipline &mdash; Dealcraft</title>
+<meta name="description" content="The no-mouse contract and your settings baseline. Lesson 002, Dealcraft's Excel &amp; modeling lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC daily · Lesson 002 · C0.1 · Lora + Terracotta · CRAFT lesson on the beat grammar (keystroke autopsy variant) -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17;
+  --chart-up:#9c3b2f; --chart-down:#c7a98f; --chart-total:#7d2c22;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19;
+  --chart-up:#d6775f; --chart-down:#5c4c3b; --chart-total:#e0917d;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+kbd{font-family:var(--mono);font-size:13px;background:var(--soft);border:1px solid var(--rule-strong);border-bottom-width:2px;border-radius:5px;padding:1px 7px;color:var(--ink);white-space:nowrap;}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+
+/* gloss */
+.gloss{font:inherit;background:none;border:0;padding:0;margin:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* worked-example table */
+figure.exhibit{margin:24px auto;max-width:700px;}
+table.trace{width:100%;border-collapse:collapse;font-size:15px;}
+table.trace caption{caption-side:top;text-align:left;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:0 0 10px;font-weight:600;}
+table.trace th,table.trace td{padding:11px 10px;border-bottom:.5px solid var(--rule-soft);text-align:left;vertical-align:top;}
+table.trace thead th{font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;border-bottom:.5px solid var(--rule-strong);}
+table.trace td.fig{font-family:var(--mono);font-size:13.5px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);}
+table.trace td.key{white-space:nowrap;}
+table.trace tr:last-child td{border-bottom:none;}
+td .hl{color:var(--accent);font-weight:700;}
+td .inp{color:var(--accent);font-weight:600;}
+tr.changed td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
+.blankcell{color:var(--faint);font-style:italic;}
+.legend{font-family:var(--sans);font-size:11px;color:var(--muted);margin:10px 0 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend .sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.legend .sw.i{background:var(--accent);}.legend .sw.c{box-shadow:inset 3px 0 0 var(--accent);border:.5px solid var(--rule-strong);}
+
+/* ---- active / output blocks (v4) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.check{background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:4px 22px;}
+.check .cl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;padding-top:14px;}
+.check details{padding:12px 0;}
+.check summary{cursor:pointer;font-size:16.5px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:baseline;}
+.check summary::-webkit-details-marker{display:none;}
+.check summary::after{content:"Recall";font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;flex:0 0 auto;}
+.check details[open] summary::after{content:"Hide";}
+.check .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.check .ans b{color:var(--ink);font-weight:600;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-wrap:wrap;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;text-align:left;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.completion .prompt{font-family:var(--sans);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px;text-align:center;}
+.completion details{margin-top:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:0 20px;}
+.completion summary{cursor:pointer;font-weight:600;font-size:15px;padding:13px 0;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.completion summary::-webkit-details-marker{display:none;}
+.completion summary::after{content:"Reveal solution";font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;flex:0 0 auto;}
+.completion details[open] summary::after{content:"Hide";}
+.completion .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);padding:0 0 14px;}
+.completion .ans code{font-family:var(--mono);font-size:14px;background:var(--soft);padding:1px 6px;border-radius:4px;}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+.keepcard kbd{font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+
+/* practice */
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+.practice kbd{font-family:var(--mono);font-size:12.5px;background:var(--soft);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+
+/* read toggle */
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+
+/* endmatter + rail */
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane C</span></div>
+
+<div class="folio">
+
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
+    <details><summary>From Lesson 001: when a company records depreciation, why can a non-cash charge still <em>raise</em> cash?</summary><p class="ans">Because it is tax-deductible. The paper charge cuts taxable income, so it shields tax; cash saved = charge &times; tax rate. Today we leave the numbers and build the instrument you will trace them in.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane C &middot; Excel &amp; Modeling</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 002</div>
+  <h1>Setup and keyboard discipline</h1>
+  <p class="deck">The no-mouse contract, and the settings baseline that makes every workbook behave the same.</p>
+  <div class="meta"><b>6 min read</b> &middot; predict &middot; keystroke autopsy &middot; your turn &middot; practice &asymp; 10 min in a scratch workbook</div>
+  <div class="rule"></div>
+  <p class="skip">Already mouse-free and <kbd>F4</kbd>-fluent? <a href="#case">Skip to the keystroke autopsy &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">Two analysts rebuild the same schedule from scratch. One is the faster typist but reaches for the mouse to move and select. The other types slower but never touches the mouse. Who finishes first?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">The faster typist</button><button class="popt" type="button" aria-pressed="false">The mouse-free analyst</button><button class="popt" type="button" aria-pressed="false">A wash</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first &mdash; then read on. The answer says something about where the time in modeling actually goes, and it is not where most people think.</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">Before you build a single model you make one decision that shapes every hour after it: whether your hand lives on the keyboard or drifts to the mouse. It sounds like a preference. It is the difference between an analyst who can rebuild a schedule under a partner's eye at 11 p.m. and one who cannot. The keyboard is not a party trick for the fast-fingered; it is the discipline that keeps your work <em>accurate</em>, and speed is the byproduct.</p>
+
+    <p>Here is why the mouse costs you, and it is not the seconds. Modeling time is dominated by <b>navigation and selection</b>, not typing: jumping to the bottom of a column, grabbing the range you want, stepping into a cell to edit it. Every time you reach for the mouse you break eye contact with the numbers, hunt for a target, and risk selecting one cell off. The keyboard keeps your eyes on the model and your selections exact. That is the whole case: fewer round-trips, fewer mis-clicks, an unbroken line of attention.</p>
+
+    <div class="beat">The contract</div>
+    <p>The no-mouse contract is short. To <em>move</em>, you jump by data region, not by scrolling: <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> lands you on the last filled cell of a column, however many thousand rows down, in one press. To <em>select</em>, you add <kbd>Shift</kbd>: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> grabs everything from here to that edge. To <em>edit in place</em>, <kbd>F2</kbd> drops you into the cell without a double-click. To <em>lock a reference</em> while you write a formula, <kbd>F4</kbd> stamps the dollar signs for you. And to reach any ribbon command without the mouse, tap <kbd>Alt</kbd> and Excel paints a letter on every button &mdash; the <span class="gloss" tabindex="0">KeyTips<span class="gloss-body"><span class="gloss-kind">Term of art</span>Press Alt and Excel overlays an access-key letter on each ribbon tab and command. Type the letters in sequence to fire the command &mdash; e.g. Alt, H, then the fill-color key &mdash; entirely from the keyboard.</span></span> system that makes the whole ribbon keyboard-drivable.</p>
+
+    <p class="pull">The win is not fast fingers. It is never leaving the keyboard, so your eyes never leave the model.</p>
+  </div>
+
+  <div class="lblock check"><div class="cl">Check yourself</div>
+    <details><summary>You are mid-formula and need one reference to stay put when you copy it across. Which single key does it &mdash; and what does pressing it repeatedly do?</summary><p class="ans"><b>F4.</b> With the cursor on a reference while editing, F4 stamps it absolute (<b>$A$1</b>), and pressing it again <em>cycles</em> the lock: <b>$A$1 &rarr; A$1 &rarr; $A1 &rarr; A1</b> (all-locked, row-locked, column-locked, free). It is the highest-yield keystroke in modeling because mixed references are what make one formula copy correctly across a whole grid.</p></details>
+  </div>
+
+  <div class="body">
+    <div class="beat" id="case">Watch the mouse habit, keystroke by keystroke</div>
+    <p>Take the ordinary moves you make a hundred times a day and put the mouse way beside the contract. The point is not to memorize a list &mdash; it is to feel how much scrolling, dragging, and hunting the keyboard simply deletes:</p>
+  </div>
+
+  <figure class="exhibit">
+    <table class="trace">
+      <caption>The same five moves, mouse vs. the no-mouse contract</caption>
+      <thead><tr><th>What you need</th><th>The mouse habit</th><th>The contract</th></tr></thead>
+      <tbody>
+        <tr class="changed"><td>Reach the bottom of a 5,000-row column</td><td>Scroll, scroll, overshoot, scroll back</td><td class="key"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd></td></tr>
+        <tr class="changed"><td>Select that whole column of data</td><td>Click, drag past the screen fold, hope</td><td class="key"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd></td></tr>
+        <tr class="changed"><td>Edit a cell without retyping it</td><td>Double-click, then aim the caret</td><td class="key"><kbd>F2</kbd></td></tr>
+        <tr class="changed"><td>Lock a reference to <span class="hl">$A$1</span></td><td>Type four dollar signs by hand</td><td class="key"><kbd>F4</kbd></td></tr>
+        <tr class="changed"><td>Paste only the values, not the formatting</td><td>Right-click &rarr; hunt the paste menu</td><td class="key"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd></td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span><span class="sw i"></span>the reference you lock</span><span><span class="sw c"></span>a move the keyboard replaces</span></div>
+  </figure>
+
+  <div class="body">
+    <div class="beat">The settings baseline</div>
+    <p>Discipline is not only your hands; it is making every workbook <em>start</em> from a known state so nothing surprises you later. Three settings pay for themselves immediately. Know your <span class="gloss" tabindex="0">calculation mode<span class="gloss-body"><span class="gloss-kind">Setting</span>Formulas &gt; Calculation Options. Automatic recalculates on every change; Manual holds until you press F9. Large models run Manual so a single edit does not freeze the sheet &mdash; but a stale Manual model shows old numbers, so know which mode you are in.</span></span>: automatic recalculates on every edit, manual waits for <kbd>F9</kbd>, and a model left on the wrong one either crawls or lies. Keep <kbd>Ctrl</kbd>+<kbd>`</kbd> (the grave accent) in your fingers &mdash; it flips the sheet between showing values and showing every formula, the fastest audit view there is. And freeze the header row (View &rarr; Freeze Panes) so labels never scroll away from the numbers they name. This is the spirit the <span class="gloss" tabindex="0">FAST standard<span class="gloss-body"><span class="gloss-kind">Reference</span>A public, Creative-Commons financial-modelling standard: Flexible, Appropriate, Structured, Transparent. Its through-line is that a model must be legible to someone who did not build it &mdash; the same reason keyboard discipline and a known baseline matter.</span></span> is built on: a model has to be legible and predictable to someone who did not build it, and that begins with you.</p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="0">
+    <div class="ql">Check yourself &middot; run the mechanic</div>
+    <p class="q">You are on the first cell of a column and want to select every cell down to the last row of contiguous data &mdash; in one motion. You press:</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="Ctrl adds the jump-to-edge, Shift adds the selection. Together they extend the selection all the way to the last filled cell in one press &mdash; the workhorse move for grabbing a whole column of data.">Ctrl + Shift + &darr;</button>
+      <button class="opt" type="button" data-fb="That jumps your cursor to the bottom edge, but it selects nothing &mdash; it only moves. Add Shift to bring the selection with you. This is the classic navigate-vs-select mix-up.">Ctrl + &darr;</button>
+      <button class="opt" type="button" data-fb="Shift extends the selection, but without Ctrl it moves only one row per press &mdash; you would hold it 5,000 times. Ctrl is what makes it jump to the data edge.">Shift + &darr;</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> "Keyboard shortcuts are about typing faster." So people who type quickly decide they do not need them.</p>
+    <p class="r"><b>Why it's wrong:</b> the shortcuts barely touch typing &mdash; they replace <em>navigation and selection</em>, which is where modeling time and modeling errors actually live. A mouse round-trip pulls your eyes off the numbers and invites a one-cell miss; the keyboard keeps your gaze fixed and your range exact. The rule to carry: you adopt the no-mouse contract to be <em>accurate and auditable</em>, and the speed follows on its own. That is why partners can tell a trained analyst from across the room &mdash; the hands never leave home row.</p>
+  </div>
+
+  <div class="lblock completion"><div class="completion">
+    <p class="prompt">Your turn &middot; write the lock</p>
+    <table class="trace"><caption>In <span class="inp">D2</span> you have <code style="font-family:var(--mono)">=B2*C2</code>. You will copy it down 500 rows. B changes every row, but C2 is a single tax-rate cell that must not move. Write D2 correctly, and name the key that stamps the lock.</caption></table>
+    <details><summary>I have my answer</summary><p class="ans"><b><code>=B2*$C$2</code></b>. Only C2 gets locked, because it must point at the one rate cell as the formula travels down; B2 stays free so it steps to B3, B4, and so on. You stamp the lock with <b>F4</b>: while editing, put the caret on <code>C2</code> and press F4 once to make it <code>$C$2</code>. (Press F4 again and it would cycle to <code>C$2</code>, the wrong lock here.)</p></details>
+  </div></div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Take the no-mouse pledge for one rebuild</h3>
+    <p>Open a scratch workbook and type a tiny schedule: a header row and three columns &times; ten rows of made-up numbers, with a total row. Now set the mouse aside and, keyboard only, do all of it: jump to the data edges with <kbd>Ctrl</kbd>+arrows, select the block with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+arrows, write one formula that locks a reference with <kbd>F4</kbd>, toggle <kbd>Ctrl</kbd>+<kbd>`</kbd> to audit your formulas, and freeze the header row. Time it, then delete it and do it again.</p>
+    <p class="rr"><b>Right result:</b> the second pass is faster than the first and you never touched the mouse. That gap &mdash; run one, run two &mdash; is the skill compounding.</p>
+    <p class="time">&asymp; 10 minutes &middot; a scratch workbook, no data needed &middot; this is toolkit card E1's proof in miniature</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what is the single thing to remember?</p>
+    <details><summary>Reveal the line</summary><p class="line">The no-mouse contract isn't about fast fingers &mdash; it keeps your eyes on the model and your selections exact, and that is what makes you fast and auditable under pressure.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li>Move by region, not by scroll: <kbd>Ctrl</kbd>+arrow jumps to the data edge; add <kbd>Shift</kbd> to select to it.</li>
+      <li><kbd>F2</kbd> edits in place; <kbd>F4</kbd> locks a reference and cycles the four states; <kbd>Alt</kbd> drives the whole ribbon via KeyTips; <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>V</kbd> pastes special.</li>
+      <li>Baseline every book: know your calc mode (<kbd>F9</kbd> to recalc), <kbd>Ctrl</kbd>+<kbd>`</kbd> to show formulas, freeze the header row.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/keyboard-shortcuts-in-excel-1798d9d5-842a-42b8-9c99-9b7213f0040f" target="_blank" rel="noopener">Keyboard shortcuts in Excel</a> &mdash; the official reference for KeyTips (Alt access keys), Paste Special (Ctrl+Alt+V), and the function keys.</li>
+      <li><a href="https://exceljet.net/shortcuts" target="_blank" rel="noopener">Exceljet &mdash; Excel Shortcuts</a> &mdash; 200+ Windows and Mac shortcuts side by side, with a free printable PDF; the Mac equivalents for F2 and F4 live here.</li>
+      <li>The FAST Standard Organisation, <a href="https://fast-standard.org/the-fast-standard/" target="_blank" rel="noopener">The FAST Standard</a> &mdash; the Flexible / Appropriate / Structured / Transparent modelling rules (CC-licensed) behind the settings-baseline discipline.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <span class="railcard prev off"><span class="rl">&larr; Previous in lane</span><span class="rt">Lane start</span></span>
+    <a class="railcard next" href="#"><span class="rl">Next in lane &rarr;</span><span class="rt">C0.2 &mdash; Navigation and selection</span></a>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane C / Level 0 / Lesson 002 &middot; Educational summary, not legal, tax, or investment advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="C0.1";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(btn){btn.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});btn.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var pb=document.getElementById("pbar");
+  if(pb){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pb.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};
+    window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
