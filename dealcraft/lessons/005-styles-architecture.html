@@ -1,0 +1,343 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Styles architecture &mdash; Dealcraft</title>
+<meta name="description" content="Why manual formatting is the original sin of legal Word. Lesson 005, Dealcraft's Word & PPT craft lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC daily · Lesson 005 · D0.1 · Lora + Terracotta · CRAFT lesson on the beat grammar (formatting autopsy: structure vs. appearance) -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17; --doc:#fbf7ee;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19; --doc:#1a1611;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+.gloss{font:inherit;background:none;border:0;padding:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* AUTOPSY block — the annotated document / capability ledger */
+figure.autopsy{max-width:700px;margin:26px auto;}
+figure.autopsy figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600;}
+.doc{background:var(--doc);border:1px solid var(--rule-strong);border-radius:6px;padding:8px 0;}
+.artrow{display:grid;grid-template-columns:150px 1fr;gap:0;border-bottom:.5px solid var(--rule-soft);}
+.artrow:last-child{border-bottom:none;}
+.artrow .art{font-family:var(--mono);font-size:12px;color:var(--accent);padding:13px 14px;border-right:.5px solid var(--rule-soft);letter-spacing:.02em;}
+.artrow .art b{display:block;color:var(--ink);font-family:var(--sans);font-size:11px;letter-spacing:.04em;margin-top:3px;font-weight:700;}
+.artrow .txt{padding:13px 16px;font-size:15px;line-height:1.5;color:var(--ink-soft);}
+.artrow .txt .an{display:block;font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:5px;font-style:italic;}
+.artrow.key{background:var(--accent-soft);}
+.doc-src{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--faint);margin-top:8px;text-align:right;}
+/* status tag chip inside a ledger row */
+.tag{display:inline-block;font-family:var(--sans);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent);border:1px solid var(--rule-strong);border-radius:20px;padding:2px 9px;margin-right:8px;vertical-align:middle;}
+
+/* SPECIMEN block — the two look-alike paragraphs */
+figure.specimen{max-width:700px;margin:26px auto;}
+figure.specimen figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600;}
+.spec{background:var(--doc);border:1px solid var(--rule-strong);border-radius:6px;padding:20px 22px;}
+.spec .para{margin:0 0 16px;}
+.spec .para:last-child{margin-bottom:0;}
+.spec .head{font-family:var(--sans);font-weight:700;font-size:16px;color:var(--ink);letter-spacing:.01em;}
+.spec .lbl{display:block;font-family:var(--mono);font-size:11px;color:var(--accent);margin-top:4px;}
+.spec .lbl em{color:var(--muted);font-style:normal;}
+
+/* TIMELINE block */
+figure.timeline{max-width:700px;margin:26px auto;}
+figure.timeline figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600;}
+ol.tl{list-style:none;margin:0;padding:0 0 0 8px;border-left:2px solid var(--rule-strong);}
+ol.tl li{position:relative;padding:0 0 22px 24px;}
+ol.tl li:last-child{padding-bottom:0;}
+ol.tl li::before{content:"";position:absolute;left:-9px;top:3px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--paper);}
+ol.tl .st{font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+ol.tl .dc{font-family:var(--serif);font-size:17px;font-weight:600;margin:2px 0 3px;}
+ol.tl .ds{font-size:15px;line-height:1.5;color:var(--muted);}
+
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+/* ---- active / output blocks (v4 grammar) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-direction:column;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 16px;cursor:pointer;text-align:left;line-height:1.4;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane D</span></div>
+
+<div class="folio">
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
+    <details><summary>From Lesson 004: every clause that touches money allocates one of three things. Name the three.</summary><p class="ans"><b>Value</b> (who gets how much), <b>risk</b> (who bears the unknown), and <b>time</b> (who waits, and what the wait costs). Today we leave the numbers and pick up the document craft that carries them &mdash; starting with the single habit that decides whether a 90-page agreement survives editing.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane D &middot; Word &amp; PPT Craft</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 005</div>
+  <h1>Styles architecture</h1>
+  <p class="deck">Manual formatting is the original sin of legal Word: it looks right and quietly breaks everything downstream.</p>
+  <div class="meta"><b>6 min read</b> &middot; predict &middot; a formatting autopsy &middot; two checks &middot; practice &asymp; 10 min in Word</div>
+  <div class="rule"></div>
+  <p class="skip">Already build every document on styles? <a href="#case">Skip to the autopsy &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">Two section titles in a contract look <b>pixel-identical</b> &mdash; same font, same size, same bold. You run Insert &rarr; Table of Contents. One appears in the TOC; the other is simply absent. Why?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">The TOC is buggy and needs updating</button><button class="popt" type="button" aria-pressed="false">One is a real heading; the other only looks like one</button><button class="popt" type="button" aria-pressed="false">The missing one is inside a text box or table</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first, then read on. It is not a bug and not a text box: the Table of Contents does not read <em>appearance</em> &mdash; it reads the invisible <b>style</b> layer underneath the text. One title carries a Heading style; the other was just made big and bold by hand. They look the same and are, structurally, nothing alike. The rest of the lesson is that difference and why it decides everything.</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">Every paragraph in a Word document already has a <b>style</b> &mdash; a named, saved bundle of formatting (font, size, spacing, and often a number) that Word applies by reference. If you never chose one, the paragraph is in <span class="gloss" tabindex="0">Normal<span class="gloss-body"><span class="gloss-kind">Defined term</span>The base paragraph style every new document inherits. Every other style is defined as a change <em>from</em> Normal, so Normal is the root of the whole cascade &mdash; change it and everything built on it shifts.</span></span>, the base style the document is built on. When you instead reach for the bold button and the font-size box and set a title by hand, you are doing <b>direct</b> (or manual) formatting: painting appearance straight onto the characters, on top of whatever style is underneath. On screen the two look the same. To Word, they could not be more different, and the difference is the entire lesson.</p>
+
+    <p>A style carries <em>structure</em>; direct formatting carries only <em>appearance</em>. That word "structure" is load-bearing. When you apply the <b>Heading&nbsp;2</b> style to a section title, you are not just making it look like a heading &mdash; you are telling Word <em>this is a heading</em>, a fact it then uses everywhere. Make the same title big and bold by hand and you have told Word nothing; it remains, as far as the software knows, an ordinary body paragraph that happens to be dressed up. Hold the two side by side.</p>
+
+    <figure class="specimen">
+      <figcaption>Two section titles &middot; identical on screen</figcaption>
+      <div class="spec">
+        <div class="para"><span class="head">Section 4.03 &nbsp;Indemnification</span><span class="lbl">&para;&nbsp;A &mdash; <b>Heading&nbsp;2 style applied</b> <em>&nbsp;(the look comes from the style)</em></span></div>
+        <div class="para"><span class="head">Section 4.03 &nbsp;Indemnification</span><span class="lbl">&para;&nbsp;B &mdash; <b>Normal + manual 14pt bold</b> <em>&nbsp;(the look was typed on by hand)</em></span></div>
+      </div>
+    </figure>
+
+    <div class="beat" id="case">The autopsy</div>
+
+    <p>Run those two identical-looking paragraphs through the machinery a real agreement depends on. The styled one passes every test; the hand-formatted twin fails every one &mdash; silently, which is what makes it dangerous.</p>
+
+    <figure class="autopsy">
+      <figcaption>The same two paragraphs, put through Word's machinery</figcaption>
+      <div class="doc">
+        <div class="artrow"><div class="art">Table of Contents<b>Insert &rarr; TOC</b></div><div class="txt"><span class="tag">A works</span>&para;&nbsp;A appears automatically; &para;&nbsp;B is absent.<span class="an">The TOC is built from Heading styles, not from anything that merely looks bold.</span></div></div>
+        <div class="artrow"><div class="art">Navigation pane<b>View &rarr; Navigation</b></div><div class="txt"><span class="tag">A works</span>&para;&nbsp;A is a jump target you can click and drag to reorder; &para;&nbsp;B is invisible to it.<span class="an">The document's outline <em>is</em> its heading styles.</span></div></div>
+        <div class="artrow"><div class="art">Cross-reference<b>"see Section&nbsp;__"</b></div><div class="txt"><span class="tag">A works</span>You can point an auto-updating reference at &para;&nbsp;A; &para;&nbsp;B cannot be targeted.<span class="an">Fields reference structure, so a hand-bolded title is unreachable.</span></div></div>
+        <div class="artrow"><div class="art">Auto-number<b>re-sequence on a move</b></div><div class="txt"><span class="tag">A works</span>&para;&nbsp;A's number lives in the style and re-numbers when the section moves; &para;&nbsp;B's "4.03," if typed, is a hardcode that goes stale.<span class="an">Numbering embedded in a style is the survival skill (next: multilevel numbering).</span></div></div>
+        <div class="artrow key"><div class="art">Reformat to a new house spec<b>the partner's 11pm ask</b></div><div class="txt">Change the Heading&nbsp;2 style once and every &para;&nbsp;A re-renders instantly. Every &para;&nbsp;B is fixed by hand &mdash; and the three you miss ship wrong.<span class="an">This is where manual formatting actually bites: at scale, under time pressure, invisibly.</span></div></div>
+      </div>
+      <div class="doc-src">Illustrative; real filed agreements on SEC EDGAR (EX-2.1 / EX-10) are built on exactly this styled structure.</div>
+    </figure>
+
+    <p class="pull">A style is structure; manual formatting is only a costume.</p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; look vs. structure</div>
+    <p class="q">A junior selects a section title and, by hand, sets it to 14pt bold so it matches the firm's heading look <em>exactly</em>. Which is true?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="This is the core misconception the lesson breaks. An inserted Table of Contents is built only from Heading styles; a paragraph that merely looks like a heading is still Normal body text and never appears.">It will show up automatically in an inserted Table of Contents.</button>
+      <button class="opt" type="button" data-fb="Correct. It matches the look, but structurally it is still an ordinary paragraph, so the TOC, the Navigation pane, and cross-references all pass right over it. Appearance without structure buys nothing downstream.">It looks like a heading but Word still treats it as body text &mdash; invisible to the TOC, the Navigation pane, and cross-references.</button>
+      <button class="opt" type="button" data-fb="Consistency of appearance is not the same as structure. Even if every title is bolded identically by hand, none of them is a real heading, so the whole automated apparatus (and the next editor's one-click reformat) still fails.">It is fine as long as every heading is bolded the same way &mdash; appearance is what a filed document needs.</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="body">
+    <div class="beat">Why it is the original sin</div>
+    <p>Manual formatting is the original sin because it costs nothing the moment you commit it and charges interest forever after. It is free: the title looks right, you move on, the document ships. The bill arrives later and lands on someone else &mdash; the associate who inherits the document and finds the Table of Contents half-empty, the one who moves an article and watches the hand-typed numbers march out of sequence, you at 11pm when a partner says "the whole agreement goes to the new house spec, tighter headings, by morning." With styles that last request is one edit: <b>modify the Heading&nbsp;2 style once and all sixty headings re-render at once.</b> The Microsoft documentation states the mechanism plainly &mdash; change a style's definition and "all text with the style that you changed will automatically change to match." Do the same job on hand-formatting and it is sixty manual edits, three of them missed, in a document opposing counsel will read closely.</p>
+
+    <p>This is also why inheriting a document is where the discipline gets tested. A file built by six hands over three weeks is usually a compost of styles and manual overrides, because direct formatting sits <em>on top of</em> the style and wins. The antidote is to strip it back to the structure underneath: select the mess and <b>Clear All Formatting</b> &mdash; keyboard, Ctrl+Space to clear character overrides and Ctrl+Q to clear paragraph overrides &mdash; which removes the hand-painted layer and drops each paragraph back onto its real style. Then you apply styles deliberately, and the automated apparatus comes back to life. The rule that prevents all of it is one sentence: format by choosing a style, never by reaching for the bold button.</p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; the reformat</div>
+    <p class="q">The firm decides every section heading in a 90-page agreement moves from 12pt to 11pt &mdash; sixty headings, all built on the Heading&nbsp;2 style. What is the fast, correct fix?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="This is exactly the manual-formatting tax that styles exist to abolish: sixty hand-edits, slow, and you will miss some. If you used styles, you never have to touch the headings one by one.">Find each of the sixty headings and set it to 11pt by hand.</button>
+      <button class="opt" type="button" data-fb="Correct. Modify the Heading 2 style's definition once and every paragraph carrying that style updates instantly and identically. That single-edit propagation is the entire payoff of building on styles.">Modify the Heading&nbsp;2 style once; all sixty headings re-render at 11pt instantly.</button>
+      <button class="opt" type="button" data-fb="Select-all applies direct formatting over the whole document at once: it would flatten body text to 11pt too, collapse the size hierarchy, and bury every style under a manual override &mdash; the original sin, committed document-wide.">Select the entire document and set the font size to 11pt.</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> "Styles are a cosmetic nicety &mdash; a way to make documents look tidy. Real lawyers just make it look right on the page and move on." Formatting gets filed under aesthetics.</p>
+    <p class="r"><b>Why it's wrong:</b> styles are not cosmetic; they are the <em>load-bearing structure</em> of the document. Every feature that lets a long agreement survive heavy, multi-party editing &mdash; the generated Table of Contents and Table of Authorities, auto-numbering that re-sequences on a move, cross-references that update on F9, a clean redline, one-command reformatting to a new house style &mdash; reads the style layer and none of them reads appearance. Manual formatting is not the fast, practical choice; it is a debt drawn against the next person to open the file. Format by structure and the machinery works for you. Format by hand and you have handed the machinery a document it cannot see.</p>
+  </div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Build one page on styles, then let the TOC grade you</h3>
+    <p>Open a multi-page document you have (or paste a few pages of a real agreement from <b>EDGAR</b> into a blank Word file). Apply <b>Heading&nbsp;1</b> and <b>Heading&nbsp;2</b> styles to its section titles &mdash; from the Styles gallery, not by bolding &mdash; then run Insert &rarr; Table of Contents. Every title that shows up is a real, structural heading; any that is missing was never one, no matter how it looked.</p>
+    <p class="rr"><b>Right result:</b> a generated TOC that lists exactly your styled headings, and the honest jolt of seeing which hand-formatted titles the document never actually knew about.</p>
+    <p class="time">&asymp; 10 minutes &middot; Microsoft Word (desktop)</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what does applying a style actually buy you?</p>
+    <details><summary>Reveal the line</summary><p class="line">Format by structure, not by hand: apply a style and the whole apparatus &mdash; TOC, numbering, cross-refs, redlines, one-click reformatting &mdash; comes free.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li>Every paragraph already has a style (default: <b>Normal</b>). A style is formatting applied <em>by reference</em>; manual formatting is appearance typed on top, carrying no structure.</li>
+      <li>The TOC, Navigation pane, cross-references, and auto-numbering all read the style layer, not looks. A hand-bolded "heading" is invisible to all of them.</li>
+      <li>Modify a style once and every instance updates; hand-formatting means editing each instance and missing some &mdash; the whole game in a heavily-edited agreement.</li>
+      <li>Antidote for an inherited mess: <b>Clear All Formatting</b> (Ctrl+Space + Ctrl+Q) strips manual overrides back to the underlying style, then re-apply styles deliberately.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>Microsoft, <a href="https://support.microsoft.com/en-gb/topic/the-styles-advantage-in-word-b4a6372f-188c-93cb-831b-c4dd0cb3a881" target="_blank" rel="noopener">&ldquo;The Styles advantage in Word&rdquo;</a> &mdash; official statement of why styles carry structure and consistency that manual formatting cannot.</li>
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/customize-or-create-new-styles-d38d6e47-f6fc-48eb-a607-1eb120dec563" target="_blank" rel="noopener">&ldquo;Customize or create new styles&rdquo;</a> &mdash; modify a style once and &ldquo;all text with the style that you changed will automatically change&rdquo; (the single-edit propagation).</li>
+      <li>Legal Office Guru (Deborah Savadra), <a href="https://legalofficeguru.com/creating-new-styles-in-microsoft-word/" target="_blank" rel="noopener">&ldquo;Creating new Styles in Microsoft Word&rdquo;</a> and <a href="https://legalofficeguru.com/using-styles-formatting/" target="_blank" rel="noopener">&ldquo;Using Styles &amp; Formatting&rdquo;</a> &mdash; the legal-document case for styles over manual formatting.</li>
+      <li>U.S. SEC, <a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">EDGAR full-text search</a> &mdash; real filed agreements (EX-2.1 / EX-10) as structural exemplars; public domain.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <span class="railcard prev off"><span class="rl">&larr; Previous in lane</span><span class="rt">Lane start</span></span>
+    <a class="railcard next" href="#"><span class="rl">Next in lane &rarr;</span><span class="rt">D0.2 &mdash; The pyramid principle</span></a>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane D / Level 0 / Lesson 005 &middot; Educational summary, not legal advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="D0.1";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(pb){pb.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});pb.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var pbar=document.getElementById("pbar");
+  if(pbar){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pbar.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
