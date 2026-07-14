@@ -1,0 +1,365 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Navigation and selection &mdash; Dealcraft</title>
+<meta name="description" content="Moving through a workbook at speed &mdash; and the one blank cell that quietly breaks your range. Lesson 008, Dealcraft's Excel &amp; modeling lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC daily · Lesson 008 · C0.2 · Lora + Terracotta · CRAFT lesson on the beat grammar (keystroke autopsy variant) -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17;
+  --chart-up:#9c3b2f; --chart-down:#c7a98f; --chart-total:#7d2c22;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19;
+  --chart-up:#d6775f; --chart-down:#5c4c3b; --chart-total:#e0917d;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+kbd{font-family:var(--mono);font-size:13px;background:var(--soft);border:1px solid var(--rule-strong);border-bottom-width:2px;border-radius:5px;padding:1px 7px;color:var(--ink);white-space:nowrap;}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+
+/* gloss */
+.gloss{font:inherit;background:none;border:0;padding:0;margin:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* worked-example table */
+figure.exhibit{margin:24px auto;max-width:700px;}
+table.trace{width:100%;border-collapse:collapse;font-size:15px;}
+table.trace caption{caption-side:top;text-align:left;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:0 0 10px;font-weight:600;}
+table.trace th,table.trace td{padding:11px 10px;border-bottom:.5px solid var(--rule-soft);text-align:left;vertical-align:top;}
+table.trace thead th{font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;border-bottom:.5px solid var(--rule-strong);}
+table.trace td.fig{font-family:var(--mono);font-size:13.5px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);}
+table.trace td.cell{font-family:var(--mono);font-size:13px;color:var(--muted);white-space:nowrap;}
+table.trace td.key{white-space:nowrap;}
+table.trace tr:last-child td{border-bottom:none;}
+td .hl{color:var(--accent);font-weight:700;}
+td .inp{color:var(--accent);font-weight:600;}
+tr.changed td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
+tr.land td{background:var(--accent-soft);}
+.blankcell{color:var(--faint);font-style:italic;}
+.legend{font-family:var(--sans);font-size:11px;color:var(--muted);margin:10px 0 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend .sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.legend .sw.i{background:var(--accent);}.legend .sw.c{box-shadow:inset 3px 0 0 var(--accent);border:.5px solid var(--rule-strong);}
+.legend .sw.l{background:var(--accent-soft);border:.5px solid var(--rule-strong);}
+
+/* ---- active / output blocks (v4) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.check{background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:4px 22px;}
+.check .cl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;padding-top:14px;}
+.check details{padding:12px 0;}
+.check summary{cursor:pointer;font-size:16.5px;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px;align-items:baseline;}
+.check summary::-webkit-details-marker{display:none;}
+.check summary::after{content:"Recall";font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;flex:0 0 auto;}
+.check details[open] summary::after{content:"Hide";}
+.check .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.check .ans b{color:var(--ink);font-weight:600;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-wrap:wrap;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;text-align:left;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.completion .prompt{font-family:var(--sans);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px;text-align:center;}
+.completion details{margin-top:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:0 20px;}
+.completion summary{cursor:pointer;font-weight:600;font-size:15px;padding:13px 0;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.completion summary::-webkit-details-marker{display:none;}
+.completion summary::after{content:"Reveal solution";font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;flex:0 0 auto;}
+.completion details[open] summary::after{content:"Hide";}
+.completion .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);padding:0 0 14px;}
+.completion .ans code{font-family:var(--mono);font-size:14px;background:var(--soft);padding:1px 6px;border-radius:4px;}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+.keepcard kbd{font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+
+/* practice */
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+.practice kbd{font-family:var(--mono);font-size:12.5px;background:var(--soft);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+
+/* read toggle */
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+
+/* endmatter + rail */
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane C</span></div>
+
+<div class="folio">
+
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
+    <details><summary>From Lesson 002: to move to the bottom of a long column and then select the whole thing, keyboard only &mdash; which keystrokes?</summary><p class="ans"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> jumps to the last filled cell; add <kbd>Shift</kbd> &mdash; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> &mdash; to select everything from here to that edge in one press. Today we look at exactly how that jump decides where to stop, and the stray-blank case where it stops too soon.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane C &middot; Excel &amp; Modeling</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 008</div>
+  <h1>Navigation and selection</h1>
+  <p class="deck">Moving through a workbook at speed &mdash; and the one blank cell that quietly breaks your range.</p>
+  <div class="meta"><b>6 min read</b> &middot; predict &middot; move map &middot; your turn &middot; practice &asymp; 10 min in a scratch workbook</div>
+  <div class="rule"></div>
+  <p class="skip">Know why <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> stops early on a gap? <a href="#map">Skip to the move map &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">You're in <b>A1</b> at the top of a column with 500 rows of data &mdash; except row 250 was left blank by accident. You press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> once to shoot to the bottom. Where does the cursor land?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">A500 &mdash; the true bottom</button><button class="popt" type="button" aria-pressed="false">A249 &mdash; just above the blank</button><button class="popt" type="button" aria-pressed="false">A251 &mdash; just below the blank</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first, then read on. The answer is the single most useful thing to understand about how Excel navigation works &mdash; and it is why a stray blank cell can quietly wreck a formula's range.</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">Lesson 002 gave you the contract: your hand stays on the keyboard, and you move by data region instead of scrolling. This lesson is the vocabulary that makes good on it. Almost all of your time in a model is spent going somewhere and grabbing something &mdash; jump to the bottom of a column, select it, hop to another sheet, chase a number back to where it came from. Do that with the mouse and you scroll, hunt, and misclick; do it with four families of keystroke and you move at the speed of thought. But the moves are not magic arrows. They read the <em>shape</em> of your data, and the moment you understand what they read, the surprises stop.</p>
+
+    <p>Start with the workhorse, <kbd>Ctrl</kbd>+arrow. Here is the rule that governs it, and it is worth saying precisely: from a filled cell, <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> jumps to the <b>last filled cell before the next blank</b>. Not the bottom of the column &mdash; the end of the current unbroken <em>run</em> of data. If every cell from A1 to A500 is filled, one press lands you on A500. But drop a single blank into row 250 and you have split the column into two runs, and the jump from A1 stops dead at <b>A249</b>, the last cell before the gap. (The blank works both ways: start <em>on</em> a blank cell and the same keystroke leaps forward to the next filled cell.) That is the answer to the prediction, and it is not a quirk to memorize &mdash; it is the whole mental model. The keyboard does not scroll to the end; it reads where your data stops.</p>
+
+    <p class="pull">The keyboard doesn't scroll to the bottom. It reads where the data stops &mdash; and a stray blank is a wall.</p>
+  </div>
+
+  <figure class="exhibit">
+    <table class="trace">
+      <caption>One stray blank splits a column into two runs</caption>
+      <thead><tr><th>Cell</th><th>Value</th><th>What the jump sees</th></tr></thead>
+      <tbody>
+        <tr><td class="cell">A1</td><td class="fig">120</td><td>&larr; cursor starts here</td></tr>
+        <tr><td class="cell">A2</td><td class="fig">118</td><td></td></tr>
+        <tr class="changed land"><td class="cell">A249</td><td class="fig">132</td><td><b><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> from A1 stops HERE</b> &mdash; last cell of run 1</td></tr>
+        <tr><td class="cell">A250</td><td class="blankcell">(blank)</td><td>the wall</td></tr>
+        <tr><td class="cell">A251</td><td class="fig">141</td><td>run 2 begins</td></tr>
+        <tr class="changed land"><td class="cell">A500</td><td class="fig">129</td><td><b><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> from A251 reaches HERE</b> &mdash; the true bottom</td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span><span class="sw l"></span>where a jump lands</span><span><span class="sw c"></span>end of a data run</span></div>
+  </figure>
+
+  <div class="body">
+    <p>To <em>select</em> a run instead of just landing on it, add <kbd>Shift</kbd>: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> grabs everything from the active cell to that same edge. Same rule, same wall &mdash; which is exactly where it bites, as you will see in a moment. Beyond the run, three more moves cover almost everything else you do: <kbd>Ctrl</kbd>+<kbd>End</kbd> jumps to the far corner of the sheet's used range regardless of gaps; <kbd>Ctrl</kbd>+<kbd>A</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>*</kbd>) selects the whole <span class="gloss" tabindex="0">current region<span class="gloss-body"><span class="gloss-kind">Term of art</span>The contiguous block of filled cells around the active cell, bounded on every side by blank rows and columns. Excel treats it as one table &mdash; the unit Ctrl+A grabs and the unit a chart or PivotTable defaults to.</span></span> around you; and to go somewhere <em>absolute</em> rather than relative to data, <kbd>Ctrl</kbd>+<kbd>G</kbd> (or <kbd>F5</kbd>) opens Go To and the <b>Name Box</b> left of the formula bar takes a typed address like <kbd>M400</kbd>, a named range like <kbd>TaxRate</kbd>, or a cell on another sheet.</p>
+  </div>
+
+  <figure class="exhibit" id="map">
+    <table class="trace">
+      <caption>The move map &mdash; navigate, select, and jump anywhere</caption>
+      <thead><tr><th>What you need</th><th>Keystroke</th><th>What it reads</th></tr></thead>
+      <tbody>
+        <tr class="changed"><td>Jump to a data edge</td><td class="key"><kbd>Ctrl</kbd>+arrow</td><td>the last filled cell before a blank</td></tr>
+        <tr class="changed"><td>Select the run to that edge</td><td class="key"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+arrow</td><td>from here to the wall</td></tr>
+        <tr><td>Select the whole current block</td><td class="key"><kbd>Ctrl</kbd>+<kbd>A</kbd></td><td>the contiguous region around you</td></tr>
+        <tr><td>Jump to the sheet's true last cell</td><td class="key"><kbd>Ctrl</kbd>+<kbd>End</kbd></td><td>the far corner of the used range</td></tr>
+        <tr><td>Go to any address or named range</td><td class="key"><kbd>Ctrl</kbd>+<kbd>G</kbd> / Name Box</td><td>an absolute location, any sheet</td></tr>
+        <tr><td>Hop between worksheets</td><td class="key"><kbd>Ctrl</kbd>+<kbd>PgUp</kbd> / <kbd>PgDn</kbd></td><td>tab to tab, no mouse</td></tr>
+        <tr class="changed"><td>Follow a formula to its source, then return</td><td class="key"><kbd>Ctrl</kbd>+<kbd>[</kbd>, then <kbd>F5</kbd> <kbd>&crarr;</kbd></td><td>the precedent cell, and back</td></tr>
+      </tbody>
+    </table>
+  </figure>
+
+  <div class="lblock qcheck" data-answer="0">
+    <div class="ql">Check yourself &middot; the wall bites selection too</div>
+    <p class="q">Column A holds data in A1:A100, then A101 is blank, then someone appended more data in A102:A200. Your cursor is in A1 and you press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> to "select the whole column of data." What do you actually select?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="Right. Shift+Ctrl+arrow extends only to the edge of the current run, and the blank at A101 is the wall. You grab the first block and silently drop A102:A200 &mdash; which is exactly how a SUM ends up omitting half a column without any error.">A1:A100</button>
+      <button class="opt" type="button" data-fb="This is the costly assumption &mdash; that the keystroke grabs the whole column. It reads runs, not columns; the blank at A101 stops it at A100. To capture both blocks you'd press it a second time to extend past the gap, or select down to Ctrl+End.">A1:A200 (everything)</button>
+      <button class="opt" type="button" data-fb="The selection stops just before the blank, not on it. The wall is A101, so you land on A100 &mdash; this answer is off by one in the wrong direction.">A1:A101 (through the blank)</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="body">
+    <div class="beat">The reviewer's move: chase a number to its source</div>
+    <p>The last family is the one that separates someone who can drive a model from someone who can only read it. When you land on a formula like <code style="font-family:var(--mono)">=Rev*Margin</code> and want to know where <em>Margin</em> actually comes from, <kbd>Ctrl</kbd>+<kbd>[</kbd> follows the reference straight to its <span class="gloss" tabindex="0">precedent<span class="gloss-body"><span class="gloss-kind">Term of art</span>A cell that a formula depends on &mdash; the source it reads from. Ctrl+[ jumps to the precedent of the reference under the cursor; the dependents (cells that read <em>this</em> one) run the other way.</span></span> cell, even on another sheet. You read it, then press <kbd>F5</kbd> and <kbd>Enter</kbd>: Go To remembers where you just were, so it snaps you back to the formula. That round-trip &mdash; out to the source, back to your place &mdash; is how a reviewer walks a model's logic without ever scrolling or losing the thread. It is the keystroke embodiment of the <span class="gloss" tabindex="0">FAST standard's<span class="gloss-body"><span class="gloss-kind">Reference</span>The Flexible / Appropriate / Structured / Transparent modelling standard (CC-licensed). Its through-line: a model must be legible to someone who did not build it &mdash; which is exactly what fast source-tracing lets a reviewer do.</span></span> transparency rule, and it is the habit you'll lean on the day you have to interrogate someone else's workbook fast.</p>
+  </div>
+
+  <div class="lblock completion"><div class="completion">
+    <p class="prompt">Your turn &middot; trace the logic</p>
+    <table class="trace"><caption>You're auditing a model. Cell <span class="inp">F50</span> reads <code style="font-family:var(--mono)">=Rev*Margin</code>. You want to jump to wherever <b>Margin</b> is defined, read it, and come straight back to F50 &mdash; no scrolling, no mouse. Name the keystrokes, in order.</caption></table>
+    <details><summary>I have my answer</summary><p class="ans">With the cursor in <b>F50</b>, press <b><code>Ctrl+[</code></b> &mdash; Excel follows the reference and jumps to the precedent cell that <code>Margin</code> points to, wherever it lives, including another sheet. Read it. Then press <b><code>F5</code></b> (or <code>Ctrl+G</code>) and hit <b><code>Enter</code></b>: Go To pre-fills the box with your previous cell, so Enter snaps you back to F50. So: <b><code>Ctrl+[</code> out to the source, <code>F5</code> then <code>Enter</code> back home.</b> That is the reviewer's round-trip &mdash; walk a formula's logic and never lose your place.</p></details>
+  </div></div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> "To reach the bottom of my data I just press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> &mdash; it always lands on the last row."</p>
+    <p class="r"><b>Why it's wrong:</b> <kbd>Ctrl</kbd>+arrow reads <em>runs</em> of data, not the whole column. One stray blank &mdash; a spacer row, a merged cell, a single missing value &mdash; stops the jump early. Most people land somewhere unexpected, shrug, and keep going; but if you then <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> to "select it all," you silently grab only the first block and feed a half-length range into your SUM &mdash; no error, just a wrong number. The rule to carry: treat a jump that lands early as your data <em>telling</em> you there is a gap. When you need the true extent of a sheet, <kbd>Ctrl</kbd>+<kbd>End</kbd> and the Name Box won't lie to you.</p>
+  </div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Feel the wall, then knock it down</h3>
+    <p>Open a scratch workbook and type a column of about twenty numbers &mdash; but leave <em>one</em> cell blank in the middle. Now, keyboard only: from the top cell press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> and note where it stops (the wall). Step past the gap and press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> again to reach the true bottom. Back at the top, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> and watch it select only the first block. Then <kbd>Ctrl</kbd>+<kbd>End</kbd> to see the sheet's true last cell, and <kbd>Ctrl</kbd>+<kbd>G</kbd> to jump to a specific cell and back. Finally fill the blank and repeat &mdash; now one press crosses the whole column.</p>
+    <p class="rr"><b>Right result:</b> before you press a key, you can say where the cursor will land and why. That predictive certainty &mdash; not raw speed &mdash; is the skill.</p>
+    <p class="time">&asymp; 10 minutes &middot; a scratch workbook, any numbers &middot; this is toolkit cards E1 + E2's proof in miniature</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what is the single thing to remember?</p>
+    <details><summary>Reveal the line</summary><p class="line">Ctrl+arrow reads runs of data, not whole columns &mdash; so a jump that stops early isn't a glitch, it's a blank cell warning you where your data really ends.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li>Move by region: <kbd>Ctrl</kbd>+arrow jumps to the data edge; add <kbd>Shift</kbd> to select the run to it; <kbd>Ctrl</kbd>+<kbd>A</kbd> grabs the whole current block.</li>
+      <li>Jump anywhere: <kbd>Ctrl</kbd>+<kbd>End</kbd> to the true last cell; <kbd>Ctrl</kbd>+<kbd>G</kbd>/<kbd>F5</kbd> or the Name Box to any address or named range; <kbd>Ctrl</kbd>+<kbd>PgUp</kbd>/<kbd>PgDn</kbd> between sheets.</li>
+      <li>Trace logic: <kbd>Ctrl</kbd>+<kbd>[</kbd> follows a formula to its source; <kbd>F5</kbd> then <kbd>Enter</kbd> jumps you back.</li>
+      <li>The gotcha: a stray blank is a wall &mdash; <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> stops before it, and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> selects only up to it.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/keyboard-shortcuts-in-excel-1798d9d5-842a-42b8-9c99-9b7213f0040f" target="_blank" rel="noopener">Keyboard shortcuts in Excel</a> &mdash; the official reference for Ctrl+arrow, Ctrl+Shift+arrow, Ctrl+End, and Go To (F5 / Ctrl+G).</li>
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/select-specific-cells-or-ranges-3a0c91c5-8a64-4cd2-8625-7f5b7f1eed87" target="_blank" rel="noopener">Select specific cells or ranges</a> &mdash; the Name Box and Go To for jumping to an address or named range, including cross-sheet references.</li>
+      <li><a href="https://exceljet.net/articles/the-excel-shortcuts-you-really-should-know" target="_blank" rel="noopener">Exceljet &mdash; The Excel shortcuts you really should know</a> &mdash; the edge-of-data-region behavior spelled out: from a filled cell you stop at the last non-empty cell, from a blank cell you jump to the next.</li>
+      <li>The FAST Standard Organisation, <a href="https://fast-standard.org/the-fast-standard/" target="_blank" rel="noopener">The FAST Standard</a> &mdash; the CC-licensed modelling rules behind fast source-tracing (Ctrl+[ to a link's source, F5+Enter back) and keyboard-over-mouse navigation.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <a class="railcard prev" href="002-setup-and-keyboard-discipline.html"><span class="rl">&larr; Previous in lane</span><span class="rt">C0.1 &mdash; Setup and keyboard discipline</span></a>
+    <span class="railcard next off"><span class="rl">Next in lane &rarr;</span><span class="rt">C0.3 &mdash; Formula fundamentals</span></span>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane C / Level 0 / Lesson 008 &middot; Educational summary, not legal, tax, or investment advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="C0.2";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(btn){btn.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});btn.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var pb=document.getElementById("pbar");
+  if(pb){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pb.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};
+    window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
