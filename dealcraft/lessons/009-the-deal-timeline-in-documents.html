@@ -1,0 +1,308 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The deal timeline in documents &mdash; Dealcraft</title>
+<meta name="description" content="What gets signed when, from the NDA to the closing set, and where the binding force flips. Lesson 009, Dealcraft's doctrine &amp; market-practice lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC daily · Lesson 009 · A0.2 · Lora + Terracotta · DOCTRINE lesson on the beat grammar (document ledger + binding-force flip) -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17; --doc:#fbf7ee;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19; --doc:#1a1611;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+.gloss{font:inherit;background:none;border:0;padding:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* LEDGER block — the annotated document sequence */
+figure.autopsy{max-width:700px;margin:26px auto;}
+figure.autopsy figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600;}
+.doc{background:var(--doc);border:1px solid var(--rule-strong);border-radius:6px;padding:8px 0;}
+.artrow{display:grid;grid-template-columns:118px 1fr 74px;gap:0;border-bottom:.5px solid var(--rule-soft);align-items:stretch;}
+.artrow:last-child{border-bottom:none;}
+.artrow .art{font-family:var(--mono);font-size:12px;color:var(--accent);padding:13px 14px;border-right:.5px solid var(--rule-soft);letter-spacing:.02em;}
+.artrow .art b{display:block;color:var(--ink);font-family:var(--sans);font-size:11px;letter-spacing:.04em;margin-top:3px;font-weight:700;}
+.artrow .txt{padding:13px 16px;font-size:15px;line-height:1.5;color:var(--ink-soft);}
+.artrow .txt .an{display:block;font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:5px;font-style:italic;}
+.artrow .bind{padding:13px 12px;border-left:.5px solid var(--rule-soft);font-family:var(--sans);font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.3;}
+.artrow .bind.y{color:var(--ok);}
+.artrow .bind.n{color:var(--muted);}
+.artrow .bind.part{color:var(--accent);}
+.artrow.key{background:var(--accent-soft);}
+.doc-src{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--faint);margin-top:8px;text-align:right;}
+@media(max-width:560px){.artrow{grid-template-columns:96px 1fr 60px;}.artrow .art{font-size:11px;padding:11px 9px;}.artrow .txt{padding:11px 11px;font-size:14px;}.artrow .bind{padding:11px 6px;font-size:9.5px;}}
+
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+/* ---- active / output blocks (v4 grammar) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-direction:column;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 16px;cursor:pointer;text-align:left;line-height:1.4;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane A</span></div>
+
+<div class="folio">
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
+    <details><summary>From Lesson 008: you press Ctrl+&darr; down a column and it stops at row 249, not at the bottom. Why &mdash; and what does that stray blank quietly cost you?</summary><p class="ans"><b>Ctrl+&darr; reads runs, not columns.</b> It stops at the last filled cell before the blank, so a stray gap splits the column in two; a follow-on Ctrl+Shift+&darr; then feeds a half-length range into a formula with no error. Moving through a workbook fast means knowing its structure. Today: moving through a <em>deal</em> fast &mdash; knowing which document governs at each moment, from the NDA to the closing set.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane A &middot; Doctrine &amp; Market Practice</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 009</div>
+  <h1>The deal timeline in documents</h1>
+  <p class="deck">What gets signed when, from the NDA to the closing set &mdash; and the moment the binding force flips.</p>
+  <div class="meta"><b>8 min read</b> &middot; predict &middot; document ledger &middot; check yourself &middot; practice &asymp; 12 min on EDGAR</div>
+  <div class="rule"></div>
+  <p class="skip">Already know the NDA &rarr; LOI &rarr; signing &rarr; closing sequence cold? <a href="#ledger">Skip to the ledger &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">Two CEOs sign a formal document headed &ldquo;Letter of Intent to Acquire.&rdquo; Diligence goes fine. The buyer then walks over price. Is the buyer legally bound to complete the purchase?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">Yes &middot; both CEOs signed it</button><button class="popt" type="button" aria-pressed="false">No &middot; the deal terms are non-binding by design</button><button class="popt" type="button" aria-pressed="false">Only if it was notarized</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first, then read on. The surprise is that a signed, formal LOI can bind the buyer to almost nothing about the purchase itself &mdash; while a few of its clauses bind hard. <em>Which</em> clauses, and where the real commitment finally lands, is exactly what the ledger below maps.</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">A deal is not one contract; it is a sequence of documents, and each one is signed at a different moment to do a different job. The merger agreement you learned to read in Lesson 003 does not appear out of nowhere. It is the fourth or fifth document in a chain, and a seasoned deal lawyer tracks not just what each document says but <em>when</em> it is signed and <em>how much</em> it binds. That second axis, the binding force, is where the most expensive rookie errors live.</p>
+
+    <p>The reason the sequence exists is that the parties want to explore a deal without committing to it. Buyer and seller need to share secrets, run diligence, and negotiate for weeks or months before either is willing to be locked in. So the early documents are engineered to keep almost everything optional &mdash; on purpose &mdash; while a handful of clauses are engineered to bind from the first handshake. Read the chain wrong and you either treat a non-commitment as a commitment, or miss the one clause that already has teeth.</p>
+
+    <div class="beat" id="ledger">The five documents</div>
+
+    <figure class="autopsy">
+      <figcaption>The deal ledger &middot; what gets signed when, and what binds</figcaption>
+      <div class="doc">
+        <div class="artrow"><div class="art">1<b>NDA / CA</b></div><div class="txt">Confidentiality agreement, sometimes with a <span class="gloss" tabindex="0">standstill<span class="gloss-body"><span class="gloss-kind">Defined term</span>A promise by the potential buyer not to buy shares or launch a hostile bid for a set period &mdash; it keeps a friendly process from turning adversarial.</span></span>. Signed before any data changes hands.<span class="an">The first binding contract of the deal &mdash; and the only one, for a while.</span></div><div class="bind y">Binds &middot; narrow</div></div>
+        <div class="artrow key"><div class="art">2<b>LOI / term sheet</b></div><div class="txt">Sets price, structure, and process after initial interest. Signed by the principals.<span class="an">The trap: the deal terms are a handshake; exclusivity and confidentiality are a contract.</span></div><div class="bind part">Mostly not</div></div>
+        <div class="artrow key"><div class="art">3<b>Merger / purchase agreement</b></div><div class="txt">The negotiated definitive contract, delivered with its <span class="gloss" tabindex="0">disclosure schedules<span class="gloss-body"><span class="gloss-kind">Defined term</span>The seller's list of exceptions to its representations &mdash; the factual fine print that qualifies every rep in the agreement. Built during diligence, delivered at signing.</span></span>. Boards approve; the companies sign.<span class="an">The first document that actually obligates the parties to close &mdash; subject to the conditions.</span></div><div class="bind y">Binds &middot; fully</div></div>
+        <div class="artrow"><div class="art">4<b>Signing 8-K</b></div><div class="txt">On a public deal, filed within four business days of signing; the agreement becomes a public EDGAR exhibit.<span class="an">A disclosure, not a contract &mdash; but it starts the market clock and lets the world read Article III.</span></div><div class="bind n">Disclosure</div></div>
+        <div class="artrow"><div class="art">5<b>Closing set</b></div><div class="txt">Officer&rsquo;s certificates, the <span class="gloss" tabindex="0">bring-down<span class="gloss-body"><span class="gloss-kind">Defined term</span>Re-confirming, as of the closing date, that the representations are still true &mdash; the reps are tested twice: at signing and again at closing.</span></span>, legal opinions, ancillary agreements. Signed once the Article VI conditions are met.<span class="an">The evidence the gates opened; ownership transfers here.</span></div><div class="bind y">Executes</div></div>
+      </div>
+      <div class="doc-src">The standard document sequence of a negotiated U.S. acquisition. Read it live in any DEFM14A&rsquo;s &ldquo;Background of the Merger&rdquo; on EDGAR.</div>
+    </figure>
+
+    <p class="pull">Before the merger agreement, the deal is deliberately non-binding &mdash; except for the two clauses that quietly are: confidentiality and exclusivity.</p>
+
+    <div class="beat">Where the binding force flips</div>
+    <p>Run your eye down the right-hand column and you see the whole logic of the sequence. The NDA binds, but only on a narrow point: keep the secrets, do not raid the employees, stand still. The LOI is the interesting one. Its commercial terms &mdash; price, structure, the deal itself &mdash; are written to be <em>non-binding</em>, so either side can still walk during diligence. But a few provisions are deliberately carved out as binding: <b>exclusivity</b> (the seller will not shop the deal for, say, 45 days), <b>confidentiality</b> (often folding in the NDA), and usually expense allocation and governing law. Then comes the flip. The <b>merger agreement</b> is the first document that says, in enforceable terms, &ldquo;we will close, if the conditions are met.&rdquo; Everything upstream was scaffolding built <em>not</em> to commit either party to the purchase; the merger agreement is the commitment. The signing 8-K that follows is not a new promise at all &mdash; it is a disclosure that makes the promise public.</p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; what actually binds</div>
+    <p class="q">A signed LOI states that its terms are &ldquo;non-binding.&rdquo; During the 45-day exclusivity period, the seller receives a higher unsolicited offer and starts negotiating with the new bidder. Has the seller breached anything?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="This is the exact inverse of the point. &lsquo;Non-binding&rsquo; attaches to the commercial terms &mdash; price, structure, the deal itself &mdash; not to the carved-out clauses. Exclusivity is written to bind, and shopping the deal during the window breaches it regardless of the headline label.">No &mdash; the LOI is labeled non-binding, so nothing in it binds.</button>
+      <button class="opt" type="button" data-fb="Correct. Exclusivity (the no-shop) is one of the handful of LOI provisions drafted to bind. The non-binding label covers the deal terms, not exclusivity or confidentiality. The seller has just breached the one clause in that document that had teeth.">Yes &mdash; exclusivity is a binding carve-out, so shopping the deal breaches it.</button>
+      <button class="opt" type="button" data-fb="Binding force turns on what a clause is drafted to do and the parties&rsquo; expressed intent, not on a magic word sitting beside it. Well-drafted LOIs state which clauses survive as binding, and exclusivity is standardly among them however it is phrased.">Only if the word &ldquo;binding&rdquo; appears next to the exclusivity clause.</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> "A non-binding LOI is just a formality &mdash; nothing in it can hurt me, so sign it and keep talking to everyone." The label says non-binding, so the reader treats the whole page as air.</p>
+    <p class="r"><b>Why it's wrong:</b> the &ldquo;non-binding&rdquo; label is surgical, not total &mdash; it disclaims the <em>deal terms</em> while leaving exclusivity, confidentiality, and expenses fully enforceable. Courts read intent and language, not the headline: a document waving &ldquo;non-binding&rdquo; over its price can still hold a seller to a no-shop, or even bind a party that used commitment language elsewhere. The rule: never read the label &mdash; read the binding-effect clause and find out which provisions were carved out to survive. In a pre-signing document, that carve-out list <em>is</em> the contract.</p>
+  </div>
+
+  <div class="body">
+    <div class="beat">Why the clock matters to a partner</div>
+    <p>Two reasons the timeline, not just the text, is a working skill. First, <b>binding force is leverage.</b> Knowing that a signed LOI does not commit the buyer to the price but does lock the seller out of the market tells you exactly who holds the cards at each stage &mdash; and a junior who cannot read that gets the negotiation posture wrong. Second, <b>the gap between signing and closing is where deals break.</b> The merger agreement is signed and filed on an 8-K within four business days, but the deal is not done: it must still clear the Article VI conditions &mdash; regulatory approvals, the bring-down of the reps &mdash; before the closing set. That gap can run many months, and it is precisely where the fights happen: the buyer with cold feet, the Material Adverse Effect argument, the regulatory hold-up.</p>
+
+    <p>The cleanest cautionary tale is <b>LVMH&rsquo;s acquisition of Tiffany</b>. The merger agreement was signed on November 24, 2019, at $135 per share &mdash; roughly a $16.2 billion deal. Then the pandemic hit the signing-to-closing gap, LVMH signaled it wanted out, and Tiffany sued in Delaware to enforce the agreement. The document that decided the outcome was not the price both sides had already signed; it was the machinery governing the gap &mdash; the conditions, the ordinary-course covenant, the walk-away rights. The parties renegotiated to $131.50 per share and closed on January 7, 2021. The lesson sits exactly on this timeline: a deal is signed long before it is done, and the interval in between has its own law.</p>
+  </div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Trace the timeline in a real deal</h3>
+    <p>On EDGAR, open a recent public-company merger proxy (a DEFM14A) and find its <b>&ldquo;Background of the Merger&rdquo;</b> section &mdash; the narrative of how the deal came together. Read it only to build the timeline: note the date the parties first signed a confidentiality agreement, the point an exclusivity or letter of intent appears, and the date the merger agreement was signed. Then find the signing 8-K on the same company&rsquo;s filing list and confirm it landed within four business days.</p>
+    <p class="rr"><b>Right result:</b> you can state, in five lines, which document was signed on which date and what each one bound &mdash; proof you now read a deal along the clock, not just the page.</p>
+    <p class="time">&asymp; 12 minutes &middot; EDGAR only</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what does the document timeline actually tell you?</p>
+    <details><summary>Reveal the line</summary><p class="line">A deal is a sequence of documents, and the binding force flips at the merger agreement &mdash; everything before it is non-binding by design, except the exclusivity and confidentiality clauses written to bind.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li>Five documents, in order: NDA &rarr; LOI/term sheet &rarr; merger agreement + disclosure schedules &rarr; signing 8-K &rarr; closing set.</li>
+      <li>Binding flips at the merger agreement. The LOI&rsquo;s deal terms are non-binding; its exclusivity and confidentiality clauses are not &mdash; read the carve-out list, never the label.</li>
+      <li>Signing is not closing. The 8-K makes it public within four business days; the Article VI conditions and the bring-down still stand between signing and the closing set &mdash; and that gap is where deals break.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>U.S. SEC, <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany" target="_blank" rel="noopener">EDGAR</a> &mdash; the &ldquo;Background of the Merger&rdquo; in a DEFM14A narrates the real document timeline; merger agreements and signing 8-Ks are filed here; public domain.</li>
+      <li>Association of Corporate Counsel, <a href="https://www.acc.com/sites/default/files/2020-07/7.7.20%20Term%20Sheets.pdf" target="_blank" rel="noopener">&ldquo;Term Sheets, Letters of Intent and Other &lsquo;Non-Binding&rsquo; Pre-Deal Documents&rdquo;</a> &mdash; which LOI provisions (exclusivity, confidentiality, expenses) are standardly carved out as binding.</li>
+      <li>U.S. SEC, <a href="https://www.sec.gov/rules-regulations/staff-guidance/compliance-disclosure-interpretations/exchange-act-form-8-k" target="_blank" rel="noopener">Exchange Act Form 8-K</a> &mdash; Item 1.01 requires filing a material definitive agreement within four business days of execution.</li>
+      <li>LVMH&ndash;Tiffany: merger agreement signed Nov. 24, 2019 ($135/share, ~$16.2B); 2020 Delaware litigation over the signing-to-closing gap; renegotiated to $131.50/share and closed Jan. 7, 2021. See <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0000098246&type=8-K" target="_blank" rel="noopener">Tiffany &amp; Co. filings on EDGAR</a> (public record).</li>
+      <li>Dealcraft, <a href="../encyclopedia.html#part1" target="_blank" rel="noopener">Encyclopedia &middot; Part I, M&amp;A</a> &mdash; the reference layer for the disclosure schedule, conditions, and each document&rsquo;s defined terms.</li>
+      <li>The document sequence is the standard architecture of a negotiated U.S. acquisition; the ledger annotations are teaching notes, not a quotation from any single filing.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <a class="railcard prev" href="003-how-to-read-a-merger-agreement-fast.html"><span class="rl">&larr; Previous in lane</span><span class="rt">A0.1 &mdash; How to read a merger agreement fast</span></a>
+    <span class="railcard next off"><span class="rl">Next in lane &rarr;</span><span class="rt">A0.3 &mdash; Public vs. private deal technology</span></span>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane A / Level 0 / Lesson 009 &middot; Educational summary, not legal advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="A0.2";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(pb){pb.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});pb.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var pbar=document.getElementById("pbar");
+  if(pbar){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pbar.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
