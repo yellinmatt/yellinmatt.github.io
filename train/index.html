@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -81,10 +83,11 @@ input,select{border:0;background:none}
 
 /* hero */
 .hero{background:var(--surface);border-radius:var(--r-card);box-shadow:var(--shadow);padding:20px;margin-bottom:12px;border:1px solid var(--line);position:relative}
-.hero .chg{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.hero .chg{position:absolute;top:14px;right:14px;height:34px;padding:0 12px;gap:6px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.hero .chg span{font-size:13px;font-weight:700}
 .hero .chg svg{width:17px;height:17px}
 .lbl{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
-.hero h2{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:8px 0 5px;padding-right:34px}
+.hero h2{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:8px 0 5px;padding-right:92px}
 .hero .meta{font-size:14.5px;color:var(--sub);font-weight:500}.hero .meta b{color:var(--ink);font-weight:600}
 .big-start{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;height:56px;margin-top:18px;background:var(--accent);color:var(--white);border-radius:var(--r-btn);font-size:18px;font-weight:700;box-shadow:0 6px 18px rgba(255,78,43,.26)}
 .big-start:active{background:var(--accent-press);transform:translateY(1px)}
@@ -294,6 +297,13 @@ input,select{border:0;background:none}
 .nav button svg{width:22px;height:22px}.nav button span{font-size:10px;font-weight:700}
 .nav button.on{color:var(--accent)}
 .foot{text-align:center;font-size:11.5px;color:var(--faint);padding:16px 8px 6px;line-height:1.6}
+.genrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.genrow:last-child{border-bottom:0}
+.genrow .gi{width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub);flex:none}
+.genrow .gi svg{width:18px;height:18px}
+.genrow .gt{flex:1;min-width:0}.genrow .gn{font-size:15px;font-weight:700}.genrow .gc{font-size:12px;color:var(--sub);margin-top:1px}
+.genrow .gr{width:38px;height:38px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
+.genrow .gr:active{background:var(--accent-tint)}
 </style>
 </head>
 <body>
@@ -317,6 +327,7 @@ input,select{border:0;background:none}
   <section class="view" id="v-week"></section>
   <section class="view" id="v-progress"></section>
   <section class="view" id="v-library"></section>
+  <section class="view" id="v-generate"></section>
 </div>
 
 <div class="restbar" id="restbar" role="timer" aria-label="Rest timer">
@@ -331,6 +342,7 @@ input,select{border:0;background:none}
 
 <nav class="nav" id="nav">
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
+  <button data-nav="generate" onclick="show('generate')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3L5 13h5l-1 8 8-11h-5l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Build</span></button>
   <button data-nav="week" onclick="show('week')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Week</span></button>
   <button data-nav="progress" onclick="show('progress')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Progress</span></button>
   <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h9a2 2 0 0 1 2 2v12l-5-3-5 3V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 7h3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Library</span></button>
@@ -338,6 +350,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
+var VERSION="v2.1";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -500,6 +513,7 @@ function show(v){
   if(v==="week")renderWeek();
   if(v==="progress")renderProgress();
   if(v==="library")renderLibrary();
+  if(v==="generate")renderGenerate();
   window.scrollTo(0,0);
 }
 
@@ -511,23 +525,24 @@ function renderToday(){
   var streak=computeStreak();
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
     '<div class="tools"><div class="streak'+(streak?"":" zero")+'">'+I.flame+'<b class="num">'+streak+'</b><span>'+(streak===1?"day":"days")+'</span></div>'+
+    '<button class="iconbtn" onclick="logSheet()" aria-label="Log activity">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   // hero
   var hero='';
   if(plan.type==="lift"){
     var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
-    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'</button>'+
-      '<div class="lbl">Today &middot; Day '+L+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
+    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
+      '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; ~30 min &middot; cut pace (8-15 reps)</div>'+
       (done?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
   }else if(plan.type==="run"){
-    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'</button>'+
+    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
       (done?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+'</div>';
   }else{
-    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'</button>'+
+    hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Rest day</div><h2>Recover &amp; reset</h2>'+
       '<div class="meta">Just the morning anchor'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'.</div>'+
       (plan.weigh?'<div style="margin-top:16px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
@@ -911,7 +926,9 @@ function settingsSheet(){
   m+='<div class="setrow"><div><div class="sk">Theme</div></div><div class="seg" style="max-width:210px"><button class="'+(p.theme==="light"?"sel":"")+'" onclick="setTheme(\'light\',this)">Light</button><button class="'+(p.theme==="dark"?"sel":"")+'" onclick="setTheme(\'dark\',this)">Dark</button><button class="'+((!p.theme||p.theme==="system")?"sel":"")+'" onclick="setTheme(\'system\',this)">Auto</button></div></div>';
   m+='<div class="setrow"><div><div class="sk">Goal weight</div></div><div class="inp" style="max-width:150px"><input inputmode="decimal" value="'+p.goalLb+'" onchange="S.profile.goalLb=parseFloat(this.value)||180;save()" style="width:60px" aria-label="goal"><span class="u">'+wLbl()+'</span></div></div>';
   m+='<button class="sheet-cta ghost" onclick="exportSheet()">'+"Export / backup data"+'</button>';
+  m+='<button class="sheet-cta ghost" onclick="healthSheet()">Import from Apple Health</button>';
   m+='<button class="sheet-cta ghost" onclick="confirmReset()" style="color:var(--accent)">Reset all data</button>';
+  m+='<div class="foot" style="padding:14px 0 2px">Train '+VERSION+' &middot; stored on this device only.</div>';
   openSheet(m);
 }
 function setUnits(u,b){S.profile.units=u;save();segSel(b);toast("Units set to "+u,null);}
@@ -953,6 +970,100 @@ function toast(msg,undo){var t=document.getElementById("toast");document.getElem
   var ub=document.getElementById("toast-u");ub.style.display=undo?"block":"none";toastUndo=undo||null;
   t.classList.add("on");if(toastT)clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on")},undo?5000:2600);}
 document.getElementById("toast-u").addEventListener("click",function(){if(toastUndo)toastUndo();document.getElementById("toast").classList.remove("on");});
+
+
+/* ============ WORKOUT GENERATOR ============ */
+var GEN={focus:"full",time:30,energy:"normal",session:null};
+var FOCUS={
+  full:{name:"Full body",pats:["squat","hinge","h-push","h-pull","core"]},
+  upper:{name:"Upper body",pats:["h-push","h-pull","v-push","v-pull","core"]},
+  lower:{name:"Lower body",pats:["squat","hinge","squat","core"]},
+  push:{name:"Push",pats:["h-push","v-push","h-push","core"]},
+  pull:{name:"Pull",pats:["h-pull","v-pull","h-pull","isolation"]},
+  legs:{name:"Legs & glutes",pats:["squat","hinge","squat","hinge","core"]}
+};
+function allowedEquip(){return S.profile.loc==="Boca"?["DB","BW","band"]:["DB","BW","band","bar"];}
+function pickForPattern(pat,used){
+  var eq=allowedEquip();
+  var c=Object.keys(LIB).filter(function(id){return LIB[id].pattern===pat&&eq.indexOf(LIB[id].equip)>=0&&used.indexOf(id)<0;});
+  if(!c.length)c=Object.keys(LIB).filter(function(id){return LIB[id].pattern===pat&&used.indexOf(id)<0;});
+  if(!c.length)c=Object.keys(LIB).filter(function(id){return LIB[id].pattern===pat;});
+  return c.length?c[Math.floor(Math.random()*c.length)]:null;
+}
+function genSlot(id,sets){var e=LIB[id],t=S.progress[id]||{};
+  var low=e.unit==="s"?30:8,high=e.unit==="s"?45:12;
+  var w=e.bw?0:(t.weight!=null?t.weight:15);
+  var arr=[];for(var i=0;i<sets;i++)arr.push({w:w,reps:low,on:false});
+  return {exId:id,unit:e.unit||"reps",side:!!e.side,bw:!!e.bw,low:low,high:high,weight:w,sets:arr};
+}
+function genBuild(){
+  var f=FOCUS[GEN.focus],nEx=GEN.time===20?4:GEN.time===45?6:5,sets=GEN.energy==="low"?2:3;
+  var pats=[];for(var i=0;i<nEx;i++)pats.push(f.pats[i%f.pats.length]);
+  var used=[],order=[];
+  pats.forEach(function(p){var id=pickForPattern(p,used);if(id){used.push(id);order.push(genSlot(id,sets));}});
+  GEN.session={focus:f.name,order:order};
+}
+function genReroll(oi){var o=GEN.session.order[oi];var used=GEN.session.order.map(function(x){return x.exId;});var id=pickForPattern(LIB[o.exId].pattern,used);if(id){GEN.session.order[oi]=genSlot(id,o.sets.length);renderGenerate();}}
+function genRerollAll(){genBuild();renderGenerate();}
+function genUse(){if(!GEN.session||!GEN.session.order.length){return;}
+  S.override[TODAY]={type:"lift",gen:true};
+  S.wk[TODAY]={letter:"Gen",name:GEN.session.focus,gen:true,order:JSON.parse(JSON.stringify(GEN.session.order)),start:null};
+  save();show("today");toast("Loaded as today's workout. Hit Start.",null);}
+function renderGenerate(){
+  if(!GEN.session)genBuild();
+  function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';renderGenerate()">'+l+'</button>';}
+  function tseg(v){return '<button class="'+(GEN.time===v?"sel":"")+'" onclick="GEN.time='+v+';renderGenerate()">'+v+' min</button>';}
+  var h='<div class="head"><div><div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
+  h+='<div class="card"><h3>Focus</h3><div class="seg" style="height:auto;flex-wrap:wrap;gap:6px">'+seg("focus","full","Full")+seg("focus","upper","Upper")+seg("focus","lower","Lower")+seg("focus","push","Push")+seg("focus","pull","Pull")+seg("focus","legs","Legs")+'</div>'+
+    '<div style="height:14px"></div><h3>Time</h3><div class="seg">'+tseg(20)+tseg(30)+tseg(45)+'</div>'+
+    '<div style="height:14px"></div><h3>Energy</h3><div class="seg">'+seg("energy","low","Low")+seg("energy","normal","Normal")+seg("energy","high","High")+'</div></div>';
+  h+='<div class="card"><h3><span>Your workout</span><button class="wbtn" style="height:32px;display:inline-flex;align-items:center;gap:6px" onclick="genRerollAll()">'+I.swap+' Reroll all</button></h3>';
+  GEN.session.order.forEach(function(o,oi){var e=LIB[o.exId];
+    h+='<div class="genrow"><div class="gi">'+(e.bw?I.bolt:e.equip==="band"?I.spark:I.dumbbell)+'</div>'+
+      '<div class="gt"><div class="gn">'+esc(e.name)+(o.side?' <span style="color:var(--faint);font-weight:600;font-size:12px">/side</span>':'')+'</div><div class="gc">'+o.sets.length+' x '+o.low+'-'+o.high+(o.unit==="s"?"s":" reps")+' &middot; '+PATTERNS[e.pattern]+'</div></div>'+
+      '<button class="gr" onclick="genReroll('+oi+')" aria-label="reroll this exercise">'+I.swap+'</button></div>';
+  });
+  h+='</div><button class="big-start" onclick="genUse()">'+I.check+' Use this workout</button>'+
+    '<div class="foot">Reroll one exercise with its swap icon, or reroll the whole session. Built from your '+esc(S.profile.loc)+' equipment. Watch form in the Library tab.</div>';
+  document.getElementById("v-generate").innerHTML=h;
+}
+
+/* ============ QUICK LOG (run / walk / other) ============ */
+function logSheet(){
+  openSheet('<div class="grab"></div><h3>Log activity</h3><div class="ssub">Fast-log cardio or anything else. Lifts are logged in Start workout.</div>'+
+    optRow(I.run,"Run","distance + time","actSheet(\'run\')")+
+    optRow(I.run,"Walk","just the minutes","actSheet(\'walk\')")+
+    optRow(I.bolt,"Other workout","name + minutes","actSheet(\'other\')"));
+}
+function actSheet(type){
+  if(type==="run"){var d=(todayPlan().type==="run")?todayPlan().dist:2;runSheet(d);return;}
+  var isWalk=(type==="walk");
+  var m='<div class="grab"></div><h3>Log '+(isWalk?"walk":"workout")+'</h3><div class="ssub">Quick and done.</div>';
+  if(!isWalk)m+='<div class="logrow"><label>What</label><input class="tin" id="a-name" placeholder="yoga, bike, tennis..." style="max-width:200px" aria-label="activity"></div>';
+  m+='<div class="logrow"><label>Minutes</label><div class="inp" style="max-width:130px"><input id="a-min" inputmode="numeric" placeholder="30" style="width:56px" aria-label="minutes"><span class="u">min</span></div></div>';
+  m+='<button class="sheet-cta" onclick="saveAct(\''+type+'\')">Save</button>';
+  openSheet(m);
+}
+function saveAct(type){var min=parseInt((document.getElementById("a-min")||{}).value)||0;if(min<=0){closeSheet();return;}
+  var name=(type==="walk")?"Walk":((document.getElementById("a-name")||{}).value||"Workout");
+  S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,notes:""});
+  S.done[TODAY]=true;save();closeSheet();toast("Logged "+name+", "+min+" min.",null);renderToday();}
+
+/* ============ APPLE HEALTH IMPORT ============ */
+function healthSheet(){
+  openSheet('<div class="grab"></div><h3>Import from Apple Health</h3><div class="ssub">Paste the JSON your Shortcut produces. Pulls in weight and workouts (incl. Apple Watch).</div>'+
+    '<textarea class="ta" id="hj" placeholder=\'{"weighins":[{"date":"2026-07-16","weightLb":189}],"activities":[{"type":"run","date":"2026-07-16","durationSec":1400,"distanceMi":2.1}]}\' style="min-height:150px"></textarea>'+
+    '<button class="sheet-cta" onclick="doHealth()">Import</button>');
+}
+function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON.parse(t)}catch(e){toast("That is not valid JSON.",null);return;}
+  var n=0;
+  if(o.weighins)o.weighins.forEach(function(w){if(w.date&&w.weightLb){S.weigh=S.weigh.filter(function(x){return x.date!==w.date;});S.weigh.push({date:w.date,w:w.weightLb});n++;}});
+  S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+  if(o.activities)o.activities.forEach(function(a){if(!a.date)return;n++;
+    if(a.type==="run"||a.distanceMi){S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health"});}
+    else{S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});}
+    S.done[a.date]=true;});
+  save();closeSheet();toast("Imported "+n+" items from Health.",null);show("progress");}
 
 /* ============ boot ============ */
 applyTheme();
