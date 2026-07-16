@@ -304,6 +304,28 @@ input,select{border:0;background:none}
 .genrow .gt{flex:1;min-width:0}.genrow .gn{font-size:15px;font-weight:700}.genrow .gc{font-size:12px;color:var(--sub);margin-top:1px}
 .genrow .gr{width:38px;height:38px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
 .genrow .gr:active{background:var(--accent-tint)}
+.tlog{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.tlog:last-of-type{border-bottom:0}
+.tlog .ti{width:36px;height:36px;border-radius:10px;background:var(--accent-tint);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.tlog .ti svg{width:18px;height:18px}
+.tlog .tt{flex:1;min-width:0;background:none;text-align:left;padding:0}
+.tlog .tn{font-size:14.5px;font-weight:700}.tlog .tc{font-size:12px;color:var(--sub);margin-top:1px}
+.tlog .tx{width:34px;height:34px;border-radius:9px;background:var(--surface-2);color:var(--faint);display:flex;align-items:center;justify-content:center;flex:none}
+.tlog .tx svg{width:16px;height:16px}
+.eqchips{display:flex;flex-wrap:wrap;gap:8px}
+.eqchip{padding:9px 14px;border-radius:999px;background:var(--surface-2);font-size:13px;font-weight:700;color:var(--sub);border:1.5px solid transparent}
+.eqchip.on{background:var(--accent-tint);color:var(--accent);border-color:var(--accent)}
+.sh2{display:flex;align-items:center;justify-content:space-between;margin:22px 2px 12px}
+.tick.del{border-color:var(--line-2);color:var(--faint);background:none}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.cah{text-align:center;font-size:10px;font-weight:700;color:var(--faint);padding-bottom:2px}
+.cad{aspect-ratio:1;border-radius:9px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--sub)}
+.cad.empty{background:none}
+.cad.done{background:var(--accent);color:var(--white)}
+.cad.today{outline:2px solid var(--accent);outline-offset:-2px;color:var(--accent)}
+.cad.today.done{color:var(--white)}
+.calnav{width:30px;height:30px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.calnav svg{width:16px;height:16px}
 </style>
 </head>
 <body>
@@ -343,17 +365,18 @@ input,select{border:0;background:none}
 <nav class="nav" id="nav">
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
   <button data-nav="generate" onclick="show('generate')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3L5 13h5l-1 8 8-11h-5l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Build</span></button>
-  <button data-nav="week" onclick="show('week')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Week</span></button>
+  <button data-nav="week" onclick="show('week')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Schedule</span></button>
   <button data-nav="progress" onclick="show('progress')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Progress</span></button>
   <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h9a2 2 0 0 1 2 2v12l-5-3-5 3V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 7h3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Library</span></button>
 </nav>
 
 <script>
 "use strict";
-var VERSION="v2.1";
+var VERSION="v2.2";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
+  chevL:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   dumbbell:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 6.5v11M4 9v5M17.5 6.5v11M20 9v5M6.5 12h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -425,7 +448,7 @@ var PACE_MI="9:50-11:00";
 /* ============ state ============ */
 var LS="train_v2";
 var S=load();
-function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false},
+function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["DB","band","bar","BW"]},
   progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{}};}
 function load(){
   var raw=null;try{raw=JSON.parse(localStorage.getItem(LS))}catch(e){}
@@ -520,7 +543,7 @@ function show(v){
 /* ============ TODAY ============ */
 function renderToday(){
   refreshDate();
-  var plan=todayPlan(),done=isDone(TODAY),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!done);
+  var plan=todayPlan(),done=isDone(TODAY),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),runDone=!!S.runs[TODAY]||S.sessions.some(function(s){return s.date===TODAY&&s.type==="run";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
   var greet=S.profile.name?("Morning, "+esc(S.profile.name)):"Today";
   var streak=computeStreak();
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
@@ -534,13 +557,13 @@ function renderToday(){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; ~30 min &middot; cut pace (8-15 reps)</div>'+
-      (done?'<div class="done-pill">'+I.check+' Session complete</div>':
+      (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
   }else if(plan.type==="run"){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
-      (done?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+'</div>';
+      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+'</div>';
   }else{
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Rest day</div><h2>Recover &amp; reset</h2>'+
@@ -558,13 +581,10 @@ function renderToday(){
   var C=2*Math.PI*13,off=C*(1-ac/4);
   var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+
     '<div class="anote">Never zero: a bad day is still <b>1 cat-cow + 1 push-up</b>. The rule is never miss twice.</div></div>';
-  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+
+  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+todayLogHTML()+
     '<div class="foot">Your data lives only in this browser. Progress &rarr; Export to send it to Claude.</div>';
 }
-function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
-  var allc=ANCHOR.every(function(m,idx){return a[idx]});
-  if(todayPlan().type==="rest"){if(allc)S.done[TODAY]=true;else if(S.done[TODAY])delete S.done[TODAY];}
-  save();renderToday();}
+function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);save();renderToday();}
 
 /* ============ change-today ============ */
 function changeSheet(){
@@ -589,7 +609,7 @@ function setToday(w){
   if(w==="min"){openSheet('<div class="grab"></div><h3>5-minute minimum</h3><div class="ssub">Do any two. Then you kept the streak.</div>'+
     '<div class="card" style="box-shadow:none;border:0;padding:0">'+
     ['10 bodyweight squats','10 push-ups (easy)','30s plank','20 jumping jacks','1 min brisk walk'].map(function(x){return '<div class="arow"><span class="an">'+x+'</span></div>';}).join("")+'</div>'+
-    '<button class="sheet-cta" onclick="S.done[TODAY]=true;save();closeSheet();renderToday();">Done &mdash; keep my streak</button>');return;}
+    '<button class="sheet-cta" onclick="logMin()">Done &mdash; keep my streak</button>');return;}
   renderToday();
 }
 
@@ -783,8 +803,8 @@ function renderWeek(){
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
-  document.getElementById("v-week").innerHTML='<div class="head"><div><div class="date">'+DFULL[mon.getDay()]+' '+(mon.getMonth()+1)+"/"+mon.getDate()+' &ndash; this week</div><div class="title">Week</div></div></div>'+ring+
-    '<div class="card"><h3>The plan <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>';
+  document.getElementById("v-week").innerHTML='<div class="head"><div><div class="date">This week &amp; month</div><div class="title">Schedule</div></div></div>'+ring+
+    '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>'+monthCal();
 }
 function dayDetail(k){
   var lift=S.sessions.filter(function(s){return s.id===k&&s.type==="lift";})[0];
@@ -905,6 +925,9 @@ function doImport(){var t=(document.getElementById("imp")||{}).value;var o;try{o
 function ytSearch(q){return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);}
 function renderLibrary(){
   var h='<div class="head"><div><div class="date">Form &amp; follow-alongs</div><div class="title">Library</div></div></div>';
+  h+='<div class="sectlbl" style="margin-top:6px">Quick workouts &middot; tap and go</div><div class="lib">';
+  [["Full-body, 20 min","20 minute full body dumbbell workout at home"],["Upper body, 20 min","20 minute upper body dumbbell workout home"],["Lower body & glutes","20 minute lower body dumbbell workout home"],["Core & abs, 10 min","10 minute core abs workout no equipment"],["Mobility flow, 15 min","15 minute full body mobility follow along"],["Yoga for lifters","20 minute yoga for athletes recovery"],["Low-impact cardio","20 minute low impact cardio no jumping home"],["Run warm-up","dynamic warm up before running follow along"]].forEach(function(r){h+='<a href="'+ytSearch(r[1])+'" target="_blank" rel="noopener"><span class="li acc">'+I.play+'</span><span><div class="ln">'+r[0]+'</div><div class="lc">full follow-along</div></span><span class="lar">'+I.arrow+'</span></a>';});
+  h+='</div>';
   var byPat={};Object.keys(LIB).forEach(function(id){var p=LIB[id].pattern;(byPat[p]=byPat[p]||[]).push(id);});
   Object.keys(PATTERNS).forEach(function(p){if(!byPat[p])return;h+='<div class="sectlbl">'+PATTERNS[p]+'</div><div class="lib">';
     byPat[p].forEach(function(id){var e=LIB[id];h+='<a href="'+ytSearch(e.q)+'" target="_blank" rel="noopener"><span class="li'+(e.bw||e.equip==="band"?"":" acc")+'">'+(e.equip==="band"?I.spark:e.bw?I.bolt:I.dumbbell)+'</span><span><div class="ln">'+esc(e.name)+'</div><div class="lc">'+e.equip+' &middot; '+esc(e.cue)+'</div></span><span class="tag">'+e.diff+'</span></a>';});
@@ -982,7 +1005,7 @@ var FOCUS={
   pull:{name:"Pull",pats:["h-pull","v-pull","h-pull","isolation"]},
   legs:{name:"Legs & glutes",pats:["squat","hinge","squat","hinge","core"]}
 };
-function allowedEquip(){return S.profile.loc==="Boca"?["DB","BW","band"]:["DB","BW","band","bar"];}
+function allowedEquip(){return (S.profile.equip&&S.profile.equip.length)?S.profile.equip:(S.profile.loc==="Boca"?["DB","BW","band"]:["DB","BW","band","bar"]);}
 function pickForPattern(pat,used){
   var eq=allowedEquip();
   var c=Object.keys(LIB).filter(function(id){return LIB[id].pattern===pat&&eq.indexOf(LIB[id].equip)>=0&&used.indexOf(id)<0;});
@@ -1011,20 +1034,31 @@ function genUse(){if(!GEN.session||!GEN.session.order.length){return;}
   save();show("today");toast("Loaded as today's workout. Hit Start.",null);}
 function renderGenerate(){
   if(!GEN.session)genBuild();
-  function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';renderGenerate()">'+l+'</button>';}
-  function tseg(v){return '<button class="'+(GEN.time===v?"sel":"")+'" onclick="GEN.time='+v+';renderGenerate()">'+v+' min</button>';}
+  function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';genBuild();renderGenerate()">'+l+'</button>';}
+  function tseg(v){return '<button class="'+(GEN.time===v?"sel":"")+'" onclick="GEN.time='+v+';genBuild();renderGenerate()">'+v+' min</button>';}
+  var eq=[["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"],["BW","Bodyweight"]];
   var h='<div class="head"><div><div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
   h+='<div class="card"><h3>Focus</h3><div class="seg" style="height:auto;flex-wrap:wrap;gap:6px">'+seg("focus","full","Full")+seg("focus","upper","Upper")+seg("focus","lower","Lower")+seg("focus","push","Push")+seg("focus","pull","Pull")+seg("focus","legs","Legs")+'</div>'+
-    '<div style="height:14px"></div><h3>Time</h3><div class="seg">'+tseg(20)+tseg(30)+tseg(45)+'</div>'+
-    '<div style="height:14px"></div><h3>Energy</h3><div class="seg">'+seg("energy","low","Low")+seg("energy","normal","Normal")+seg("energy","high","High")+'</div></div>';
-  h+='<div class="card"><h3><span>Your workout</span><button class="wbtn" style="height:32px;display:inline-flex;align-items:center;gap:6px" onclick="genRerollAll()">'+I.swap+' Reroll all</button></h3>';
+    '<div style="height:16px"></div><h3>Time</h3><div class="seg">'+tseg(20)+tseg(30)+tseg(45)+'</div>'+
+    '<div style="height:16px"></div><h3>Energy</h3><div class="seg">'+seg("energy","low","Low")+seg("energy","normal","Normal")+seg("energy","high","High")+'</div>'+
+    '<div style="height:16px"></div><h3>Equipment</h3><div class="eqchips">'+eq.map(function(x){return '<button class="eqchip'+((S.profile.equip||[]).indexOf(x[0])>=0?" on":"")+'" onclick="toggleEquip(\''+x[0]+'\')">'+x[1]+'</button>';}).join("")+'</div></div>';
+  h+='<div class="sh2"><div class="sectlbl" style="margin:0">Your workout</div><button class="wbtn" style="height:34px;display:inline-flex;align-items:center;gap:6px" onclick="genRerollAll()">'+I.swap+' Reroll all</button></div>';
   GEN.session.order.forEach(function(o,oi){var e=LIB[o.exId];
-    h+='<div class="genrow"><div class="gi">'+(e.bw?I.bolt:e.equip==="band"?I.spark:I.dumbbell)+'</div>'+
-      '<div class="gt"><div class="gn">'+esc(e.name)+(o.side?' <span style="color:var(--faint);font-weight:600;font-size:12px">/side</span>':'')+'</div><div class="gc">'+o.sets.length+' x '+o.low+'-'+o.high+(o.unit==="s"?"s":" reps")+' &middot; '+PATTERNS[e.pattern]+'</div></div>'+
-      '<button class="gr" onclick="genReroll('+oi+')" aria-label="reroll this exercise">'+I.swap+'</button></div>';
+    var sets="";
+    o.sets.forEach(function(s,si){
+      var wcell=o.bw?'<div class="bwtag">BW</div>':'<div class="stp"><button onclick="genStep('+oi+','+si+',\'w\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" onchange="genSetVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="genStep('+oi+','+si+',\'w\',1)" aria-label="more">+</button></div>';
+      var runit=o.unit==="s"?'<span class="u">s</span>':'';
+      var rcell='<div class="stp"><button onclick="genStep('+oi+','+si+',\'reps\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="numeric" value="'+s.reps+'" onchange="genSetVal('+oi+','+si+',\'reps\',this.value)">'+runit+'<button onclick="genStep('+oi+','+si+',\'reps\',1)" aria-label="more">+</button></div>';
+      var del=o.sets.length>1?'<button class="tick del" onclick="genRemoveSetAt('+oi+','+si+')" aria-label="remove set">'+I.trash+'</button>':'<div style="width:42px"></div>';
+      sets+='<div class="set" id="gset-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+del+'</div>';
+    });
+    h+='<div class="ex"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="color:var(--faint);font-weight:600;font-size:12px">/side</span>':'')+'</div><button class="more" onclick="genReroll('+oi+')" aria-label="swap this exercise">'+I.swap+'</button></div>'+
+      '<div class="aim" style="color:var(--faint)">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>'+
+      '<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+sets+
+      '<div class="setbtns"><button class="setbtn" onclick="genAddSet('+oi+')">+ Add set</button></div></div>';
   });
-  h+='</div><button class="big-start" onclick="genUse()">'+I.check+' Use this workout</button>'+
-    '<div class="foot">Reroll one exercise with its swap icon, or reroll the whole session. Built from your '+esc(S.profile.loc)+' equipment. Watch form in the Library tab.</div>';
+  h+='<button class="big-start" onclick="genUse()">'+I.check+' Use this workout</button>'+
+    '<div class="foot">Tune reps and weight per set with +/-, add or delete sets, or swap an exercise. Then Use this workout to load it into Today.</div>';
   document.getElementById("v-generate").innerHTML=h;
 }
 
@@ -1064,6 +1098,72 @@ function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON
     else{S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});}
     S.done[a.date]=true;});
   save();closeSheet();toast("Imported "+n+" items from Health.",null);show("progress");}
+
+
+/* ============ TODAY LOG + done recompute ============ */
+function anchorComplete(k){var a=S.anchor[k]||{};for(var i=0;i<ANCHOR.length;i++)if(!a[i])return false;return true;}
+function planDow(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();}
+function recomputeDone(k){
+  var has=S.sessions.some(function(s){return s.date===k;})|| !!S.runs[k];
+  var pl=S.override[k]||WEEK[planDow(k)];
+  if(has||(pl.type==="rest"&&anchorComplete(k)))S.done[k]=true;else delete S.done[k];
+}
+function todayLogHTML(){
+  var items=S.sessions.filter(function(s){return s.date===TODAY;});
+  var rows="";
+  items.forEach(function(s){
+    var ic,name,cap;
+    if(s.type==="lift"){ic=I.dumbbell;name=(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength");var n=0;s.entries.forEach(function(e){n+=e.sets.length;});cap=n+' sets &middot; '+mmss(s.durationSec)+(s.rpe?' &middot; RPE '+s.rpe:'');}
+    else if(s.type==="run"){ic=I.run;name="Easy run";cap=(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+(s.rpe?' &middot; '+esc(s.rpe):'');}
+    else{ic=(s.activity==="Walk")?I.run:I.bolt;name=esc(s.activity||"Workout");cap=Math.round((s.durationSec||0)/60)+' min';}
+    rows+='<div class="tlog"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button><button class="tx" onclick="delSession(\''+s.id+'\')" aria-label="delete">'+I.trash+'</button></div>';
+  });
+  var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet. Start a workout above, or log a run, walk, or anything else below.</div>';
+  return '<div class="card"><h3><span>Today\'s log</span>'+(items.length?'<span class="t">'+items.length+' logged</span>':'')+'</h3>'+rows+empty+
+    '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log a workout, run, or walk</button></div>';
+}
+function sessionSheet(id){var s=S.sessions.filter(function(x){return x.id===id;})[0];if(!s){closeSheet();return;}
+  var title=s.type==="lift"?(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength"):s.type==="run"?"Easy run":esc(s.activity||"Workout");
+  var m='<div class="grab"></div><h3>'+title+'</h3><div class="ssub">'+shortDate(s.date)+'</div>';
+  if(s.type==="lift"){s.entries.forEach(function(e){m+='<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div style="font-weight:700;font-size:14px">'+esc(LIB[e.exerciseId]?LIB[e.exerciseId].name:e.exerciseId)+'</div><div style="font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums">'+e.sets.map(function(st){return (LIB[e.exerciseId]&&LIB[e.exerciseId].bw?"":st.weightLb+"x")+st.reps;}).join(", ")+'</div></div>';});if(s.notes)m+='<div style="font-size:13px;color:var(--sub);margin-top:8px">Note: '+esc(s.notes)+'</div>';}
+  else if(s.type==="run")m+='<div class="sumgrid"><div class="sg"><b>'+s.distanceMi+'</b><span>mi</span></div><div class="sg"><b>'+(s.paceSecPerMi?mmss(s.paceSecPerMi):"--")+'</b><span>/mi</span></div><div class="sg"><b>'+mmss(s.durationSec)+'</b><span>time</span></div></div>';
+  else m+='<div class="sumgrid"><div class="sg"><b>'+Math.round((s.durationSec||0)/60)+'</b><span>min</span></div></div>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();delSession(\''+id+'\')">Delete</button><button class="sheet-cta ghost" onclick="closeSheet()">Close</button>';
+  openSheet(m);
+}
+function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sessions[i].id===id){idx=i;break;}if(idx<0)return;
+  var rm=S.sessions.splice(idx,1)[0];
+  if(rm.type==="run")delete S.runs[rm.date];
+  if(rm.type==="lift"&&S.wk[rm.date])delete S.wk[rm.date];
+  recomputeDone(rm.date);save();renderToday();
+  var lbl=rm.type==="lift"?"workout":rm.type==="run"?"run":(rm.activity||"activity");
+  toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
+}
+function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
+
+/* ============ EQUIPMENT + GEN set editing ============ */
+function toggleEquip(e){var arr=(S.profile.equip||[]).slice();var i=arr.indexOf(e);if(i>=0){if(arr.length>1)arr.splice(i,1);}else arr.push(e);S.profile.equip=arr;save();genBuild();renderGenerate();}
+function genStep(oi,si,f,dir){var o=GEN.session.order[oi],s=o.sets[si];
+  if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
+  else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
+  var el=document.getElementById("gset-"+oi+"-"+si);if(el){var inp=el.querySelectorAll(".val");inp[0].value=s.w;inp[1].value=s.reps;}}
+function genSetVal(oi,si,f,v){var s=GEN.session.order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));}
+function genAddSet(oi){var o=GEN.session.order[oi],last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});renderGenerate();}
+function genRemoveSetAt(oi,si){var o=GEN.session.order[oi];if(o.sets.length>1){o.sets.splice(si,1);renderGenerate();}}
+
+/* ============ MONTH CALENDAR ============ */
+var CAL={y:null,m:null};
+function calShift(d){if(CAL.y==null){CAL.y=NOW.getFullYear();CAL.m=NOW.getMonth();}var x=new Date(CAL.y,CAL.m+d,1);CAL.y=x.getFullYear();CAL.m=x.getMonth();renderWeek();}
+function monthCal(){
+  if(CAL.y==null){CAL.y=NOW.getFullYear();CAL.m=NOW.getMonth();}
+  var first=new Date(CAL.y,CAL.m,1),lead=(first.getDay()+6)%7,days=new Date(CAL.y,CAL.m+1,0).getDate();
+  var title=first.toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  var cells="";["M","T","W","T","F","S","S"].forEach(function(d){cells+='<div class="cah">'+d+'</div>';});
+  for(var i=0;i<lead;i++)cells+='<div class="cad empty"></div>';
+  for(var dnum=1;dnum<=days;dnum++){var k=CAL.y+"-"+("0"+(CAL.m+1)).slice(-2)+"-"+("0"+dnum).slice(-2);var dn=isDone(k),isT=(k===TODAY);
+    cells+='<button class="cad'+(dn?" done":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')">'+dnum+'</button>';}
+  return '<div class="card"><h3><span>'+esc(title)+'</span><span style="display:flex;gap:6px"><button class="calnav" onclick="calShift(-1)" aria-label="previous month">'+I.chevL+'</button><button class="calnav" onclick="calShift(1)" aria-label="next month">'+I.arrow+'</button></span></h3><div class="calgrid">'+cells+'</div></div>';
+}
 
 /* ============ boot ============ */
 applyTheme();
