@@ -391,7 +391,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.1";
+var VERSION="v3.2";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -470,7 +470,7 @@ var PACE_MI="9:50-11:00";
 var LS="train_v2";
 var S=load();
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["DB","band","BW"],adjustable:false},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{}};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{},activeMode:"plan",genWk:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -514,7 +514,7 @@ function workDay(){
   S.wk[TODAY]={letter:L,name:tpl.name,order:order,start:null};
   save();return S.wk[TODAY];
 }
-function wkProgress(){var w=S.wk[TODAY];if(!w)return {done:0,total:0};var d=0,t=0;w.order.forEach(function(o){o.sets.forEach(function(s){t++;if(s.on)d++;});});return {done:d,total:t};}
+function wkProgress(w){w=w||S.wk[TODAY];if(!w)return {done:0,total:0};var d=0,t=0;w.order.forEach(function(o){o.sets.forEach(function(s){t++;if(s.on)d++;});});return {done:d,total:t};}
 
 /* last-time / aim */
 function lastEntry(exId){
@@ -636,16 +636,18 @@ function setToday(w){
 
 /* ============ WORKOUT ============ */
 var woTimer=null;var openEx={};
+function AW(){return S.activeMode==="gen"?S.genWk:S.wk[TODAY];}
+function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();save();renderWorkout();show("workout");startWoTick();}
 function exComplete(o){return o.sets.length>0&&o.sets.every(function(s){return s.on;});}
-function elapsedSec(){var w=S.wk[TODAY];if(!w)return 0;return Math.floor((w.accum||0)+((w.start&&!w.paused)?(Date.now()-w.start)/1000:0));}
+function elapsedSec(){var w=AW();if(!w)return 0;return Math.floor((w.accum||0)+((w.start&&!w.paused)?(Date.now()-w.start)/1000:0));}
 function startWoTick(){if(woTimer)clearInterval(woTimer);function t(){var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());}t();woTimer=setInterval(t,1000);updatePico();}
-function updatePico(){var p=document.getElementById("wo-pico");if(!p)return;var w=S.wk[TODAY];p.innerHTML=(w&&w.paused)?I.play2:I.pause;}
-function woFreeze(){var w=S.wk[TODAY];if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w.start)/1000;w.start=null;save();}if(woTimer){clearInterval(woTimer);woTimer=null;}}
-function woResume(){var w=S.wk[TODAY];if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
-function togglePause(){var w=S.wk[TODAY];if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
-function startWorkout(){var w=workDay();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();save();renderWorkout();show("workout");startWoTick();}
+function updatePico(){var p=document.getElementById("wo-pico");if(!p)return;var w=AW();p.innerHTML=(w&&w.paused)?I.play2:I.pause;}
+function woFreeze(){var w=AW();if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w.start)/1000;w.start=null;save();}if(woTimer){clearInterval(woTimer);woTimer=null;}}
+function woResume(){var w=AW();if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
+function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
+function startWorkout(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
 function closeWorkout(){woFreeze();endRest();show("today");}
-function exCardHTML(oi,isActive){var o=S.wk[TODAY].order[oi],e=LIB[o.exId],setsHtml="";
+function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
     var wcell=o.bw?'<div class="bwtag">BW</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
     var runit=o.unit==="s"?'<span class="u">s</span>':'';
@@ -653,54 +655,54 @@ function exCardHTML(oi,isActive){var o=S.wk[TODAY].order[oi],e=LIB[o.exId],setsH
     setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
   });
   return '<div class="ex'+(isActive?" active":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div><div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
-function exDoneHTML(oi){var o=S.wk[TODAY].order[oi],e=LIB[o.exId];var summ=o.sets.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ");
+function exDoneHTML(oi){var o=AW().order[oi],e=LIB[o.exId];var summ=o.sets.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ");
   return '<button class="exdone" onclick="openEx['+oi+']=true;renderWorkout()"><span class="edc">'+I.check+'</span><span class="edt"><span class="edn">'+esc(e.name)+'</span><span class="eds">'+summ+'</span></span><span class="ede">'+I.edit+'</span></button>';}
-function renderWorkout(){var w=S.wk[TODAY];if(!w){show("today");return;}
+function renderWorkout(){var w=AW();if(!w){show("today");return;}
   var active=[],doneL=[];w.order.forEach(function(o,oi){if(exComplete(o)&&!openEx[oi])doneL.push(oi);else active.push(oi);});
   var h='<div class="warmcard"><b>Warm-up (3 min):</b> '+WARM+'</div>';
   active.forEach(function(oi,idx){h+=exCardHTML(oi,idx===0&&active.length>1);});
   if(doneL.length){h+='<div class="doneband">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
   h+='<div class="warmcard"><b>Cooldown (2-3 min):</b> '+COOL+'</div>';
   document.getElementById("wo-body").innerHTML=h;}
-function step(oi,si,f,dir){var o=S.wk[TODAY].order[oi],s=o.sets[si];
+function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
   if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
   else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
   save();var el=document.getElementById("set-"+oi+"-"+si);if(el){var inp=el.querySelectorAll(".val");inp[0].value=s.w;inp[1].value=s.reps;}}
-function setVal(oi,si,f,v){var s=S.wk[TODAY].order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
-function toggleSet(oi,si){var o=S.wk[TODAY].order[oi],s=o.sets[si];
+function setVal(oi,si,f,v){var s=AW().order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
+function toggleSet(oi,si){var o=AW().order[oi],s=o.sets[si];
   s.on=!s.on;if(s.on)s.ts=Date.now();else delete s.ts;save();
-  var last=(oi===S.wk[TODAY].order.length-1&&si===o.sets.length-1);
+  var last=(oi===AW().order.length-1&&si===o.sets.length-1);
   if(s.on&&!last){startRest(S.profile.rest||90);if(navigator.vibrate)navigator.vibrate(12);}
   if(s.on&&last)endRest();
   if(exComplete(o))delete openEx[oi];
   renderWorkout();}
-function addSet(oi){var o=S.wk[TODAY].order[oi],last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});save();renderWorkout();}
-function removeSet(oi){var o=S.wk[TODAY].order[oi];if(o.sets.length>1){o.sets.pop();save();renderWorkout();}}
+function addSet(oi){var o=AW().order[oi],last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});save();renderWorkout();}
+function removeSet(oi){var o=AW().order[oi];if(o.sets.length>1){o.sets.pop();save();renderWorkout();}}
 function exMenu(oi){
-  var o=S.wk[TODAY].order[oi],e=LIB[o.exId];
+  var o=AW().order[oi],e=LIB[o.exId];
   var m='<div class="grab"></div><h3>'+esc(e.name)+'</h3><div class="ssub">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>';
   m+=optRow(I.swap,"Swap exercise","Same movement, different lift","swapSheet("+oi+")");
   m+=optRow(I.play,"Watch form","Opens a video search","openForm(\'"+e.q+"\')");
-  if(S.wk[TODAY].order.length>1)m+=optRow(I.trash,"Remove from today","","removeEx("+oi+")",true);
+  if(AW().order.length>1)m+=optRow(I.trash,"Remove from today","","removeEx("+oi+")",true);
   openSheet(m);
 }
 function openForm(q){window.open(ytSearch(q),"_blank","noopener");closeSheet();}
 function swapSheet(oi){
-  var o=S.wk[TODAY].order[oi],e=LIB[o.exId];
+  var o=AW().order[oi],e=LIB[o.exId];
   var alts=Object.keys(LIB).filter(function(id){return LIB[id].pattern===e.pattern&&id!==o.exId;});
   var m='<div class="grab"></div><h3>Swap '+esc(e.name)+'</h3><div class="ssub">'+PATTERNS[e.pattern]+' alternatives</div>';
   alts.forEach(function(id){var a=LIB[id];m+='<button class="opt" onclick="doSwap('+oi+',\''+id+'\')"><span class="oi">'+(a.equip==="band"?I.spark:a.bw?I.bolt:I.dumbbell)+'</span><span><div class="on2">'+esc(a.name)+'</div><div class="oc">'+a.equip+' &middot; '+a.diff+' &middot; '+esc(a.cue)+'</div></span><span class="oar">'+I.arrow+'</span></button>';});
   openSheet(m);
 }
-function doSwap(oi,id){var o=S.wk[TODAY].order[oi],e=LIB[id];
+function doSwap(oi,id){var o=AW().order[oi],e=LIB[id];
   o.exId=id;o.unit=e.unit||"reps";o.side=!!e.side;o.bw=!!e.bw;
   o.sets.forEach(function(s){if(e.bw)s.w=0;});
   save();closeSheet();renderWorkout();}
-function removeEx(oi){var o=S.wk[TODAY].order[oi];var rm=S.wk[TODAY].order.splice(oi,1)[0];save();closeSheet();renderWorkout();
-  toast("Removed "+LIB[rm.exId].name,function(){S.wk[TODAY].order.splice(oi,0,rm);save();renderWorkout();});}
+function removeEx(oi){var o=AW().order[oi];var rm=AW().order.splice(oi,1)[0];save();closeSheet();renderWorkout();
+  toast("Removed "+LIB[rm.exId].name,function(){AW().order.splice(oi,0,rm);save();renderWorkout();});}
 var rpePick=null;
-function finishWorkout(){var w=S.wk[TODAY];if(!w)return;var wp=wkProgress();if(wp.done===0){toast("Log at least one set first, or tap Today to leave.",null);return;}rpePick=null;verifySheet(wp);}
-function verifySheet(wp){var w=S.wk[TODAY],dur=elapsedSec(),setsN=0,vol=0,rows="";
+function finishWorkout(){var w=AW();if(!w)return;var wp=wkProgress(AW());if(wp.done===0){toast("Log at least one set first, or tap Today to leave.",null);return;}rpePick=null;verifySheet(wp);}
+function verifySheet(wp){var w=AW(),dur=elapsedSec(),setsN=0,vol=0,rows="";
   w.order.forEach(function(o){var done=o.sets.filter(function(s){return s.on;});if(!done.length)return;done.forEach(function(s){setsN++;if(o.unit!=="s")vol+=(parseFloat(s.w)||0)*(parseInt(s.reps)||0);});
     rows+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px"><span style="font-weight:600">'+esc(LIB[o.exId].name)+'</span><span style="color:var(--sub);font-variant-numeric:tabular-nums">'+done.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ")+'</span></div>';});
   var partial=wp.done<wp.total;
@@ -712,7 +714,7 @@ function verifySheet(wp){var w=S.wk[TODAY],dur=elapsedSec(),setsN=0,vol=0,rows="
     '<button class="sheet-cta" onclick="doFinish()">Confirm &amp; save</button><button class="sheet-cta ghost" onclick="closeSheet()">Keep going</button>';
   openSheet(m);}
 function setRpe(n,btn){rpePick=n;document.querySelectorAll("#v-rpe button").forEach(function(b){b.classList.remove("sel")});btn.classList.add("sel");}
-function doFinish(){var w=S.wk[TODAY];var dur=elapsedSec();var entries=[],setsN=0,vol=0,prs=[];
+function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0,prs=[];
   w.order.forEach(function(o){var onSets=o.sets.filter(function(s){return s.on;});if(!onSets.length)return;
     var sets=onSets.map(function(s){setsN++;if(o.unit!=="s")vol+=(parseFloat(s.w)||0)*(parseInt(s.reps)||0);return {weightLb:parseFloat(s.w)||0,reps:parseInt(s.reps)||0,completed:true};});
     var ts=onSets.map(function(s){return s.ts;}).filter(Boolean);var exSec=ts.length>1?Math.round((Math.max.apply(null,ts)-Math.min.apply(null,ts))/1000):0;
@@ -723,9 +725,9 @@ function doFinish(){var w=S.wk[TODAY];var dur=elapsedSec();var entries=[],setsN=
       if(nb){if(o.bw){if(!prev||nb.r>prev.r)prs.push(LIB[o.exId].name+" x"+nb.r);}else{if(!prev||nb.v>prev.e+0.01)prs.push(LIB[o.exId].name+" "+nb.w+wLbl()+" x"+nb.r);}}}
   });
   var nt=document.getElementById("rpe-notes");
-  var rec={id:TODAY,date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries};
-  S.sessions=S.sessions.filter(function(s){return s.id!==TODAY;});S.sessions.push(rec);
-  S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;
+  var rec={id:(AW().id||TODAY),date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries};
+  S.sessions=S.sessions.filter(function(s){return s.id!==rec.id;});S.sessions.push(rec);
+  S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
   save();closeSheet();show("today");
@@ -909,17 +911,28 @@ function copyText(txt,msg){
 }
 function fallbackCopy(txt){var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy")}catch(e){}document.body.removeChild(ta);}
 function downloadExport(){var blob=new Blob([JSON.stringify(buildJSON(),null,2)],{type:"application/json"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download="train-backup-"+TODAY+".json";document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url)},1000);S.profile.lastBackup=TODAY;save();toast("Backup downloaded.",null);}
-function importSheet(){openSheet('<div class="grab"></div><h3>Import / restore</h3><div class="ssub">Paste a backup JSON. This replaces your current data (a backup is kept).</div>'+
-  '<textarea class="ta" id="imp" placeholder=\'{"schema":"train.export",...}\' style="min-height:160px"></textarea>'+
-  '<button class="sheet-cta" onclick="doImport()">Restore</button>');}
-function doImport(){var t=(document.getElementById("imp")||{}).value;var o;try{o=JSON.parse(t)}catch(e){toast("That isn\'t valid JSON.",null);return;}
+function importSheet(){openSheet('<div class="grab"></div><h3>Import / merge</h3><div class="ssub">Paste a backup. <b>Merge</b> combines it with your current data (use this to join phone + laptop); <b>Replace</b> overwrites. A backup is kept either way.</div>'+
+  '<textarea class="ta" id="imp" placeholder=\'{"schema":"train.export",...}\' style="min-height:150px"></textarea>'+
+  '<button class="sheet-cta" onclick="doImport(\'merge\')">Merge (combine devices)</button><button class="sheet-cta ghost" onclick="doImport(\'replace\')">Replace everything</button>');}
+function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;try{o=JSON.parse(t)}catch(e){toast("That isn\'t valid JSON.",null);return;}
   if(!o||o.schema!=="train.export"){toast("Not a Train backup.",null);return;}
   try{localStorage.setItem("train_v2_backup",JSON.stringify(S))}catch(e){}
-  if(o.sessions)S.sessions=o.sessions;if(o.weighins)S.weigh=o.weighins.map(function(w){return {date:w.date,w:w.weightLb};});
-  if(o.anchor)S.anchor=o.anchor;if(o.progressState)S.progress=o.progressState;
-  if(o.profile){S.profile.goalLb=o.profile.bodyweightGoalLb||S.profile.goalLb;S.profile.stretchLb=o.profile.bodyweightStretchLb||S.profile.stretchLb;}
-  // rebuild done map from sessions
-  S.sessions.forEach(function(s){S.done[s.id]=true;});save();closeSheet();toast("Restored.",null);show("progress");}
+  var inW=o.weighins?o.weighins.map(function(w){return {date:w.date,w:w.weightLb};}):[];
+  if(mode==="replace"){
+    if(o.sessions)S.sessions=o.sessions;S.weigh=inW;if(o.anchor)S.anchor=o.anchor;if(o.progressState)S.progress=o.progressState;
+  }else{
+    var seen={};S.sessions.forEach(function(s){seen[s.id]=true;});
+    (o.sessions||[]).forEach(function(s){if(!seen[s.id]){S.sessions.push(s);seen[s.id]=true;}});
+    var ws={};S.weigh.forEach(function(w){ws[w.date]=true;});
+    inW.forEach(function(w){if(!ws[w.date]){S.weigh.push(w);ws[w.date]=true;}});
+    S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+    if(o.anchor){for(var k in o.anchor){if(!S.anchor[k])S.anchor[k]=o.anchor[k];}}
+    if(o.progressState){for(var p in o.progressState){if(!S.progress[p])S.progress[p]=o.progressState[p];}}
+  }
+  if(o.profile){if(o.profile.bodyweightGoalLb)S.profile.goalLb=o.profile.bodyweightGoalLb;if(o.profile.bodyweightStretchLb)S.profile.stretchLb=o.profile.bodyweightStretchLb;}
+  S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
+  S.sessions.forEach(function(s){S.done[s.date]=true;});
+  save();closeSheet();toast(mode==="merge"?"Merged. Nothing lost.":"Replaced.",null);show("progress");}
 
 /* ============ LIBRARY ============ */
 function ytSearch(q){return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);}
@@ -1021,9 +1034,8 @@ function genBuild(){
 function genReroll(oi){var o=GEN.session.order[oi];var used=GEN.session.order.map(function(x){return x.exId;});var id=pickForPattern(LIB[o.exId].pattern,used);if(id){GEN.session.order[oi]=genSlot(id,o.sets.length);renderGenerate();}}
 function genRerollAll(){genBuild();renderGenerate();}
 function genUse(){if(!GEN.session||!GEN.session.order.length){return;}
-  S.override[TODAY]={type:"lift",gen:true};
-  S.wk[TODAY]={letter:"Gen",name:GEN.session.focus,gen:true,order:JSON.parse(JSON.stringify(GEN.session.order)),start:null};
-  save();show("today");toast("Loaded as today's workout. Hit Start.",null);}
+  S.activeMode="gen";S.genWk={id:TODAY+"-g"+Date.now(),letter:"Gen",name:GEN.session.focus,gen:true,order:JSON.parse(JSON.stringify(GEN.session.order)),accum:0,start:null,paused:false};
+  save();startActive();toast("Custom workout started.",null);}
 function renderGenerate(){
   if(!GEN.session)genBuild();
   function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';genBuild();renderGenerate()">'+l+'</button>';}
