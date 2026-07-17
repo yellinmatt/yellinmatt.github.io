@@ -369,6 +369,7 @@ input,select{border:0;background:none}
   <section class="view" id="v-progress"></section>
   <section class="view" id="v-library"></section>
   <section class="view" id="v-generate"></section>
+  <section class="view" id="v-cardio"></section>
 </div>
 
 <div class="restbar" id="restbar" role="timer" aria-label="Rest timer">
@@ -384,6 +385,7 @@ input,select{border:0;background:none}
 <nav class="nav" id="nav">
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
   <button data-nav="generate" onclick="show('generate')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3L5 13h5l-1 8 8-11h-5l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Build</span></button>
+  <button data-nav="cardio" onclick="show('cardio')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Run</span></button>
   <button data-nav="week" onclick="show('week')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Schedule</span></button>
   <button data-nav="progress" onclick="show('progress')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Progress</span></button>
   <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h9a2 2 0 0 1 2 2v12l-5-3-5 3V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 7h3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Library</span></button>
@@ -391,7 +393,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.2";
+var VERSION="v3.3";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -469,8 +471,8 @@ var PACE_MI="9:50-11:00";
 /* ============ state ============ */
 var LS="train_v2";
 var S=load();
-function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["DB","band","BW"],adjustable:false},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{},activeMode:"plan",genWk:null};}
+function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["DB","band","BW"],adjustable:false,runPlanStart:null},
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -558,6 +560,7 @@ function show(v){
   if(v==="progress")renderProgress();
   if(v==="library")renderLibrary();
   if(v==="generate")renderGenerate();
+  if(v==="cardio")renderCardio();
   window.scrollTo(0,0);
 }
 
@@ -1204,6 +1207,39 @@ function saveSessionEdit(id){var s=sessById(id);if(!s){closeSheet();return;}
   if(s.type==="run"){var d=parseFloat((document.getElementById("es-dist")||{}).value)||0,sec=parseTime((document.getElementById("es-time")||{}).value)||0;s.distanceMi=d;s.durationSec=sec;s.paceSecPerMi=(d>0&&sec>0)?Math.round(sec/d):0;S.runs[s.date]={dist:d,time:mmss(sec),pace:s.paceSecPerMi?mmss(s.paceSecPerMi):"--",rpe:s.rpe};}
   else if(s.type==="activity"){s.activity=((document.getElementById("es-name")||{}).value||"Workout").slice(0,40);s.durationSec=(parseInt((document.getElementById("es-min")||{}).value)||0)*60;}
   save();closeSheet();toast("Saved.",null);renderToday();if(document.getElementById("v-week").classList.contains("on"))renderWeek();}
+
+
+/* ============ CARDIO / RUN RAMP ============ */
+function mondayOf(d){var m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));m.setHours(0,0,0,0);return m;}
+function rnd5(x){return Math.round(x*2)/2;}
+function runBaseMi(){var since=new Date(mondayOf(NOW));since.setDate(since.getDate()-21);var k=keyOf(since),mi=0;S.sessions.forEach(function(s){if(s.type==="run"&&s.date>=k)mi+=(s.distanceMi||0);});return Math.max(6,Math.min(12,Math.round(mi/4)));}
+function splitRuns(mi){var out;if(mi<8)out=[{label:"Easy",mi:rnd5(mi*0.45)},{label:"Long easy",mi:rnd5(mi*0.55)}];else out=[{label:"Easy",mi:rnd5(mi*0.3)},{label:"Easy",mi:rnd5(mi*0.3)},{label:"Long easy",mi:rnd5(mi*0.4)}];
+  var s=out.reduce(function(a,r){return a+r.mi;},0);out[out.length-1].mi=rnd5(out[out.length-1].mi+(mi-s));if(out[out.length-1].mi<1)out[out.length-1].mi=1;return out;}
+function runSchedule(){var base=runBaseMi(),cap=Math.max(16,rnd5(base*2.4)),mi=base,peak=base,out=[];for(var i=0;i<12;i++){var t;if((i+1)%4===0){t=rnd5(peak*0.75);}else{t=rnd5(mi);peak=mi;mi=Math.min(cap,mi*1.12);}out.push({mi:t,runs:splitRuns(t)});}return out;}
+function currentRunWeek(len){if(!S.profile.runPlanStart){S.profile.runPlanStart=keyOf(mondayOf(NOW));save();}var w=Math.floor((NOW-new Date(S.profile.runPlanStart))/(7*86400000));return Math.max(0,Math.min(len-1,w));}
+function milesThisWeek(){var k=keyOf(mondayOf(NOW)),mi=0;S.sessions.forEach(function(s){if(s.type==="run"&&s.date>=k)mi+=(s.distanceMi||0);});return mi;}
+function weeklyMiHistory(){var by={};S.sessions.forEach(function(s){if(s.type!=="run")return;by[isoWeek(s.id)]=(by[isoWeek(s.id)]||0)+(s.distanceMi||0);});var ks=Object.keys(by).sort().slice(-12);return ks.map(function(k){return by[k];});}
+function zoneRow(name,pace,note){return '<div class="arow"><span class="an">'+name+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+note+'</div></span><span class="ad" style="font-size:14px">'+pace+' /mi</span></div>';}
+function renderCardio(){
+  refreshDate();
+  var sch=runSchedule(),wi=currentRunWeek(sch.length),wk=sch[wi];
+  var done=milesThisWeek(),tgt=wk.mi,peakMi=Math.max.apply(null,sch.map(function(w){return w.mi;}));
+  var C=2*Math.PI*45,off=C*(1-(tgt?Math.min(1,done/tgt):0));
+  var h='<div class="head"><div><div class="date">Your ramp &middot; week '+(wi+1)+' of '+sch.length+'</div><div class="title">Run</div></div></div>';
+  h+='<div class="ringcard"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+done.toFixed(1)+'</b><span>/ '+tgt+' mi</span></div></div><div class="rmeta"><div class="rt">This week: '+tgt+' mi easy</div><div class="rd">'+wk.runs.length+' runs, all conversational. Base before speed.</div></div></div>';
+  h+='<div class="card"><h3>This week\'s runs</h3>';
+  wk.runs.forEach(function(r){h+='<div class="arow"><span class="an">'+r.label+' run</span><span class="ad" style="margin-right:12px">'+r.mi+' mi</span><button class="wbtn" style="height:34px" onclick="runSheet('+r.mi+')">Log</button></div>';});
+  h+='</div>';
+  var mx=peakMi||1;
+  var bars=sch.map(function(w,i){var hh=Math.max(4,Math.round(w.mi/mx*52));return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px"><div style="width:66%;height:'+hh+'px;border-radius:3px;background:'+(i===wi?"var(--accent)":i<wi?"var(--accent-tint)":"var(--surface-2)")+'"></div><span style="font-size:8px;color:var(--faint);font-weight:700">'+(i+1)+'</span></div>';}).join("");
+  h+='<div class="trend"><h3 style="margin-bottom:8px"><span>The 12-week ramp</span><span class="t">up to '+peakMi+' mi/wk</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:66px">'+bars+'</div></div>';
+  h+='<div class="card"><h3>Your pace zones <span class="t">easy first, you run hot</span></h3>'+zoneRow("Easy / Zone 2","10:30 - 11:00","most of your miles")+zoneRow("Long run","11:00 - 11:30","keep it relaxed")+zoneRow("Steady","9:45","only if it feels easy")+zoneRow("Tempo (later)","9:10","once the base is back")+'</div>';
+  var hist=weeklyMiHistory();
+  if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
+    h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
+  h+='<button class="big-start" onclick="runSheet('+(wk.runs[0]?wk.runs[0].mi:2)+')">'+I.run+' Log a run</button><div class="foot">Built from your Strava history; adapts as you log. Cutback weeks every 4th to absorb the work.</div>';
+  document.getElementById("v-cardio").innerHTML=h;
+}
 
 /* ============ boot ============ */
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
