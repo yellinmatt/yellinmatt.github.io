@@ -1,0 +1,343 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The checkable prompt &mdash; Dealcraft</title>
+<meta name="description" content="Prompting for legal work: context, constraints, and asking for checkable output. Lesson 012, Dealcraft's legal-tech &amp; AI lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC daily · Lesson 012 · F0.2 · Lane F (legal-tech & AI) · Lora + Terracotta · CRAFT lesson on the beat grammar (context / constraints / checkable output + a worked prompt) -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17; --doc:#fbf7ee;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19; --doc:#1a1611;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:640px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+.gloss{font:inherit;background:none;border:0;padding:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* AUTOPSY block — the annotated document / checkable-output table */
+figure.autopsy{max-width:700px;margin:26px auto;}
+figure.autopsy figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600;}
+.doc{background:var(--doc);border:1px solid var(--rule-strong);border-radius:6px;padding:8px 0;}
+.artrow{display:grid;grid-template-columns:150px 1fr;gap:0;border-bottom:.5px solid var(--rule-soft);}
+.artrow:last-child{border-bottom:none;}
+.artrow .art{font-family:var(--mono);font-size:12px;color:var(--accent);padding:13px 14px;border-right:.5px solid var(--rule-soft);letter-spacing:.02em;}
+.artrow .art b{display:block;color:var(--ink);font-family:var(--sans);font-size:11px;letter-spacing:.04em;margin-top:3px;font-weight:700;}
+.artrow .txt{padding:13px 16px;font-size:15px;line-height:1.5;color:var(--ink-soft);}
+.artrow .txt .an{display:block;font-family:var(--sans);font-size:11.5px;color:var(--muted);margin-top:5px;font-style:italic;}
+.artrow.key{background:var(--accent-soft);}
+.doc-src{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--faint);margin-top:8px;text-align:right;}
+/* status tag chip inside a table row */
+.tag{display:inline-block;font-family:var(--sans);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent);border:1px solid var(--rule-strong);border-radius:20px;padding:2px 9px;margin-right:8px;vertical-align:middle;}
+.tag.ok{color:var(--ok);border-color:var(--ok);}
+.tag.no{color:var(--no);border-color:var(--no);}
+
+/* PROMPT specimen block — a rendered prompt, monospaced */
+figure.prompt{max-width:700px;margin:26px auto;}
+figure.prompt figcaption{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600;}
+.pcode{background:var(--plate);border:1px solid var(--rule-strong);border-radius:6px;padding:18px 20px;font-family:var(--mono);font-size:13px;line-height:1.62;color:#e7ddca;white-space:pre-wrap;}
+.pcode .cm{color:#b79a7e;background:transparent;}
+.pcode .hl{color:#e79a84;background:transparent;font-weight:700;}
+.pcode.bad{opacity:.85;}
+.plabel{display:inline-block;font-family:var(--sans);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:2px 9px;border-radius:20px;margin-bottom:8px;}
+.plabel.no{color:var(--no);border:1px solid var(--no);}
+.plabel.ok{color:var(--ok);border:1px solid var(--ok);}
+
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+/* ---- active / output blocks (v4 grammar) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-direction:column;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 16px;cursor:pointer;text-align:left;line-height:1.4;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:620px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane F</span></div>
+
+<div class="folio">
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
+    <details><summary>From Lesson 006: same tool, two tasks &mdash; &ldquo;summarize this section I pasted&rdquo; versus &ldquo;name the leading Delaware appraisal cases.&rdquo; One is reliable and one fabricates. Which is which, and what is the single word that decides it?</summary><p class="ans">The <b>pasted</b> task is reliable; the <b>recall</b> task fabricates. The deciding word is <em>groundedness</em>: when the source is in the room the model condenses it, when the source is only in its training it generates plausible text with nothing to check against. Today we turn that fact into a technique &mdash; how to write the prompt so the model stays on the grounded side, and so the answer it hands back is fast to verify instead of slow to trust.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane F &middot; Legal-tech &amp; AI</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 012</div>
+  <h1>The checkable prompt</h1>
+  <p class="deck">A good legal prompt is not the one that gets a cleverer answer. It is the one whose answer you can verify in seconds. Three moves get you there: give it context, set constraints, and demand output you can check.</p>
+  <div class="meta"><b>7 min read</b> &middot; predict &middot; a worked prompt &middot; two checks &middot; practice &asymp; 12 min</div>
+  <div class="rule"></div>
+  <p class="skip">Already prompt with a role, a pasted source, and a &ldquo;quote the section&rdquo; format? <a href="#worked">Skip to the worked prompt &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">Two prompts, same task: pull the closing conditions out of a 40-page merger agreement you pasted. Prompt A: <em>&ldquo;What are the closing conditions?&rdquo;</em> Prompt B: <em>&ldquo;List each closing condition; for each, quote the exact sentence and give the section number.&rdquo;</em> Both return the same conditions. Which one <b>saves you more time overall</b>?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">A &mdash; it's shorter to write and read</button><button class="popt" type="button" aria-pressed="false">B &mdash; the answer is longer but you can verify it faster</button><button class="popt" type="button" aria-pressed="false">Neither &mdash; you have to re-read the agreement either way</button></div>
+    <details><summary>Reveal</summary><p class="ans">Guess first. B wins, and the reason is the whole lesson. Both answers might be equally <em>correct</em> &mdash; but from Lesson 006 you cannot sign either one until you have verified it, and that verification is where the time actually goes. Prompt A hands you a bare list, so to trust it you re-read the agreement looking for each condition. Prompt B hands you a list <em>plus the exact sentence and section for each</em>, so verifying is a 30-second jump to five sections to confirm the quotes are really there. The drafting was never the expensive part. The check was. B is engineered to make the check cheap.</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">Lesson 006 left you with a rule and a bill. The rule: draft with AI freely, verify without it always, sign only what you confirmed yourself. The bill: that verification pass costs real time, and a sloppy prompt makes it cost more. So the craft of prompting for legal work is not chasing a magic phrase that unlocks a better answer. It is writing the prompt so two things happen at once &mdash; the model stays on the grounded, reliable side of the line, and the answer comes back in a shape you can audit fast. Three moves do the work: <b>context</b>, <b>constraints</b>, and <b>checkable output</b>. The first two keep the model honest; the third keeps <em>you</em> fast.</p>
+
+    <div class="beat">Context: put the source in the room</div>
+    <p>The most important move in a legal prompt is the one Lesson 006 already earned. Groundedness is reliability, so a good prompt <em>grounds the task</em>: it pastes the actual document and tells the model to work only from it, rather than asking the model to recall. &ldquo;Summarize the indemnification section&rdquo; with the section pasted below is a condensation the model can do well; &ldquo;how does indemnification usually work&rdquo; with nothing pasted is an invitation to generate. Two more pieces of context sharpen it. Give the model a <span class="gloss" tabindex="0">role<span class="gloss-body"><span class="gloss-kind">Technique &middot; role prompting</span>Telling the model who to be &mdash; &ldquo;You are a transactional associate reviewing a merger agreement.&rdquo; Anthropic's guidance notes role prompting can meaningfully improve performance on complex work and names legal analysis as an example. It sets the register and the standard the answer is held to.</span></span> &mdash; &ldquo;you are a transactional associate reviewing this agreement&rdquo; &mdash; which measurably sharpens performance on complex work and is the cheapest quality gain available. And separate your <em>instruction</em> from the <em>document</em> so the model never confuses the two: wrap the pasted text in <span class="gloss" tabindex="0">tags<span class="gloss-body"><span class="gloss-kind">Technique &middot; XML tags</span>Delimiters like &lt;document&gt;&hellip;&lt;/document&gt; and &lt;instruction&gt;&hellip;&lt;/instruction&gt; that mark where the source ends and your command begins. Claude is trained to read this structure, so tagging stops a long pasted agreement from being misread as part of the request.</span></span> such as &lt;document&gt;&hellip;&lt;/document&gt;. Context is you handing the model the right raw material and telling it what chair it is sitting in.</p>
+
+    <div class="beat">Constraints: draw the fences</div>
+    <p>Context supplies the material; constraints govern what the model may do with it. Be <b>clear and direct</b> &mdash; state the jurisdiction, the format, the audience, and the exact scope, because a vague instruction is filled with the model's guesses. But the constraint that matters most for legal work is a <em>negative</em> one, and it is the direct antidote to the fabrication mode from Lesson 006: <b>tell the model it may use only the pasted text, and that if the answer is not there it must say &ldquo;Not stated&rdquo; rather than supply one.</b> Left to its defaults, a model asked for a governing-law clause in a contract that has none will helpfully invent the most likely one; that is the gap-fill that gets juniors in trouble. A one-line constraint &mdash; &ldquo;answer only from the document; if something is absent, write <em>Not stated</em>&rdquo; &mdash; converts a confident fabrication into an honest blank you can act on. Constraints are how you tell the model where the fences are, and the most valuable fence keeps it from wandering off the page you gave it.</p>
+
+    <p class="pull">Context and constraints keep the model honest. The third move keeps you fast.</p>
+
+    <div class="beat">Checkable output: engineer the answer for the audit</div>
+    <p>Here is the move that separates a legal prompt from a generic one, and it follows straight from &ldquo;you sign the work.&rdquo; Because you must verify everything the model asserts, the smartest thing a prompt can do is <em>shape the output so verifying is cheap.</em> Do not ask only for the answer; ask for the answer <b>plus the evidence you would need to check it.</b> Three habits carry most of the value. First, demand a <span class="gloss" tabindex="0">claim-to-source table<span class="gloss-body"><span class="gloss-kind">The core habit</span>A structured answer where every assertion sits next to the exact quote that supports it and the section or page it came from. It turns &ldquo;re-read the document to trust the list&rdquo; into &ldquo;jump to five cited spots and confirm the quotes.&rdquo;</span></span>: for every point, the exact quoted sentence and its section or page number. Second, make the model <b>separate what is grounded in the text from what it inferred</b> &mdash; label each row <em>Stated</em> or <em>Inferred</em> &mdash; so the risky judgments are flagged rather than blended in. Third, require an explicit <b>uncertainty marker</b>: &ldquo;Not stated&rdquo; where the text is silent, never a smoothed-over guess. An answer built this way is not just more trustworthy; it is faster to trust, because the model has pre-sorted its output into the exact piles your verification pass needs. The prompt did half the checking for you.</p>
+  </div>
+
+  <figure class="prompt" id="worked">
+    <figcaption>The same task, prompted two ways</figcaption>
+    <div class="plabel no">Uncheckable</div>
+    <div class="pcode bad">What are the closing conditions in this merger agreement?</div>
+    <div class="plabel ok" style="margin-top:16px;">Checkable</div>
+    <div class="pcode"><span class="cm">You are a transactional associate reviewing a merger agreement.</span>
+&lt;document&gt; <span class="cm">[paste the agreement here]</span> &lt;/document&gt;
+
+<span class="hl">Using only the text in &lt;document&gt;</span>, list each condition to
+the closing of the merger. Return a table with three columns:
+
+  1. Condition (short name)
+  2. <span class="hl">Exact quoted sentence</span> from the agreement
+  3. <span class="hl">Section number</span> where it appears
+
+Mark each row <span class="hl">Stated</span> or <span class="hl">Inferred</span>. If a common condition
+is absent, add a row and write <span class="hl">&ldquo;Not stated.&rdquo;</span> Do not
+supply any condition that is not in the document.</div>
+  </figure>
+
+  <figure class="autopsy">
+    <figcaption>What the checkable answer looks like &middot; and how you audit it</figcaption>
+    <div class="doc">
+      <div class="artrow key"><div class="art">Reps &amp; warranties true<b>the &ldquo;bring-down&rdquo;</b></div><div class="txt"><span class="tag ok">Stated &middot; &sect;6.2(a)</span>The answer carries the exact sentence and the section, so you confirm it by jumping to &sect;6.2(a) and reading one line.<span class="an">This is the whole point: verification is a jump, not a re-read.</span></div></div>
+      <div class="artrow"><div class="art">Covenants performed<b>in all material respects</b></div><div class="txt"><span class="tag ok">Stated &middot; &sect;6.2(b)</span>Quoted sentence beside the claim; you check the quote is really there and really says that.<span class="an">A wrong or paraphrased &ldquo;quote&rdquo; is caught here in seconds.</span></div></div>
+      <div class="artrow"><div class="art">No Material Adverse Effect<b>a defined term</b></div><div class="txt"><span class="tag ok">Stated &middot; &sect;6.2(c)</span>Cross-check the pointer to the &ldquo;Material Adverse Effect&rdquo; definition, exactly the read from Lesson 003.<span class="an">The section number is what makes the cross-reference fast.</span></div></div>
+      <div class="artrow"><div class="art">Regulatory / HSR clearance<b>antitrust waiting period</b></div><div class="txt"><span class="tag ok">Stated &middot; &sect;6.1(b)</span>A mutual condition; you confirm it sits in the &ldquo;conditions to each party&rdquo; article, not one side's.<span class="an">Placement is itself a fact to check.</span></div></div>
+      <div class="artrow"><div class="art">Financing condition<b>does the buyer have an out?</b></div><div class="txt"><span class="tag no">Not stated</span>The model flagged that no financing condition appears &mdash; an honest blank, not a guess. That absence is itself a deal fact worth knowing.<span class="an">The &ldquo;Not stated&rdquo; row is the constraint paying off: no invented condition, and a real signal surfaced.</span></div></div>
+    </div>
+    <div class="doc-src">Standard merger-agreement conditions (Article VI structure, Lesson 003); the quotes and sections come from your pasted filing, and every one is confirmed against it before it counts.</div>
+  </figure>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; checkable output</div>
+    <p class="q">You paste a 40-page agreement and want the model's answer to cost you the least verification time. Which addition to the prompt helps most?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="Brevity is not checkability. A shorter answer is faster to read but no faster to trust &mdash; you still have to go back to the document to confirm each point. Cutting length cuts nothing off the verification bill.">&ldquo;Keep the summary short &mdash; three bullets maximum.&rdquo;</button>
+      <button class="opt" type="button" data-fb="Correct. Quote-and-section turns verification from a re-read into a jump: you land on each cited spot and confirm the quote is really there. That is the claim-to-source habit, and it is where the time savings live.">&ldquo;For each point, give the exact quoted sentence and its section number.&rdquo;</button>
+      <button class="opt" type="button" data-fb="This is the Lesson 006 trap in prompt form. Asking the model to confirm its own accuracy is the same unreliable source queried twice &mdash; it will cheerfully agree its fabrications are correct. Verification is always external; a self-check adds zero trust.">&ldquo;Double-check your answer and confirm it's accurate.&rdquo;</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; constraints</div>
+    <p class="q">You paste an NDA and ask for its governing-law clause &mdash; but this NDA doesn't have one. With the right constraint in your prompt, the model should:</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="This is exactly the gap-fill the constraint exists to prevent. Delaware is a plausible guess, but the model was told to answer only from the document &mdash; inventing the &ldquo;most likely&rdquo; clause is a fabrication dressed as helpfulness, and it is the kind that slips through unnoticed.">Name the most likely governing law &mdash; probably Delaware or New York.</button>
+      <button class="opt" type="button" data-fb="Correct. &ldquo;Answer only from the document; if it's absent, say Not stated&rdquo; converts a confident fabrication into an honest blank. And the blank is useful: an NDA with no governing-law clause is a real drafting gap you now know to raise.">Answer &ldquo;Not stated in the document.&rdquo;</button>
+      <button class="opt" type="button" data-fb="Over-correction. A missing clause doesn't break the task &mdash; the model can and should answer every other question and simply flag this one as absent. Refusing the whole job throws away the grounded answers you'd get on everything that is in the text.">Refuse to answer anything until you paste a complete NDA.</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> &ldquo;Prompting is about finding the clever wording &mdash; the magic phrase that makes the model give a smarter answer.&rdquo; So people collect tricks and judge a prompt by how impressive the reply reads.</p>
+    <p class="r"><b>Why it's wrong:</b> for legal work the goal of a prompt is not a cleverer answer, it is a <em>checkable</em> one. The best legal prompt is usually longer and more boring than a clever one &mdash; it names a role, pastes the source, fences the scope, and demands quotes and section numbers &mdash; precisely because it is engineered to make your verification pass fast, not to charm the model. A dazzling answer you still have to re-read the whole document to trust has saved you nothing; a plain answer with every claim tied to a quoted section has saved you the afternoon. Judge a prompt by the check it enables, not the reply it produces.</p>
+  </div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Write one checkable prompt and time the check</h3>
+    <p>Pull a short real agreement from <b>EDGAR</b> (a merger agreement, an NDA, or an employment agreement) or use one you already have. Write a single prompt that does all three moves: give the model a <b>role</b> and paste the text in <b>&lt;document&gt;</b> tags (context); tell it to <b>use only that text and write &ldquo;Not stated&rdquo; for anything absent</b> (constraint); and require a <b>table of claim, exact quote, and section number, each marked Stated or Inferred</b> (checkable output). Ask it for one real thing &mdash; the closing conditions, the indemnification cap, or the termination triggers. Run it, then <b>verify</b>: jump to each cited section and confirm the quote is really there and really says that. Note how long the check took.</p>
+    <p class="rr"><b>Right result:</b> an answer you audited in a couple of minutes by jumping to cited sections, plus at least one caught defect &mdash; a misquote, a wrong section, or a claim the model marked <em>Inferred</em> that it had smuggled in as fact. That timed check is the Toolkit T1 workflow taking shape: the prompt that makes signing safe <em>and</em> fast.</p>
+    <p class="time">&asymp; 12 minutes &middot; any AI tool + a browser</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what is a legal prompt actually for?</p>
+    <details><summary>Reveal the line</summary><p class="line">A legal prompt's job is not a better answer but a checkable one: give it the source and a role, fence it to the text, and demand the quote and the section &mdash; so verifying takes seconds, not a re-read.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li><b>Context</b> &mdash; ground the task: paste the actual document and say &ldquo;use only this,&rdquo; give the model a role (it sharpens complex/legal work), and wrap the source in tags so it isn't misread as your instruction.</li>
+      <li><b>Constraints</b> &mdash; be clear and direct on jurisdiction, format, scope; the highest-value constraint is the negative one: &ldquo;answer only from the text; if it's absent, write <em>Not stated</em>&rdquo; &mdash; the antidote to gap-fill fabrication.</li>
+      <li><b>Checkable output</b> &mdash; ask for the answer <em>plus the evidence</em>: a claim-to-source table (exact quote + section), rows marked <em>Stated</em> vs <em>Inferred</em>, and explicit &ldquo;Not stated&rdquo; flags. Verifying becomes a jump, not a re-read.</li>
+      <li><b>The through-line:</b> a checkable prompt makes Lesson 006's verification contract cheap. You still sign the work &mdash; the prompt just makes confirming it fast.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>Anthropic, <a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/overview" target="_blank" rel="noopener">Prompt engineering overview</a> &mdash; the technique set this lesson draws on: be clear and direct, use examples, use XML tags to structure a prompt, and let the model work step by step.</li>
+      <li>Anthropic, <a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/system-prompts" target="_blank" rel="noopener">Giving Claude a role with a system prompt</a> &mdash; role prompting as the highest-leverage move, with legal analysis named as an example where it meaningfully improves performance.</li>
+      <li>American Bar Association, <a href="https://www.americanbar.org/news/abanews/aba-news-archives/2024/07/aba-issues-first-ethics-guidance-ai-tools/" target="_blank" rel="noopener">&ldquo;ABA issues first ethics guidance on a lawyer&rsquo;s use of AI tools&rdquo;</a> &mdash; Formal Opinion 512 (July 2024): competence to understand a tool's limits (Rule 1.1) and the duty to guard client information (Rule 1.6), the frame that makes verification and constraints non-optional.</li>
+      <li>U.S. SEC, <a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener">EDGAR full-text search</a> &mdash; source of real filed agreements for the practice pass; public domain.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <a class="railcard prev" href="006-you-sign-the-work.html"><span class="rl">&larr; Previous in lane</span><span class="rt">F0.1 &mdash; You sign the work</span></a>
+    <span class="railcard next off"><span class="rl">Next in lane &rarr;</span><span class="rt">F0.3 &mdash; The drafting workflow with gates</span></span>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane F / Level 0 / Lesson 012 &middot; Educational summary, not legal advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="F0.2";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(pb){pb.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});pb.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var pbar=document.getElementById("pbar");
+  if(pbar){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pbar.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
