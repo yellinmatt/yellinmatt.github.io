@@ -1,0 +1,400 @@
+<!doctype html>
+<!-- slop-ok: em-dash --><!-- em-dash is the broadsheet typographic separator, consistent with the encyclopedia + Well-Versed family; used in teach copy and JS UI strings -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The balance sheet &mdash; Dealcraft</title>
+<meta name="description" content="What a company owns, owes, and is worth on paper. Lesson 013, Dealcraft's accounting & finance lane.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<!-- DC-06 v4 · Lora + Terracotta · NUMERIC lesson (B0.3, Lesson 013), composed on the beat grammar · Stage-3 daily loop -->
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f4eee2; --soft:#ece3d2; --card:#f8f2e7; --ink:#1d1a16; --ink-soft:#33302a; --muted:#6e6557; --faint:#8c8272;
+  --rule:#d9cdb6; --rule-soft:#e4dccb; --rule-strong:#c3b598;
+  --accent:#9c3b2f; --accent-deep:#7d2c22; --accent-soft:#f0e2dc; --plate:#241f17;
+  --chart-up:#9c3b2f; --chart-down:#c7a98f; --chart-total:#7d2c22;
+  --ok:#2f6b43; --ok-soft:#e5efe3; --no:#9c3b2f; --no-soft:#f0e2dc;
+  --serif:'Lora',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --mono:'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#15120d; --soft:#1d1912; --card:#1e1913; --ink:#ece4d4; --ink-soft:#d8d0c0; --muted:#9a8f7e; --faint:#7b7263;
+  --rule:#322a20; --rule-soft:#262019; --rule-strong:#463c2c;
+  --accent:#d6775f; --accent-deep:#e0917d; --accent-soft:#2a1e19;
+  --chart-up:#d6775f; --chart-down:#5c4c3b; --chart-total:#e0917d;
+  --ok:#8bbf9a; --ok-soft:#1b241c; --no:#d6775f; --no-soft:#2a1e19;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.pbar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--accent);z-index:50;transition:width 90ms linear;}
+.site-head{max-width:1080px;margin:0 auto;padding:22px 28px 0;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.site-head a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);padding-bottom:1px;}
+.site-head a:hover{color:var(--accent);}
+
+.folio{max-width:960px;margin:0 auto;padding:34px 28px 78px;}
+.kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
+.kicker b{color:var(--accent);font-weight:700;}
+h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
+.meta b{color:var(--ink-soft);}
+.rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
+
+.body{max-width:700px;margin:0 auto;}
+.body p{font-size:18px;line-height:1.8;margin:0 0 18px;text-align:justify;hyphens:auto;}
+.body p.lead{text-align:left;}
+.body p.lead::first-letter{font-size:3.2em;line-height:.8;float:left;padding:.02em .1em 0 0;color:var(--accent);font-weight:600;}
+.body em{font-style:italic;color:var(--ink);}
+.body b{font-weight:600;color:var(--ink);}
+.beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
+.beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
+.pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
+.pull::before{content:"\201C";}.pull::after{content:"\201D";}
+
+/* gloss */
+.gloss{font:inherit;background:none;border:0;padding:0;margin:0;color:inherit;cursor:help;position:relative;text-decoration:underline dotted var(--accent);text-decoration-thickness:1px;text-underline-offset:3px;}
+.gloss-body{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 12px);width:280px;max-width:calc(100vw - 44px);background:var(--card);color:var(--ink);border:1px solid var(--muted);border-radius:4px;padding:12px 14px;font-family:var(--serif);font-size:13.5px;font-style:normal;line-height:1.55;text-align:left;opacity:0;visibility:hidden;pointer-events:none;transition:opacity 80ms ease;z-index:10;box-shadow:0 12px 30px -18px rgba(0,0,0,.5);}
+.gloss-body::before{content:"";position:absolute;left:50%;bottom:-6px;width:10px;height:10px;background:var(--card);border-right:1px solid var(--muted);border-bottom:1px solid var(--muted);transform:translateX(-50%) rotate(45deg);}
+.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{opacity:1;visibility:visible;pointer-events:auto;}
+.gloss-kind{display:block;font-family:var(--sans);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;font-weight:600;}
+
+/* worked-example table */
+figure.exhibit{margin:24px auto;max-width:700px;}
+table.trace{width:100%;border-collapse:collapse;font-size:15px;}
+table.trace caption{caption-side:top;text-align:left;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:0 0 10px;font-weight:600;}
+table.trace th,table.trace td{padding:11px 10px;border-bottom:.5px solid var(--rule-soft);text-align:left;vertical-align:top;}
+table.trace thead th{font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;border-bottom:.5px solid var(--rule-strong);}
+table.trace td.fig{font-family:var(--mono);font-size:13.5px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);}
+table.trace tr:last-child td{border-bottom:none;}
+table.trace tr.sub td{font-weight:700;color:var(--ink);border-top:.5px solid var(--rule-strong);border-bottom:none;}
+table.trace tr.sub td.fig{color:var(--accent);}
+td .hl{color:var(--accent);font-weight:700;}
+td .inp{color:var(--accent);font-weight:600;}
+tr.changed td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
+.blankcell{color:var(--faint);font-style:italic;}
+.legend{font-family:var(--sans);font-size:11px;color:var(--muted);margin:10px 0 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend .sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
+.legend .sw.i{background:var(--accent);}.legend .sw.s{border-top:2px solid var(--rule-strong);height:2px;width:14px;border-radius:0;}
+
+/* inline chart */
+figure.chart{margin:26px auto;max-width:640px;}
+figure.chart svg{width:100%;height:auto;display:block;}
+figure.chart .c-cap{font-family:var(--sans);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:center;margin-top:6px;}
+figure.chart .c-src{font-family:var(--serif);font-style:italic;font-size:12.5px;color:var(--faint);text-align:center;margin-top:4px;}
+.svg-bar-lbl{font-family:var(--sans);font-size:12px;fill:var(--muted);}
+.svg-fig{font-family:var(--mono);font-size:14px;fill:var(--ink);font-weight:600;}
+.svg-axis{stroke:var(--rule-strong);stroke-width:1;}
+.svg-conn{stroke:var(--rule-strong);stroke-width:1;stroke-dasharray:3 3;}
+
+/* ---- active / output blocks (v4) ---- */
+.lblock{max-width:700px;margin:26px auto;}
+.warmup{background:var(--soft);border:1px solid var(--rule);border-radius:8px;padding:12px 18px;}
+.warmup .wl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.warmup details{margin-top:3px;}
+.warmup summary{cursor:pointer;font-size:16px;font-weight:500;list-style:none;}
+.warmup summary::-webkit-details-marker{display:none;}
+.warmup summary::after{content:"  \25B8";color:var(--accent);}
+.warmup details[open] summary::after{content:"  \25BE";color:var(--accent);}
+.warmup .ans{font-size:15px;color:var(--ink-soft);line-height:1.6;margin:6px 0 0;}
+.skip{font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;margin:16px 0 0;}
+.skip a{color:var(--accent);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.predict{background:var(--accent-soft);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
+.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.predict details{margin-top:12px;}
+.predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.predict summary::-webkit-details-marker{display:none;}
+.predict summary::after{content:"  \2014 reveal";}
+.predict details[open] summary::after{content:"";}
+.predict .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:8px 0 0;}
+.qcheck{border:1px solid var(--rule-strong);border-radius:8px;background:var(--card);padding:18px 22px;}
+.qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
+.qcheck .opts{display:flex;flex-wrap:wrap;gap:8px;}
+.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;text-align:left;}
+.qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
+.qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
+.qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
+.qcheck .fb.show{display:block;}
+.qcheck .fb .v{font-family:var(--sans);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.08em;display:block;margin-bottom:2px;}
+.qcheck .fb.ok .v{color:var(--ok);}.qcheck .fb.no .v{color:var(--no);}
+.completion .prompt{font-family:var(--sans);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 8px;text-align:center;}
+.completion details{margin-top:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:0 20px;}
+.completion summary{cursor:pointer;font-weight:600;font-size:15px;padding:13px 0;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:12px;}
+.completion summary::-webkit-details-marker{display:none;}
+.completion summary::after{content:"Reveal solution";font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;flex:0 0 auto;}
+.completion details[open] summary::after{content:"Hide";}
+.completion .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);padding:0 0 14px;}
+.trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
+.trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
+.trap .w b{color:var(--accent-deep);font-weight:600;}
+.trap .r{font-size:16.5px;line-height:1.62;margin:8px 0 0;color:var(--ink-soft);}
+.mani{background:var(--card);border:1px solid var(--rule-strong);border-radius:8px;padding:18px 22px;}
+.mani .ml{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.mani label{display:block;font-family:var(--sans);font-size:13px;color:var(--ink-soft);margin:12px 0 6px;}
+.mani input[type=range]{width:100%;accent-color:var(--accent);}
+.mani .out{font-family:var(--mono);font-size:26px;color:var(--accent);font-weight:600;text-align:center;margin:12px 0 0;}
+.mani .out .sub{display:block;font-family:var(--sans);font-size:12px;color:var(--muted);font-weight:400;margin-top:2px;}
+.takeaway{text-align:center;}
+.takeaway .prompt{font-size:16px;color:var(--muted);font-style:italic;margin:0 0 8px;}
+.takeaway details{display:inline-block;}
+.takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
+.takeaway summary::-webkit-details-marker{display:none;}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
+.keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
+.keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
+
+/* practice */
+.practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
+.practice .h{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;}
+.practice h3{font-family:var(--serif);font-size:22px;font-weight:600;margin:.3em 0 .35em;}
+.practice p{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink-soft);}
+.practice .rr{color:var(--muted);}
+.practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
+
+/* read toggle */
+.readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.readbtn{cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:600;letter-spacing:.03em;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:6px;padding:11px 20px;display:inline-flex;align-items:center;gap:10px;transition:all .16s ease;}
+.readbtn:hover{border-color:var(--accent);color:var(--accent);}
+.readbtn .bx{width:15px;height:15px;border:2px solid var(--rule-strong);border-radius:4px;position:relative;transition:all .16s ease;}
+.readbtn[aria-pressed="true"]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
+.readbtn[aria-pressed="true"] .bx{background:var(--paper);border-color:var(--paper);}
+.readbtn[aria-pressed="true"] .bx::after{content:"";position:absolute;left:4px;top:1px;width:4px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);}
+.readnote{font-family:var(--serif);font-size:13px;font-style:italic;color:var(--muted);}
+
+/* endmatter + rail */
+.endmatter{max-width:700px;margin:44px auto 0;padding-top:24px;border-top:.5px solid var(--rule);}
+.em-label{font-family:var(--serif);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:500;}
+.sources li{font-size:15px;line-height:1.55;margin:6px 0;color:var(--ink-soft);}
+.sources a{color:var(--ink);text-decoration:none;border-bottom:.5px solid var(--accent);}
+.sources a:hover{color:var(--accent);}
+.rail{max-width:700px;margin:30px auto 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:560px){.rail{grid-template-columns:1fr;}}
+.railcard{display:block;text-decoration:none;color:inherit;border:.5px solid var(--rule);border-radius:8px;padding:15px 18px;transition:border-color .15s ease;}
+.railcard:hover{border-color:var(--accent);}
+.railcard.next{text-align:right;}
+.railcard .rl{font-family:var(--sans);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);}
+.railcard .rt{font-family:var(--serif);font-size:18px;font-weight:500;line-height:1.15;margin-top:5px;color:var(--accent);}
+.railcard.off{opacity:.42;pointer-events:none;}
+.page-foot{max-width:960px;margin:44px auto 0;padding:24px 28px 56px;font-family:var(--sans);font-size:12.5px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);}
+@media print{.pbar,.readbar,.rail,.site-head,.warmup,.skip,.predict .popts{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="pbar" id="pbar"></div>
+<div class="site-head"><a href="../">Dealcraft</a><span>Lessons &middot; Lane B</span></div>
+
+<div class="folio">
+
+  <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from earlier in this lane</div>
+    <details><summary>Earlier in Lane B you walked the income statement down to net income. Retrieval: once the year closes and net income is final, where on the company's books does that profit come to rest?</summary><p class="ans">In <b>retained earnings</b>, an equity account. The income statement covers a <em>period</em>; the balance sheet is the <em>snapshot</em> at the instant the period ends, and profit not paid out as dividends piles up inside equity. That link &mdash; a flow feeding a snapshot &mdash; is exactly the seam we open today.</p></details>
+  </div>
+
+  <div class="kicker"><b>Lane B &middot; Accounting &amp; Finance</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 013</div>
+  <h1>The balance sheet</h1>
+  <p class="deck">What a company owns, owes, and is worth on paper.</p>
+  <div class="meta"><b>8 min read</b> &middot; predict &middot; worked example &middot; your turn &middot; practice &asymp; 10 min on a real 10-K</div>
+  <div class="rule"></div>
+  <p class="skip">Already read balance sheets fluently? <a href="#case">Skip to the worked snapshot &darr;</a></p>
+
+  <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
+    <p class="pq">A company's balance sheet reports total equity &mdash; its <em>book value</em> &mdash; of <em>$2 billion</em>. The same afternoon, the stock market values that same equity at <em>$18 billion</em>. One of those numbers must be wrong. Which one, and why?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">The market &mdash; $18B is speculation, the company is overvalued</button><button class="popt" type="button" aria-pressed="false">The balance sheet &mdash; $2B is stale and out of date</button><button class="popt" type="button" aria-pressed="false">Neither &mdash; they measure two different things</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first &mdash; then read on. The whole lesson turns on why this gap is normal, not an error, and the snapshot below shows exactly what the balance sheet is measuring when it says &ldquo;equity.&rdquo;</p></details>
+  </div>
+
+  <div class="body">
+    <p class="lead">The income statement is a movie of one year; the balance sheet is a photograph taken the instant that year ends. It answers three questions at a single frozen moment: what does the company <em>own</em>, what does it <em>owe</em>, and what is left over for the owners. Those three blocks are locked together by one equation that can never break, and the trap is believing the last number tells you what the company is worth.</p>
+
+    <p>The equation is the whole architecture. <b>Assets = Liabilities + Equity.</b> Everything the company controls sits on the left; every claim against it sits on the right; the two sides are equal <em>by construction</em>, because equity is <em>defined</em> as whatever is left after the lenders and suppliers are subtracted out. <span class="gloss" tabindex="0">Assets<span class="gloss-body"><span class="gloss-kind">Definition</span>Resources the company owns or controls that are expected to produce future economic benefit: cash, receivables, inventory, property, plant and equipment, and the like.</span></span> are split into <em>current</em> (cash and things becoming cash within a year: receivables, inventory) and <em>non-current</em> (the long-lived stuff: property, plant and equipment). <span class="gloss" tabindex="0">Liabilities<span class="gloss-body"><span class="gloss-kind">Definition</span>Claims of outsiders against the company: what it owes. Current (payable within a year, like accounts payable) and long-term (like bonds and term loans).</span></span> split the same way. And <b>equity</b> &mdash; also called <span class="gloss" tabindex="0">book value<span class="gloss-body"><span class="gloss-kind">Term of art</span>Total assets minus total liabilities, as carried on the books. The owners' residual claim &mdash; and, crucially, an accounting figure, not a market valuation.</span></span> &mdash; is the residual: assets minus liabilities, the owners' leftover claim.</p>
+
+    <div class="beat">The organizing rule</div>
+    <p>Here is the one idea to carry out of this lesson. <em>Assets are recorded at what the company paid for them, not what they are worth today.</em> Accountants start from <b>historical cost</b> and, absent a strong reason otherwise, leave it there. A headquarters bought for $5 million in 1985 and worth $60 million now still sits on the books near $5 million, less depreciation. So the equity line &mdash; assets minus liabilities &mdash; inherits that same backward-looking measuring stick. Book value is what the company is worth <em>on paper</em>, assembled from old purchase prices, and it is almost never what the company is actually worth.</p>
+
+    <p class="pull">Equity on the balance sheet is a residual measured at historical cost, not a verdict on what the company is worth.</p>
+  </div>
+
+  <div class="body">
+    <div class="beat" id="case">Watch it balance</div>
+    <p>Take the cleanest possible snapshot. The left side lists what the company owns; the right side, who has a claim on it; and the equation holds to the dollar because equity is the plug (figures illustrative, $ in millions):</p>
+  </div>
+
+  <figure class="exhibit">
+    <table class="trace">
+      <caption>One snapshot, both sides (illustrative, $ in millions)</caption>
+      <thead><tr><th>Assets &mdash; what it owns</th><th class="fig">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Cash &amp; equivalents</td><td class="fig">$150</td></tr>
+        <tr><td>Accounts receivable</td><td class="fig">200</td></tr>
+        <tr><td>Inventory</td><td class="fig">250</td></tr>
+        <tr class="sub"><td>= Current assets</td><td class="fig">$600</td></tr>
+        <tr><td>Property, plant &amp; equipment (net)</td><td class="fig">400</td></tr>
+        <tr class="sub"><td>= Total assets</td><td class="fig"><span class="hl">$1,000</span></td></tr>
+      </tbody>
+    </table>
+    <table class="trace" style="margin-top:18px;">
+      <thead><tr><th>Claims &mdash; who has a call on it</th><th class="fig">Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Accounts payable</td><td class="fig">$180</td></tr>
+        <tr><td>Long-term debt</td><td class="fig">420</td></tr>
+        <tr class="sub"><td>= Total liabilities</td><td class="fig">$600</td></tr>
+        <tr class="changed"><td>Total equity (the residual: 1,000 &minus; 600)</td><td class="fig"><span class="inp">400</span></td></tr>
+        <tr class="sub"><td>= Liabilities + Equity</td><td class="fig"><span class="hl">$1,000</span></td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span><span class="sw i"></span>equity is the plug that makes both sides equal</span><span><span class="sw s"></span>a total that has to match its partner</span></div>
+  </figure>
+
+  <div class="body">
+    <p>Both sides read $1,000, and they always will &mdash; not because the world is tidy, but because equity was <em>set</em> to whatever made them match. That is why an unbalanced balance sheet is a signal of an error somewhere in the books, never a real economic state. The identity is a constraint, not a coincidence.</p>
+  </div>
+
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; at what value does it appear</div>
+    <p class="q">A company owns a downtown building it bought <em>40 years ago</em> for $5 million. Comparable buildings now sell for about $60 million. On <em>today's</em> balance sheet, at roughly what value does that building appear?</p>
+    <div class="opts">
+      <button class="opt" type="button" data-fb="That is the market-value assumption the whole lesson is built to dislodge. The balance sheet does not mark assets up to what they'd fetch today; if it did, book equity would track market value and there'd be no gap to explain.">About $60M &mdash; today's market value</button>
+      <button class="opt" type="button" data-fb="Right. Historical cost is the measuring stick: the building enters at its $5M purchase price and only comes down through depreciation. The $55M of appreciation is real, but the balance sheet never sees it &mdash; which is exactly why book value understates a company with old, appreciated assets.">About $5M &mdash; original cost, less depreciation</button>
+      <button class="opt" type="button" data-fb="Zero is what you'd see only if the asset were fully depreciated to a nil book value, which is a separate idea. A building bought at $5M carries its remaining depreciated cost, not nothing.">$0 &mdash; it's too old to count</button>
+    </div>
+    <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
+  </div>
+
+  <div class="body">
+    <div class="beat">Why book value and worth diverge</div>
+    <p>Now the payoff, and the answer to the prediction: <em>neither number was wrong</em>. The $2 billion book value and the $18 billion market value are two different measurements of the same equity. Book value looks <em>backward</em> &mdash; it sums historical purchase prices net of what is owed. Market value looks <em>forward</em> &mdash; it prices the cash the business will throw off for years to come. And the biggest value-drivers a company has, its brand, its customer relationships, its assembled workforce, its growth runway, were never <em>purchased</em> in a transaction, so accounting has no cost to record and they appear on the balance sheet at exactly <b>zero</b>. The gap between $2B and $18B is the market pricing everything the books cannot see.</p>
+
+    <p>Watch what happens when someone actually buys that gap. A buyer pays $1,800 for the equity of a company whose books show $400. The $1,400 paid above book value does not vanish and is not a loss &mdash; it lands on the buyer's balance sheet as <span class="gloss" tabindex="0">goodwill<span class="gloss-body"><span class="gloss-kind">Term of art</span>The excess of purchase price over the fair value of the identifiable net assets acquired. It is where the value the seller's own books never captured finally gets recorded &mdash; on the buyer's books, at the moment of purchase.</span></span>, a new asset:</p>
+  </div>
+
+  <figure class="exhibit">
+    <table class="trace">
+      <caption>Book value vs. what a buyer pays (illustrative, $ in millions)</caption>
+      <thead><tr><th>Line</th><th class="fig">Amount</th></tr></thead>
+      <tbody>
+        <tr class="sub"><td>Book value of equity (on the seller's books)</td><td class="fig">$400</td></tr>
+        <tr class="changed"><td>Price the buyer pays for the equity</td><td class="fig"><span class="inp">1,800</span></td></tr>
+        <tr class="sub"><td>= Paid above book &rarr; recorded as goodwill</td><td class="fig"><span class="hl">$1,400</span></td></tr>
+      </tbody>
+    </table>
+    <div class="legend"><span>The $1,400 was always there as value; the balance sheet only recorded it once a purchase gave it a price. Book value is the floor of the story, not the whole of it.</span></div>
+  </figure>
+
+  <div class="body">
+    <p><b>Why a partner cares.</b> Acquisition agreements are stitched to these balance-sheet numbers: a <em>net working capital</em> target (current assets minus current liabilities) that trues up the price at closing, a <em>net-debt</em> adjustment, indemnity baskets sized off book figures, and the goodwill that lands on the buyer's books the day the deal closes. Almost every purchase price sits far above book equity, so a covenant or condition drafted against &ldquo;book value&rdquo; imports historical cost, while one drafted against &ldquo;fair market value&rdquo; imports an appraisal &mdash; two different numbers, often billions apart. Confuse them in the drafting and you have either mispriced the deal or written a threshold that never bites. You cannot mark up that clause if you cannot see which number the balance sheet is actually reporting.</p>
+  </div>
+
+  <div class="lblock completion"><div class="completion">
+    <p class="prompt">Your turn &middot; find the residual, then the gap</p>
+    <table class="trace"><caption>Assets: cash <span class="inp">$200</span>, receivables $150, inventory $250, PP&amp;E (net) $900. Liabilities: payables $180, long-term debt $620. The market values the equity at $2,400. Find total equity (book value) and the market-to-book gap, then reveal.</caption><thead><tr><th>Line</th><th>Work it</th><th class="fig">Amount</th></tr></thead><tbody>
+      <tr class="sub"><td>= Total assets</td><td>200 + 150 + 250 + 900</td><td class="fig">$1,500</td></tr>
+      <tr class="sub"><td>= Total liabilities</td><td>180 + 620</td><td class="fig">$800</td></tr>
+      <tr class="sub"><td>= Total equity (book value)</td><td>assets &minus; liabilities</td><td class="fig"><span class="blankcell">? &mdash; you</span></td></tr>
+      <tr class="sub"><td>= Market value minus book value</td><td>2,400 &minus; book</td><td class="fig"><span class="blankcell">? &mdash; you</span></td></tr>
+    </tbody></table>
+    <details><summary>I have my answer</summary><p class="ans"><b>Book value of equity $700</b> (1,500 &minus; 800 &mdash; the residual, and the amount that makes both sides of the sheet read $1,500). Then <b>market minus book = $1,700</b> (2,400 &minus; 700). <br><br><b>What that $1,700 is:</b> the value the market assigns to everything the balance sheet never recorded &mdash; the brand, the customer base, the growth ahead &mdash; because none of it was ever bought in a transaction. Pay $2,400 for this equity and roughly $1,700 lands on your books as goodwill. Book value gave you the floor; it did not give you the company.</p></details>
+  </div></div>
+
+  <div class="lblock trap"><div class="tl">The trap most people fall for</div>
+    <p class="w"><b>The assumption:</b> &ldquo;Equity on the balance sheet is what the company is worth &mdash; assets minus debts, that's the net worth.&rdquo; The arithmetic is right, so the conclusion feels right.</p>
+    <p class="r"><b>Why it's wrong:</b> the arithmetic is measuring the wrong things. Assets sit at historical cost, appreciated real estate and brands and growth are either understated or <em>entirely absent</em>, so book equity is an accounting residual, not a valuation. That is why nearly every company trades above book value and nearly every acquisition price exceeds it, with the excess booked as goodwill. Read book value as the floor the accountants can defend, then look to the market and the models &mdash; the later lessons in this lane &mdash; for what the business is actually worth.</p>
+  </div>
+
+  <div class="lblock mani" id="mani"><div class="ml">Optional &middot; revalue the building, watch the statement ignore it</div>
+    <label>What the head-office building is really worth today: <b id="mrate">$5M</b></label>
+    <input type="range" id="mslider" min="5" max="80" value="5" step="5" aria-label="True market value of the building in millions">
+    <div class="out" id="mout">True net worth $400M<span class="sub">book equity frozen at $400M &mdash; the balance sheet never sees the gain</span></div>
+  </div>
+
+  <div class="practice">
+    <div class="h">Practice &middot; your hands</div>
+    <h3>Balance a real one, then find the gap</h3>
+    <p>Open EDGAR, pick any 10-K, and find the balance sheet (&ldquo;Consolidated Balance Sheets&rdquo;). First, confirm the identity to the dollar: total assets = total liabilities + total stockholders' equity. Then read off <em>total stockholders' equity</em> &mdash; that is book value &mdash; and compare it to the company's <em>market cap</em> (shares outstanding &times; a recent share price, both on the cover or in the filing). Write the company, its book equity, its market cap, and one sentence naming what the gap between them represents.</p>
+    <p class="rr"><b>Right result:</b> your two sides balance exactly, and you can state whether the market values the equity above or below book &mdash; and name at least one thing (brand, growth, appreciated assets) the balance sheet leaves out that explains the gap.</p>
+    <p class="time">&asymp; 10 minutes &middot; no spreadsheet needed</p>
+  </div>
+
+  <div class="lblock takeaway"><div class="takeaway">
+    <p class="prompt">Before you scroll on &mdash; in one sentence, what is the single thing to remember?</p>
+    <details><summary>Reveal the line</summary><p class="line">The balance sheet is a snapshot that always balances because equity is the plug &mdash; assets minus liabilities, carried at historical cost &mdash; which is why book value is what a company is worth on paper and almost never what it sells for.</p></details>
+  </div></div>
+
+  <div class="lblock keepcard"><div class="kl">Keep this</div>
+    <ul>
+      <li>Snapshot at one instant; the identity <b>Assets = Liabilities + Equity</b> always holds because equity is the residual, the plug that makes both sides match.</li>
+      <li>Assets are carried at historical cost, not current market value; unpurchased value (brand, growth, appreciated property) is understated or absent.</li>
+      <li>Book value &ne; market value &ne; deal price. The excess a buyer pays over book value is recorded as goodwill on the buyer's balance sheet.</li>
+    </ul>
+  </div>
+
+  <div class="readbar">
+    <button class="readbtn" id="readbtn" aria-pressed="false"><span class="bx"></span><span class="lbl2">Mark this lesson read</span></button>
+    <span class="readnote">Saved in your browser only. Gates your level-ups; nothing is collected.</span>
+  </div>
+
+  <div class="endmatter">
+    <p class="em-label">Sources</p>
+    <ul class="sources">
+      <li>Aswath Damodaran, <a href="https://pages.stern.nyu.edu/~adamodar/New_Home_Page/AccPrimer/accstate.htm" target="_blank" rel="noopener">A Primer on Financial Statements</a> (NYU Stern) &mdash; the balance sheet, asset categories, and the historical-cost / book-value measurement principle.</li>
+      <li>U.S. SEC, <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany" target="_blank" rel="noopener">EDGAR</a> &mdash; the primary-source 10-K filings whose &ldquo;Consolidated Balance Sheets&rdquo; you balance in the practice.</li>
+      <li><a href="https://macabacus.com/operating-model/balance-sheet-projections" target="_blank" rel="noopener">Macabacus &mdash; Balance Sheet</a> &mdash; line-by-line reference for the asset, liability, and equity accounts. The worked figures here are illustrative, not drawn from any single filing.</li>
+    </ul>
+  </div>
+
+  <div class="rail">
+    <a class="railcard prev" href="007-the-income-statement.html"><span class="rl">&larr; Previous in lane</span><span class="rt">B0.2 &mdash; The income statement</span></a>
+    <a class="railcard next off" href="#"><span class="rl">Next in lane &rarr;</span><span class="rt">B0.4 &mdash; The cash flow statement</span></a>
+  </div>
+</div>
+
+<div class="page-foot">Dealcraft &middot; Lane B / Level 0 / Lesson 013 &middot; Educational summary, not legal, tax, or investment advice.</div>
+
+<script>
+(function(){"use strict";
+  var KEY="dealcraft_lessons_read",ID="B0.3";
+  var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
+  function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
+  function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
+  var st=load();paint(!!st[ID]);
+  btn.addEventListener("click",function(){st=load();st[ID]=!st[ID];try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}paint(!!st[ID]);});
+  document.querySelectorAll(".gloss").forEach(function(g){g.addEventListener("click",function(e){var open=g.getAttribute("data-open")==="true";document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});if(!open){g.setAttribute("data-open","true");e.stopPropagation();}});});
+  document.addEventListener("click",function(){document.querySelectorAll('.gloss[data-open="true"]').forEach(function(o){o.removeAttribute("data-open")});});
+  document.querySelectorAll(".predict .popts").forEach(function(row){row.querySelectorAll(".popt").forEach(function(btn){btn.addEventListener("click",function(){row.querySelectorAll(".popt").forEach(function(o){o.setAttribute("aria-pressed","false")});btn.setAttribute("aria-pressed","true");});});});
+  document.querySelectorAll(".qcheck").forEach(function(q){
+    var correct=parseInt(q.getAttribute("data-answer"),10),opts=q.querySelectorAll(".opt"),fb=q.querySelector(".fb"),done=false;
+    opts.forEach(function(opt,i){opt.addEventListener("click",function(){if(done)return;done=true;
+      opts[correct].classList.add("right");
+      if(i!==correct)opt.classList.add("wrong");
+      if(!fb)return;
+      var right=i===correct,vEl=fb.querySelector(".v"),tEl=fb.querySelector(".fbtext");
+      fb.classList.remove("ok","no");fb.classList.add(right?"ok":"no");
+      if(vEl)vEl.textContent=right?"Correct":"Not quite";
+      var msg=opt.getAttribute("data-fb")||"";
+      if(!right){var cw=opts[correct].getAttribute("data-fb");if(cw)msg+=" — The right answer: "+cw;}
+      if(tEl)tEl.innerHTML=msg;
+      fb.classList.add("show");
+    });});
+  });
+  var s=document.getElementById("mslider");
+  if(s){var rate=document.getElementById("mrate"),out=document.getElementById("mout");
+    function upd(){var i=+s.value;var net=400+(i-5);rate.textContent="$"+i+"M";out.innerHTML="True net worth $"+net+'M<span class="sub">book equity frozen at $400M &mdash; the balance sheet never sees the gain</span>';}
+    s.addEventListener("input",upd);upd();}
+  var pb=document.getElementById("pbar");
+  if(pb){var tick=function(){var h=document.documentElement,max=h.scrollHeight-h.clientHeight;pb.style.width=(max>0?(h.scrollTop/max*100):0)+"%";};
+    window.addEventListener("scroll",tick,{passive:true});window.addEventListener("resize",tick);tick();}
+})();
+</script>
+</body>
+</html>
