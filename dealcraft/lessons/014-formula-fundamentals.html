@@ -4,12 +4,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Navigation and selection &mdash; Dealcraft</title>
-<meta name="description" content="Moving through a workbook at speed &mdash; and the one blank cell that quietly breaks your range. Lesson 008, Dealcraft's Excel &amp; modeling lane.">
+<title>Formula fundamentals &mdash; Dealcraft</title>
+<meta name="description" content="Anchoring, precedence, and reading formulas aloud &mdash; why one corner formula can fill a whole grid, and why =-3^2 returns 9. Lesson 014, Dealcraft's Excel &amp; modeling lane.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
-<!-- DC daily · Lesson 008 · C0.2 · Lora + Terracotta · CRAFT lesson on the beat grammar (keystroke autopsy variant) -->
+<!-- DC daily · Lesson 014 · C0.3 · Lora + Terracotta · CRAFT lesson on the beat grammar (anchoring grid + precedence trap) -->
 <style>
 :root{
   color-scheme:light dark;
@@ -40,7 +40,7 @@ body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);
 .kicker{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;}
 .kicker b{color:var(--accent);font-weight:700;}
 h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;line-height:1.08;letter-spacing:-.01em;text-align:center;margin:0 0 14px;}
-.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:600px;margin:0 auto 18px;line-height:1.45;}
+.deck{font-style:italic;font-size:clamp(18px,2.4vw,20px);color:var(--muted);text-align:center;max-width:620px;margin:0 auto 18px;line-height:1.45;}
 .meta{text-align:center;font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:var(--faint);}
 .meta b{color:var(--ink-soft);}
 .rule{width:64px;height:0;border-top:.5px solid var(--rule-strong);margin:26px auto 20px;}
@@ -52,6 +52,8 @@ h1{font-family:var(--serif);font-size:clamp(33px,5.2vw,50px);font-weight:600;lin
 .body em{font-style:italic;color:var(--ink);}
 .body b{font-weight:600;color:var(--ink);}
 kbd{font-family:var(--mono);font-size:13px;background:var(--soft);border:1px solid var(--rule-strong);border-bottom-width:2px;border-radius:5px;padding:1px 7px;color:var(--ink);white-space:nowrap;}
+code.f{font-family:var(--mono);font-size:14px;background:var(--soft);padding:1px 6px;border-radius:4px;color:var(--ink);white-space:nowrap;}
+code.f .lock{color:var(--accent);font-weight:700;}
 .beat{text-align:center;font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:38px 0 6px;}
 .beat::before,.beat::after{content:"";display:inline-block;width:26px;height:0;border-top:.5px solid var(--rule-strong);vertical-align:middle;margin:0 12px;}
 .pull{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;color:var(--ink);text-align:center;max-width:600px;margin:26px auto;}
@@ -72,13 +74,21 @@ table.trace th,table.trace td{padding:11px 10px;border-bottom:.5px solid var(--r
 table.trace thead th{font-family:var(--sans);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;border-bottom:.5px solid var(--rule-strong);}
 table.trace td.fig{font-family:var(--mono);font-size:13.5px;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink);}
 table.trace td.cell{font-family:var(--mono);font-size:13px;color:var(--muted);white-space:nowrap;}
+table.trace td.frm{font-family:var(--mono);font-size:13px;color:var(--ink);white-space:nowrap;}
+table.trace td.frm .lock{color:var(--accent);font-weight:700;}
 table.trace td.key{white-space:nowrap;}
 table.trace tr:last-child td{border-bottom:none;}
 td .hl{color:var(--accent);font-weight:700;}
 td .inp{color:var(--accent);font-weight:600;}
 tr.changed td:first-child{box-shadow:inset 3px 0 0 var(--accent);}
 tr.land td{background:var(--accent-soft);}
-.blankcell{color:var(--faint);font-style:italic;}
+.gridwrap{overflow-x:auto;}
+table.grid{border-collapse:collapse;font-family:var(--mono);font-size:13.5px;margin:0 auto;font-variant-numeric:tabular-nums;}
+table.grid caption{caption-side:top;text-align:left;font-family:var(--sans);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:0 0 10px;font-weight:600;}
+table.grid th,table.grid td{border:.5px solid var(--rule-strong);padding:8px 12px;text-align:right;}
+table.grid th{background:var(--soft);color:var(--accent);font-family:var(--sans);font-size:11px;font-weight:700;}
+table.grid td.hd{background:var(--soft);color:var(--accent);font-family:var(--sans);font-weight:700;text-align:right;}
+table.grid td.corner{background:var(--accent-soft);color:var(--ink);font-weight:700;}
 .legend{font-family:var(--sans);font-size:11px;color:var(--muted);margin:10px 0 0;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
 .legend span{display:inline-flex;align-items:center;gap:6px;}
 .legend .sw{width:11px;height:11px;border-radius:2px;display:inline-block;}
@@ -101,7 +111,7 @@ tr.land td{background:var(--accent-soft);}
 .predict .pl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
 .predict .pq{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
 .predict .popts{display:flex;flex-wrap:wrap;gap:8px;margin:0;}
-.predict .popt{font-family:var(--sans);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
+.predict .popt{font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule-strong);border-radius:20px;padding:8px 16px;cursor:pointer;}
 .predict .popt[aria-pressed=true]{background:var(--accent);color:var(--paper);border-color:var(--accent);}
 .predict details{margin-top:12px;}
 .predict summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
@@ -122,7 +132,7 @@ tr.land td{background:var(--accent-soft);}
 .qcheck .ql{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
 .qcheck .q{font-size:17.5px;line-height:1.5;margin:6px 0 12px;font-weight:500;}
 .qcheck .opts{display:flex;flex-wrap:wrap;gap:8px;}
-.qcheck .opt{font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;text-align:left;}
+.qcheck .opt{font-family:var(--mono);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--rule-strong);border-radius:6px;padding:9px 16px;cursor:pointer;text-align:left;}
 .qcheck .opt.right{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700;}
 .qcheck .opt.wrong{background:var(--no-soft);border-color:var(--no);color:var(--no);text-decoration:line-through;}
 .qcheck .fb{font-size:15.5px;line-height:1.62;color:var(--ink-soft);margin:12px 0 0;padding-top:10px;border-top:.5px solid var(--rule-soft);display:none;}
@@ -137,6 +147,7 @@ tr.land td{background:var(--accent-soft);}
 .completion details[open] summary::after{content:"Hide";}
 .completion .ans{font-size:15.5px;line-height:1.62;color:var(--ink-soft);padding:0 0 14px;}
 .completion .ans code{font-family:var(--mono);font-size:14px;background:var(--soft);padding:1px 6px;border-radius:4px;}
+.completion .ans .lock{color:var(--accent);font-weight:700;}
 .trap{background:var(--card);border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;padding:18px 22px;}
 .trap .tl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
 .trap .w{font-size:16.5px;line-height:1.62;margin:8px 0;color:var(--ink);}
@@ -147,12 +158,14 @@ tr.land td{background:var(--accent-soft);}
 .takeaway details{display:inline-block;}
 .takeaway summary{cursor:pointer;font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-weight:700;list-style:none;}
 .takeaway summary::-webkit-details-marker{display:none;}
-.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:600px;margin:14px auto 0;color:var(--ink);}
+.takeaway .line{font-family:var(--serif);font-style:italic;font-size:21px;line-height:1.5;max-width:620px;margin:14px auto 0;color:var(--ink);}
 .takeaway .line::before{content:"\201C";}.takeaway .line::after{content:"\201D";}
 .keepcard{border:1px dashed var(--rule-strong);border-radius:8px;padding:16px 22px;background:var(--soft);}
 .keepcard .kl{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;}
 .keepcard ul{margin:8px 0 0;padding-left:18px;}.keepcard li{font-size:15px;line-height:1.6;margin:5px 0;color:var(--ink-soft);}
 .keepcard kbd{font-family:var(--mono);font-size:12px;background:var(--card);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+.keepcard code{font-family:var(--mono);font-size:12.5px;color:var(--ink);}
+.keepcard code .lock{color:var(--accent);font-weight:700;}
 
 /* practice */
 .practice{max-width:700px;margin:38px auto;border:1px solid var(--rule-strong);border-left:4px solid var(--accent);border-radius:8px;background:var(--card);padding:22px 26px;}
@@ -162,6 +175,8 @@ tr.land td{background:var(--accent-soft);}
 .practice .rr{color:var(--muted);}
 .practice .time{font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:.03em;}
 .practice kbd{font-family:var(--mono);font-size:12.5px;background:var(--soft);border:1px solid var(--rule-strong);border-radius:4px;padding:0 5px;}
+.practice code{font-family:var(--mono);font-size:13px;background:var(--soft);padding:1px 5px;border-radius:4px;}
+.practice code .lock{color:var(--accent);font-weight:700;}
 
 /* read toggle */
 .readbar{max-width:700px;margin:26px auto 0;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
@@ -198,112 +213,113 @@ tr.land td{background:var(--accent-soft);}
 <div class="folio">
 
   <div class="lblock warmup"><div class="wl">Warm-up &middot; 20 seconds, from last lesson</div>
-    <details><summary>From Lesson 002: to move to the bottom of a long column and then select the whole thing, keyboard only &mdash; which keystrokes?</summary><p class="ans"><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> jumps to the last filled cell; add <kbd>Shift</kbd> &mdash; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> &mdash; to select everything from here to that edge in one press. Today we look at exactly how that jump decides where to stop, and the stray-blank case where it stops too soon.</p></details>
+    <details><summary>From Lesson 008: you press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> down a column that has one blank cell in the middle. Where does the cursor land &mdash; and why does that matter for a formula?</summary><p class="ans">It stops at the <b>last filled cell before the blank</b> (the wall), not the true bottom &mdash; <kbd>Ctrl</kbd>+arrow reads runs of data, not whole columns. Today the thing you copy <em>down</em> that column is a formula, and whether it stays correct as it travels depends on one character: the dollar sign.</p></details>
   </div>
 
-  <div class="kicker"><b>Lane C &middot; Excel &amp; Modeling</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 008</div>
-  <h1>Navigation and selection</h1>
-  <p class="deck">Moving through a workbook at speed &mdash; and the one blank cell that quietly breaks your range.</p>
-  <div class="meta"><b>6 min read</b> &middot; predict &middot; move map &middot; your turn &middot; practice &asymp; 10 min in a scratch workbook</div>
+  <div class="kicker"><b>Lane C &middot; Excel &amp; Modeling</b> &nbsp;&middot;&nbsp; Level 0 &nbsp;&middot;&nbsp; Lesson 014</div>
+  <h1>Formula fundamentals</h1>
+  <p class="deck">Anchoring, precedence, and reading a formula aloud &mdash; how one corner formula fills a whole grid, and why <code class="f">=-3^2</code> returns 9.</p>
+  <div class="meta"><b>6 min read</b> &middot; predict &middot; anchor grid &middot; your turn &middot; practice &asymp; 10 min in a scratch workbook</div>
   <div class="rule"></div>
-  <p class="skip">Know why <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> stops early on a gap? <a href="#map">Skip to the move map &darr;</a></p>
+  <p class="skip">Already fluent with <kbd>$</kbd> and <kbd>F4</kbd>? <a href="#prec">Skip to precedence &darr;</a></p>
 
   <div class="lblock predict"><div class="pl">Predict &middot; before you read on</div>
-    <p class="pq">You're in <b>A1</b> at the top of a column with 500 rows of data &mdash; except row 250 was left blank by accident. You press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> once to shoot to the bottom. Where does the cursor land?</p>
-    <div class="popts"><button class="popt" type="button" aria-pressed="false">A500 &mdash; the true bottom</button><button class="popt" type="button" aria-pressed="false">A249 &mdash; just above the blank</button><button class="popt" type="button" aria-pressed="false">A251 &mdash; just below the blank</button></div>
-    <details><summary>Reveal</summary><p class="ans">Commit to a guess first, then read on. The answer is the single most useful thing to understand about how Excel navigation works &mdash; and it is why a stray blank cell can quietly wreck a formula's range.</p></details>
+    <p class="pq">In cell <b>C4</b> you type <code class="f">=A4*B1</code>. You copy that cell down one row, into <b>C5</b>. What does the formula in C5 now compute?</p>
+    <div class="popts"><button class="popt" type="button" aria-pressed="false">=A5*B2</button><button class="popt" type="button" aria-pressed="false">=A5*B1</button><button class="popt" type="button" aria-pressed="false">=A4*B1</button></div>
+    <details><summary>Reveal</summary><p class="ans">Commit to a guess first, then read on. Whether both references moved, one moved, or neither moved is the entire idea behind anchoring &mdash; and it is why the dollar sign exists.</p></details>
   </div>
 
   <div class="body">
-    <p class="lead">Lesson 002 gave you the contract: your hand stays on the keyboard, and you move by data region instead of scrolling. This lesson is the vocabulary that makes good on it. Almost all of your time in a model is spent going somewhere and grabbing something &mdash; jump to the bottom of a column, select it, hop to another sheet, chase a number back to where it came from. Do that with the mouse and you scroll, hunt, and misclick; do it with four families of keystroke and you move at the speed of thought. But the moves are not magic arrows. They read the <em>shape</em> of your data, and the moment you understand what they read, the surprises stop.</p>
+    <p class="lead">A cell reference in Excel is a set of directions, not an address. When you write <code class="f">=A4*B1</code> in C4, Excel does not really store &ldquo;multiply A4 by B1&rdquo;; it stores something closer to &ldquo;multiply the cell three to my left by the cell two up and one left.&rdquo; Copy that formula somewhere else and it faithfully follows the same <em>directions</em> from the new spot &mdash; which is why copying C4 down into C5 gives you <code class="f">=A5*B2</code>, not <code class="f">=A4*B1</code>. Both references shifted down one row, because both were <span class="gloss" tabindex="0">relative<span class="gloss-body"><span class="gloss-kind">Term of art</span>A reference with no dollar sign (A1). Excel stores it as a direction relative to the formula&rsquo;s own cell, so it shifts when the formula is copied &mdash; the default, and usually what you want.</span></span>. That is the answer to the prediction, and it is not a nuisance to work around. It is the feature that lets one formula do a thousand cells&rsquo; work.</p>
 
-    <p>Start with the workhorse, <kbd>Ctrl</kbd>+arrow. Here is the rule that governs it, and it is worth saying precisely: from a filled cell, <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> jumps to the <b>last filled cell before the next blank</b>. Not the bottom of the column &mdash; the end of the current unbroken <em>run</em> of data. If every cell from A1 to A500 is filled, one press lands you on A500. But drop a single blank into row 250 and you have split the column into two runs, and the jump from A1 stops dead at <b>A249</b>, the last cell before the gap. (The blank works both ways: start <em>on</em> a blank cell and the same keystroke leaps forward to the next filled cell.) That is the answer to the prediction, and it is not a quirk to memorize &mdash; it is the whole mental model. The keyboard does not scroll to the end; it reads where your data stops.</p>
+    <p>The trouble starts the moment a reference should <em>not</em> move. Say a single tax rate lives in B1 and you want to apply it to a whole column of pre-tax amounts. Write <code class="f">=A4*B1</code> and copy it down, and the amount reference walks correctly to A5, A6, A7, but the rate reference walks too, into B2, B3, B4 &mdash; empty cells. Every row below the first silently multiplies by zero. No error, no red flag, just a column of wrong numbers. You fix it by <b>anchoring</b> the reference that must stay put: put a dollar sign in front of the column letter and the row number, and <code class="f">B1</code> becomes <code class="f">=$B$1</code>, an <span class="gloss" tabindex="0">absolute<span class="gloss-body"><span class="gloss-kind">Term of art</span>A fully locked reference ($B$1). The dollar sign freezes what follows it; with both column and row frozen, the reference never moves, no matter where the formula is copied.</span></span> reference that never moves. The dollar sign is a lock, and it locks whatever comes right after it.</p>
 
-    <p class="pull">The keyboard doesn't scroll to the bottom. It reads where the data stops &mdash; and a stray blank is a wall.</p>
+    <p class="pull">A reference isn&rsquo;t an address. It&rsquo;s a set of directions &mdash; and the dollar sign is how you nail one of them to the floor.</p>
+
+    <p>That gives you four states for any reference, and one key to cycle them. With the reference selected in the formula bar, press <kbd>F4</kbd> repeatedly: <code class="f">B1</code> (nothing locked) &rarr; <code class="f"><span class="lock">$</span>B<span class="lock">$</span>1</code> (both locked) &rarr; <code class="f">B<span class="lock">$</span>1</code> (row locked, column free) &rarr; <code class="f"><span class="lock">$</span>B1</code> (column locked, row free) &rarr; back to <code class="f">B1</code>. The two half-locked states are <span class="gloss" tabindex="0">mixed references<span class="gloss-body"><span class="gloss-kind">Term of art</span>A reference with exactly one dollar sign (B$1 or $B1). It freezes one dimension &mdash; the row or the column &mdash; and lets the other travel. The workhorse of any formula meant to fill a two-way grid.</span></span>, and they are the ones that separate people who retype formulas from people who build a grid with one keystroke. Here is the payoff: a table whose every cell is the product of a row header and a column header, filled from a single corner formula.</p>
   </div>
 
   <figure class="exhibit">
-    <table class="trace">
-      <caption>One stray blank splits a column into two runs</caption>
-      <thead><tr><th>Cell</th><th>Value</th><th>What the jump sees</th></tr></thead>
+    <div class="gridwrap">
+    <table class="grid">
+      <caption>The setup &mdash; units down column A, prices across row 1</caption>
+      <thead><tr><th>&nbsp;</th><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead>
       <tbody>
-        <tr><td class="cell">A1</td><td class="fig">120</td><td>&larr; cursor starts here</td></tr>
-        <tr><td class="cell">A2</td><td class="fig">118</td><td></td></tr>
-        <tr class="changed land"><td class="cell">A249</td><td class="fig">132</td><td><b><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> from A1 stops HERE</b> &mdash; last cell of run 1</td></tr>
-        <tr><td class="cell">A250</td><td class="blankcell">(blank)</td><td>the wall</td></tr>
-        <tr><td class="cell">A251</td><td class="fig">141</td><td>run 2 begins</td></tr>
-        <tr class="changed land"><td class="cell">A500</td><td class="fig">129</td><td><b><kbd>Ctrl</kbd>+<kbd>&darr;</kbd> from A251 reaches HERE</b> &mdash; the true bottom</td></tr>
+        <tr><th>1</th><td class="hd">&nbsp;</td><td class="hd">10</td><td class="hd">12</td><td class="hd">15</td></tr>
+        <tr><th>2</th><td class="hd">100</td><td class="corner">=$A2*B$1</td><td>&middot;</td><td>&middot;</td></tr>
+        <tr><th>3</th><td class="hd">200</td><td>&middot;</td><td>&middot;</td><td>&middot;</td></tr>
+        <tr><th>4</th><td class="hd">300</td><td>&middot;</td><td>&middot;</td><td>&middot;</td></tr>
       </tbody>
     </table>
-    <div class="legend"><span><span class="sw l"></span>where a jump lands</span><span><span class="sw c"></span>end of a data run</span></div>
+    </div>
+    <div class="legend"><span><span class="sw l"></span>the one formula you type, in B2</span></div>
   </figure>
 
   <div class="body">
-    <p>To <em>select</em> a run instead of just landing on it, add <kbd>Shift</kbd>: <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> grabs everything from the active cell to that same edge. Same rule, same wall &mdash; which is exactly where it bites, as you will see in a moment. Beyond the run, three more moves cover almost everything else you do: <kbd>Ctrl</kbd>+<kbd>End</kbd> jumps to the far corner of the sheet's used range regardless of gaps; <kbd>Ctrl</kbd>+<kbd>A</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>*</kbd>) selects the whole <span class="gloss" tabindex="0">current region<span class="gloss-body"><span class="gloss-kind">Term of art</span>The contiguous block of filled cells around the active cell, bounded on every side by blank rows and columns. Excel treats it as one table &mdash; the unit Ctrl+A grabs and the unit a chart or PivotTable defaults to.</span></span> around you; and to go somewhere <em>absolute</em> rather than relative to data, <kbd>Ctrl</kbd>+<kbd>G</kbd> (or <kbd>F5</kbd>) opens Go To and the <b>Name Box</b> left of the formula bar takes a typed address like <kbd>M400</kbd>, a named range like <kbd>TaxRate</kbd>, or a cell on another sheet.</p>
+    <p>The corner formula in B2 is <code class="f">=<span class="lock">$</span>A2*B<span class="lock">$</span>1</code>. Read what each lock is doing: <code class="f"><span class="lock">$</span>A2</code> freezes the <em>column</em> (always column A, the units) but lets the <em>row</em> travel; <code class="f">B<span class="lock">$</span>1</code> freezes the <em>row</em> (always row 1, the prices) but lets the <em>column</em> travel. Now fill B2 across and down &mdash; and watch where those half-locks send each reference.</p>
   </div>
 
-  <figure class="exhibit" id="map">
+  <figure class="exhibit" id="fill">
     <table class="trace">
-      <caption>The move map &mdash; navigate, select, and jump anywhere</caption>
-      <thead><tr><th>What you need</th><th>Keystroke</th><th>What it reads</th></tr></thead>
+      <caption>One formula, copied &mdash; each lock holds, each free part travels</caption>
+      <thead><tr><th>Cell</th><th>The formula becomes</th><th>Which is</th><th>Value</th></tr></thead>
       <tbody>
-        <tr class="changed"><td>Jump to a data edge</td><td class="key"><kbd>Ctrl</kbd>+arrow</td><td>the last filled cell before a blank</td></tr>
-        <tr class="changed"><td>Select the run to that edge</td><td class="key"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+arrow</td><td>from here to the wall</td></tr>
-        <tr><td>Select the whole current block</td><td class="key"><kbd>Ctrl</kbd>+<kbd>A</kbd></td><td>the contiguous region around you</td></tr>
-        <tr><td>Jump to the sheet's true last cell</td><td class="key"><kbd>Ctrl</kbd>+<kbd>End</kbd></td><td>the far corner of the used range</td></tr>
-        <tr><td>Go to any address or named range</td><td class="key"><kbd>Ctrl</kbd>+<kbd>G</kbd> / Name Box</td><td>an absolute location, any sheet</td></tr>
-        <tr><td>Hop between worksheets</td><td class="key"><kbd>Ctrl</kbd>+<kbd>PgUp</kbd> / <kbd>PgDn</kbd></td><td>tab to tab, no mouse</td></tr>
-        <tr class="changed"><td>Follow a formula to its source, then return</td><td class="key"><kbd>Ctrl</kbd>+<kbd>[</kbd>, then <kbd>F5</kbd> <kbd>&crarr;</kbd></td><td>the precedent cell, and back</td></tr>
+        <tr class="changed land"><td class="cell">B2</td><td class="frm">=<span class="lock">$</span>A2*B<span class="lock">$</span>1</td><td>100 &times; 10 &mdash; the one you typed</td><td class="fig">1,000</td></tr>
+        <tr class="changed"><td class="cell">C2</td><td class="frm">=<span class="lock">$</span>A2*C<span class="lock">$</span>1</td><td>column freed &rarr; price moved to C1; units held at A</td><td class="fig">1,200</td></tr>
+        <tr class="changed"><td class="cell">B3</td><td class="frm">=<span class="lock">$</span>A3*B<span class="lock">$</span>1</td><td>row freed &rarr; units moved to A3; price held at row 1</td><td class="fig">2,000</td></tr>
+        <tr><td class="cell">D4</td><td class="frm">=<span class="lock">$</span>A4*D<span class="lock">$</span>1</td><td>both freed dimensions moved; both locks held</td><td class="fig">4,500</td></tr>
       </tbody>
     </table>
+    <div class="legend"><span><span class="sw i">&nbsp;</span>&nbsp;<b class="lock" style="color:var(--accent)">$</b> = the locked dimension</span><span><span class="sw l"></span>the corner formula you typed</span></div>
   </figure>
 
-  <div class="lblock qcheck" data-answer="0">
-    <div class="ql">Check yourself &middot; the wall bites selection too</div>
-    <p class="q">Column A holds data in A1:A100, then A101 is blank, then someone appended more data in A102:A200. Your cursor is in A1 and you press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> to "select the whole column of data." What do you actually select?</p>
+  <div class="lblock qcheck" data-answer="1">
+    <div class="ql">Check yourself &middot; pick the anchoring</div>
+    <p class="q">Same grid: units down column A, prices across row 1. You&rsquo;ll type one formula and copy it across <em>and</em> down to fill the block. Which reference makes the units always read from column A and the price always from row 1?</p>
     <div class="opts">
-      <button class="opt" type="button" data-fb="Right. Shift+Ctrl+arrow extends only to the edge of the current run, and the blank at A101 is the wall. You grab the first block and silently drop A102:A200 &mdash; which is exactly how a SUM ends up omitting half a column without any error.">A1:A100</button>
-      <button class="opt" type="button" data-fb="This is the costly assumption &mdash; that the keystroke grabs the whole column. It reads runs, not columns; the blank at A101 stops it at A100. To capture both blocks you'd press it a second time to extend past the gap, or select down to Ctrl+End.">A1:A200 (everything)</button>
-      <button class="opt" type="button" data-fb="The selection stops just before the blank, not on it. The wall is A101, so you land on A100 &mdash; this answer is off by one in the wrong direction.">A1:A101 (through the blank)</button>
+      <button class="opt" type="button" data-fb="Both references are relative, so both drift as you copy. Fill it down and the price reference leaves row 1 for row 2, row 3 (blank); fill it right and the units reference leaves column A. Half the grid ends up multiplying by empty cells &mdash; the exact failure the dollar sign prevents.">=A2*B1</button>
+      <button class="opt" type="button" data-fb="Right. $A2 freezes the column (always the units in column A) while letting the row travel; B$1 freezes the row (always the prices in row 1) while letting the column travel. Each lock holds its dimension and each free part tracks the cell&rsquo;s position &mdash; so one corner formula fills the whole block correctly.">=$A2*B$1</button>
+      <button class="opt" type="button" data-fb="Fully absolute locks BOTH dimensions of BOTH references, so the formula never moves at all: every cell in the grid computes the identical corner value, 100 &times; 10 = 1,000. You froze the very references that were supposed to track each cell&rsquo;s row and column.">=$A$2*$B$1</button>
     </div>
     <p class="fb"><span class="v"></span><span class="fbtext"></span></p>
   </div>
 
-  <div class="body">
-    <div class="beat">The reviewer's move: chase a number to its source</div>
-    <p>The last family is the one that separates someone who can drive a model from someone who can only read it. When you land on a formula like <code style="font-family:var(--mono)">=Rev*Margin</code> and want to know where <em>Margin</em> actually comes from, <kbd>Ctrl</kbd>+<kbd>[</kbd> follows the reference straight to its <span class="gloss" tabindex="0">precedent<span class="gloss-body"><span class="gloss-kind">Term of art</span>A cell that a formula depends on &mdash; the source it reads from. Ctrl+[ jumps to the precedent of the reference under the cursor; the dependents (cells that read <em>this</em> one) run the other way.</span></span> cell, even on another sheet. You read it, then press <kbd>F5</kbd> and <kbd>Enter</kbd>: Go To remembers where you just were, so it snaps you back to the formula. That round-trip &mdash; out to the source, back to your place &mdash; is how a reviewer walks a model's logic without ever scrolling or losing the thread. It is the keystroke embodiment of the <span class="gloss" tabindex="0">FAST standard's<span class="gloss-body"><span class="gloss-kind">Reference</span>The Flexible / Appropriate / Structured / Transparent modelling standard (CC-licensed). Its through-line: a model must be legible to someone who did not build it &mdash; which is exactly what fast source-tracing lets a reviewer do.</span></span> transparency rule, and it is the habit you'll lean on the day you have to interrogate someone else's workbook fast.</p>
+  <div class="body" id="prec">
+    <div class="beat">The second half: what Excel does first</div>
+    <p>Anchoring decides <em>which cells</em> a formula reads. Precedence decides <em>in what order</em> it combines them &mdash; and Excel&rsquo;s order is not quite the schoolbook one. Most of it is familiar: parentheses win, then exponents, then multiplication and division, then addition and subtraction, left to right within a tier. That is why <code class="f">=5+2*3</code> is 11, not 21 &mdash; the multiply happens before the add. But there is one rung that trips nearly everyone, and it is worth burning in. In Excel&rsquo;s precedence table, <b>negation &mdash; the minus sign that means &ldquo;make this negative&rdquo; &mdash; sits <em>above</em> exponentiation.</b> So <code class="f">=-3^2</code> is not &ldquo;three squared, then negate&rdquo;; Excel negates first, giving <code class="f">(-3)^2</code>, which is <b>positive 9</b>. To get the &minus;9 you probably meant, you write <code class="f">=-(3^2)</code> and force the exponent to go first.</p>
+    <p>This is not trivia. The day you write a returns or growth formula with a leading minus and an exponent &mdash; a discount factor, a CAGR, a squared deviation &mdash; a sign error of this kind flows straight into the answer and looks perfectly reasonable on the way. The defense is cheap and it is the third skill of this lesson: <b>read the formula aloud.</b> Say <code class="f">=-3^2</code> as Excel reads it &mdash; &ldquo;negative three, squared&rdquo; &mdash; and the 9 stops being a surprise. Say a copied model formula aloud &mdash; &ldquo;amount times rate&rdquo; &mdash; and if &ldquo;rate&rdquo; now names an empty cell, your ear catches what your eye skims past. Reading a formula in words is the same reviewer&rsquo;s move as tracing a precedent: it forces you to process what is actually there, not what you meant to type.</p>
   </div>
 
   <div class="lblock completion"><div class="completion">
-    <p class="prompt">Your turn &middot; trace the logic</p>
-    <table class="trace"><caption>You're auditing a model. Cell <span class="inp">F50</span> reads <code style="font-family:var(--mono)">=Rev*Margin</code>. You want to jump to wherever <b>Margin</b> is defined, read it, and come straight back to F50 &mdash; no scrolling, no mouse. Name the keystrokes, in order.</caption></table>
-    <details><summary>I have my answer</summary><p class="ans">With the cursor in <b>F50</b>, press <b><code>Ctrl+[</code></b> &mdash; Excel follows the reference and jumps to the precedent cell that <code>Margin</code> points to, wherever it lives, including another sheet. Read it. Then press <b><code>F5</code></b> (or <code>Ctrl+G</code>) and hit <b><code>Enter</code></b>: Go To pre-fills the box with your previous cell, so Enter snaps you back to F50. So: <b><code>Ctrl+[</code> out to the source, <code>F5</code> then <code>Enter</code> back home.</b> That is the reviewer's round-trip &mdash; walk a formula's logic and never lose your place.</p></details>
+    <p class="prompt">Your turn &middot; predict the number</p>
+    <table class="trace"><caption>No Excel &mdash; from the precedence order (negation, then <kbd>^</kbd>, then <kbd>&times;</kbd> <kbd>&divide;</kbd>, then <kbd>+</kbd> <kbd>&minus;</kbd>), predict what each formula returns: &nbsp; <code class="f">=-3^2</code> &nbsp;&middot;&nbsp; <code class="f">=-(3^2)</code> &nbsp;&middot;&nbsp; <code class="f">=10-2^2</code></caption></table>
+    <details><summary>I have my three answers</summary><p class="ans"><b><code>=-3^2</code> &rarr; 9.</b> Negation outranks exponentiation, so Excel makes 3 negative first, then squares: <code>(-3)^2 = 9</code>. &nbsp; <b><code>=-(3^2)</code> &rarr; &minus;9.</b> The parentheses force the exponent first (3&sup2; = 9), then the minus negates it. &nbsp; <b><code>=10-2^2</code> &rarr; 6.</b> Here the minus is <em>subtraction</em>, not negation &mdash; and subtraction sits <em>below</em> exponentiation, so <code>2^2 = 4</code> happens first, then <code>10 &minus; 4 = 6</code>. The lesson in the contrast: a leading minus (negation) beats <kbd>^</kbd>; a minus <em>between</em> two numbers (subtraction) loses to it.</p></details>
   </div></div>
 
   <div class="lblock trap"><div class="tl">The trap most people fall for</div>
-    <p class="w"><b>The assumption:</b> "To reach the bottom of my data I just press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> &mdash; it always lands on the last row."</p>
-    <p class="r"><b>Why it's wrong:</b> <kbd>Ctrl</kbd>+arrow reads <em>runs</em> of data, not the whole column. One stray blank &mdash; a spacer row, a merged cell, a single missing value &mdash; stops the jump early. Most people land somewhere unexpected, shrug, and keep going; but if you then <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> to "select it all," you silently grab only the first block and feed a half-length range into your SUM &mdash; no error, just a wrong number. The rule to carry: treat a jump that lands early as your data <em>telling</em> you there is a gap. When you need the true extent of a sheet, <kbd>Ctrl</kbd>+<kbd>End</kbd> and the Name Box won't lie to you.</p>
+    <p class="w"><b>The assumption:</b> &ldquo;Copying a formula copies the calculation &mdash; so dragging <code class="f">=A4*B1</code> down the column just repeats the same math on each row.&rdquo;</p>
+    <p class="r"><b>Why it&rsquo;s wrong:</b> it copies the <em>directions</em>, not the calculation. Every relative reference shifts, so <code class="f">B1</code> (your one rate, up top) marches down into <code class="f">B2</code>, <code class="f">B3</code>, empty cells &mdash; and the whole column below row one multiplies by nothing. There is no error to catch your eye; the sheet just carries a wrong number forward. Two habits close the gap for good: <b>anchor before you fill</b> &mdash; the instant a reference should hold still (a rate, a header, a single input), lock it with <kbd>F4</kbd> &mdash; and <b>read one copied cell aloud</b> before trusting the fill. &ldquo;Amount times rate&rdquo; is fine; &ldquo;amount times blank&rdquo; is the bug announcing itself in words.</p>
   </div>
 
   <div class="practice">
     <div class="h">Practice &middot; your hands</div>
-    <h3>Feel the wall, then knock it down</h3>
-    <p>Open a scratch workbook and type a column of about twenty numbers &mdash; but leave <em>one</em> cell blank in the middle. Now, keyboard only: from the top cell press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> and note where it stops (the wall). Step past the gap and press <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> again to reach the true bottom. Back at the top, press <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> and watch it select only the first block. Then <kbd>Ctrl</kbd>+<kbd>End</kbd> to see the sheet's true last cell, and <kbd>Ctrl</kbd>+<kbd>G</kbd> to jump to a specific cell and back. Finally fill the blank and repeat &mdash; now one press crosses the whole column.</p>
-    <p class="rr"><b>Right result:</b> before you press a key, you can say where the cursor will land and why. That predictive certainty &mdash; not raw speed &mdash; is the skill.</p>
-    <p class="time">&asymp; 10 minutes &middot; a scratch workbook, any numbers &middot; this is toolkit cards E1 + E2's proof in miniature</p>
+    <h3>Fill a grid from one cell, then break it on purpose</h3>
+    <p>Open a scratch workbook. Type units <b>100, 200, 300</b> down <code>A2:A4</code> and prices <b>10, 12, 15</b> across <code>B1:D1</code>. In <code>B2</code> type exactly one formula: <code>=<span class="lock">$</span>A2*B<span class="lock">$</span>1</code> (use <kbd>F4</kbd> to place the locks). Fill it right to <code>D2</code> and down to <code>D4</code>, and confirm the far corner <code>D4</code> reads <b>4,500</b> (300 &times; 15). Now break it: delete both dollar signs so B2 reads <code>=A2*B1</code>, fill again, and watch the grid fill with wrong numbers and blanks &mdash; the anchoring failure, made visible. Fix it back. Finally, in any empty cell type <code>=-3^2</code>, say it aloud as Excel reads it, and confirm the <b>9</b>.</p>
+    <p class="rr"><b>Right result:</b> before you press fill, you can name which cell each copy will point to; and you can say out loud why <code>=-3^2</code> is 9. That predictive certainty &mdash; not speed &mdash; is the skill.</p>
+    <p class="time">&asymp; 10 minutes &middot; a scratch workbook, any numbers &middot; toolkit cards E1 + E3&rsquo;s proof in miniature</p>
   </div>
 
   <div class="lblock takeaway"><div class="takeaway">
     <p class="prompt">Before you scroll on &mdash; in one sentence, what is the single thing to remember?</p>
-    <details><summary>Reveal the line</summary><p class="line">Ctrl+arrow reads runs of data, not whole columns &mdash; so a jump that stops early isn't a glitch, it's a blank cell warning you where your data really ends.</p></details>
+    <details><summary>Reveal the line</summary><p class="line">A reference without a dollar sign moves when you copy it, so anchoring with F4 is you deciding &mdash; dimension by dimension &mdash; what holds still; and reading the formula aloud is how you hear the reference that shouldn&rsquo;t have moved.</p></details>
   </div></div>
 
   <div class="lblock keepcard"><div class="kl">Keep this</div>
     <ul>
-      <li>Move by region: <kbd>Ctrl</kbd>+arrow jumps to the data edge; add <kbd>Shift</kbd> to select the run to it; <kbd>Ctrl</kbd>+<kbd>A</kbd> grabs the whole current block.</li>
-      <li>Jump anywhere: <kbd>Ctrl</kbd>+<kbd>End</kbd> to the true last cell; <kbd>Ctrl</kbd>+<kbd>G</kbd>/<kbd>F5</kbd> or the Name Box to any address or named range; <kbd>Ctrl</kbd>+<kbd>PgUp</kbd>/<kbd>PgDn</kbd> between sheets.</li>
-      <li>Trace logic: <kbd>Ctrl</kbd>+<kbd>[</kbd> follows a formula to its source; <kbd>F5</kbd> then <kbd>Enter</kbd> jumps you back.</li>
-      <li>The gotcha: a stray blank is a wall &mdash; <kbd>Ctrl</kbd>+<kbd>&darr;</kbd> stops before it, and <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>&darr;</kbd> selects only up to it.</li>
+      <li>Four states, one key: <code>B1</code> moves both ways on copy; <code><span class="lock">$</span>B<span class="lock">$</span>1</code> locks both; <code>B<span class="lock">$</span>1</code> locks the row; <code><span class="lock">$</span>B1</code> locks the column. <kbd>F4</kbd> cycles all four.</li>
+      <li>Anchor the part that must hold still &mdash; a rate, a header row, a single input. With the right mixed refs, one corner formula (<code>=<span class="lock">$</span>A2*B<span class="lock">$</span>1</code>) fills a whole two-way grid.</li>
+      <li>Excel&rsquo;s real order: parentheses, then <b>negation</b>, <kbd>%</kbd>, <kbd>^</kbd>, then <kbd>&times;</kbd> <kbd>&divide;</kbd>, then <kbd>+</kbd> <kbd>&minus;</kbd>. So <code>=-3^2</code> is 9; write <code>=-(3^2)</code> to mean &minus;9.</li>
+      <li>Audit by ear: read every formula aloud left to right. A copied formula that names a blank cell is the error announcing itself.</li>
     </ul>
   </div>
 
@@ -315,24 +331,23 @@ tr.land td{background:var(--accent-soft);}
   <div class="endmatter">
     <p class="em-label">Sources</p>
     <ul class="sources">
-      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/keyboard-shortcuts-in-excel-1798d9d5-842a-42b8-9c99-9b7213f0040f" target="_blank" rel="noopener">Keyboard shortcuts in Excel</a> &mdash; the official reference for Ctrl+arrow, Ctrl+Shift+arrow, Ctrl+End, and Go To (F5 / Ctrl+G).</li>
-      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/select-specific-cells-or-ranges-3a0c91c5-8a64-4cd2-8625-7f5b7f1eed87" target="_blank" rel="noopener">Select specific cells or ranges</a> &mdash; the Name Box and Go To for jumping to an address or named range, including cross-sheet references.</li>
-      <li><a href="https://exceljet.net/articles/the-excel-shortcuts-you-really-should-know" target="_blank" rel="noopener">Exceljet &mdash; The Excel shortcuts you really should know</a> &mdash; the edge-of-data-region behavior spelled out: from a filled cell you stop at the last non-empty cell, from a blank cell you jump to the next.</li>
-      <li>The FAST Standard Organisation, <a href="https://fast-standard.org/the-fast-standard/" target="_blank" rel="noopener">The FAST Standard</a> &mdash; the CC-licensed modelling rules behind fast source-tracing (Ctrl+[ to a link's source, F5+Enter back) and keyboard-over-mouse navigation.</li>
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/switch-between-relative-absolute-and-mixed-references-dfec08cd-ae65-4f56-839e-5f0d8d0baca9" target="_blank" rel="noopener">Switch between relative, absolute, and mixed references</a> &mdash; the official reference for the four reference types and the <kbd>F4</kbd> toggle that cycles them.</li>
+      <li>Microsoft, <a href="https://support.microsoft.com/en-us/office/calculation-operators-and-precedence-in-excel-48be406d-4975-4d31-b2b8-7af9e0e2878a" target="_blank" rel="noopener">Calculation operators and precedence in Excel</a> &mdash; the operator-precedence table, which lists Negation <em>above</em> Exponentiation (so <code>=-3^2</code> resolves to <code>(-3)^2 = 9</code>) and multiplication above addition.</li>
+      <li>Exceljet, <a href="https://exceljet.net/glossary/absolute-reference" target="_blank" rel="noopener">Absolute reference</a> and <a href="https://exceljet.net/glossary/relative-reference" target="_blank" rel="noopener">Relative reference</a> &mdash; concise free explainers with the copy-drift example (<code>=B4*C4</code> shifting to <code>=B5*C5</code>) that this lesson&rsquo;s prediction is built on.</li>
     </ul>
   </div>
 
   <div class="rail">
-    <a class="railcard prev" href="002-setup-and-keyboard-discipline.html"><span class="rl">&larr; Previous in lane</span><span class="rt">C0.1 &mdash; Setup and keyboard discipline</span></a>
-    <a class="railcard next" href="014-formula-fundamentals.html"><span class="rl">Next in lane &rarr;</span><span class="rt">C0.3 &mdash; Formula fundamentals</span></a>
+    <a class="railcard prev" href="008-navigation-and-selection.html"><span class="rl">&larr; Previous in lane</span><span class="rt">C0.2 &mdash; Navigation and selection</span></a>
+    <span class="railcard next off"><span class="rl">Next in lane &rarr;</span><span class="rt">C0.4 &mdash; Named ranges and structure</span></span>
   </div>
 </div>
 
-<div class="page-foot">Dealcraft &middot; Lane C / Level 0 / Lesson 008 &middot; Educational summary, not legal, tax, or investment advice.</div>
+<div class="page-foot">Dealcraft &middot; Lane C / Level 0 / Lesson 014 &middot; Educational summary, not legal, tax, or investment advice.</div>
 
 <script>
 (function(){"use strict";
-  var KEY="dealcraft_lessons_read",ID="C0.2";
+  var KEY="dealcraft_lessons_read",ID="C0.3";
   var btn=document.getElementById("readbtn"),lbl=btn.querySelector(".lbl2");
   function load(){try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return{}}}
   function paint(on){btn.setAttribute("aria-pressed",on?"true":"false");lbl.textContent=on?"Read — marked done":"Mark this lesson read";}
