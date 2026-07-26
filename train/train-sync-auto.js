@@ -115,6 +115,7 @@
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
+        if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) S.profile.setup = true;
         var after = JSON.stringify(S);
         lastSnap = "";
         if (after !== before) {

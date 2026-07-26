@@ -497,7 +497,16 @@ function rampSets(base){return (daysIntoProgram()<7)?Math.min(base,2):base;}
 var LETTERS=["A","B","C"];
 var WARM="leg swings x10/side, arm circles x10, band pull-apart x15, dead bug x8/side";
 var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
-var ANCHOR=[{n:"Cat-cow",d:"x8 slow"},{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"Bodyweight squats",d:"x10"},{n:"Hip-flexor stretch",d:"30s/side"}];
+/* morning anchor: push-ups + squats EVERY day, plus two rotating mobility picks
+   weighted to desk-worker needs (neck/shoulder/hips) -- Matthew's headache + sitting lever */
+var ANCHOR_FIXED=[{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"Bodyweight squats",d:"x10"}];
+var ANCHOR_ROT=[{n:"Chin tucks",d:"x10 (neck)"},{n:"Cat-cow",d:"x8 slow"},{n:"Doorway chest stretch",d:"30s/side"},{n:"Wall angels",d:"x10 (shoulders)"},{n:"Hip-flexor stretch",d:"30s/side"},{n:"Neck side-stretch",d:"20s/side"},{n:"Thoracic rotations",d:"x8/side"},{n:"Standing hamstring reach",d:"30s"}];
+function anchorList(){
+  var y=TODAY.slice(0,4);var day=Math.floor((new Date(TODAY)-new Date(y+"-01-01"))/86400000);
+  var n=ANCHOR_ROT.length,a=ANCHOR_ROT[day%n],b=ANCHOR_ROT[(day+3)%n];if(b.n===a.n)b=ANCHOR_ROT[(day+4)%n];
+  return ANCHOR_FIXED.concat([a,b]);
+}
+var ANCHOR=ANCHOR_FIXED.concat([ANCHOR_ROT[0],ANCHOR_ROT[1]]);
 /* every day carries a prescription -- the two lighter days are RECOVER (walk + mobility), never nothing */
 var WEEK={1:{type:"lift"},2:{type:"run",dist:2,label:"Easy"},3:{type:"lift"},4:{type:"rest",recover:true,walk:15},5:{type:"lift"},6:{type:"run",dist:3,label:"Easy, longer"},0:{type:"rest",recover:true,walk:20,weigh:true}};
 var PACE_MI="9:50-11:00";
@@ -677,7 +686,7 @@ function renderToday(){
     dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:(isT?ic:""))+'</div></div>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
-  ANCHOR.forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
+  anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/4);
   var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+'</div>';
   document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+cutCardHTML()+todayLogHTML();
