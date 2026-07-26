@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -502,12 +502,49 @@ var ANCHOR=[{n:"Cat-cow",d:"x8 slow"},{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"
 var WEEK={1:{type:"lift"},2:{type:"run",dist:2,label:"Easy"},3:{type:"lift"},4:{type:"rest",recover:true,walk:15},5:{type:"lift"},6:{type:"run",dist:3,label:"Easy, longer"},0:{type:"rest",recover:true,walk:20,weigh:true}};
 var PACE_MI="9:50-11:00";
 
+/* ============ sequence engine (recency-based, skip-proof) ============ */
+/* today is chosen by position in a repeating rhythm that advances ONLY when a day is completed,
+   never by the calendar -- so a missed day is not "lost", today is still the next session you owe. */
+var CYCLE=[{k:"lift"},{k:"run"},{k:"lift"},{k:"recover",walk:15},{k:"lift"},{k:"run",long:true},{k:"recover",walk:20,weigh:true}];
+function cycleLen(){return CYCLE.length;}
+function resolveSlot(sl){
+  if(!sl)return null;
+  if(sl.k==="lift")return {type:"lift"};
+  if(sl.k==="run")return {type:"run",dist:(sl.long?3:2),label:(sl.long?"Easy, longer":"Easy"),long:!!sl.long};
+  if(sl.k==="recover")return {type:"rest",recover:true,walk:sl.walk||15,weigh:!!sl.weigh};
+  return {type:"rest",recover:true,walk:15};
+}
+function lastDoneDate(){var best=null;for(var d in S.done){if(S.done[d]&&(!best||d>best))best=d;}return best;}
+function daysBetween(a,b){return Math.round((new Date(b)-new Date(a))/86400000);}
+function ensureTodaySlot(){
+  if(!S.daySlot)S.daySlot={};
+  if(S.daySlot[TODAY]!=null)return;
+  var ld=lastDoneDate();
+  if(ld&&daysBetween(ld,TODAY)>=7){S.cycleNext=0;S.profile.programStart=TODAY;} /* long gap: restart the rhythm gently + re-ease-in */
+  S.daySlot[TODAY]=((S.cycleNext||0)%cycleLen());
+  save();
+}
+function planFor(k){
+  if(S.override[k])return S.override[k];
+  if(S.daySlot&&S.daySlot[k]!=null)return resolveSlot(CYCLE[S.daySlot[k]%cycleLen()]);
+  if(k===TODAY){ensureTodaySlot();return resolveSlot(CYCLE[S.daySlot[TODAY]%cycleLen()]);}
+  return null;
+}
+function advanceCycle(){
+  if(!S.daySlot)S.daySlot={};
+  var slot=(S.daySlot[TODAY]!=null)?S.daySlot[TODAY]:(S.cycleNext||0);
+  S.cycleNext=((slot+1)%cycleLen());
+  save();
+}
+
 /* ============ state ============ */
 var LS="train_v2";
 var S=load();
 if(!S.profile.mode)S.profile.mode="bw";
+if(!S.daySlot)S.daySlot={};
+if(S.cycleNext==null)S.cycleNext=0;
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -532,7 +569,7 @@ var DFULL=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 function U(){return S.profile.units;}
 function inc(){return U()==="kg"?2.5:5;}
 function mmss(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60);return m+":"+("0"+(s%60)).slice(-2);}
-function todayPlan(){return S.override[TODAY]||WEEK[DOW];}
+function todayPlan(){return planFor(TODAY);}
 function esc(s){return (s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function isDone(k){return !!S.done[k];}
 function letterFor(){return LETTERS[(S.planPos||0)%3];}
@@ -635,9 +672,9 @@ function renderToday(){
   }
   // dots
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=(S.override[k]||WEEK[dw]),dn=isDone(k),isT=(k===TODAY);
-    var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
-    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+(pl.type==="rest"&&!dn?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div></div>';}
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
+    var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
+    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:(isT?ic:""))+'</div></div>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   ANCHOR.forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
@@ -645,7 +682,7 @@ function renderToday(){
   var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+'</div>';
   document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+cutCardHTML()+todayLogHTML();
 }
-function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);save();renderToday();}
+function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
 /* the cut, kept light: where you are, how fast it's coming off, one tap to log */
 function cutCardHTML(){
   var goal=S.profile.goalLb;
@@ -780,7 +817,7 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
   var nt=document.getElementById("rpe-notes");
   var rec={id:(AW().id||TODAY),date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries};
   S.sessions=S.sessions.filter(function(s){return s.id!==rec.id;});S.sessions.push(rec);
-  S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
+  S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;advanceCycle();if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
   save();closeSheet();show("today");
@@ -831,7 +868,7 @@ function saveRun(){var d=parseFloat((document.getElementById("r-dist")||{}).valu
   S.runs[TODAY]={dist:d,time:tstr,pace:pace,rpe:rpeRun};
   S.sessions=S.sessions.filter(function(s){return !(s.id===TODAY&&s.type==="run");});
   S.sessions.push({id:TODAY,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
-  S.done[TODAY]=true;save();closeSheet();
+  S.done[TODAY]=true;advanceCycle();save();closeSheet();
   var hot=(rpeRun==="Hard");
   if(hot)toast("Logged. Keep easy runs easy - that protects your lifting.",null);
   renderRun();
@@ -846,11 +883,11 @@ function renderWeek(){
   refreshDate();
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
   var doneLifts=0,totLifts=0,miDone=0,totMi=0,list="";
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=(S.override[k]||WEEK[dw]),dn=isDone(k),isT=(k===TODAY);
-    if(pl.type==="lift"){totLifts++;if(dn)doneLifts++;}if(pl.type==="run"){totMi+=pl.dist;if(S.runs[k])miDone+=(parseFloat(S.runs[k].dist)||0);}
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k)||{type:"none"},dn=isDone(k),isT=(k===TODAY);
+    if(pl.type==="lift"){totLifts++;if(dn)doneLifts++;}if(pl.type==="run"){totMi+=(pl.dist||0);if(S.runs[k])miDone+=(parseFloat(S.runs[k].dist)||0);}
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
-    var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?(pl.label+" run"):"Recover";
-    var tt=pl.type==="lift"?"~30 min":pl.type==="run"?(pl.dist+" mi"):(pl.weigh?"walk + weigh-in":"walk + mobility");
+    var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
+    var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
     list+='<button class="wl'+(dn?" done":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(dn?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
   var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
@@ -1166,7 +1203,7 @@ function actSheet(type){
 function saveAct(type){var min=parseInt((document.getElementById("a-min")||{}).value)||0;if(min<=0){closeSheet();return;}
   var name=(type==="walk")?"Walk":((document.getElementById("a-name")||{}).value||"Workout");
   S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,notes:""});
-  S.done[TODAY]=true;save();closeSheet();toast("Logged "+name+", "+min+" min.",null);renderToday();}
+  S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged "+name+", "+min+" min.",null);renderToday();}
 
 /* ============ APPLE HEALTH IMPORT ============ */
 function healthSheet(){
@@ -1190,7 +1227,7 @@ function anchorComplete(k){var a=S.anchor[k]||{};for(var i=0;i<ANCHOR.length;i++
 function planDow(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();}
 function recomputeDone(k){
   var has=S.sessions.some(function(s){return s.date===k;})|| !!S.runs[k];
-  var pl=S.override[k]||WEEK[planDow(k)];
+  var pl=planFor(k)||{type:"none"};
   if(has||(pl.type==="rest"&&anchorComplete(k)))S.done[k]=true;else delete S.done[k];
 }
 function todayLogHTML(){
@@ -1224,8 +1261,8 @@ function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sess
   var lbl=rm.type==="lift"?"workout":rm.type==="run"?"run":(rm.activity||"activity");
   toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
 }
-function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
-function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;save();toast(min+"-min walk logged. Never zero.",null);renderToday();}
+function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
+function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);renderToday();}
 
 /* ============ EQUIPMENT + GEN set editing ============ */
 function toggleEquip(e){var arr=(S.profile.equip||[]).slice();var i=arr.indexOf(e);if(i>=0){if(arr.length>1)arr.splice(i,1);}else arr.push(e);S.profile.equip=arr;save();genBuild();renderGenerate();}
