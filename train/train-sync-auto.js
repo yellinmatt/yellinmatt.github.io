@@ -18,13 +18,29 @@
   var BACKUP_KEY = "train_v2_syncbak";      // one-time pre-merge safety copy
   var POLL_MS = 4000;
 
-  function token() {
-    var t = localStorage.getItem(TOKEN_KEY);
-    if (!t && global.prompt) {
-      t = (global.prompt("Enter your Train sync passphrase (one time on this device):") || "").trim();
-      if (t) localStorage.setItem(TOKEN_KEY, t);
-    }
-    return (t || "").trim();
+  function getToken() { return (localStorage.getItem(TOKEN_KEY) || "").trim(); }
+  function setToken(t) { t = (t || "").trim(); if (t) localStorage.setItem(TOKEN_KEY, t); return t; }
+  var overlayShown = false;
+  // In-DOM passphrase entry. iOS Safari (esp. home-screen PWAs) suppresses native prompt(),
+  // so we draw our own box that works everywhere.
+  function promptToken(cb) {
+    if (overlayShown || !document.body) return;
+    overlayShown = true;
+    var wrap = document.createElement("div");
+    wrap.setAttribute("style", "position:fixed;inset:0;z-index:99999;background:rgba(8,10,14,.74);display:flex;align-items:center;justify-content:center;padding:22px;font-family:-apple-system,system-ui,sans-serif");
+    wrap.innerHTML = '<div style="background:#161a20;color:#fff;max-width:340px;width:100%;border-radius:16px;padding:20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
+      + '<div style="font-size:17px;font-weight:800;margin-bottom:4px">Sync this device</div>'
+      + '<div style="font-size:13px;color:#aab3c0;margin-bottom:14px;line-height:1.4">Enter your Train passphrase once. Your workouts and weigh-ins then sync across every device.</div>'
+      + '<input id="tsync-pass" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="passphrase" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #2a313b;background:#0e1116;color:#fff;font-size:15px;margin-bottom:12px">'
+      + '<button id="tsync-go" style="width:100%;padding:12px;border:0;border-radius:10px;background:#e0592e;color:#fff;font-size:15px;font-weight:700">Sync</button>'
+      + '<button id="tsync-skip" style="width:100%;padding:10px;border:0;border-radius:10px;background:transparent;color:#8a93a0;font-size:13px;margin-top:6px">Not now</button></div>';
+    document.body.appendChild(wrap);
+    var inp = wrap.querySelector("#tsync-pass");
+    function done() { var v = (inp.value || "").trim(); if (!v) { inp.focus(); return; } setToken(v); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); overlayShown = false; cb(); }
+    wrap.querySelector("#tsync-go").addEventListener("click", done);
+    wrap.querySelector("#tsync-skip").addEventListener("click", function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); overlayShown = false; });
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") done(); });
+    setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
   }
 
   function loadState() { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } }
@@ -69,7 +85,7 @@
   var lastSnap = "";
 
   function push() {
-    var t = token(); if (!t) return;
+    var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
     var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState });
@@ -80,7 +96,7 @@
   }
 
   function pullAndMerge() {
-    var t = token(); if (!t) return Promise.resolve();
+    var t = getToken(); if (!t) return Promise.resolve();
     return fetch(EP + "/pull", { headers: { "Authorization": "Bearer " + t } })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (srv) {
@@ -123,12 +139,11 @@
     return S;
   }
   function start() {
-    // prompt + pull first, even with no local state, so ANY device pairs just by entering the passphrase
-    pullAndMerge().then(function () {
-      push();
-      setInterval(push, POLL_MS);
-    });
-    if (global.addEventListener) global.addEventListener("online", function () { push(); pullAndMerge(); });
+    // prompt (in-DOM) + pull first, even with no local state, so ANY device pairs just by entering the passphrase
+    var run = function () { pullAndMerge().then(function () { push(); setInterval(push, POLL_MS); }); };
+    if (getToken()) run();
+    else promptToken(run);
+    if (global.addEventListener) global.addEventListener("online", function () { if (getToken()) { push(); pullAndMerge(); } });
   }
 
   if (document.readyState === "complete" || document.readyState === "interactive") setTimeout(start, 500);
