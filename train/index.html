@@ -397,7 +397,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.4";
+var VERSION="v3.5";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -441,41 +441,72 @@ var LIB={
   feetpush:{name:"Feet-elevated push-up",pattern:"h-push",equip:"BW",bw:true,diff:"intermediate",cue:"harder press, no more load",q:"feet elevated push up"},
   kneelpress:{name:"Half-kneeling DB press",pattern:"v-push",equip:"DB",side:true,diff:"intermediate",cue:"ribs down, no shrug, pain-free ROM",q:"half kneeling dumbbell press form"},
   neutralpress:{name:"Neutral-grip DB press",pattern:"v-push",equip:"DB",diff:"intermediate",cue:"neutral grip, shoulder-friendly",q:"neutral grip dumbbell shoulder press"},
-  bandpress:{name:"Band overhead press",pattern:"v-push",equip:"band",diff:"beginner",cue:"control the way down",q:"resistance band overhead press"},
+  bandpress:{name:"Band overhead press",pattern:"v-push",equip:"band",bw:true,diff:"beginner",cue:"control the way down",q:"resistance band overhead press"},
   row1:{name:"1-arm DB row",pattern:"h-pull",equip:"DB",side:true,diff:"beginner",cue:"flat back, elbow to hip",q:"one arm dumbbell row form"},
   csrow:{name:"Chest-supported DB row",pattern:"h-pull",equip:"DB",diff:"beginner",cue:"no lower-back load, retract",q:"chest supported dumbbell row"},
-  bandrow:{name:"Band seated row",pattern:"h-pull",equip:"band",diff:"beginner",cue:"squeeze blades, tall chest",q:"resistance band seated row"},
+  bandrow:{name:"Band seated row",pattern:"h-pull",equip:"band",bw:true,diff:"beginner",cue:"squeeze blades, tall chest",q:"resistance band seated row"},
   invrow:{name:"Inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"intermediate",cue:"body straight, chest to bar",q:"inverted row home form"},
   pullup:{name:"Pull-up (assisted)",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"full hang, no neck cranking",q:"band assisted pull up form"},
-  bandpulldown:{name:"Band lat pulldown",pattern:"v-pull",equip:"band",diff:"beginner",cue:"pull to collarbone, no shrug",q:"band lat pulldown form"},
+  bandpulldown:{name:"Band lat pulldown",pattern:"v-pull",equip:"band",bw:true,diff:"beginner",cue:"pull to collarbone, no shrug",q:"band lat pulldown form"},
   deadhang:{name:"Dead hang",pattern:"v-pull",equip:"bar",bw:true,unit:"s",diff:"beginner",cue:"decompress, grip, shoulder reset",q:"dead hang benefits how to"},
   deadbug:{name:"Dead bug",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"ribs down, low back flat",q:"dead bug exercise form"},
   sideplank:{name:"Side plank",pattern:"core",equip:"BW",bw:true,unit:"s",side:true,diff:"beginner",cue:"stack hips, anti-lateral flexion",q:"side plank proper form"},
   suitcase:{name:"Suitcase carry",pattern:"core",equip:"DB",side:true,unit:"s",diff:"beginner",cue:"don't lean, brace hard",q:"suitcase carry exercise"},
-  pallof:{name:"Pallof press",pattern:"core",equip:"band",side:true,diff:"beginner",cue:"resist rotation, ribs down",q:"pallof press band form"},
-  facepull:{name:"Band face pull",pattern:"isolation",equip:"band",diff:"beginner",cue:"elbows high, external rotate (shoulder health)",q:"band face pull form"},
-  ytw:{name:"Prone Y-T-W raises",pattern:"isolation",equip:"BW",bw:true,diff:"beginner",cue:"thumbs up, low traps, no neck",q:"prone y t w raises shoulder"}
+  pallof:{name:"Pallof press",pattern:"core",equip:"band",bw:true,side:true,diff:"beginner",cue:"resist rotation, ribs down",q:"pallof press band form"},
+  facepull:{name:"Band face pull",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"elbows high, external rotate (shoulder health)",q:"band face pull form"},
+  ytw:{name:"Prone Y-T-W raises",pattern:"isolation",equip:"BW",bw:true,diff:"beginner",cue:"thumbs up, low traps, no neck",q:"prone y t w raises shoulder"},
+  bwsquat:{name:"Bodyweight squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"sit between hips, chest tall, full depth",q:"bodyweight squat proper form"},
+  bwsplit:{name:"Split squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"tall torso, front heel drives, controlled",q:"bodyweight split squat form"},
+  bwlunge:{name:"Reverse lunge",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"step back, control the way down",q:"bodyweight reverse lunge form"},
+  pikepush:{name:"Pike push-up",pattern:"v-push",equip:"BW",bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
+  sglutebridge:{name:"Single-leg glute bridge",pattern:"hinge",equip:"BW",bw:true,side:true,diff:"beginner",cue:"hips level, drive through the heel",q:"single leg glute bridge form"},
+  birddog:{name:"Bird dog",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"reach long, no hip rock, brace",q:"bird dog exercise form"},
+  plank:{name:"Front plank",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"}
 };
 var PATTERNS={squat:"Squat",hinge:"Hinge","h-push":"Horizontal push","v-push":"Vertical push","h-pull":"Horizontal pull","v-pull":"Vertical pull",core:"Core",isolation:"Prehab / isolation"};
 
-/* ============ plan (A/B/C rotating full-body) ============ */
-function slot(exId,sets,low,high,w){var e=LIB[exId];return {exId:exId,sets:sets,low:low,high:high,weight:(e.bw?0:(w||15)),unit:e.unit||"reps",side:!!e.side,bw:!!e.bw};}
+/* ============ plan (A/B/C rotating full-body, bodyweight-first, upgradeable to dumbbells) ============ */
+/* each slot names the bodyweight/band pick AND the dumbbell pick; the training mode (profile.mode) chooses */
 var DAYS={
-  A:{name:"Squat + Press",slots:[slot("goblet",3,10,15,15),slot("rdl",3,8,12,15),slot("floorpress",3,8,12,15),slot("row1",3,8,12,15),slot("deadbug",2,8,10,0)]},
-  B:{name:"Hinge + Pull",slots:[slot("rdl",3,8,12,15),slot("revlunge",3,8,12,15),slot("csrow",3,8,12,15),slot("inclinepress",3,8,12,15),slot("sideplank",2,30,40,0)]},
-  C:{name:"Legs + Prehab",slots:[slot("bulgarian",3,8,12,15),slot("hipthrust",3,10,15,15),slot("pushup",3,8,15,0),slot("row1",3,8,12,15),slot("facepull",2,12,15,0)]}
+  A:{name:"Squat + Push",slots:[
+    {pat:"squat", bw:"bwsquat",     db:"goblet",     sets:3,low:8,high:15},
+    {pat:"hinge", bw:"glutebridge", db:"rdl",        sets:3,low:8,high:15},
+    {pat:"h-push",bw:"pushup",      db:"floorpress", sets:3,low:6,high:12},
+    {pat:"h-pull",bw:"bandrow",     db:"row1",       sets:3,low:8,high:12},
+    {pat:"core",  bw:"deadbug",     db:"deadbug",    sets:2,low:8,high:10}]},
+  B:{name:"Hinge + Pull",slots:[
+    {pat:"hinge", bw:"sglutebridge",db:"rdl",        sets:3,low:8,high:12},
+    {pat:"squat", bw:"bwsplit",     db:"bulgarian",  sets:3,low:8,high:12},
+    {pat:"h-pull",bw:"bandrow",     db:"csrow",      sets:3,low:8,high:12},
+    {pat:"v-push",bw:"pikepush",    db:"neutralpress",sets:3,low:6,high:12},
+    {pat:"core",  bw:"sideplank",   db:"sideplank",  sets:2,low:30,high:45}]},
+  C:{name:"Legs + Prehab",slots:[
+    {pat:"squat", bw:"bwlunge",     db:"revlunge",   sets:3,low:8,high:12},
+    {pat:"hinge", bw:"glutebridge", db:"hipthrust",  sets:3,low:10,high:15},
+    {pat:"h-push",bw:"pushup",      db:"inclinepress",sets:3,low:8,high:15},
+    {pat:"h-pull",bw:"bandrow",     db:"row1",       sets:3,low:8,high:12},
+    {pat:"isolation",bw:"ytw",      db:"facepull",   sets:2,low:12,high:15}]}
 };
+function trainMode(){return (S.profile.mode==="db")?"db":"bw";}
+function slotEx(sl){var id=(trainMode()==="db"&&sl.db)?sl.db:sl.bw;return LIB[id]?id:sl.bw;}
+/* gentle 2-week ease-in: lighter volume for the first 7 days of a program start, then full */
+function programStartKey(){return S.profile.programStart||S.profile.started||null;}
+function daysIntoProgram(){var st=programStartKey();if(!st)return 999;return Math.floor((new Date(TODAY)-new Date(st))/86400000);}
+function easingIn(){var d=daysIntoProgram();return d>=0&&d<14;}
+function rampSets(base){return (daysIntoProgram()<7)?Math.min(base,2):base;}
 var LETTERS=["A","B","C"];
 var WARM="leg swings x10/side, arm circles x10, band pull-apart x15, dead bug x8/side";
 var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
 var ANCHOR=[{n:"Cat-cow",d:"x8 slow"},{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"Bodyweight squats",d:"x10"},{n:"Hip-flexor stretch",d:"30s/side"}];
-var WEEK={1:{type:"lift"},2:{type:"run",dist:2,label:"Easy"},3:{type:"lift"},4:{type:"rest"},5:{type:"lift"},6:{type:"run",dist:3,label:"Easy, longer"},0:{type:"rest",weigh:true}};
+/* every day carries a prescription -- the two lighter days are RECOVER (walk + mobility), never nothing */
+var WEEK={1:{type:"lift"},2:{type:"run",dist:2,label:"Easy"},3:{type:"lift"},4:{type:"rest",recover:true,walk:15},5:{type:"lift"},6:{type:"run",dist:3,label:"Easy, longer"},0:{type:"rest",recover:true,walk:20,weigh:true}};
 var PACE_MI="9:50-11:00";
 
 /* ============ state ============ */
 var LS="train_v2";
 var S=load();
-function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["DB","band","BW"],adjustable:false,runPlanStart:null},
+if(!S.profile.mode)S.profile.mode="bw";
+function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
   progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
@@ -511,13 +542,14 @@ function workDay(){
   if(S.wk[TODAY])return S.wk[TODAY];
   var L=letterFor(),tpl=DAYS[L];
   var order=tpl.slots.map(function(sl){
-    var t=S.progress[sl.exId]||{};
-    var w=(t.weight!=null?t.weight:sl.weight);
+    var id=slotEx(sl),e=LIB[id],t=S.progress[id]||{};
+    var w=e.bw?0:(t.weight!=null?t.weight:15);
     var low=(t.low!=null?t.low:sl.low),high=(t.high!=null?t.high:sl.high);
-    var sets=[];for(var i=0;i<sl.sets;i++)sets.push({w:w,reps:low,on:false});
-    return {exId:sl.exId,unit:sl.unit,side:sl.side,bw:sl.bw,low:low,high:high,weight:w,sets:sets};
+    var nSets=rampSets(sl.sets);
+    var sets=[];for(var i=0;i<nSets;i++)sets.push({w:w,reps:low,on:false});
+    return {exId:id,unit:e.unit||"reps",side:!!e.side,bw:!!e.bw,low:low,high:high,weight:w,sets:sets};
   });
-  S.wk[TODAY]={letter:L,name:tpl.name,order:order,start:null};
+  S.wk[TODAY]={letter:L,name:tpl.name,mode:trainMode(),order:order,start:null};
   save();return S.wk[TODAY];
 }
 function wkProgress(w){w=w||S.wk[TODAY];if(!w)return {done:0,total:0};var d=0,t=0;w.order.forEach(function(o){o.sets.forEach(function(s){t++;if(s.on)d++;});});return {done:d,total:t};}
@@ -584,7 +616,7 @@ function renderToday(){
     var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
-      '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; ~30 min &middot; cut pace (8-15 reps)</div>'+
+      '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
   }else if(plan.type==="run"){
@@ -593,10 +625,13 @@ function renderToday(){
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
       (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+'</div>';
   }else{
+    var recDone=S.sessions.some(function(s){return s.date===TODAY&&(s.type==="activity"||s.type==="run");});
+    var wk=plan.walk||15;
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
-      '<div class="lbl">Rest day</div><h2>Recover &amp; reset</h2>'+
-      '<div class="meta">Just the morning anchor'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'.</div>'+
-      (plan.weigh?'<div style="margin-top:16px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
+      '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
+      '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
+      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
+      (plan.weigh?'<div style="margin-top:14px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
   }
   // dots
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
@@ -607,12 +642,23 @@ function renderToday(){
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   ANCHOR.forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/4);
-  var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+
-    '<div class="anote">Never zero: a bad day is still <b>1 cat-cow + 1 push-up</b>. The rule is never miss twice.</div></div>';
-  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+todayLogHTML()+
-    '<div class="foot">Your data lives only in this browser. Progress &rarr; Export to send it to Claude.</div>';
+  var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+'</div>';
+  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+cutCardHTML()+todayLogHTML();
 }
 function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);save();renderToday();}
+/* the cut, kept light: where you are, how fast it's coming off, one tap to log */
+function cutCardHTML(){
+  var goal=S.profile.goalLb;
+  if(!S.weigh.length)return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to track your pace to '+goal+'.</div></div>';
+  var a=0.12,full=[],ee=S.weigh[0].w;S.weigh.forEach(function(p,i){ee=i===0?p.w:a*p.w+(1-a)*ee;full.push(ee);});
+  var cur=full[full.length-1],to=cur-goal,rate=null,eta=null;
+  if(full.length>=3){var n=Math.min(6,full.length);var e0=full[full.length-n];var d0=new Date(S.weigh[S.weigh.length-n].date),d1=new Date(S.weigh[S.weigh.length-1].date);var days=(d1-d0)/86400000;if(days>0){rate=(cur-e0)/days*7;if(rate<-0.03&&to>0)eta=Math.ceil(to/(-rate));}}
+  var head=(to>0.3?('<b>'+to.toFixed(1)+' '+wLbl()+'</b> to '+goal):'at '+goal);
+  var pace=(rate!=null)?((rate>=0?'+':'')+rate.toFixed(1)+' '+wLbl()+'/wk'+(eta?' &middot; ~'+eta+' wk to go':'')):'log a few to see your pace';
+  return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
+    '<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 2px"><div class="num" style="font-size:22px;font-weight:800">'+cur.toFixed(1)+'<small style="font-size:13px;font-weight:600;color:var(--faint)"> '+wLbl()+'</small></div><div style="font-size:14px;font-weight:700;color:var(--accent)">'+head+'</div></div>'+
+    '<div class="anote" style="margin-top:2px">'+pace+'</div></div>';
+}
 
 /* ============ change-today ============ */
 function changeSheet(){
@@ -620,7 +666,7 @@ function changeSheet(){
   o+=optRow(I.dumbbell,"Lift &mdash; next day ("+letterFor()+")","Full-body strength session","setToday(\'lift\')");
   o+=optRow(I.run,"Easy run &middot; 2 mi","Zone-2 base","setToday(\'run2\')");
   o+=optRow(I.run,"Easy run &middot; 3 mi","The longer one","setToday(\'run3\')");
-  o+=optRow(I.rest,"Rest day","Anchor only","setToday(\'rest\')");
+  o+=optRow(I.rest,"Recover day","Walk + mobility","setToday(\'rest\')");
   o+=optRow(I.bolt,"Never-zero &middot; 5-min minimum","Rough day? Keep the streak alive","setToday(\'min\')");
   if(S.override[TODAY])o+=optRow(I.swap,"Back to the plan","Use the scheduled session","setToday(\'clear\')");
   openSheet(o);
@@ -656,7 +702,7 @@ function startWorkout(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();st
 function closeWorkout(){woFreeze();endRest();show("today");}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
-    var wcell=o.bw?'<div class="bwtag">BW</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
+    var wcell=o.bw?'<div class="bwtag">'+(e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
     var runit=o.unit==="s"?'<span class="u">s</span>':'';
     var rcell='<div class="stp"><button onclick="step('+oi+','+si+',\'reps\',-1)" aria-label="less reps">&minus;</button><input class="val num" inputmode="numeric" value="'+s.reps+'" aria-label="reps" onchange="setVal('+oi+','+si+',\'reps\',this.value)">'+runit+'<button onclick="step('+oi+','+si+',\'reps\',1)" aria-label="more reps">+</button></div>';
     setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
@@ -803,8 +849,8 @@ function renderWeek(){
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=(S.override[k]||WEEK[dw]),dn=isDone(k),isT=(k===TODAY);
     if(pl.type==="lift"){totLifts++;if(dn)doneLifts++;}if(pl.type==="run"){totMi+=pl.dist;if(S.runs[k])miDone+=(parseFloat(S.runs[k].dist)||0);}
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
-    var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?(pl.label+" run"):"Rest";
-    var tt=pl.type==="lift"?"~30 min":pl.type==="run"?(pl.dist+" mi"):(pl.weigh?"weigh-in":"anchor");
+    var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?(pl.label+" run"):"Recover";
+    var tt=pl.type==="lift"?"~30 min":pl.type==="run"?(pl.dist+" mi"):(pl.weigh?"walk + weigh-in":"walk + mobility");
     list+='<button class="wl'+(dn?" done":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(dn?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
   var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
@@ -973,12 +1019,39 @@ function confirmReset(){openSheet('<div class="grab"></div><h3>Reset everything?
   '<button class="sheet-cta" style="background:var(--accent)" onclick="doReset()">Erase all data</button>');}
 function doReset(){try{localStorage.setItem("train_v2_backup",localStorage.getItem(LS)||"")}catch(e){}try{localStorage.removeItem(LS)}catch(e){}S=seed();S.profile.setup=true;save();closeSheet();show("today");toast("Data cleared. A backup was kept in this browser.",null);}
 
+/* ============ settings ============ */
+function setMode(m,b){if(S.profile.mode!==m){S.profile.mode=m;if(m==="db"){var eq=(S.profile.equip||[]).slice();if(eq.indexOf("DB")<0)eq.push("DB");S.profile.equip=eq;}if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();toast(m==="db"?"Plan now uses dumbbells.":"Plan now bodyweight.",null);}if(b)segSel(b);if(document.getElementById("v-today").classList.contains("on"))renderToday();}
+function setGoal(d){S.profile.goalLb=Math.max(120,Math.min(400,(S.profile.goalLb||180)+d));var el=document.getElementById("goal-set");if(el)el.textContent=S.profile.goalLb;save();}
+function startEaseIn(){S.profile.programStart=TODAY;if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();closeSheet();toast("2-week ease-in started. Lighter volume, then full.",null);renderToday();}
+function settingsSheet(){
+  var p=S.profile,gstep=(U()==="kg"?1:5);
+  var m='<div class="grab"></div><h3>Settings</h3>';
+  m+='<div class="sectlbl" style="margin:4px 2px 8px">Training style</div>';
+  m+='<div class="logrow"><label>Plan uses<div class="skc" style="font-weight:500">bodyweight now, add dumbbells anytime</div></label><div class="seg" style="max-width:210px"><button class="'+(trainMode()==="bw"?"sel":"")+'" onclick="setMode(\'bw\',this)">Bodyweight</button><button class="'+(trainMode()==="db"?"sel":"")+'" onclick="setMode(\'db\',this)">Dumbbells</button></div></div>';
+  m+='<div class="logrow"><label>Adjustable dumbbells?<div class="skc" style="font-weight:500">adds weight instead of reps</div></label><div class="seg" style="max-width:120px"><button class="'+(p.adjustable?"sel":"")+'" onclick="setAdj(true,this)">Yes</button><button class="'+(p.adjustable?"":"sel")+'" onclick="setAdj(false,this)">No</button></div></div>';
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Goal &amp; ease-in</div>';
+  m+='<div class="logrow"><label>Goal weight</label><div class="stp" style="max-width:160px"><button onclick="setGoal(-'+gstep+')" aria-label="lower goal">&minus;</button><span class="num" id="goal-set" style="min-width:46px;text-align:center;font-weight:700">'+p.goalLb+'</span><span class="u">'+wLbl()+'</span><button onclick="setGoal('+gstep+')" aria-label="raise goal">+</button></div></div>';
+  m+='<div class="logrow"><label>2-week ease-in<div class="skc" style="font-weight:500">'+(easingIn()?"active - lighter volume":"lighter volume for two weeks")+'</div></label><button class="wbtn" style="max-width:130px" onclick="startEaseIn()">'+(easingIn()?"Restart":"Start today")+'</button></div>';
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Preferences</div>';
+  m+='<div class="logrow"><label>Units</label><div class="seg" style="max-width:150px"><button class="'+(U()==="lb"?"sel":"")+'" onclick="setUnits(\'lb\',this)">lb</button><button class="'+(U()==="kg"?"sel":"")+'" onclick="setUnits(\'kg\',this)">kg</button></div></div>';
+  m+='<div class="logrow"><label>Home base</label><div class="seg" style="max-width:160px"><button class="'+(p.loc==="Miami"?"sel":"")+'" onclick="setLoc(\'Miami\',this)">Miami</button><button class="'+(p.loc==="Boca"?"sel":"")+'" onclick="setLoc(\'Boca\',this)">Boca</button></div></div>';
+  m+='<div class="logrow"><label>Rest timer</label><div class="stp" style="max-width:160px"><button onclick="setRest(-15,this)" aria-label="less rest">&minus;</button><span class="num" id="rest-set" style="min-width:46px;text-align:center;font-weight:700">'+(p.rest||90)+'</span><span class="u">s</span><button onclick="setRest(15,this)" aria-label="more rest">+</button></div></div>';
+  m+='<div class="logrow"><label>Theme</label><div class="seg" style="max-width:190px"><button class="'+((!p.theme||p.theme==="system")?"sel":"")+'" onclick="setTheme(\'system\',this)">Auto</button><button class="'+(p.theme==="light"?"sel":"")+'" onclick="setTheme(\'light\',this)">Light</button><button class="'+(p.theme==="dark"?"sel":"")+'" onclick="setTheme(\'dark\',this)">Dark</button></div></div>';
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Your data</div>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">Back up / send my data</button>';
+  m+='<button class="sheet-cta ghost" onclick="confirmReset()">Reset all data</button>';
+  m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
+  m+='<div class="foot">Train '+VERSION+' - everything stays on this device</div>';
+  openSheet(m);
+}
+
 /* ============ first-run ============ */
 function firstRun(){
   var m='<div class="grab"></div><h3>Welcome to Train</h3><div class="ssub">Two taps and you\'re set. Everything stays on your device.</div>';
   m+='<div class="logrow"><label>Name</label><input class="tin" style="max-width:180px" id="fr-name" placeholder="optional" aria-label="name"></div>';
   m+='<div class="logrow"><label>Units</label><div class="seg" style="max-width:150px"><button class="sel" id="fru-lb" onclick="frUnit(\'lb\')">lb</button><button id="fru-kg" onclick="frUnit(\'kg\')">kg</button></div></div>';
-  m+='<div class="logrow" style="align-items:flex-start"><label style="padding-top:9px">Your equipment</label><div class="eqchips" id="fr-eq" style="max-width:220px;justify-content:flex-end">'+[["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"],["BW","Bodyweight"]].map(function(x){return '<button type="button" class="eqchip'+(x[0]==="bar"?"":" on")+'" data-eq="'+x[0]+'" onclick="frEq(this)">'+x[1]+'</button>';}).join("")+'</div></div>';
+  m+='<div class="logrow" style="align-items:flex-start"><label style="padding-top:9px">Your equipment<div class="skc" style="font-weight:500">start bodyweight, add later</div></label><div class="eqchips" id="fr-eq" style="max-width:220px;justify-content:flex-end">'+[["BW","Bodyweight"],["band","Bands"],["DB","Dumbbells"],["bar","Pull-up bar"]].map(function(x){return '<button type="button" class="eqchip'+((x[0]==="BW"||x[0]==="band")?" on":"")+'" data-eq="'+x[0]+'" onclick="frEq(this)">'+x[1]+'</button>';}).join("")+'</div></div>';
   m+='<div class="logrow"><label>Adjustable dumbbells?<div class="skc" style="font-weight:500">lets the plan add weight</div></label><div class="seg" style="max-width:120px"><button id="fra-y" onclick="frAdj(true)">Yes</button><button class="sel" id="fra-n" onclick="frAdj(false)">No</button></div></div>';
   m+='<div class="logrow"><label>Bodyweight <span style="color:var(--faint);font-weight:500">(optional)</span></label><div class="inp" style="max-width:140px"><input id="fr-bw" inputmode="decimal" placeholder="190" style="width:56px" aria-label="bodyweight"><span class="u" id="fr-bwu">lb</span></div></div>';
   m+='<button class="sheet-cta" onclick="finishSetup()">Start training</button>';
@@ -991,9 +1064,9 @@ var frAdjV=false;
 function frEq(b){b.classList.toggle("on");}
 function frAdj(v){frAdjV=v;document.getElementById("fra-y").classList.toggle("sel",v);document.getElementById("fra-n").classList.toggle("sel",!v);}
 function finishSetup(){S.profile.name=(document.getElementById("fr-name")||{}).value||"";S.profile.units=frU;
-  var eq=[];document.querySelectorAll("#fr-eq .eqchip.on").forEach(function(c){eq.push(c.getAttribute("data-eq"));});if(!eq.length)eq=["BW"];S.profile.equip=eq;S.profile.adjustable=frAdjV;
+  var eq=[];document.querySelectorAll("#fr-eq .eqchip.on").forEach(function(c){eq.push(c.getAttribute("data-eq"));});if(!eq.length)eq=["BW"];S.profile.equip=eq;S.profile.adjustable=frAdjV;S.profile.mode=(eq.indexOf("DB")>=0?"db":"bw");
   var bw=parseFloat((document.getElementById("fr-bw")||{}).value);if(bw>0)S.weigh.push({date:TODAY,w:bw});
-  S.profile.setup=true;S.profile.started=TODAY;save();closeSheet();renderToday();}
+  S.profile.setup=true;S.profile.started=TODAY;S.profile.programStart=TODAY;save();closeSheet();renderToday();}
 
 /* ============ sheet + toast ============ */
 function openSheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("scrim").classList.add("on");}
@@ -1057,7 +1130,7 @@ function renderGenerate(){
   GEN.session.order.forEach(function(o,oi){var e=LIB[o.exId];
     var sets="";
     o.sets.forEach(function(s,si){
-      var wcell=o.bw?'<div class="bwtag">BW</div>':'<div class="stp"><button onclick="genStep('+oi+','+si+',\'w\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" onchange="genSetVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="genStep('+oi+','+si+',\'w\',1)" aria-label="more">+</button></div>';
+      var wcell=o.bw?'<div class="bwtag">'+(e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="genStep('+oi+','+si+',\'w\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" onchange="genSetVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="genStep('+oi+','+si+',\'w\',1)" aria-label="more">+</button></div>';
       var runit=o.unit==="s"?'<span class="u">s</span>':'';
       var rcell='<div class="stp"><button onclick="genStep('+oi+','+si+',\'reps\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="numeric" value="'+s.reps+'" onchange="genSetVal('+oi+','+si+',\'reps\',this.value)">'+runit+'<button onclick="genStep('+oi+','+si+',\'reps\',1)" aria-label="more">+</button></div>';
       var del=o.sets.length>1?'<button class="tick del" onclick="genRemoveSetAt('+oi+','+si+')" aria-label="remove set">'+I.trash+'</button>':'<div style="width:42px"></div>';
@@ -1130,9 +1203,9 @@ function todayLogHTML(){
     else{ic=(s.activity==="Walk")?I.run:I.bolt;name=esc(s.activity||"Workout");cap=Math.round((s.durationSec||0)/60)+' min';}
     rows+='<div class="tlog"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button><button class="tx" onclick="delSession(\''+s.id+'\')" aria-label="delete">'+I.trash+'</button></div>';
   });
-  var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet. Start a workout above, or log a run, walk, or anything else below.</div>';
+  var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet.</div>';
   return '<div class="card"><h3><span>Today\'s log</span>'+(items.length?'<span class="t">'+items.length+' logged</span>':'')+'</h3>'+rows+empty+
-    '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log a workout, run, or walk</button></div>';
+    '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log activity</button></div>';
 }
 function sessionSheet(id){var s=S.sessions.filter(function(x){return x.id===id;})[0];if(!s){closeSheet();return;}
   var title=s.type==="lift"?(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength"):s.type==="run"?"Easy run":esc(s.activity||"Workout");
@@ -1152,6 +1225,7 @@ function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sess
   toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
 }
 function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
+function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;save();toast(min+"-min walk logged. Never zero.",null);renderToday();}
 
 /* ============ EQUIPMENT + GEN set editing ============ */
 function toggleEquip(e){var arr=(S.profile.equip||[]).slice();var i=arr.indexOf(e);if(i>=0){if(arr.length>1)arr.splice(i,1);}else arr.push(e);S.profile.equip=arr;save();genBuild();renderGenerate();}
@@ -1186,7 +1260,7 @@ function editSessionSheet(id){var s=sessById(id);if(!s){closeSheet();return;}
     s.entries.forEach(function(en,ei){var e=LIB[en.exerciseId],bw=!!(en.bw||(e&&e.bw));
       m+='<div class="ex" style="box-shadow:none"><div class="exhead"><div class="exname" style="font-size:16px">'+esc(e?e.name:en.exerciseId)+'</div></div><div class="colhead"><span>Set</span><span>'+(bw?"Load":"Weight")+'</span><span>Reps</span><span></span></div>';
       en.sets.forEach(function(st,si){
-        var wc=bw?'<div class="bwtag">BW</div>':'<div class="stp"><button onclick="esStep(\''+id+'\','+ei+','+si+',\'w\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="decimal" value="'+(st.weightLb||0)+'" onchange="esVal(\''+id+'\','+ei+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="esStep(\''+id+'\','+ei+','+si+',\'w\',1)" aria-label="more">+</button></div>';
+        var wc=bw?'<div class="bwtag">'+(e&&e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="esStep(\''+id+'\','+ei+','+si+',\'w\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="decimal" value="'+(st.weightLb||0)+'" onchange="esVal(\''+id+'\','+ei+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="esStep(\''+id+'\','+ei+','+si+',\'w\',1)" aria-label="more">+</button></div>';
         var rc='<div class="stp"><button onclick="esStep(\''+id+'\','+ei+','+si+',\'r\',-1)" aria-label="less">&minus;</button><input class="val num" inputmode="numeric" value="'+(st.reps||0)+'" onchange="esVal(\''+id+'\','+ei+','+si+',\'r\',this.value)"><button onclick="esStep(\''+id+'\','+ei+','+si+',\'r\',1)" aria-label="more">+</button></div>';
         var del=en.sets.length>1?'<button class="tick del" onclick="esDelSet(\''+id+'\','+ei+','+si+')" aria-label="remove set">'+I.trash+'</button>':'<div style="width:42px"></div>';
         m+='<div class="set" id="es-'+ei+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wc+rc+del+'</div>';
@@ -1266,5 +1340,6 @@ document.addEventListener("visibilitychange",function(){var woOn=document.getEle
 renderToday();
 setTimeout(maybeNagBackup,1500);
 </script>
+<script src="train-sync-auto.js"></script>
 </body>
 </html>
