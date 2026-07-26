@@ -85,7 +85,14 @@
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (srv) {
         if (!srv) return;
-        var S = loadState(); if (!S) return;
+        var S = loadState();
+        if (!S) {
+          if ((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length) || srv.progressState) {
+            S = bootstrapFromServer(srv); saveState(S); lastSnap = "";
+            if (!sessionStorage.getItem("train.reloaded")) { sessionStorage.setItem("train.reloaded", "1"); global.location.reload(); }
+          }
+          return;
+        }
         var before = JSON.stringify(S);
         if (!localStorage.getItem(BACKUP_KEY)) { try { localStorage.setItem(BACKUP_KEY, before); } catch (e) {} }
         S.sessions = unionSessions(S.sessions, srv.sessions);
@@ -105,8 +112,18 @@
       .catch(function () {});
   }
 
+  function bootstrapFromServer(srv) {
+    var S = { v: 2,
+      profile: { setup: true, name: "", units: "lb", loc: "Miami", goalLb: 180, stretchLb: 175, rest: 90, theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null },
+      progress: srv.progressState || {}, wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
+      done: {}, runs: {}, anchor: {},
+      weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
+      planPos: 0, override: {}, activeMode: "plan", genWk: null };
+    S.sessions.forEach(function (s) { if (s && s.date) S.done[s.date] = true; });
+    return S;
+  }
   function start() {
-    if (!loadState()) return setTimeout(start, 2000); // app state not written yet
+    // prompt + pull first, even with no local state, so ANY device pairs just by entering the passphrase
     pullAndMerge().then(function () {
       push();
       setInterval(push, POLL_MS);
