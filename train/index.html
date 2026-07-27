@@ -132,7 +132,9 @@ input,select{border:0;background:none}
 .anote b{color:var(--accent);font-weight:700}
 .weighrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .weighrow .wcur{font-size:14px;color:var(--sub);font-weight:600}.weighrow .wcur b{color:var(--ink);font-weight:800;font-size:18px}
-.wbtn{background:var(--surface-2);border-radius:10px;height:40px;padding:0 15px;font-size:14px;font-weight:700;color:var(--ink)}
+.wbtn{background:var(--surface-2);border-radius:10px;height:40px;padding:0 15px;font-size:14px;font-weight:700;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.wbtn svg{width:15px;height:15px;flex:none}
+.wbtn.accent{background:var(--accent);color:var(--white)}
 .wbtn:disabled{opacity:.4}
 .wknav{display:flex;gap:8px;margin:6px 0 10px}
 .wknav .wbtn{flex:1;height:36px;font-weight:600}
@@ -394,7 +396,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.8";
+var VERSION="v3.9";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -902,7 +904,7 @@ function weighSheet(){openSheet('<div class="grab"></div><h3>Weigh-in</h3><div c
 function saveWeigh(){var v=parseFloat((document.getElementById("w-val")||{}).value);if(v>0){S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});S.weigh.push({date:TODAY,w:v});S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});save();}closeSheet();renderToday();}
 
 /* ============ WEEK ============ */
-function weekHTML(){
+function weekHTML(withRing){
   refreshDate();
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
   var doneLifts=0,totLifts=0,miDone=0,totMi=0,list="";
@@ -916,7 +918,7 @@ function weekHTML(){
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
-  return ring+
+  return (withRing===false?'':ring)+
     '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>'+monthCal();
 }
 /* ============ LIFT (strength hub: today + plan + build + library) ============ */
@@ -925,18 +927,17 @@ function renderLift(){
   var plan=todayPlan(),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
   var h='<div class="head"><div><div class="date">Strength</div><div class="title">Lift</div></div></div>';
   if(plan.type==="lift"){
-    var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
-    h+='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
-      '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
-      '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
-      (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
+    var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor()),nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
+    h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'+
+      '<div><div class="lbl">Today &middot; '+(L==="Gen"?"Custom":("Day "+L))+'</div><div style="font-weight:800;font-size:18px;margin:2px 0">'+nm+'</div>'+
+      '<div class="anote">'+nex+' exercises &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+(easingIn()?" &middot; ease-in":"")+'</div></div>'+
+      (liftDone?'<span class="done-pill">'+I.check+' Done</span>':'<button class="wbtn accent" onclick="startWorkout()">'+I.play+(resuming?"Resume":"Start")+'</button>')+'</div></div>';
   }else{
-    h+='<div class="card"><h3>No lift scheduled today</h3><div class="anote" style="margin-top:2px">Today is '+(plan.type==="run"?"a run":"recovery")+'. Build one below, or start any day’s session from the week.</div><button class="big-start" style="margin-top:12px" onclick="show(\'generate\')">'+I.bolt+' Build a session</button></div>';
+    h+='<div class="card"><div class="lbl">Today</div><div style="font-weight:800;font-size:18px;margin:2px 0">'+(plan.type==="run"?"Run day":"Recovery day")+'</div><div class="anote">No lift scheduled. Build one, or start any day from the week below.</div></div>';
   }
-  h+='<div class="seg2" style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="show(\'generate\')">'+I.bolt+' Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">Mode: '+(trainMode()==="db"?"Dumbbell":"Bodyweight")+'</button></div>';
-  h+=weekHTML();
-  h+=libraryHTML("lift");
+  h+='<div style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="show(\'generate\')">'+I.bolt+'Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">'+(trainMode()==="db"?"Dumbbell":"Bodyweight")+' mode</button></div>';
+  h+=weekHTML(false);
+  h+='<div class="sectlbl" style="margin:16px 2px 6px">Library &amp; follow-alongs</div>'+libraryHTML("lift");
   document.getElementById("v-lift").innerHTML=h;
 }
 function dayDetail(k){
@@ -972,7 +973,7 @@ function progressHTML(){
   var pd=new Date(NOW);pd.setDate(NOW.getDate()-7);var prevVol=volByWk[isoWeek(keyOf(pd))]||0;
   var tiles='<div class="stattiles">'+
     stat("Streak",streak,streak===1?"day":"days","","flat")+
-    stat("Bodyweight",e?e.toFixed(1):"--",wLbl()+(e?" avg":""),e?("goal "+goal):"log one","flat")+
+    stat("Bodyweight",S.weigh.length?S.weigh[S.weigh.length-1].w.toFixed(1):"--",wLbl(),S.weigh.length?("goal "+goal):"log one","flat")+
     stat("Lifts",lifts,"logged","","flat")+
     stat("Avg session",avgDur?mmss(avgDur):"--",avgDur?"":"","","flat")+'</div>';
   var loadByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id);loadByWk[wk]=(loadByWk[wk]||0)+Math.round((s.rpe||7)*((s.durationSec||0)/60));});
@@ -991,19 +992,19 @@ function weighChart(){
   if(!S.weigh.length)return '<div class="trend"><h3 style="margin-bottom:8px"><span>Weight trend</span></h3><div class="ssub" style="text-align:left">Log your weight (the + button, Weigh-in) to track toward '+S.profile.goalLb+'.</div></div>';
   var a=0.12,full=[],ee=S.weigh[0].w;S.weigh.forEach(function(p,i){ee=i===0?p.w:a*p.w+(1-a)*ee;full.push(ee);});
   var pts=S.weigh.slice(-40),ev=full.slice(-40),ws=pts.map(function(p){return p.w;});
-  var goal=S.profile.goalLb,cur=full[full.length-1];
+  var goal=S.profile.goalLb,cur=full[full.length-1],lastRaw=S.weigh[S.weigh.length-1].w;
   var _st=weightStats();
   var rate=_st?_st.rate:null,eta=(rate!=null&&rate<-0.03&&cur>goal)?Math.ceil((cur-goal)/(-rate)):null;
   var toGoal=_st?_st.to:(cur-goal);
   var head=(toGoal>0.2?toGoal.toFixed(1)+' '+wLbl()+' to goal':'at your goal')+(rate!=null?' &middot; '+(rate>=0?"+":"")+rate.toFixed(1)+'/wk'+(eta?' &middot; ~'+eta+' wk':''):(toGoal>0.2&&_st?' &middot; plan ~'+_st.tRate.toFixed(1)+'/wk':''));
-  var mn=Math.min.apply(null,ws.concat([goal]))-1.5,mx=Math.max.apply(null,ws.concat([cur]))+1.5;
+  var mn=Math.min.apply(null,ws.concat([goal]))-1.5,mx=Math.max.apply(null,ws.concat([lastRaw]))+1.5;
   var W=300,H=120,pad=6;
   function x(i){return pad+(pts.length<=1?W/2:(i/(pts.length-1))*(W-2*pad));}
   function y(v){return pad+(1-(v-mn)/((mx-mn)||1))*(H-2*pad);}
-  var line=ev.map(function(v,i){return (i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);}).join(" ");
+  var line=ws.map(function(v,i){return (i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);}).join(" ");
   var dots=pts.map(function(p,i){return '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(p.w).toFixed(1)+'" r="2.2" fill="var(--faint)"/>';}).join("");
   var gy=y(goal).toFixed(1);
-  return '<div class="trend"><h3 style="margin-bottom:4px"><span>Weight trend</span><span class="t">now <b>'+cur.toFixed(1)+'</b> '+wLbl()+'</span></h3><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">'+head+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="display:block"><line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1.2" stroke-dasharray="4 4"/><path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-weight:600;margin-top:4px"><span>goal '+goal+'</span><span>'+S.weigh.length+' weigh-ins</span></div></div>';
+  return '<div class="trend"><h3 style="margin-bottom:4px"><span>Weight trend</span><span class="t">now <b>'+lastRaw.toFixed(1)+'</b> '+wLbl()+'</span></h3><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">'+head+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="display:block"><line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1.2" stroke-dasharray="4 4"/><path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-weight:600;margin-top:4px"><span>goal '+goal+'</span><span>'+S.weigh.length+' weigh-ins</span></div></div>';
 }
 function volChart(){var volByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;s.entries.forEach(function(en){if(en.unit==="s"||en.bw)return;en.sets.forEach(function(st){v+=(st.weightLb||0)*(st.reps||0);});});volByWk[wk]=(volByWk[wk]||0)+v;});
   var wks=Object.keys(volByWk).sort().slice(-10);if(wks.length<2)return "";
@@ -1406,7 +1407,7 @@ function renderCardio(){
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
   var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
   var C=2*Math.PI*45,off=C*(1-(inBlock/3));
-  var h='<div class="head"><div><div class="date">Return to run &middot; base build</div><div class="title">Run</div></div></div>';
+  var h='<div class="head"><div><div class="date">Return to run &middot; base build</div><div class="title">Cardio</div></div></div>';
   h+='<div class="ringcard"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+tgt.mi+'</b><span>mi easy</span></div></div><div class="rmeta"><div class="rt">'+(tgt.restart?"Ease back in - easy "+tgt.mi+" mi":"Next run: easy "+tgt.mi+" mi")+'</div><div class="rd">'+runStatusLine(rr)+'</div></div></div>';
   h+='<button class="big-start" onclick="runSheet('+tgt.mi+')">'+I.run+' Log a run</button>';
   h+='<div class="card"><h3>Where you are <span class="t">count, not calendar</span></h3>';
@@ -1426,7 +1427,7 @@ function renderCardio(){
 
 /* ============ boot ============ */
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-function maybeNagBackup(){if(!S.sessions.length)return;var last=S.profile.lastBackup;var days=last?((new Date(TODAY)-new Date(last))/86400000):999;if(days>14)toast("Time to back up your data (Progress, then Export).",function(){exportSheet();});}
+function maybeNagBackup(){if(!S.sessions.length)return;var last=S.profile.lastBackup;var days=last?((new Date(TODAY)-new Date(last))/86400000):999;if(days>14)toast("Time to back up your data (Track, then Export).",function(){exportSheet();});}
 applyTheme();
 if(!S.profile.setup){firstRun();}
 document.addEventListener("visibilitychange",function(){var woOn=document.getElementById("v-workout").classList.contains("on");if(document.hidden){if(woOn)woFreeze();}else{refreshDate();if(woOn)woResume();else if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
