@@ -369,11 +369,10 @@ input,select{border:0;background:none}
     </div>
     <div id="run-body"></div>
   </section>
-  <section class="view" id="v-week"></section>
-  <section class="view" id="v-progress"></section>
-  <section class="view" id="v-library"></section>
-  <section class="view" id="v-generate"></section>
+  <section class="view" id="v-lift"></section>
   <section class="view" id="v-cardio"></section>
+  <section class="view" id="v-track"></section>
+  <section class="view" id="v-generate"></section>
 </div>
 
 <div class="restbar" id="restbar" role="timer" aria-label="Rest timer">
@@ -388,16 +387,14 @@ input,select{border:0;background:none}
 
 <nav class="nav" id="nav">
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
-  <button data-nav="generate" onclick="show('generate')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3L5 13h5l-1 8 8-11h-5l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Build</span></button>
-  <button data-nav="cardio" onclick="show('cardio')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Run</span></button>
-  <button data-nav="week" onclick="show('week')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M4 9h16M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Schedule</span></button>
-  <button data-nav="progress" onclick="show('progress')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Progress</span></button>
-  <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h9a2 2 0 0 1 2 2v12l-5-3-5 3V5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M16 7h3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Library</span></button>
+  <button data-nav="lift" onclick="show('lift')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Lift</span></button>
+  <button data-nav="cardio" onclick="show('cardio')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Cardio</span></button>
+  <button data-nav="track" onclick="show('track')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Track</span></button>
 </nav>
 
 <script>
 "use strict";
-var VERSION="v3.7";
+var VERSION="v3.8";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -644,21 +641,23 @@ function weightStats(){
 function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));var day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day+3);var f=new Date(Date.UTC(d.getUTCFullYear(),0,4));var w=1+Math.round(((d-f)/86400000-3+((f.getUTCDay()+6)%7))/7);return d.getUTCFullYear()+"-W"+("0"+w).slice(-2);}
 
 /* ============ router ============ */
+var CURV="today";
 function show(v){
   refreshDate();
   document.querySelectorAll(".view").forEach(function(s){s.classList.remove("on")});
   document.getElementById("v-"+v).classList.add("on");
-  var full=(v==="workout"||v==="run");
+  var full=(v==="workout"||v==="run"||v==="generate");
   document.getElementById("nav").classList.toggle("hide",full);
   document.querySelectorAll(".nav button").forEach(function(b){b.classList.toggle("on",b.getAttribute("data-nav")===v)});
   if(v==="today")renderToday();
-  if(v==="week")renderWeek();
-  if(v==="progress")renderProgress();
-  if(v==="library")renderLibrary();
-  if(v==="generate")renderGenerate();
+  if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
+  if(v==="track")renderTrack();
+  if(v==="generate")renderGenerate();
+  if(!full)CURV=v;
   window.scrollTo(0,0);
 }
+function refreshCurrent(){show(CURV);}
 
 /* ============ TODAY ============ */
 function renderToday(){
@@ -903,7 +902,7 @@ function weighSheet(){openSheet('<div class="grab"></div><h3>Weigh-in</h3><div c
 function saveWeigh(){var v=parseFloat((document.getElementById("w-val")||{}).value);if(v>0){S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});S.weigh.push({date:TODAY,w:v});S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});save();}closeSheet();renderToday();}
 
 /* ============ WEEK ============ */
-function renderWeek(){
+function weekHTML(){
   refreshDate();
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
   var doneLifts=0,totLifts=0,miDone=0,totMi=0,list="";
@@ -917,8 +916,28 @@ function renderWeek(){
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
-  document.getElementById("v-week").innerHTML='<div class="head"><div><div class="date">This week &amp; month</div><div class="title">Schedule</div></div></div>'+ring+
+  return ring+
     '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>'+monthCal();
+}
+/* ============ LIFT (strength hub: today + plan + build + library) ============ */
+function renderLift(){
+  refreshDate();
+  var plan=todayPlan(),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
+  var h='<div class="head"><div><div class="date">Strength</div><div class="title">Lift</div></div></div>';
+  if(plan.type==="lift"){
+    var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
+    h+='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
+      '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
+      '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
+      (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
+        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
+  }else{
+    h+='<div class="card"><h3>No lift scheduled today</h3><div class="anote" style="margin-top:2px">Today is '+(plan.type==="run"?"a run":"recovery")+'. Build one below, or start any day’s session from the week.</div><button class="big-start" style="margin-top:12px" onclick="show(\'generate\')">'+I.bolt+' Build a session</button></div>';
+  }
+  h+='<div class="seg2" style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="show(\'generate\')">'+I.bolt+' Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">Mode: '+(trainMode()==="db"?"Dumbbell":"Bodyweight")+'</button></div>';
+  h+=weekHTML();
+  h+=libraryHTML("lift");
+  document.getElementById("v-lift").innerHTML=h;
 }
 function dayDetail(k){
   var lift=S.sessions.filter(function(s){return s.id===k&&s.type==="lift";})[0];
@@ -933,10 +952,18 @@ function dayDetail(k){
   m+='<button class="sheet-cta'+(lift||run?" ghost":"")+'" onclick="closeSheet()">Close</button>';
   openSheet(m);
 }
-function deleteDay(k){S.sessions=S.sessions.filter(function(s){return s.id!==k;});delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];save();closeSheet();renderWeek();toast("Entry deleted",null);}
+function deleteDay(k){S.sessions=S.sessions.filter(function(s){return s.id!==k;});delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
 
-/* ============ PROGRESS ============ */
-function renderProgress(){
+/* ============ TRACK (body, trends, PRs, settings) ============ */
+function renderTrack(){
+  var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div></div>';
+  h+=cutCardHTML()+progressHTML();
+  h+='<div class="sectlbl" style="margin:16px 2px 8px">Setup &amp; backend</div>';
+  h+='<button class="sheet-cta ghost" onclick="weighSheet()">Log a weigh-in</button>';
+  h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings</button>';
+  document.getElementById("v-track").innerHTML=h;
+}
+function progressHTML(){
   var e=ewma(),goal=S.profile.goalLb,streak=computeStreak();
   var liftS=S.sessions.filter(function(s){return s.type==="lift";}),lifts=liftS.length;
   var avgDur=lifts?Math.round(liftS.reduce(function(a,s){return a+(s.durationSec||0);},0)/lifts):0;
@@ -954,8 +981,7 @@ function renderProgress(){
     '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+(thisLoad>=prevLoad?"":" flat")+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
   var exIds=Object.keys(LIB).filter(function(id){return prFor(id);}).sort(function(a,b){return prFor(b).date<prFor(a).date?-1:1;});
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
-  document.getElementById("v-progress").innerHTML='<div class="head"><div><div class="date">Your trends</div><div class="title">Progress</div></div></div>'+
-    tiles+weighChart()+volChart()+volTile+
+  return tiles+weighChart()+volChart()+volTile+
     (prHtml?'<div class="card"><h3>Personal records <span class="t">best set / est. 1-rep</span></h3><div class="prlist">'+prHtml+'</div></div>':'<div class="card"><h3>Personal records</h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a lift to start setting PRs.</div></div>')+
     '<button class="big-start" onclick="exportSheet()" style="margin-bottom:10px">'+I.send+' Send my data to Claude</button>'+
     '<div class="foot">Nothing leaves your device until you tap Export and share it yourself.</div>';
@@ -1050,21 +1076,24 @@ function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;t
 
 /* ============ LIBRARY ============ */
 function ytSearch(q){return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);}
-function renderLibrary(){
-  var h='<div class="head"><div><div class="date">Form &amp; follow-alongs</div><div class="title">Library</div></div></div>';
-  h+='<input class="libsearch" placeholder="Search exercises..." oninput="filterLib(this.value)" aria-label="search exercises">';
-  h+='<div class="sectlbl" style="margin-top:2px">Quick workouts</div><div class="libgrid">';
-  [["Full body","20 minute full body dumbbell workout at home","20m"],["Upper body","20 minute upper body dumbbell workout home","20m"],["Lower & glutes","20 minute lower body dumbbell workout home","20m"],["Core & abs","10 minute core abs workout no equipment","10m"],["Mobility","15 minute full body mobility follow along","15m"],["Yoga","20 minute yoga for athletes recovery","20m"],["Low-impact cardio","20 minute low impact cardio no jumping home","20m"],["Run warm-up","dynamic warm up before running follow along","5m"]].forEach(function(r){h+='<a class="libcard" href="'+ytSearch(r[1])+'" target="_blank" rel="noopener"><span class="lci acc">'+I.play+'</span><span class="lcn">'+r[0]+'</span><span class="lctag">'+r[2]+'</span></a>';});
+function libraryHTML(cat){
+  cat=cat||"lift";
+  var quick=[["Full body","20 minute full body dumbbell workout at home","20m","lift"],["Upper body","20 minute upper body dumbbell workout home","20m","lift"],["Lower & glutes","20 minute lower body dumbbell workout home","20m","lift"],["Core & abs","10 minute core abs workout no equipment","10m","lift"],["Mobility","15 minute full body mobility follow along","15m","lift"],["Yoga","20 minute yoga for athletes recovery","20m","lift"],["Low-impact cardio","20 minute low impact cardio no jumping home","20m","cardio"],["Run warm-up","dynamic warm up before running follow along","5m","cardio"]];
+  var h='<div class="sectlbl" style="margin-top:6px">Follow-alongs</div><div class="libgrid">';
+  quick.filter(function(r){return r[3]===cat;}).forEach(function(r){h+='<a class="libcard" href="'+ytSearch(r[1])+'" target="_blank" rel="noopener"><span class="lci acc">'+I.play+'</span><span class="lcn">'+r[0]+'</span><span class="lctag">'+r[2]+'</span></a>';});
   h+='</div>';
-  var byPat={};Object.keys(LIB).forEach(function(id){var p=LIB[id].pattern;(byPat[p]=byPat[p]||[]).push(id);});
-  Object.keys(PATTERNS).forEach(function(p){if(!byPat[p])return;h+='<div class="sectlbl libsec lbl">'+PATTERNS[p]+'</div><div class="libgrid libsec grid">';
-    byPat[p].forEach(function(id){var e=LIB[id];h+='<a class="libcard libitem" data-name="'+esc(e.name.toLowerCase())+'" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener"><span class="lci'+(e.bw||e.equip==="band"?"":" acc")+'">'+(e.equip==="band"?I.spark:e.bw?I.bolt:I.dumbbell)+'</span><span class="lcn">'+esc(e.name)+'</span><span class="lctag">'+e.diff+'</span></a>';});
-    h+='</div>';});
-  document.getElementById("v-library").innerHTML=h;
+  if(cat==="lift"){
+    h+='<input class="libsearch" placeholder="Search exercises..." oninput="filterLib(this.value)" aria-label="search exercises">';
+    var byPat={};Object.keys(LIB).forEach(function(id){var p=LIB[id].pattern;(byPat[p]=byPat[p]||[]).push(id);});
+    Object.keys(PATTERNS).forEach(function(p){if(!byPat[p])return;h+='<div class="sectlbl libsec lbl">'+PATTERNS[p]+'</div><div class="libgrid libsec grid">';
+      byPat[p].forEach(function(id){var e=LIB[id];h+='<a class="libcard libitem" data-name="'+esc(e.name.toLowerCase())+'" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener"><span class="lci'+(e.bw||e.equip==="band"?"":" acc")+'">'+(e.equip==="band"?I.spark:e.bw?I.bolt:I.dumbbell)+'</span><span class="lcn">'+esc(e.name)+'</span><span class="lctag">'+e.diff+'</span></a>';});
+      h+='</div>';});
+  }
+  return h;
 }
 function filterLib(q){q=(q||"").toLowerCase().trim();
-  document.querySelectorAll("#v-library .libitem").forEach(function(a){a.style.display=(!q||a.getAttribute("data-name").indexOf(q)>=0)?"":"none";});
-  document.querySelectorAll("#v-library .libsec.grid").forEach(function(g){var vis=false;g.querySelectorAll(".libitem").forEach(function(a){if(a.style.display!=="none")vis=true;});g.style.display=vis?"":"none";var lbl=g.previousElementSibling;if(lbl&&lbl.classList.contains("lbl"))lbl.style.display=vis?"":"none";});
+  document.querySelectorAll("#v-lift .libitem").forEach(function(a){a.style.display=(!q||a.getAttribute("data-name").indexOf(q)>=0)?"":"none";});
+  document.querySelectorAll("#v-lift .libsec.grid").forEach(function(g){var vis=false;g.querySelectorAll(".libitem").forEach(function(a){if(a.style.display!=="none")vis=true;});g.style.display=vis?"":"none";var lbl=g.previousElementSibling;if(lbl&&lbl.classList.contains("lbl"))lbl.style.display=vis?"":"none";});
 }
 function setUnits(u,b){S.profile.units=u;save();segSel(b);toast("Units set to "+u,null);}
 function setLoc(l,b){S.profile.loc=l;save();segSel(b);}
@@ -1081,7 +1110,7 @@ function confirmReset(){openSheet('<div class="grab"></div><h3>Reset everything?
 function doReset(){try{localStorage.setItem("train_v2_backup",localStorage.getItem(LS)||"")}catch(e){}try{localStorage.removeItem(LS)}catch(e){}S=seed();S.profile.setup=true;save();closeSheet();show("today");toast("Data cleared. A backup was kept in this browser.",null);}
 
 /* ============ settings ============ */
-function setMode(m,b){if(S.profile.mode!==m){S.profile.mode=m;if(m==="db"){var eq=(S.profile.equip||[]).slice();if(eq.indexOf("DB")<0)eq.push("DB");S.profile.equip=eq;}if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();toast(m==="db"?"Plan now uses dumbbells.":"Plan now bodyweight.",null);}if(b)segSel(b);if(document.getElementById("v-today").classList.contains("on"))renderToday();}
+function setMode(m,b){if(S.profile.mode!==m){S.profile.mode=m;if(m==="db"){var eq=(S.profile.equip||[]).slice();if(eq.indexOf("DB")<0)eq.push("DB");S.profile.equip=eq;}if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();toast(m==="db"?"Plan now uses dumbbells.":"Plan now bodyweight.",null);}if(b)segSel(b);refreshCurrent();}
 function setGoal(d){S.profile.goalLb=Math.max(120,Math.min(400,(S.profile.goalLb||180)+d));var el=document.getElementById("goal-set");if(el)el.textContent=S.profile.goalLb;save();}
 function startEaseIn(){S.profile.programStart=TODAY;if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();closeSheet();toast("2-week ease-in started. Lighter volume, then full.",null);renderToday();}
 function settingsSheet(){
@@ -1313,7 +1342,7 @@ function genRemoveSetAt(oi,si){var o=GEN.session.order[oi];if(o.sets.length>1){o
 
 /* ============ MONTH CALENDAR ============ */
 var CAL={y:null,m:null};
-function calShift(d){if(CAL.y==null){CAL.y=NOW.getFullYear();CAL.m=NOW.getMonth();}var x=new Date(CAL.y,CAL.m+d,1);CAL.y=x.getFullYear();CAL.m=x.getMonth();renderWeek();}
+function calShift(d){if(CAL.y==null){CAL.y=NOW.getFullYear();CAL.m=NOW.getMonth();}var x=new Date(CAL.y,CAL.m+d,1);CAL.y=x.getFullYear();CAL.m=x.getMonth();refreshCurrent();}
 function monthCal(){
   if(CAL.y==null){CAL.y=NOW.getFullYear();CAL.m=NOW.getMonth();}
   var first=new Date(CAL.y,CAL.m,1),lead=(first.getDay()+6)%7,days=new Date(CAL.y,CAL.m+1,0).getDate();
@@ -1358,7 +1387,7 @@ function esDelSet(id,ei,si){var s=sessById(id);if(!s)return;var arr=s.entries[ei
 function saveSessionEdit(id){var s=sessById(id);if(!s){closeSheet();return;}
   if(s.type==="run"){var d=parseFloat((document.getElementById("es-dist")||{}).value)||0,sec=parseTime((document.getElementById("es-time")||{}).value)||0;s.distanceMi=d;s.durationSec=sec;s.paceSecPerMi=(d>0&&sec>0)?Math.round(sec/d):0;S.runs[s.date]={dist:d,time:mmss(sec),pace:s.paceSecPerMi?mmss(s.paceSecPerMi):"--",rpe:s.rpe};}
   else if(s.type==="activity"){s.activity=((document.getElementById("es-name")||{}).value||"Workout").slice(0,40);s.durationSec=(parseInt((document.getElementById("es-min")||{}).value)||0)*60;}
-  save();closeSheet();toast("Saved.",null);renderToday();if(document.getElementById("v-week").classList.contains("on"))renderWeek();}
+  save();closeSheet();toast("Saved.",null);refreshCurrent();}
 
 
 /* ============ CARDIO / RUN RAMP ============ */
@@ -1389,7 +1418,9 @@ function renderCardio(){
   var hist=weeklyMiHistory();
   if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
     h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
+  h+='<div class="card"><h3>Walk &amp; recover <span class="t">counts as a day</span></h3><div class="anote">Easy movement on non-run days keeps the streak alive and the base building.</div><div style="display:flex;gap:8px;margin-top:10px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Log 15-min walk</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(20)">Log 20-min walk</button></div></div>';
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
+  h+=libraryHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
 }
 
