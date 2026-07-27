@@ -397,7 +397,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.6";
+var VERSION="v3.7";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -627,6 +627,20 @@ function prFor(exId){var ex=LIB[exId];if(!ex||ex.unit==="s")return null;var best
 /* streak / stats */
 function computeStreak(){refreshDate();var s=0,d=new Date(NOW);if(!isDone(keyOf(d)))d.setDate(d.getDate()-1);for(var i=0;i<500;i++){if(isDone(keyOf(d))){s++;d.setDate(d.getDate()-1);}else break;}return s;}
 function ewma(){if(!S.weigh.length)return null;var a=0.12,e=S.weigh[0].w;for(var i=1;i<S.weigh.length;i++)e=a*S.weigh[i].w+(1-a)*e;return e;}
+/* Honest weight model shared by the cut card + trend. Realized pace only when data is FRESH
+   (>=3 weigh-ins in the last 28 days spanning >=5 days); otherwise show a goal-oriented plan
+   at a healthy target rate (~0.7% bodyweight/wk, clamped 0.5-1.5 lb/wk). Flags staleness. */
+function weightStats(){
+  if(!S.weigh.length)return null;
+  var latest=S.weigh[S.weigh.length-1],cur=latest.w,goal=S.profile.goalLb,to=cur-goal;
+  var ageDays=daysBetween(latest.date,TODAY);
+  var rate=null,rec=[];for(var i=0;i<S.weigh.length;i++){if(daysBetween(S.weigh[i].date,TODAY)<=28)rec.push(i);}
+  if(rec.length>=3){var f=rec[0],days=(new Date(latest.date)-new Date(S.weigh[f].date))/86400000;if(days>=5)rate=(cur-S.weigh[f].w)/days*7;}
+  var unit=(U()==="kg")?2.20462:1; // ~0.7% BW/wk target, clamp to a healthy band
+  var tRate=Math.max(0.5/unit,Math.min(1.5/unit,Math.round(cur*0.007*10)/10));
+  var wks=(to>0.3)?Math.ceil(to/tRate):0;
+  return {cur:cur,goal:goal,to:to,ageDays:ageDays,rate:rate,tRate:tRate,wks:wks,stale:ageDays>10,n:S.weigh.length,recent:rec.length};
+}
 function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));var day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day+3);var f=new Date(Date.UTC(d.getUTCFullYear(),0,4));var w=1+Math.round(((d-f)/86400000-3+((f.getUTCDay()+6)%7))/7);return d.getUTCFullYear()+"-W"+("0"+w).slice(-2);}
 
 /* ============ router ============ */
@@ -694,16 +708,17 @@ function renderToday(){
 function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
 /* the cut, kept light: where you are, how fast it's coming off, one tap to log */
 function cutCardHTML(){
-  var goal=S.profile.goalLb;
-  if(!S.weigh.length)return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to track your pace to '+goal+'.</div></div>';
-  var a=0.12,full=[],ee=S.weigh[0].w;S.weigh.forEach(function(p,i){ee=i===0?p.w:a*p.w+(1-a)*ee;full.push(ee);});
-  var cur=full[full.length-1],to=cur-goal,rate=null,eta=null;
-  if(full.length>=3){var n=Math.min(6,full.length);var e0=full[full.length-n];var d0=new Date(S.weigh[S.weigh.length-n].date),d1=new Date(S.weigh[S.weigh.length-1].date);var days=(d1-d0)/86400000;if(days>0){rate=(cur-e0)/days*7;if(rate<-0.03&&to>0)eta=Math.ceil(to/(-rate));}}
-  var head=(to>0.3?('<b>'+to.toFixed(1)+' '+wLbl()+'</b> to '+goal):'at '+goal);
-  var pace=(rate!=null)?((rate>=0?'+':'')+rate.toFixed(1)+' '+wLbl()+'/wk'+(eta?' &middot; ~'+eta+' wk to go':'')):'log a few to see your pace';
+  var goal=S.profile.goalLb,st=weightStats();
+  if(!st)return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to set your pace to '+goal+'.</div></div>';
+  var head=(st.to>0.3?('<b>'+st.to.toFixed(1)+' '+wLbl()+'</b> to '+goal):'at '+goal);
+  var plan=(st.to>0.3)?('Plan: ~'+st.tRate.toFixed(1)+' '+wLbl()+'/wk &rarr; ~'+st.wks+' wk to '+goal):'At goal - hold it here.';
+  var actual=(st.rate!=null)?('Actual: '+(st.rate>=0?'+':'')+st.rate.toFixed(1)+' '+wLbl()+'/wk, last 28d'):(st.n<3?'Log a few more to read your actual pace.':'No recent weigh-ins - actual pace unknown.');
+  var banner=st.stale?('<div class="anote" style="margin-top:6px;color:var(--accent);font-weight:600">Last weigh-in '+st.ageDays+' days ago. Log one to keep this real.</div>'):'';
   return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
-    '<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 2px"><div class="num" style="font-size:22px;font-weight:800">'+cur.toFixed(1)+'<small style="font-size:13px;font-weight:600;color:var(--faint)"> '+wLbl()+'</small></div><div style="font-size:14px;font-weight:700;color:var(--accent)">'+head+'</div></div>'+
-    '<div class="anote" style="margin-top:2px">'+pace+'</div></div>';
+    '<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 2px"><div class="num" style="font-size:22px;font-weight:800">'+st.cur.toFixed(1)+'<small style="font-size:13px;font-weight:600;color:var(--faint)"> '+wLbl()+'</small></div><div style="font-size:14px;font-weight:700;color:var(--accent)">'+head+'</div></div>'+
+    '<div class="anote" style="margin-top:2px">'+plan+'</div>'+
+    '<div class="anote" style="margin-top:2px;color:var(--faint)">'+actual+'</div>'+
+    banner+'</div>';
 }
 
 /* ============ change-today ============ */
@@ -951,10 +966,10 @@ function weighChart(){
   var a=0.12,full=[],ee=S.weigh[0].w;S.weigh.forEach(function(p,i){ee=i===0?p.w:a*p.w+(1-a)*ee;full.push(ee);});
   var pts=S.weigh.slice(-40),ev=full.slice(-40),ws=pts.map(function(p){return p.w;});
   var goal=S.profile.goalLb,cur=full[full.length-1];
-  var rate=null,eta=null;
-  if(full.length>=3){var n=Math.min(6,full.length);var e0=full[full.length-n],d0=new Date(S.weigh[S.weigh.length-n].date),d1=new Date(S.weigh[S.weigh.length-1].date);var days=(d1-d0)/86400000;if(days>0){rate=(cur-e0)/days*7;if(rate<-0.03&&cur>goal)eta=Math.ceil((cur-goal)/(-rate));}}
-  var toGoal=cur-goal;
-  var head=(toGoal>0.2?toGoal.toFixed(1)+' '+wLbl()+' to goal':'at your goal')+(rate!=null?' &middot; '+(rate>=0?"+":"")+rate.toFixed(1)+'/wk':'')+(eta?' &middot; ~'+eta+' wk':'');
+  var _st=weightStats();
+  var rate=_st?_st.rate:null,eta=(rate!=null&&rate<-0.03&&cur>goal)?Math.ceil((cur-goal)/(-rate)):null;
+  var toGoal=_st?_st.to:(cur-goal);
+  var head=(toGoal>0.2?toGoal.toFixed(1)+' '+wLbl()+' to goal':'at your goal')+(rate!=null?' &middot; '+(rate>=0?"+":"")+rate.toFixed(1)+'/wk'+(eta?' &middot; ~'+eta+' wk':''):(toGoal>0.2&&_st?' &middot; plan ~'+_st.tRate.toFixed(1)+'/wk':''));
   var mn=Math.min.apply(null,ws.concat([goal]))-1.5,mx=Math.max.apply(null,ws.concat([cur]))+1.5;
   var W=300,H=120,pad=6;
   function x(i){return pad+(pts.length<=1?W/2:(i/(pts.length-1))*(W-2*pad));}
