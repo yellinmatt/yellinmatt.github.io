@@ -397,7 +397,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.5";
+var VERSION="v3.6";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1083,6 +1083,9 @@ function settingsSheet(){
   m+='<div class="logrow"><label>Home base</label><div class="seg" style="max-width:160px"><button class="'+(p.loc==="Miami"?"sel":"")+'" onclick="setLoc(\'Miami\',this)">Miami</button><button class="'+(p.loc==="Boca"?"sel":"")+'" onclick="setLoc(\'Boca\',this)">Boca</button></div></div>';
   m+='<div class="logrow"><label>Rest timer</label><div class="stp" style="max-width:160px"><button onclick="setRest(-15,this)" aria-label="less rest">&minus;</button><span class="num" id="rest-set" style="min-width:46px;text-align:center;font-weight:700">'+(p.rest||90)+'</span><span class="u">s</span><button onclick="setRest(15,this)" aria-label="more rest">+</button></div></div>';
   m+='<div class="logrow"><label>Theme</label><div class="seg" style="max-width:190px"><button class="'+((!p.theme||p.theme==="system")?"sel":"")+'" onclick="setTheme(\'system\',this)">Auto</button><button class="'+(p.theme==="light"?"sel":"")+'" onclick="setTheme(\'light\',this)">Light</button><button class="'+(p.theme==="dark"?"sel":"")+'" onclick="setTheme(\'dark\',this)">Dark</button></div></div>';
+  var _tok=(localStorage.getItem("train.syncToken")||"").trim();
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Sync</div>';
+  m+='<div class="logrow"><label>Cross-device sync<div class="skc" style="font-weight:500">'+(_tok?"paired on this device":"not paired yet")+'</div></label><button class="wbtn" style="max-width:150px" onclick="closeSheet();syncPassSheet()">'+(_tok?"Change passphrase":"Set up")+'</button></div>';
   m+='<div class="sectlbl" style="margin:14px 2px 8px">Your data</div>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">Back up / send my data</button>';
@@ -1091,6 +1094,16 @@ function settingsSheet(){
   m+='<div class="foot">Train '+VERSION+' - everything stays on this device</div>';
   openSheet(m);
 }
+function syncPassSheet(){var cur=(localStorage.getItem("train.syncToken")||"").trim();
+  var m='<div class="grab"></div><h3>Sync passphrase</h3><div class="ssub">Enter it once on this device. Your workouts and weigh-ins then sync across every device.</div>';
+  m+='<div class="logrow"><label>Passphrase</label><input id="sp-tok" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="passphrase" value="'+esc(cur)+'" style="flex:1;max-width:210px;padding:11px;border-radius:10px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);font-size:15px"></div>';
+  m+='<button class="sheet-cta" onclick="saveSyncPass()">Save &amp; sync</button>';
+  if(cur)m+='<button class="sheet-cta ghost" onclick="clearSyncPass()">Unpair this device</button>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();settingsSheet()">Back</button>';
+  m+='<div class="foot">Stored only on this device.</div>';
+  openSheet(m);}
+function saveSyncPass(){var v=((document.getElementById("sp-tok")||{}).value||"").trim();if(!v){toast("Enter a passphrase",null);return;}try{localStorage.setItem("train.syncToken",v);}catch(e){}closeSheet();toast("Saved. Syncing this device...",null);setTimeout(function(){location.reload();},450);}
+function clearSyncPass(){try{localStorage.removeItem("train.syncToken");}catch(e){}closeSheet();toast("Unpaired this device. Sync is off until you re-enter it.",null);}
 
 /* ============ first-run ============ */
 function firstRun(){
@@ -1336,44 +1349,32 @@ function saveSessionEdit(id){var s=sessById(id);if(!s){closeSheet();return;}
 /* ============ CARDIO / RUN RAMP ============ */
 function mondayOf(d){var m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));m.setHours(0,0,0,0);return m;}
 function rnd5(x){return Math.round(x*2)/2;}
-function runBaseMi(){var since=new Date(mondayOf(NOW));since.setDate(since.getDate()-21);var k=keyOf(since),mi=0;S.sessions.forEach(function(s){if(s.type==="run"&&s.date>=k)mi+=(s.distanceMi||0);});return Math.max(6,Math.min(12,Math.round(mi/4)));}
-function splitRuns(mi){var out;if(mi<8)out=[{label:"Easy",mi:rnd5(mi*0.45)},{label:"Long easy",mi:rnd5(mi*0.55)}];else out=[{label:"Easy",mi:rnd5(mi*0.3)},{label:"Easy",mi:rnd5(mi*0.3)},{label:"Long easy",mi:rnd5(mi*0.4)}];
-  var s=out.reduce(function(a,r){return a+r.mi;},0);out[out.length-1].mi=rnd5(out[out.length-1].mi+(mi-s));if(out[out.length-1].mi<1)out[out.length-1].mi=1;return out;}
-function runSchedule(){var base=runBaseMi(),cap=Math.max(16,rnd5(base*2.4)),mi=base,peak=base,out=[];for(var i=0;i<12;i++){var t;if((i+1)%4===0){t=rnd5(peak*0.75);}else{t=rnd5(mi);peak=mi;mi=Math.min(cap,mi*1.12);}out.push({mi:t,runs:splitRuns(t)});}return out;}
-function currentRunWeek(len){if(!S.profile.runPlanStart){S.profile.runPlanStart=keyOf(mondayOf(NOW));save();}var w=Math.floor((NOW-new Date(S.profile.runPlanStart))/(7*86400000));return Math.max(0,Math.min(len-1,w));}
+/* Run tab: driven by run COUNT + GAPS, not a calendar ramp (mirrors the lift engine). */
+function allRuns(){return S.sessions.filter(function(s){return s.type==="run";}).sort(function(a,b){return a.date<b.date?-1:1;});}
+function runRhythm(){var r=allRuns();if(!r.length)return{total:0,count:0,gap:null,last:null};var count=1;for(var i=r.length-1;i>0;i--){if(daysBetween(r[i-1].date,r[i].date)<7)count++;else break;}return{total:r.length,count:count,gap:daysBetween(r[r.length-1].date,TODAY),last:r[r.length-1].date};}
+function nextRunTarget(){var rr=runRhythm();if(rr.gap!==null&&rr.gap>=7)return{mi:2,restart:true,block:0};var block=Math.floor(rr.count/3);return{mi:Math.min(4.5,2+block*0.5),restart:false,block:block};}
+function runStatusLine(rr){if(rr.total===0)return"No runs logged yet. Start with an easy 2 miles - that is the whole ask.";if(rr.gap===0)return"You ran today. That is the streak working.";if(rr.gap<=3)return"In rhythm - last run "+rr.gap+" day"+(rr.gap===1?"":"s")+" ago. Keep it rolling.";if(rr.gap<=6)return rr.gap+" days since your last run. Get one in before the week resets.";return"It has been "+rr.gap+" days. Restart easy, no penalty - the rhythm repairs itself.";}
 function milesThisWeek(){var k=keyOf(mondayOf(NOW)),mi=0;S.sessions.forEach(function(s){if(s.type==="run"&&s.date>=k)mi+=(s.distanceMi||0);});return mi;}
-function weeklyMiHistory(){var by={};S.sessions.forEach(function(s){if(s.type!=="run")return;by[isoWeek(s.id)]=(by[isoWeek(s.id)]||0)+(s.distanceMi||0);});var ks=Object.keys(by).sort().slice(-12);return ks.map(function(k){return by[k];});}
+function weeklyMiHistory(){var by={};S.sessions.forEach(function(s){if(s.type!=="run")return;by[isoWeek(s.date)]=(by[isoWeek(s.date)]||0)+(s.distanceMi||0);});var ks=Object.keys(by).sort().slice(-12);return ks.map(function(k){return by[k];});}
 function zoneRow(name,pace,note){return '<div class="arow"><span class="an">'+name+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+note+'</div></span><span class="ad" style="font-size:14px">'+pace+' /mi</span></div>';}
-var selRunWk=null;
-function selectRunWeek(i){var n=runSchedule().length;selRunWk=Math.max(0,Math.min(n-1,i));renderCardio();var el=document.getElementById("wkdetail");if(el)el.scrollIntoView({block:"nearest",behavior:"smooth"});}
-function runCutTag(i,mi,peak){if((i+1)%4===0)return '<span class="t">cutback</span>';if(mi>=peak)return '<span class="t">peak</span>';return '';}
 function renderCardio(){
   refreshDate();
-  var sch=runSchedule(),wi=currentRunWeek(sch.length);
-  if(selRunWk===null||selRunWk<0||selRunWk>=sch.length)selRunWk=wi;
-  var sel=selRunWk,selWk=sch[sel],curWk=sch[wi];
-  var done=milesThisWeek(),tgt=curWk.mi,peakMi=Math.max.apply(null,sch.map(function(w){return w.mi;}));
-  var C=2*Math.PI*45,off=C*(1-(tgt?Math.min(1,done/tgt):0));
-  var h='<div class="head"><div><div class="date">Your ramp &middot; week '+(wi+1)+' of '+sch.length+'</div><div class="title">Run</div></div></div>';
-  h+='<div class="ringcard"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+done.toFixed(1)+'</b><span>/ '+tgt+' mi</span></div></div><div class="rmeta"><div class="rt">This week: '+tgt+' mi easy</div><div class="rd">'+curWk.runs.length+' runs, all conversational. Base before speed.</div></div></div>';
-  var isCur=sel===wi,lab=isCur?"This week":"Week "+(sel+1),tag=runCutTag(sel,selWk.mi,peakMi);
-  h+='<div class="card" id="wkdetail"><h3><span>'+lab+' &middot; '+selWk.mi+' mi '+tag+'</span><span class="t">week '+(sel+1)+' / '+sch.length+'</span></h3>';
-  h+='<div class="wknav"><button class="wbtn" onclick="selectRunWeek('+(sel-1)+')"'+(sel<=0?' disabled':'')+'>&#8249; Prev</button><button class="wbtn" onclick="selectRunWeek('+wi+')"'+(isCur?' disabled':'')+'>This week</button><button class="wbtn" onclick="selectRunWeek('+(sel+1)+')"'+(sel>=sch.length-1?' disabled':'')+'>Next &#8250;</button></div>';
-  selWk.runs.forEach(function(r){h+='<div class="arow"><span class="an">'+r.label+' run</span><span class="ad" style="margin-right:'+(isCur?'12px':'0')+'">'+r.mi+' mi</span>'+(isCur?'<button class="wbtn" style="height:34px" onclick="runSheet('+r.mi+')">Log</button>':'')+'</div>';});
-  if((sel+1)%4===0)h+='<div class="foot" style="margin-top:8px">Recovery week: volume drops so the next block absorbs. Keep every run easy.</div>';
-  else if(!isCur)h+='<div class="foot" style="margin-top:8px">Preview. Log buttons appear when this becomes your current week.</div>';
-  h+='</div>';
-  var mx=peakMi||1;
-  var bars=sch.map(function(w,i){var hh=Math.max(4,Math.round(w.mi/mx*52));var col=i===wi?"var(--accent)":i<wi?"var(--accent-tint)":"var(--surface-2)";var ring=i===sel?';outline:2px solid var(--accent);outline-offset:1px':'';return '<div onclick="selectRunWeek('+i+')" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer"><div style="width:66%;height:'+hh+'px;border-radius:3px;background:'+col+ring+'"></div><span style="font-size:8px;color:var(--faint);font-weight:700">'+(i+1)+'</span></div>';}).join("");
-  h+='<div class="trend"><h3 style="margin-bottom:8px"><span>The 12-week ramp <span class="t">tap a week</span></span><span class="t">up to '+peakMi+' mi/wk</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:66px">'+bars+'</div></div>';
-  h+='<div class="card"><h3>Full plan <span class="t">all '+sch.length+' weeks</span></h3>';
-  sch.forEach(function(w,i){var t2=runCutTag(i,w.mi,peakMi),here=i===wi?' <span class="t">you are here</span>':'',brk=w.runs.map(function(r){return r.mi;}).join(" + ");h+='<button class="arow'+(i===sel?' sel':'')+'" onclick="selectRunWeek('+i+')"><span class="an">Week '+(i+1)+here+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+brk+' mi</div></span><span class="ad">'+w.mi+' mi '+t2+'</span></button>';});
-  h+='</div>';
+  var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
+  var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
+  var C=2*Math.PI*45,off=C*(1-(inBlock/3));
+  var h='<div class="head"><div><div class="date">Return to run &middot; base build</div><div class="title">Run</div></div></div>';
+  h+='<div class="ringcard"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+tgt.mi+'</b><span>mi easy</span></div></div><div class="rmeta"><div class="rt">'+(tgt.restart?"Ease back in - easy "+tgt.mi+" mi":"Next run: easy "+tgt.mi+" mi")+'</div><div class="rd">'+runStatusLine(rr)+'</div></div></div>';
+  h+='<button class="big-start" onclick="runSheet('+tgt.mi+')">'+I.run+' Log a run</button>';
+  h+='<div class="card"><h3>Where you are <span class="t">count, not calendar</span></h3>';
+  h+='<div class="sumgrid"><div class="sg"><b>'+rr.total+'</b><span>runs banked</span></div><div class="sg"><b>'+rr.count+'</b><span>this rhythm</span></div><div class="sg"><b>'+(rr.gap===null?"--":rr.gap+"d")+'</b><span>since last</span></div></div>';
+  h+='<div class="foot" style="margin-top:8px">Distance steps up every 3 runs you actually bank - '+tgt.mi+' mi now, next bump after '+toNext+' more. A 7-day gap eases you back to 2, no penalty.</div></div>';
   h+='<div class="card"><h3>Your pace zones <span class="t">easy first, you run hot</span></h3>'+zoneRow("Easy / Zone 2","10:30 - 11:00","most of your miles")+zoneRow("Long run","11:00 - 11:30","keep it relaxed")+zoneRow("Steady","9:45","only if it feels easy")+zoneRow("Tempo (later)","9:10","once the base is back")+'</div>';
+  if(runs.length){var rec=runs.slice(-5).reverse().map(function(s){return '<div class="arow"><span class="an">'+shortDate(s.date)+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+(s.rpe?esc(s.rpe):"easy")+'</div></span><span class="ad">'+(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+'</span></div>';}).join("");
+    h+='<div class="card"><h3>Recent runs <span class="t">last '+Math.min(5,runs.length)+'</span></h3>'+rec+'</div>';}
   var hist=weeklyMiHistory();
   if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
     h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
-  h+='<button class="big-start" onclick="runSheet('+(curWk.runs[0]?curWk.runs[0].mi:2)+')">'+I.run+' Log a run</button><div class="foot">Built from your Strava history; adapts as you log. Cutback weeks every 4th to absorb the work.</div>';
+  h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   document.getElementById("v-cardio").innerHTML=h;
 }
 
