@@ -352,11 +352,16 @@ input,select{border:0;background:none}
 .bcol .bx{font-size:10px;font-weight:700;color:var(--faint);min-height:12px}
 .bmean{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2);pointer-events:none}
 .bmean span{position:absolute;right:0;top:-14px;font-size:10px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 3px}
+.hcard .hhead{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px}
+.hcard .hbig{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.hcard .hbig small{font-size:15px;color:var(--faint);font-weight:700}
+.hcard .hsub{font-size:12.5px;color:var(--sub);font-weight:600;line-height:1.45}
+.hcard .hsub b{color:var(--accent);font-weight:800}
 /* year heatmap */
 .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
-.hgrid{display:flex;gap:3px;min-width:min-content}
-.hcol{display:flex;flex-direction:column;gap:3px}
-.hcol i{width:9px;height:9px;border-radius:2px;background:var(--surface-2);display:block}
+.hgrid{display:flex;gap:3.5px;min-width:min-content}
+.hcol{display:flex;flex-direction:column;gap:3.5px}
+.hcol i{width:11px;height:11px;border-radius:2.5px;background:var(--surface-2);display:block}
 .hcol i[data-l="f"]{background:transparent}
 .hcol i[data-l="1"]{background:var(--accent);opacity:.28}
 .hcol i[data-l="2"]{background:var(--accent);opacity:.5}
@@ -1026,7 +1031,7 @@ function renderToday(){
   /* F - press-play. A recover day is the one day with room for a follow-along, so that is
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
-  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+guided+(isFresh()?emptyStateHTML():weightCardHTML())+todayLogHTML();
+  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+heatmapHTML(true)+anchor+guided+(isFresh()?emptyStateHTML():weightCardHTML())+todayLogHTML();
 }
 function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
 /* ============ WEIGHT TREND CARD (Round B) ============
@@ -1626,7 +1631,7 @@ function renderTrack(){
   var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div>'+
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
-  h+=weightCardHTML()+scorecardHTML()+freshnessHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
+  h+=heatmapHTML(false)+weightCardHTML()+scorecardHTML()+freshnessHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
   h+='<div class="sectlbl" style="margin:16px 2px 8px">Setup &amp; backend</div>';
   h+='<button class="sheet-cta ghost" onclick="weighSheet()">Log a weigh-in</button>';
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings</button>';
@@ -1762,7 +1767,9 @@ function freshness(){
   out.push({n:"Sessions",age:ls?daysBetween(ls,TODAY):null,warn:4,bad:10,fix:"show('today')",
             hint:S.sessions.length+" logged"});
   var sk=Object.keys(S.steps||{}).sort(),lastS=sk.length?sk[sk.length-1]:null;
-  out.push({n:"Steps",age:lastS?daysBetween(lastS,TODAY):null,warn:4,bad:10,fix:"healthSheet()",
+  out.push({n:"Backup",age:backupAgeDays(),warn:21,bad:60,fix:"exportSheet()",
+            hint:S.profile.lastBackup?("last saved "+S.profile.lastBackup):"never exported"});
+  out.push({n:"Steps",age:lastS?daysBetween(lastS,TODAY):null,warn:4,bad:10,fix:"healthChoiceSheet()",
             hint:sk.length?(sk.length+" days imported"):"needs an Apple Health export",pending:!sk.length});
   return out;
 }
@@ -1839,7 +1846,7 @@ function stepsAvg(days){
 }
 function stepsTileHTML(){
   var st=stepsAvg(7);
-  if(!st)return '<button class="stat pend" onclick="healthSheet()" style="text-align:left"><div class="sl">Steps</div><div class="sv num" style="font-size:15px">Connect</div><div class="st flat">import from Apple Health</div></button>';
+  if(!st)return '<button class="stat pend" onclick="healthChoiceSheet()" style="text-align:left"><div class="sl">Steps</div><div class="sv num" style="font-size:15px">Connect</div><div class="st flat">import from Apple Health</div></button>';
   var rag=(st.avg>=8000)?"":" flat";
   return '<div class="stat"><div class="sl">Steps</div><div class="sv num">'+(st.avg/1000).toFixed(1)+' <small>k avg</small></div><div class="st'+rag+'">'+(st.avg>=8000?"above the 8k floor":"under the 8k floor")+'</div></div>';
 }
@@ -1901,7 +1908,7 @@ function progressHTML(){
   /* weighChart() is deliberately NOT called here any more. The weight card at the top of Track
      already owns the trend, and rendering a second chart with its own ETA text was the same
      duplication that produced the dual-weight bug. One writer per number. */
-  return tiles+heatmapHTML()+lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
+  return tiles+lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
     (prHtml?'<div class="card"><h3>Personal records <span class="t">best set / est. 1-rep</span></h3><div class="prlist">'+prHtml+'</div></div>':'<div class="card"><h3>Personal records</h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a lift to start setting PRs.</div></div>')+
     /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
        chat was the only way this record could be read. Sync replaced it. The old footer line
@@ -2021,11 +2028,13 @@ function dayLevel(k){
   if(!load)return isDone(k)?1:0;
   return load>=60?4:load>=35?3:load>=18?2:1;
 }
-function heatmapHTML(){
-  var weeks=53,cells="",today=new Date(NOW);
+function heatmapHTML(compact){
+  var weeks=compact?26:53,cells="",today=new Date(NOW);
   var end=new Date(today);end.setDate(end.getDate()+(6-((end.getDay()+6)%7)));
   var start=new Date(end);start.setDate(start.getDate()-(weeks*7-1));
-  var cols=[],cur=new Date(start),any=0;
+  var cols=[],cur=new Date(start),any=0,streakNow=computeStreak(),best=0,run=0;
+  var scan=new Date(start);
+  for(var i=0;i<weeks*7;i++){var kk=keyOf(scan);if(kk<=TODAY){if(isDone(kk)){run++;if(run>best)best=run;}else run=0;}scan.setDate(scan.getDate()+1);}
   for(var w=0;w<weeks;w++){
     var col="";
     for(var d=0;d<7;d++){
@@ -2036,10 +2045,12 @@ function heatmapHTML(){
     }
     cols+='<div class="hcol">'+col+'</div>';
   }
-  if(!any)return "";
-  var months="",mcur=new Date(start);
-  for(var m=0;m<12;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
-  return '<div class="card"><h3><span>The year</span><span class="t">'+any+' active days</span></h3>'+
+  var months="",mcur=new Date(start),nm=compact?6:12;
+  for(var m=0;m<nm;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
+  var pct=Math.round(any/(weeks*7)*100);
+  return '<div class="card hcard"><h3><span>'+(compact?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
+    '<div class="hhead"><div class="hbig num">'+pct+'<small>%</small></div>'+
+    '<div class="hsub">of days moved'+(best?', longest run <b>'+best+'</b> days':'')+(streakNow?', on <b>'+streakNow+'</b> now':'')+'</div></div>'+
     '<div class="hscroll"><div class="hgrid">'+cols+'</div></div>'+
     '<div class="hmonths">'+months+'</div>'+
     '<div class="hlegend"><span>quiet</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>hard</span></div></div>';
@@ -2580,6 +2591,64 @@ function doCalai(){
   toast("Imported "+rows.length+" day"+(rows.length===1?"":"s")+", "+hit+" hit protein.",null);
 }
 /* ============ APPLE HEALTH IMPORT ============ */
+/* Two routes in, because the Shortcut route needs you to build a Shortcut and the export route
+   needs nothing but the Health app. Apple's own "Export All Health Data" produces a zip holding
+   export.xml; the parser below reads that XML directly for steps, bodyweight and workouts, so
+   there is a working path even if the Shortcut never gets built. */
+function healthChoiceSheet(){
+  openSheet('<div class="grab"></div><h3>Bring in Apple Health</h3>'+
+    '<div class="ssub">Two ways in. The first needs nothing but your phone.</div>'+
+    optRow(I.download,"Paste an Apple Health export","Health app, your photo, Export All Health Data, then open export.xml and paste it here","healthXmlSheet()")+
+    optRow(I.bolt,"Paste Shortcut JSON","If you built the Train export Shortcut","healthSheet()"));
+}
+function healthXmlSheet(){
+  openSheet('<div class="grab"></div><h3>Apple Health export</h3>'+
+    '<div class="ssub">On your phone: Health, tap your photo, Export All Health Data. Unzip it, open <b>export.xml</b>, copy the whole thing and paste it below. It is large, so give it a moment.</div>'+
+    '<textarea class="ta" id="hx" placeholder="&lt;HealthData&gt;..." style="min-height:150px"></textarea>'+
+    '<div class="anote" style="margin-top:10px">Only step counts, bodyweight and workouts are read. Everything else in the file is ignored and nothing leaves this device.</div>'+
+    '<button class="sheet-cta" onclick="doHealthXml()">Read it</button>');
+}
+/* Parsed with the browser's own XML parser rather than by hand, and with a cap on how much is
+   walked, because a multi-year export can carry hundreds of thousands of records. */
+function doHealthXml(){
+  var t=(document.getElementById("hx")||{}).value||"";
+  if(t.indexOf("<HealthData")<0){toast("That does not look like export.xml.",null);return;}
+  var doc;try{doc=new DOMParser().parseFromString(t,"text/xml");}catch(e){toast("Could not read that file.",null);return;}
+  if(doc.getElementsByTagName("parsererror").length){toast("That file is not complete XML.",null);return;}
+  var recs=doc.getElementsByTagName("Record"),stepsBy={},nW=0,nS=0;
+  for(var i=0;i<recs.length;i++){
+    var r=recs[i],ty=r.getAttribute("type")||"",dt=(r.getAttribute("startDate")||"").slice(0,10),v=parseFloat(r.getAttribute("value"));
+    if(!dt||isNaN(v))continue;
+    if(ty.indexOf("StepCount")>=0){stepsBy[dt]=(stepsBy[dt]||0)+v;}
+    else if(ty.indexOf("BodyMass")>=0){
+      var unit=r.getAttribute("unit")||"lb";
+      var lb=(unit.indexOf("kg")>=0)?v*2.20462:v;
+      S.weigh=S.weigh.filter(function(x){return x.date!==dt;});
+      S.weigh.push({date:dt,w:Math.round(lb*10)/10});nW++;
+    }
+  }
+  Object.keys(stepsBy).forEach(function(k){S.steps[k]=Math.round(stepsBy[k]);nS++;});
+  var wo=doc.getElementsByTagName("Workout"),nA=0,seen={};
+  S.sessions.forEach(function(x){seen[x.id]=true;});
+  for(var j=0;j<wo.length;j++){
+    var w=wo[j],dt2=(w.getAttribute("startDate")||"").slice(0,10);
+    if(!dt2)continue;
+    var mins=parseFloat(w.getAttribute("duration"))||0;
+    var ty2=(w.getAttribute("workoutActivityType")||"").replace("HKWorkoutActivityType","");
+    var dist=parseFloat(w.getAttribute("totalDistance"))||0;
+    var id=dt2+"-h"+j;
+    if(seen[id])continue;
+    var isRun=/Running/i.test(ty2);
+    var rec={id:id,date:dt2,type:isRun?"run":"activity",durationSec:Math.round(mins*60),notes:"Apple Health"};
+    if(isRun){rec.distanceMi=Math.round(dist*10)/10;if(rec.distanceMi>0&&rec.durationSec)rec.paceSecPerMi=Math.round(rec.durationSec/rec.distanceMi);}
+    else rec.activity=ty2||"Workout";
+    S.sessions.push(rec);S.done[dt2]=true;nA++;
+  }
+  S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+  S.sessions.sort(function(a,b){return a.date<b.date?-1:1;});
+  save();closeSheet();refreshCurrent();
+  toast("Read "+nS+" days of steps, "+nW+" weigh-ins and "+nA+" workouts.",null);
+}
 function healthSheet(){
   openSheet('<div class="grab"></div><h3>Import from Apple Health</h3><div class="ssub">Paste the JSON your Shortcut produces. Pulls in weight and workouts (incl. Apple Watch).</div>'+
     '<textarea class="ta" id="hj" placeholder=\'{"weighins":[{"date":"2026-07-16","weightLb":189}],"activities":[{"type":"run","date":"2026-07-16","durationSec":1400,"distanceMi":2.1}]}\' style="min-height:150px"></textarea>'+
@@ -2873,7 +2942,9 @@ function renderCardio(){
 
 /* ============ boot ============ */
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
-function maybeNagBackup(){if(!S.sessions.length)return;var last=S.profile.lastBackup;var days=last?((new Date(TODAY)-new Date(last))/86400000):999;if(days>14)toast("Time to back up your data (Track, then Export).",function(){exportSheet();});}
+/* Retired as a load-time toast. Backup age is now a row in the freshness card, which is where
+   every other "how current is this" signal lives. Kept as a helper for that row. */
+function backupAgeDays(){var last=S.profile.lastBackup;return last?daysBetween(last,TODAY):null;}
 applyTheme();
 /* No gate on first open. The defaults are good enough to train on, and the one thing the app
    genuinely needs from you, a weigh-in, is asked for by the empty state rather than by a form
@@ -2883,7 +2954,7 @@ if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").c
 if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||TODAY;S.profile.programStart=S.profile.programStart||TODAY;save();}
 document.addEventListener("visibilitychange",function(){var woOn=document.getElementById("v-workout").classList.contains("on");if(document.hidden){if(woOn)woFreeze();}else{refreshDate();if(woOn)woResume();else if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
 renderToday();
-setTimeout(maybeNagBackup,1500);
+
 </script>
 <script src="train-sync-auto.js"></script>
 </body>
