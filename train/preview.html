@@ -115,6 +115,10 @@ input,select{border:0;background:none}
 .dot.today.done .di{background:var(--accent);border-color:var(--accent);color:var(--white)}
 .dot.today .dw{color:var(--accent)}
 .dot.rest .di{background:transparent;border:1px dashed var(--line-2)}
+/* Days still to come show their icon quietly; days already past without a session show it
+   fainter still, so the week reads as a plan rather than a row of empty holes. */
+.dot.ahead .di{opacity:.72}
+.dot.missed .di{opacity:.4}
 
 /* generic card */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px}
@@ -159,14 +163,19 @@ input,select{border:0;background:none}
 .ex .more svg{width:18px;height:18px}
 .aim{font-size:12.5px;color:var(--sub);font-weight:500;margin-bottom:6px}
 .aim b{color:var(--accent);font-weight:700}
-.colhead{display:grid;grid-template-columns:30px 1fr 1fr 42px;gap:8px;padding:6px 2px 2px}
+.colhead{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;padding:6px 2px 2px}
 .colhead span{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);text-align:center}
-.set{display:grid;grid-template-columns:30px 1fr 1fr 42px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.set{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .set:first-of-type{border-top:0}
 .set .sn{width:26px;height:26px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--sub);margin:0 auto}
 .set.on .sn{background:var(--accent-tint);color:var(--accent)}
 .stp{display:flex;align-items:center;background:var(--surface-2);border-radius:10px;height:42px;overflow:hidden}
 .set.on .stp{background:var(--accent-tint)}
+/* per-set stopwatch button */
+.tick.sw{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
+.tick.sw .swt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.tick.sw.had{color:var(--faint)}
+.tick.sw.run{background:var(--accent);color:var(--white)}
 .stp button{width:34px;height:42px;font-size:20px;font-weight:600;color:var(--sub);flex:none;display:flex;align-items:center;justify-content:center}
 .stp button:active{background:rgba(0,0,0,.06)}
 .stp .val{flex:1;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;min-width:0;padding:0}
@@ -762,7 +771,10 @@ function renderToday(){
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
-    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:(isT?ic:""))+'</div></div>';}
+    /* Every day carries its icon now. It used to draw one only when the day was done or was
+       today, so the rest of the week rendered as blank circles and the plan was invisible. */
+    var past=(k<TODAY);
+    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div></div>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
@@ -777,12 +789,12 @@ function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[
 /* the cut, kept light: where you are, how fast it's coming off, one tap to log */
 function cutCardHTML(){
   var goal=S.profile.goalLb,st=weightStats();
-  if(!st)return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to set your pace to '+goal+'.</div></div>';
+  if(!st)return '<div class="card"><h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+goal+'.</div></div>';
   var head=(st.to>0.3?('<b>'+st.to.toFixed(1)+' '+wLbl()+'</b> to '+goal):'at '+goal);
   var plan=(st.to>0.3)?('Plan: ~'+st.tRate.toFixed(1)+' '+wLbl()+'/wk &rarr; ~'+st.wks+' wk to '+goal):'At goal - hold it here.';
   var actual=(st.rate!=null)?('Actual: '+(st.rate>=0?'+':'')+st.rate.toFixed(1)+' '+wLbl()+'/wk, last 28d'):(st.n<3?'Log a few more to read your actual pace.':'No recent weigh-ins - actual pace unknown.');
   var banner=st.stale?('<div class="anote" style="margin-top:6px;color:var(--accent);font-weight:600">Last weigh-in '+st.ageDays+' days ago. Log one to keep this real.</div>'):'';
-  return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
+  return '<div class="card"><h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
     '<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 2px"><div class="num" style="font-size:22px;font-weight:800">'+st.cur.toFixed(1)+'<small style="font-size:13px;font-weight:600;color:var(--faint)"> '+wLbl()+'</small></div><div style="font-size:14px;font-weight:700;color:var(--accent)">'+head+'</div></div>'+
     '<div class="anote" style="margin-top:2px">'+plan+'</div>'+
     '<div class="anote" style="margin-top:2px;color:var(--faint)">'+actual+'</div>'+
@@ -819,7 +831,10 @@ function setToday(w){
 /* ============ WORKOUT ============ */
 var woTimer=null;var openEx={};
 function AW(){return S.activeMode==="gen"?S.genWk:S.wk[TODAY];}
-function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();save();renderWorkout();show("workout");startWoTick();}
+/* CURV is the last real tab; remember it so closing or finishing a workout returns you where
+   you launched it from. Both paths used to hard-code Today, which stranded you off the Lift tab. */
+var RETV="today";
+function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track")?CURV:"today";save();renderWorkout();show("workout");startWoTick();}
 function exComplete(o){return o.sets.length>0&&o.sets.every(function(s){return s.on;});}
 function elapsedSec(){var w=AW();if(!w)return 0;return Math.floor((w.accum||0)+((w.start&&!w.paused)?(Date.now()-w.start)/1000:0));}
 function startWoTick(){if(woTimer)clearInterval(woTimer);function t(){var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());}t();woTimer=setInterval(t,1000);updatePico();}
@@ -828,18 +843,25 @@ function woFreeze(){var w=AW();if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w
 function woResume(){var w=AW();if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
 function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
 function startWorkout(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
-function closeWorkout(){woFreeze();endRest();show("today");}
+function closeWorkout(){woFreeze();endRest();show(RETV||"today");}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
     var wcell=o.bw?'<div class="bwtag">'+(e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
     var runit=o.unit==="s"?'<span class="u">s</span>':'';
     var rcell='<div class="stp"><button onclick="step('+oi+','+si+',\'reps\',-1)" aria-label="less reps">&minus;</button><input class="val num" inputmode="numeric" value="'+s.reps+'" aria-label="reps" onchange="setVal('+oi+','+si+',\'reps\',this.value)">'+runit+'<button onclick="step('+oi+','+si+',\'reps\',1)" aria-label="more reps">+</button></div>';
-    setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
+    /* Per-set clock. Start it when you begin the set, stop it when you rack; the elapsed
+       seconds are stored on the set itself, so time under tension survives the session. */
+    var running=(ST.oi===oi&&ST.si===si);
+    var held=s.sec||0;
+    var timeBtn=running
+      ? '<button class="tick sw run" onclick="stopSet('+oi+','+si+')" aria-label="stop set timer"><span class="swt num" id="swt-'+oi+'-'+si+'">'+mmss(setElapsed(s))+'</span></button>'
+      : '<button class="tick sw'+(held?" had":"")+'" onclick="startSet('+oi+','+si+')" aria-label="start set timer"><span class="swt num">'+(held?mmss(held):"Start")+'</span></button>';
+    setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+timeBtn+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
   });
   return '<div class="ex'+(isActive?" active":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div><div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
 function exDoneHTML(oi){var o=AW().order[oi],e=LIB[o.exId];var summ=o.sets.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ");
   return '<button class="exdone" onclick="openEx['+oi+']=true;renderWorkout()"><span class="edc">'+I.check+'</span><span class="edt"><span class="edn">'+esc(e.name)+'</span><span class="eds">'+summ+'</span></span><span class="ede">'+I.edit+'</span></button>';}
-function renderWorkout(){var w=AW();if(!w){show("today");return;}
+function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   var active=[],doneL=[];w.order.forEach(function(o,oi){if(exComplete(o)&&!openEx[oi])doneL.push(oi);else active.push(oi);});
   var h='<div class="warmcard"><b>Warm-up (3 min):</b> '+WARM+'</div>';
   active.forEach(function(oi,idx){h+=exCardHTML(oi,idx===0&&active.length>1);});
@@ -852,7 +874,39 @@ function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
   else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
   save();var el=document.getElementById("set-"+oi+"-"+si);if(el){var inp=el.querySelectorAll(".val");inp[0].value=s.w;inp[1].value=s.reps;}}
 function setVal(oi,si,f,v){var s=AW().order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
+/* Set stopwatch. ST holds which set is currently running; the tick only repaints one label,
+   so it never re-renders the card mid-set and steals your input focus. */
+var ST={oi:-1,si:-1,t0:0,int:null};
+function setElapsed(s){return (s.sec||0)+(ST.t0?Math.floor((Date.now()-ST.t0)/1000):0);}
+function startSet(oi,si){
+  if(ST.oi>=0)stopSet(ST.oi,ST.si,true);
+  ST.oi=oi;ST.si=si;ST.t0=Date.now();
+  if(ST.int)clearInterval(ST.int);
+  ST.int=setInterval(function(){
+    var w=AW();if(!w||ST.oi<0)return;
+    var el=document.getElementById("swt-"+ST.oi+"-"+ST.si);
+    if(!el){stopSet(ST.oi,ST.si,true);return;}
+    el.textContent=mmss(setElapsed(w.order[ST.oi].sets[ST.si]));
+  },1000);
+  endRest();renderWorkout();
+}
+function stopSet(oi,si,quiet){
+  var w=AW();if(!w)return;
+  if(ST.oi===oi&&ST.si===si&&ST.t0){
+    var s=w.order[oi].sets[si];
+    s.sec=(s.sec||0)+Math.floor((Date.now()-ST.t0)/1000);
+    save();
+  }
+  if(ST.int){clearInterval(ST.int);ST.int=null;}
+  ST={oi:-1,si:-1,t0:0,int:null};
+  if(!quiet){
+    /* Stopping a set is the natural moment to mark it done and start the rest clock. */
+    var st=w.order[oi].sets[si];
+    if(!st.on)toggleSet(oi,si);else renderWorkout();
+  }
+}
 function toggleSet(oi,si){var o=AW().order[oi],s=o.sets[si];
+  if(ST.oi===oi&&ST.si===si)stopSet(oi,si,true);
   s.on=!s.on;if(s.on)s.ts=Date.now();else delete s.ts;save();
   var last=(oi===AW().order.length-1&&si===o.sets.length-1);
   if(s.on&&!last){startRest(S.profile.rest||90);if(navigator.vibrate)navigator.vibrate(12);}
@@ -913,7 +967,7 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
   S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;advanceCycle();if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
-  save();closeSheet();show("today");
+  save();closeSheet();show(RETV||"today");
   toast(prs.length?("New PR: "+prs[0]):("Logged - "+setsN+" sets, "+mmss(dur)+"."),null);}
 function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.high,weight:o.weight};
   var allHigh=sets.length>0&&sets.every(function(s){return (s.reps||0)>=o.high;});
@@ -968,7 +1022,7 @@ function saveRun(){var d=parseFloat((document.getElementById("r-dist")||{}).valu
 }
 /* B2 - frictionless weigh-in. Opens pre-filled with your last number, so the common
    case (a pound either side of yesterday) is two taps and Save, never typing. */
-function wStep(){return U()==="kg"?0.1:0.2;}
+function wStep(){return 0.1;} /* was 0.2 in lb, which could not match the scale exactly */
 function lastW(){return S.weigh.length?S.weigh[S.weigh.length-1].w:null;}
 function weighSheet(){
   var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
@@ -1054,7 +1108,7 @@ function renderLift(){
   }else{
     h+='<div class="card"><div class="lbl">Today</div><div style="font-weight:800;font-size:18px;margin:2px 0">'+(plan.type==="run"?"Run day":"Recovery day")+'</div><div class="anote">No lift scheduled. Build one, or start any day from the week below.</div></div>';
   }
-  h+='<div style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="show(\'generate\')">'+I.bolt+'Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">'+(trainMode()==="db"?"Dumbbell":"Bodyweight")+' mode</button></div>';
+  h+='<div style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="openBuild()">'+I.bolt+'Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">'+(trainMode()==="db"?"Dumbbell":"Bodyweight")+' mode</button></div>';
   h+=weekHTML(false);
   h+=libraryHTML("lift");
   document.getElementById("v-lift").innerHTML=h;
@@ -1167,8 +1221,12 @@ function progressHTML(){
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
   return tiles+weighChart()+volChart()+volTile+
     (prHtml?'<div class="card"><h3>Personal records <span class="t">best set / est. 1-rep</span></h3><div class="prlist">'+prHtml+'</div></div>':'<div class="card"><h3>Personal records</h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a lift to start setting PRs.</div></div>')+
-    '<button class="big-start" onclick="exportSheet()" style="margin-bottom:10px">'+I.send+' Send my data to Claude</button>'+
-    '<div class="foot">Nothing leaves your device until you tap Export and share it yourself.</div>';
+    /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
+       chat was the only way this record could be read. Sync replaced it. The old footer line
+       ("nothing leaves your device") also stopped being true the day sync shipped, so both go;
+       what remains is a plain backup you keep. */
+    '<button class="sheet-cta ghost" onclick="exportSheet()" style="margin-bottom:10px">'+I.download+' Export a backup</button>'+
+    '<div class="foot">Your log lives on this device and syncs to your own private store. Export writes a copy you keep.</div>';
 }
 function stat(l,v,u,t,cls){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv num">'+v+' <small>'+u+'</small></div>'+(t?'<div class="st '+(cls||"")+'">'+t+'</div>':'')+'</div>';}
 function weighChart(){
@@ -1479,12 +1537,17 @@ function genRerollAll(){genBuild();renderGenerate();}
 function genUse(){if(!GEN.session||!GEN.session.order.length){return;}
   S.activeMode="gen";S.genWk={id:TODAY+"-g"+Date.now(),letter:"Gen",name:GEN.session.focus,gen:true,order:JSON.parse(JSON.stringify(GEN.session.order)),accum:0,start:null,paused:false};
   save();startActive();toast("Custom workout started.",null);}
+/* Build is reached from Lift (and could be from elsewhere); remember the origin so its
+   back button returns there rather than guessing. */
+var GENRET="lift";
+function openBuild(){GENRET=(CURV==="lift"||CURV==="today")?CURV:"lift";show("generate");}
 function renderGenerate(){
   if(!GEN.session)genBuild();
   function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';genBuild();renderGenerate()">'+l+'</button>';}
   function tseg(v){return '<button class="'+(GEN.time===v?"sel":"")+'" onclick="GEN.time='+v+';genBuild();renderGenerate()">'+v+' min</button>';}
   var eq=[["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"],["BW","Bodyweight"]];
-  var h='<div class="head"><div><div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
+  var h='<div class="head"><div><button class="wbtn" style="height:32px;padding:0 12px;margin-bottom:8px" onclick="show(GENRET||\'lift\')">&#8592; Back</button>'+
+    '<div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
   h+='<div class="card"><h3>Focus</h3><div class="seg" style="height:auto;flex-wrap:wrap;gap:6px">'+seg("focus","full","Full")+seg("focus","upper","Upper")+seg("focus","lower","Lower")+seg("focus","push","Push")+seg("focus","pull","Pull")+seg("focus","legs","Legs")+'</div>'+
     '<div style="height:16px"></div><h3>Time</h3><div class="seg">'+tseg(20)+tseg(30)+tseg(45)+'</div>'+
     '<div style="height:16px"></div><h3>Energy</h3><div class="seg">'+seg("energy","low","Low")+seg("energy","normal","Normal")+seg("energy","high","High")+'</div>'+
@@ -1501,7 +1564,7 @@ function renderGenerate(){
     });
     h+='<div class="ex"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="color:var(--faint);font-weight:600;font-size:12px">/side</span>':'')+'</div><button class="more" onclick="genReroll('+oi+')" aria-label="swap this exercise">'+I.swap+'</button></div>'+
       '<div class="aim" style="color:var(--faint)">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>'+
-      '<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+sets+
+      '<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span>Clock</span><span>Done</span></div>'+sets+
       '<div class="setbtns"><button class="setbtn" onclick="genAddSet('+oi+')">+ Add set</button></div></div>';
   });
   h+='<button class="big-start" onclick="genUse()">'+I.check+' Use this workout</button>'+
@@ -1517,19 +1580,43 @@ function logSheet(){
     optRow(I.bolt,"Other workout","name + minutes","actSheet(\'other\')")+
     optRow(I.spark,"Weigh-in","today\'s weight","closeSheet();weighSheet()"));
 }
+/* A walk is minutes, sometimes miles, and often done on a treadmill with something playing.
+   So: type your own minutes rather than picking from two fixed buttons, add distance if you
+   have it, and note effort. Same sheet serves cycling, swimming and anything else. */
+var ACT_KINDS=[["walk","Walk"],["bike","Cycling"],["swim","Swim"],["hike","Hike"],["sport","Sport"],["other","Other"]];
 function actSheet(type){
   if(type==="run"){var d=(todayPlan().type==="run")?todayPlan().dist:2;runSheet(d);return;}
   var isWalk=(type==="walk");
-  var m='<div class="grab"></div><h3>Log '+(isWalk?"walk":"workout")+'</h3><div class="ssub">Quick and done.</div>';
-  if(!isWalk)m+='<div class="logrow"><label>What</label><input class="tin" id="a-name" placeholder="yoga, bike, tennis..." style="max-width:200px" aria-label="activity"></div>';
+  var m='<div class="grab"></div><h3>Log '+(isWalk?"walk":"activity")+'</h3><div class="ssub">Minutes is the only required field.</div>';
+  if(!isWalk){
+    m+='<div class="sectlbl" style="margin:6px 2px 8px">What</div><div class="eqchips" id="a-kinds">'+
+      ACT_KINDS.filter(function(k){return k[0]!=="walk";}).map(function(k,i){
+        return '<button class="eqchip'+(i===0?" on":"")+'" onclick="pickKind(this,\''+k[1]+'\')">'+k[1]+'</button>';}).join("")+'</div>'+
+      '<div class="logrow"><label>Or name it</label><input class="tin" id="a-name" placeholder="tennis, climbing..." style="max-width:190px" aria-label="activity"></div>';
+  }
   m+='<div class="logrow"><label>Minutes</label><div class="inp" style="max-width:130px"><input id="a-min" inputmode="numeric" placeholder="30" style="width:56px" aria-label="minutes"><span class="u">min</span></div></div>';
+  m+='<div class="logrow"><label>Distance <span style="color:var(--faint);font-weight:600">optional</span></label><div class="inp" style="max-width:130px"><input id="a-dist" inputmode="decimal" placeholder="0" style="width:56px" aria-label="distance"><span class="u">mi</span></div></div>';
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Effort</div><div class="seg" id="a-rpe">'+
+    ["Easy","Moderate","Hard"].map(function(r,i){return '<button class="'+(i===0?"sel":"")+'" onclick="pickRpe(this,\''+r+'\')">'+r+'</button>';}).join("")+'</div>';
+  m+='<div class="logrow" style="margin-top:12px"><label>Note</label><input class="tin" id="a-note" placeholder="treadmill, podcast..." style="max-width:190px" aria-label="note"></div>';
   m+='<button class="sheet-cta" onclick="saveAct(\''+type+'\')">Save</button>';
   openSheet(m);
+  ACT_PICK={kind:(isWalk?"Walk":"Cycling"),rpe:"Easy"};
 }
+var ACT_PICK={kind:"Walk",rpe:"Easy"};
+function pickKind(b,name){ACT_PICK.kind=name;var p=b.parentNode;p.querySelectorAll("button").forEach(function(x){x.classList.remove("on")});b.classList.add("on");}
+function pickRpe(b,r){ACT_PICK.rpe=r;segSel(b);}
 function saveAct(type){var min=parseInt((document.getElementById("a-min")||{}).value)||0;if(min<=0){closeSheet();return;}
-  var name=(type==="walk")?"Walk":((document.getElementById("a-name")||{}).value||"Workout");
-  S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,notes:""});
-  S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged "+name+", "+min+" min.",null);renderToday();}
+  var typed=((document.getElementById("a-name")||{}).value||"").trim();
+  var name=(type==="walk")?"Walk":(typed||ACT_PICK.kind||"Workout");
+  var dist=parseFloat((document.getElementById("a-dist")||{}).value)||0;
+  var note=((document.getElementById("a-note")||{}).value||"").slice(0,140);
+  var rec={id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,rpe:ACT_PICK.rpe||"",notes:note};
+  if(dist>0){rec.distanceMi=dist;rec.paceSecPerMi=Math.round((min*60)/dist);}
+  S.sessions.push(rec);
+  S.done[TODAY]=true;advanceCycle();save();closeSheet();
+  toast("Logged "+name+", "+min+" min"+(dist>0?" and "+dist+" mi":"")+".",null);
+  refreshCurrent();}
 
 /* ============ APPLE HEALTH IMPORT ============ */
 function healthSheet(){
@@ -1588,7 +1675,7 @@ function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sess
   toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
 }
 function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
-function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);renderToday();}
+function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);refreshCurrent();}
 
 /* ============ EQUIPMENT + GEN set editing ============ */
 function toggleEquip(e){var arr=(S.profile.equip||[]).slice();var i=arr.indexOf(e);if(i>=0){if(arr.length>1)arr.splice(i,1);}else arr.push(e);S.profile.equip=arr;save();genBuild();renderGenerate();}
@@ -1678,7 +1765,10 @@ function renderCardio(){
   var hist=weeklyMiHistory();
   if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
     h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
-  h+='<div class="card"><h3>Walk &amp; recover <span class="t">counts as a day</span></h3><div class="anote">Easy movement on non-run days keeps the streak alive and the base building.</div><div style="display:flex;gap:8px;margin-top:10px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Log 15-min walk</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(20)">Log 20-min walk</button></div></div>';
+  h+='<div class="card"><h3>Walk <span class="t">counts as a day</span></h3>'+
+    '<div class="anote" style="margin-top:0;padding-top:0;border-top:0">Easy movement on non-run days keeps the base building and costs you no recovery.</div>'+
+    '<button class="big-start" style="margin-top:12px" onclick="actSheet(\'walk\')">'+I.run+' Log a walk</button>'+
+    '<div style="display:flex;gap:8px;margin-top:8px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Quick 15</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(30)">Quick 30</button></div></div>';
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   h+=libraryHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
