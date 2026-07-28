@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
+<!-- frame-src is youtube-nocookie only, and img-src deliberately does NOT include i.ytimg.com:
+     remote thumbnails would ping Google on every library render. The facades are drawn locally,
+     so nothing reaches YouTube until you actually tap play on a specific video. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube-nocookie.com; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -15,6 +18,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 <title>Train</title>
 <style>
 :root{
@@ -23,7 +27,7 @@
   --line:#E7E9ED; --line-2:#D8DCE2;
   --accent:#FF4E2B; --accent-press:#E63E1E; --accent-tint:#FFE9E3;
   --good:#12A150; --good-tint:#E4F6EC; --amber:#B7791F; --amber-tint:#FBF1DD;
-  --nav-bg:rgba(245,246,248,.86); --restbar-bg:#14181E; --restbar-ink:#FFFFFF; --scrim:rgba(16,17,22,.42);
+  --nav-bg:rgba(245,246,248,.86); --restbar-bg:#14181E; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(16,17,22,.42);
   --shadow:0 1px 2px rgba(16,17,22,.04), 0 3px 12px rgba(16,17,22,.06);
   --shadow-lg:0 12px 44px rgba(16,17,22,.18);
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
@@ -36,7 +40,7 @@
     --line:#242A32; --line-2:#30363F;
     --accent:#FF5C3A; --accent-press:#FF7053; --accent-tint:#3A1E17;
     --good:#34D399; --good-tint:#12271E; --amber:#F0C36B; --amber-tint:#2A2213;
-    --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --scrim:rgba(0,0,0,.6);
+    --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(0,0,0,.6);
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
     --shadow-lg:0 16px 52px rgba(0,0,0,.6);
   }
@@ -47,7 +51,7 @@ html[data-theme="dark"]{
   --line:#242A32; --line-2:#30363F;
   --accent:#FF5C3A; --accent-press:#FF7053; --accent-tint:#3A1E17;
   --good:#34D399; --good-tint:#12271E; --amber:#F0C36B; --amber-tint:#2A2213;
-  --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --scrim:rgba(0,0,0,.6);
+  --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(0,0,0,.6);
   --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
   --shadow-lg:0 16px 52px rgba(0,0,0,.6);
 }
@@ -112,6 +116,10 @@ input,select{border:0;background:none}
 .dot.today.done .di{background:var(--accent);border-color:var(--accent);color:var(--white)}
 .dot.today .dw{color:var(--accent)}
 .dot.rest .di{background:transparent;border:1px dashed var(--line-2)}
+/* Days still to come show their icon quietly; days already past without a session show it
+   fainter still, so the week reads as a plan rather than a row of empty holes. */
+.dot.ahead .di{opacity:.72}
+.dot.missed .di{opacity:.4}
 
 /* generic card */
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px}
@@ -156,14 +164,19 @@ input,select{border:0;background:none}
 .ex .more svg{width:18px;height:18px}
 .aim{font-size:12.5px;color:var(--sub);font-weight:500;margin-bottom:6px}
 .aim b{color:var(--accent);font-weight:700}
-.colhead{display:grid;grid-template-columns:30px 1fr 1fr 42px;gap:8px;padding:6px 2px 2px}
+.colhead{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;padding:6px 2px 2px}
 .colhead span{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);text-align:center}
-.set{display:grid;grid-template-columns:30px 1fr 1fr 42px;gap:8px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.set{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .set:first-of-type{border-top:0}
 .set .sn{width:26px;height:26px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--sub);margin:0 auto}
 .set.on .sn{background:var(--accent-tint);color:var(--accent)}
 .stp{display:flex;align-items:center;background:var(--surface-2);border-radius:10px;height:42px;overflow:hidden}
 .set.on .stp{background:var(--accent-tint)}
+/* per-set stopwatch button */
+.tick.sw{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
+.tick.sw .swt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.tick.sw.had{color:var(--faint)}
+.tick.sw.run{background:var(--accent);color:var(--white)}
 .stp button{width:34px;height:42px;font-size:20px;font-weight:600;color:var(--sub);flex:none;display:flex;align-items:center;justify-content:center}
 .stp button:active{background:rgba(0,0,0,.06)}
 .stp .val{flex:1;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;min-width:0;padding:0}
@@ -218,6 +231,7 @@ input,select{border:0;background:none}
 .opt .oi{width:36px;height:36px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub);flex:none}
 .opt .oi svg{width:18px;height:18px}
 .opt .on2{font-size:15px;font-weight:600}.opt .oc{font-size:12.5px;color:var(--sub)}
+.opt.dim{opacity:.5}
 .opt.danger .on2{color:var(--accent)}
 .opt .oar{margin-left:auto;color:var(--faint)}.opt .oar svg{width:18px;height:18px}
 .logrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
@@ -235,7 +249,9 @@ input,select{border:0;background:none}
 .seg button.sel{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .tin{width:100%;background:var(--surface-2);border-radius:10px;height:44px;padding:0 14px;font-size:15px;font-weight:600}
 .ta{width:100%;background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:500;font-family:var(--sans);min-height:120px;resize:vertical;line-height:1.5}
-.sheet-cta{width:100%;height:54px;margin-top:16px;background:var(--accent);color:var(--white);border-radius:var(--r-btn);font-size:17px;font-weight:700}
+.sheet-cta{width:100%;height:54px;margin-top:16px;background:var(--accent);color:var(--white);border-radius:var(--r-btn);font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px}
+/* Without this the inline icon inherits no size and expands to fill the button. */
+.sheet-cta svg{width:18px;height:18px;flex:0 0 18px}
 .sheet-cta:active{background:var(--accent-press)}
 .sheet-cta.ghost{background:var(--surface-2);color:var(--ink);margin-top:8px}
 .celebrate{text-align:center;padding:6px 0 0}
@@ -274,6 +290,235 @@ input,select{border:0;background:none}
 
 /* library */
 .sectlbl{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:14px 2px 9px}
+/* B2 weigh dial */
+.wdial{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0 2px}
+.wdb{width:52px;height:52px;flex:0 0 52px;border-radius:50%;background:var(--surface-2);color:var(--text);font-size:26px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center}
+.wdb:active{background:var(--accent-tint);color:var(--accent)}
+.wbig{width:150px;text-align:center;font-size:44px;font-weight:800;letter-spacing:-.03em;background:transparent;border:0;color:var(--text);padding:0}
+.wunit{text-align:center;font-size:13px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
+.wunit b{font-weight:800}
+/* exercise lookup, collapsed by default */
+.libdrop{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin:12px 0 6px;overflow:hidden}
+.libdrop>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 16px;font-size:14.5px;font-weight:700}
+.libdrop>summary::-webkit-details-marker{display:none}
+.libdrop>summary .lcount{font-size:11px;font-weight:700;color:var(--faint);background:var(--surface-2);border-radius:7px;padding:3px 8px}
+.libdrop[open]>summary{border-bottom:1px solid var(--line)}
+.libdrop .libsearch{margin:12px 14px 4px;width:calc(100% - 28px)}
+.libdrop .sectlbl,.libdrop .libgrid{margin-left:14px;margin-right:14px}
+.libpad{padding:4px 14px 12px}
+.libpad .sectlbl:first-child{margin-top:8px}
+.libdrop .libgrid{margin-bottom:12px}
+/* press-play video cards */
+.vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.vcard.wide{grid-column:1/-1}
+.vface,.vframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+/* Facades are drawn locally rather than pulled from ytimg, so they get their identity from a
+   per-category wash instead of a thumbnail. Thirteen identical cards would read as a wall. */
+.vface{background:linear-gradient(140deg,var(--surface-2),var(--accent-tint));display:flex;align-items:center;justify-content:center}
+.vcard[data-c="strength"] .vface{background:linear-gradient(140deg,var(--accent-tint),var(--surface-2))}
+.vcard[data-c="core"] .vface{background:linear-gradient(155deg,var(--surface-2) 20%,var(--amber-tint))}
+.vcard[data-c="mobility"] .vface{background:linear-gradient(120deg,var(--good-tint),var(--surface-2))}
+.vcard[data-c="yoga"] .vface{background:linear-gradient(200deg,var(--surface-2),var(--good-tint))}
+.vcard[data-c="recovery"] .vface{background:linear-gradient(160deg,var(--amber-tint),var(--surface-2))}
+.vcard[data-c="meditation"] .vface{background:linear-gradient(180deg,var(--surface-2),var(--line))}
+.vface:active{filter:brightness(.94)}
+.vplay{width:46px;height:46px;border-radius:50%;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow)}
+.vplay svg{width:20px;height:20px;margin-left:2px}
+.vmeta{padding:10px 12px 12px}
+.vmeta .vt{font-size:13.5px;font-weight:700;line-height:1.3}
+.vmeta .va{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:3px;line-height:1.4}
+.vmeta .va a{color:var(--accent);text-decoration:none;font-weight:700}
+/* data freshness row */
+.frow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line)}
+.frow:first-of-type{border-top:0}
+.frow[data-rag="good"]{--rag:var(--good)}
+.frow[data-rag="amber"]{--rag:var(--amber)}
+.frow[data-rag="red"]{--rag:var(--accent)}
+.frow[data-rag="none"]{--rag:var(--line-2)}
+.frow .fd{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:var(--rag)}
+.frow .fn{font-size:14px;font-weight:700;flex:0 0 auto}
+.frow .fh{font-size:11.5px;color:var(--faint);font-weight:600;flex:1;min-width:0;text-align:left}
+.frow .ft{font-size:12px;font-weight:700;color:var(--rag);flex:0 0 auto}
+/* shared bar chart */
+.bwrap{position:relative;margin-top:6px}
+.brow{display:flex;align-items:flex-end;gap:5px;min-height:calc(var(--bh) + 34px)}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+.bcol i{display:block;width:70%;border-radius:3px 3px 2px 2px;background:var(--surface-2)}
+.bcol i.on{background:var(--accent)}
+.bcol i.zero{background:var(--line);border-radius:2px}
+.bcol .bv{font-size:10px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums;min-height:12px}
+.bcol .bv.on{color:var(--accent)}
+.bcol .bx{font-size:10px;font-weight:700;color:var(--faint);min-height:12px}
+.bmean{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2);pointer-events:none}
+.bmean span{position:absolute;right:0;top:-14px;font-size:10px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 3px}
+/* year heatmap */
+.hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.hgrid{display:flex;gap:3px;min-width:min-content}
+.hcol{display:flex;flex-direction:column;gap:3px}
+.hcol i{width:9px;height:9px;border-radius:2px;background:var(--surface-2);display:block}
+.hcol i[data-l="f"]{background:transparent}
+.hcol i[data-l="1"]{background:var(--accent);opacity:.28}
+.hcol i[data-l="2"]{background:var(--accent);opacity:.5}
+.hcol i[data-l="3"]{background:var(--accent);opacity:.75}
+.hcol i[data-l="4"]{background:var(--accent)}
+.hmonths{display:flex;justify-content:space-between;font-size:9.5px;font-weight:700;color:var(--faint);margin-top:6px}
+.hlegend{display:flex;align-items:center;gap:4px;margin-top:10px;font-size:10.5px;font-weight:600;color:var(--faint)}
+.hlegend i{width:9px;height:9px;border-radius:2px;background:var(--surface-2)}
+.hlegend i[data-l="1"]{background:var(--accent);opacity:.28}
+.hlegend i[data-l="2"]{background:var(--accent);opacity:.5}
+.hlegend i[data-l="3"]{background:var(--accent);opacity:.75}
+.hlegend i[data-l="4"]{background:var(--accent)}
+/* pattern volume */
+.pvrow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line)}
+.pvrow:first-of-type{border-top:0}
+.pvrow[data-rag="good"]{--rag:var(--good)}
+.pvrow[data-rag="amber"]{--rag:var(--amber)}
+.pvrow[data-rag="red"]{--rag:var(--accent)}
+.pvrow .pvn{font-size:13px;font-weight:700;flex:0 0 108px}
+.pvrow .pvbar{flex:1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.pvrow .pvbar i{display:block;height:8px;border-radius:4px;background:var(--rag)}
+.pvrow .pvv{font-size:12.5px;font-weight:800;flex:0 0 auto;min-width:38px;text-align:right}
+.pvrow .pvv small{font-size:10px;color:var(--faint);font-weight:700}
+.pvrow .pvd{font-size:11px;font-weight:700;color:var(--faint);flex:0 0 30px;text-align:right}
+.rpes{display:block;width:100%;height:52px;margin-top:6px}
+/* coach card */
+.coach[data-k="green"]{--ck:var(--good)}
+.coach[data-k="amber"]{--ck:var(--amber)}
+.coach[data-k="red"]{--ck:var(--accent)}
+.coach[data-k="layoff"]{--ck:var(--sub)}
+.coach .crow{display:flex;align-items:center;gap:9px;margin:2px 0 4px}
+.coach .cdot{width:10px;height:10px;border-radius:50%;background:var(--ck)}
+.coach .ct{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--ck)}
+.coach .cd{font-size:13px;color:var(--sub);line-height:1.55}
+/* Lift: program rotation + movements (Round D) */
+.prow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
+.prow:first-of-type{border-top:0}
+.prow .pl{width:30px;height:30px;flex:0 0 30px;border-radius:9px;background:var(--surface-2);color:var(--sub);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800}
+.prow.next .pl{background:var(--accent);color:var(--white)}
+.prow .pm{flex:1;min-width:0}
+.prow .pn{font-size:14.5px;font-weight:700}
+.prow .pd{font-size:12px;color:var(--faint);font-weight:600;margin-top:1px}
+.prow .ptag{font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);background:var(--accent-tint);border-radius:6px;padding:4px 8px}
+.mrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line)}
+.mrow:first-of-type{border-top:0}
+.mrow .mi{width:30px;height:30px;flex:0 0 30px;border-radius:9px;background:var(--surface-2);color:var(--sub);display:flex;align-items:center;justify-content:center}
+.mrow .mi svg{width:16px;height:16px}
+.mrow .mm{flex:1;min-width:0}
+.mrow .mn{display:block;font-size:14px;font-weight:700;line-height:1.25}
+.mrow .md{display:block;font-size:11.5px;color:var(--faint);font-weight:600;margin-top:2px}
+.mrow .mv{text-align:right;flex:0 0 auto}
+.mrow .mw{display:block;font-size:13px;font-weight:800}
+.mrow .mp{display:block;font-size:10.5px;font-weight:700;color:var(--accent);margin-top:2px}
+.msum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0 4px}
+.msum .ms{background:var(--surface-2);border-radius:12px;padding:12px 10px;text-align:center}
+.msum .ms b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em}
+.msum .ms span{display:block;font-size:10.5px;font-weight:600;color:var(--faint);margin-top:3px}
+.msp{display:block;width:100%;height:42px;margin-top:12px}
+/* Cardio level system (Round C) */
+.herorow{display:flex;gap:8px;margin-top:10px}
+.herorow .wbtn{flex:1}
+.lcard{padding-bottom:14px}
+.lwrap{display:flex;align-items:center;gap:16px}
+.lring{flex:0 0 104px}
+.lmeta{min-width:0}
+.lmeta .lt{font-size:14.5px;font-weight:800;letter-spacing:-.01em}
+.lmeta .ld{font-size:12.5px;color:var(--sub);line-height:1.5;margin-top:3px}
+.lstats{display:flex;gap:14px;margin-top:9px}
+.lstats span{font-size:11.5px;font-weight:600;color:var(--faint)}
+.lstats b{font-size:15px;font-weight:800;color:var(--ink);display:block;line-height:1.1}
+.lspark{display:block;width:100%;height:30px;margin-top:12px}
+/* badges */
+.badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
+.badge{text-align:center;opacity:.4}
+.badge.got{opacity:1}
+.badge .bdot{width:42px;height:42px;margin:0 auto;border-radius:50%;background:var(--surface-2);color:var(--faint);display:flex;align-items:center;justify-content:center;border:1px dashed var(--line-2)}
+.badge.got .bdot{background:var(--accent-tint);color:var(--accent);border:0}
+.badge .bdot svg{width:19px;height:19px}
+.badge .bn{font-size:11px;font-weight:700;margin-top:6px;line-height:1.2}
+.badge .bd{font-size:10px;font-weight:600;color:var(--faint);margin-top:2px;line-height:1.25}
+/* pace zones */
+.zrow{padding:11px 0;border-top:1px solid var(--line)}
+.zrow:first-of-type{border-top:0}
+.zhead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.zhead .zn{font-size:14px;font-weight:700}
+.zhead .zp{font-size:13px;font-weight:700;color:var(--sub)}
+.ztrack{position:relative;height:8px;border-radius:4px;background:var(--surface-2);margin:7px 0 5px}
+.ztrack i{position:absolute;top:0;height:8px;border-radius:4px;background:var(--accent);opacity:.35}
+.zrow[data-z="easy"] .ztrack i{background:var(--good);opacity:1}
+.zrow[data-z="long"] .ztrack i{background:var(--good);opacity:.55}
+.zrow[data-z="steady"] .ztrack i{background:var(--amber);opacity:.8}
+.zrow[data-z="tempo"] .ztrack i{background:var(--accent);opacity:.8}
+.znote{font-size:11.5px;font-weight:600;color:var(--faint)}
+/* KPI scorecard (Round B) */
+.ksub{font-size:12.5px;color:var(--sub);line-height:1.5;margin:2px 0 14px}
+.kpi{display:block;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line)}
+.kpi:first-of-type{border-top:0;padding-top:2px}
+.kpi[data-rag="good"]{--rag:var(--good)}
+.kpi[data-rag="amber"]{--rag:var(--amber)}
+.kpi[data-rag="red"]{--rag:var(--accent)}
+.kpi[data-rag="none"]{--rag:var(--faint)}
+.kpi .bullet{display:block;width:100%;height:14px;margin:7px 0 5px}
+.kpi .bullet rect.val{fill:var(--rag)}
+.krow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.krow .kl{font-size:14px;font-weight:700}
+.krow .kv{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.krow .kv small{font-size:11.5px;font-weight:700;color:var(--faint)}
+.kfoot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ktag{color:var(--rag);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.khint{font-size:11px;font-weight:600;color:var(--faint)}
+.kstrip{display:flex;gap:2px;margin-top:8px}
+.kstrip i{flex:1;height:8px;border-radius:1px;background:var(--surface-2)}
+.kstrip i:first-child{border-radius:3px 1px 1px 3px}.kstrip i:last-child{border-radius:1px 3px 3px 1px}
+.kstrip i[data-l="1"]{background:var(--line-2)}
+.kstrip i[data-l="2"]{background:var(--rag,var(--accent));opacity:.35}
+.kstrip i[data-l="3"]{background:var(--rag,var(--accent));opacity:.65}
+.kstrip i[data-l="4"]{background:var(--rag,var(--accent))}
+.klegend{display:flex;align-items:center;gap:4px;margin-top:14px;font-size:10.5px;font-weight:600;color:var(--faint)}
+.klegend i{width:12px;height:8px;border-radius:2px;background:var(--surface-2)}
+.klegend i[data-l="1"]{background:var(--line-2)}
+.klegend i[data-l="2"]{background:var(--accent);opacity:.35}
+.klegend i[data-l="3"]{background:var(--accent);opacity:.65}
+.klegend i[data-l="4"]{background:var(--accent)}
+/* weight trend card */
+.wtop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:4px 0 2px}
+.wtop .wbig{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.wtop .wbig small{font-size:14px;font-weight:700;color:var(--faint)}
+.wtop .wwhen{font-size:11.5px;font-weight:600;color:var(--faint);margin-top:5px}
+.wtop .wgoal{font-size:13px;font-weight:600;color:var(--sub);text-align:right}
+.wtop .wgoal b{color:var(--accent);font-weight:800;font-size:15px}
+.wchart{margin:12px 0 4px}
+.wchart svg{display:block;width:100%;height:112px}
+.wlegend{display:flex;justify-content:space-between;font-size:10.5px;font-weight:600;color:var(--faint);margin-top:5px}
+.wstate{font-size:15px;font-weight:800;margin-top:8px}
+.wstate[data-s="down"]{color:var(--good)}
+.wstate[data-s="up"]{color:var(--accent)}
+.wstate[data-s="flat"],.wstate[data-s="thin"],.wstate[data-s="stale"]{color:var(--sub)}
+.wsub{font-size:13px;color:var(--sub);line-height:1.5;margin-top:3px}
+/* B5 body dashboard */
+.bhero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:18px 16px 16px;margin-bottom:12px}
+.bhero .bnum{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.bhero .bnum small{font-size:15px;font-weight:700;color:var(--faint);margin-left:3px}
+.bhero .brow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.bhero .bside{text-align:right;font-size:12.5px;font-weight:600;color:var(--sub);line-height:1.5}
+.bhero .bside b{color:var(--accent);font-weight:800}
+.stat.pend{opacity:.55}
+.stat.pend .sv{color:var(--faint)}
+.ptog{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:13px 14px;background:var(--surface-2);border-radius:13px;margin-top:10px}
+.ptog .pc{width:26px;height:26px;flex:0 0 26px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:transparent;display:flex;align-items:center;justify-content:center}
+.ptog .pc svg{width:16px;height:16px}
+.ptog.on{background:var(--good-tint)}
+.ptog.on .pc{background:var(--good);border-color:var(--good);color:var(--on-good)}
+.ptog .pt{font-size:14.5px;font-weight:700}
+.ptog .ps{font-size:12.5px;color:var(--sub);font-weight:600;margin-top:1px}
+.glist{margin-top:2px}
+.grow{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line)}
+.grow:last-child{border-bottom:0}
+.grow .gi{width:30px;height:30px;flex:0 0 30px;border-radius:9px;background:var(--accent-tint);color:var(--accent);display:flex;align-items:center;justify-content:center}
+.grow .gi svg{width:16px;height:16px}
+.grow .gt{font-size:14px;font-weight:700;line-height:1.3}
+.grow .gd{font-size:12.5px;color:var(--sub);line-height:1.45;margin-top:2px}
+.grow .gd b{color:var(--text);font-weight:700}
 .lib a,.lib .lg{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:12px 14px;margin-bottom:9px;color:inherit;text-decoration:none}
 .lib a:active{background:var(--surface-2)}
 .lib .li{width:38px;height:38px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--sub);flex:none}
@@ -396,7 +641,7 @@ input,select{border:0;background:none}
 
 <script>
 "use strict";
-var VERSION="v3.9";
+var VERSION="v4.2";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -486,13 +731,70 @@ var DAYS={
     {pat:"h-pull",bw:"bandrow",     db:"row1",       sets:3,low:8,high:12},
     {pat:"isolation",bw:"ytw",      db:"facepull",   sets:2,low:12,high:15}]}
 };
-function trainMode(){return (S.profile.mode==="db")?"db":"bw";}
-function slotEx(sl){var id=(trainMode()==="db"&&sl.db)?sl.db:sl.bw;return LIB[id]?id:sl.bw;}
+/* ============ EQUIPMENT PER SESSION (Round D) ============
+   Equipment is a property of the session, not of you. A global "bodyweight or dumbbell" mode was
+   wrong because a Monday with dumbbells and a Thursday without are the same person in a different
+   room, and a mixed session had nowhere to live at all. So each built session carries its own
+   equipment list; the profile only supplies the default for the next one. Any single movement can
+   still be swapped inside the workout, which is what makes mixed sessions work. */
+function defaultEquip(){var e=(S.profile.equip||["BW"]).slice();if(!e.length)e=["BW"];return e;}
+function sessionEquip(w){w=w||S.wk[TODAY];return (w&&w.equip&&w.equip.length)?w.equip:defaultEquip();}
+function hasDB(eq){return (eq||[]).indexOf("DB")>=0;}
+function trainMode(w){return hasDB(sessionEquip(w))?"db":"bw";}
+function slotEx(sl,eq){
+  var db=hasDB(eq||defaultEquip());
+  var id=(db&&sl.db)?sl.db:sl.bw;return LIB[id]?id:sl.bw;
+}
+function equipLabel(eq){
+  eq=eq||defaultEquip();
+  var names={DB:"dumbbells",BW:"bodyweight",band:"bands",bar:"pull-up bar"};
+  var out=eq.map(function(k){return names[k]||k;});
+  if(out.length===1)return out[0];
+  if(out.length===2)return out[0]+" and "+out[1];
+  return out.slice(0,-1).join(", ")+" and "+out[out.length-1];
+}
+/* Change the kit for THIS session only, and rebuild it around what is actually in the room. */
+function equipSheet(){
+  var cur=sessionEquip().slice();
+  var opts=[["BW","Bodyweight"],["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"]];
+  var chips=opts.map(function(o){
+    return '<button class="eqchip'+(cur.indexOf(o[0])>=0?" on":"")+'" onclick="toggleSessEquip(this,\''+o[0]+'\')">'+o[1]+'</button>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>Equipment today</h3>'+
+    '<div class="ssub">What you actually have in the room right now. This changes today\'s session only, not the plan.</div>'+
+    '<div class="eqchips" style="margin:6px 0 4px">'+chips+'</div>'+
+    '<div class="anote" style="margin-top:14px">Swapping kit rebuilds today\'s exercises. Sets you have already logged are kept.</div>'+
+    '<button class="sheet-cta" onclick="applySessEquip()">Rebuild today</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
+  EQ_PICK=cur;
+}
+var EQ_PICK=null;
+function toggleSessEquip(btn,k){
+  EQ_PICK=EQ_PICK||sessionEquip().slice();
+  var i=EQ_PICK.indexOf(k);
+  if(i>=0){if(EQ_PICK.length>1){EQ_PICK.splice(i,1);btn.classList.remove("on");}}
+  else{EQ_PICK.push(k);btn.classList.add("on");}
+}
+function applySessEquip(){
+  var eq=(EQ_PICK&&EQ_PICK.length)?EQ_PICK.slice():defaultEquip();
+  var w=S.wk[TODAY];
+  var started=w&&wkProgress(w).done>0;
+  if(w&&!started&&w.letter!=="Gen")delete S.wk[TODAY];
+  S.profile.equip=eq.slice();
+  var nw=workDay();nw.equip=eq.slice();
+  save();closeSheet();refreshCurrent();
+  toast("Today is now "+equipLabel(eq)+".",null);
+}
 /* gentle 2-week ease-in: lighter volume for the first 7 days of a program start, then full */
 function programStartKey(){return S.profile.programStart||S.profile.started||null;}
 function daysIntoProgram(){var st=programStartKey();if(!st)return 999;return Math.floor((new Date(TODAY)-new Date(st))/86400000);}
 function easingIn(){var d=daysIntoProgram();return d>=0&&d<14;}
-function rampSets(base){return (daysIntoProgram()<7)?Math.min(base,2):base;}
+function rampSets(base){
+  if(deloading())return Math.max(1,Math.round(base*0.66)); /* deload cuts sets, keeps the loads */
+  var cs=coachState();
+  if(cs.k==="red")return Math.max(1,base-1);              /* red backs volume off a step too */
+  return (daysIntoProgram()<7)?Math.min(base,2):base;
+}
 var LETTERS=["A","B","C"];
 var WARM="leg swings x10/side, arm circles x10, band pull-apart x15, dead bug x8/side";
 var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
@@ -551,8 +853,8 @@ var S=load();
 if(!S.profile.mode)S.profile.mode="bw";
 if(!S.daySlot)S.daySlot={};
 if(S.cycleNext==null)S.cycleNext=0;
-function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
+function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -585,16 +887,16 @@ function letterFor(){return LETTERS[(S.planPos||0)%3];}
 /* build (or fetch) today's working lift session */
 function workDay(){
   if(S.wk[TODAY])return S.wk[TODAY];
-  var L=letterFor(),tpl=DAYS[L];
+  var L=letterFor(),tpl=DAYS[L],eq=defaultEquip();
   var order=tpl.slots.map(function(sl){
-    var id=slotEx(sl),e=LIB[id],t=S.progress[id]||{};
+    var id=slotEx(sl,eq),e=LIB[id],t=S.progress[id]||{};
     var w=e.bw?0:(t.weight!=null?t.weight:15);
     var low=(t.low!=null?t.low:sl.low),high=(t.high!=null?t.high:sl.high);
     var nSets=rampSets(sl.sets);
     var sets=[];for(var i=0;i<nSets;i++)sets.push({w:w,reps:low,on:false});
     return {exId:id,unit:e.unit||"reps",side:!!e.side,bw:!!e.bw,low:low,high:high,weight:w,sets:sets};
   });
-  S.wk[TODAY]={letter:L,name:tpl.name,mode:trainMode(),order:order,start:null};
+  S.wk[TODAY]={letter:L,name:tpl.name,mode:hasDB(eq)?"db":"bw",equip:eq.slice(),order:order,start:null};
   save();return S.wk[TODAY];
 }
 function wkProgress(w){w=w||S.wk[TODAY];if(!w)return {done:0,total:0};var d=0,t=0;w.order.forEach(function(o){o.sets.forEach(function(s){t++;if(s.on)d++;});});return {done:d,total:t};}
@@ -608,6 +910,10 @@ function lastEntry(exId){
 function topSet(sets){var best=null;sets.forEach(function(s){if(!s.completed&&s.on===false)return;var r=s.reps||0,w=s.weightLb!=null?s.weightLb:(s.w||0);if(!best||(w>best.w)||(w===best.w&&r>best.r))best={w:w,r:r};});return best;}
 function aimText(o){
   var le=lastEntry(o.exId);var unit=o.unit==="s"?"s":"";
+  var _cs=coachState();
+  if(_cs.k==="amber"&&le)return 'Holding here. Repeat last session and earn the jump.';
+  if(_cs.k==="red"&&le)return 'Backed off a step. Move well, leave two in the tank.';
+  if(_cs.k==="layoff")return 'First sessions back. Start light, finish easy.';
   if(!le){return 'First time. Find your groove, leave 2 in the tank. Target <b>'+o.low+'-'+o.high+(unit?' s':' reps')+'</b>.';}
   var best=null;le.e.sets.forEach(function(s){if(s.completed){var w=s.weightLb||0,r=s.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};}});
   if(!best)best={w:o.weight,r:o.low};
@@ -646,6 +952,7 @@ function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[
 var CURV="today";
 function show(v){
   refreshDate();
+  if(!document.getElementById("v-"+v))v="today"; /* stale view name fails soft, never throws */
   document.querySelectorAll(".view").forEach(function(s){s.classList.remove("on")});
   document.getElementById("v-"+v).classList.add("on");
   var full=(v==="workout"||v==="run"||v==="generate");
@@ -661,6 +968,15 @@ function show(v){
 }
 function refreshCurrent(){show(CURV);}
 
+/* A brand new app should say what to do, not show a row of zeros that look like failure. */
+function isFresh(){return !S.sessions.length&&!S.weigh.length;}
+function emptyStateHTML(){
+  return '<div class="card"><h3><span>Start here</span></h3>'+
+    '<div class="ksub">Nothing logged yet, so most of this app is still empty. Two things fill almost all of it.</div>'+
+    '<button class="opt" onclick="weighSheet()"><span class="oi">'+I.spark+'</span><span><div class="on2">Log a weigh-in</div><div class="oc">Sets your protein target, your volume maths and the whole Track tab</div></span><span class="oar">'+I.arrow+'</span></button>'+
+    '<button class="opt" onclick="startWorkout()"><span class="oi">'+I.dumbbell+'</span><span><div class="on2">Do the first session</div><div class="oc">Day A, bodyweight, about thirty minutes</div></span><span class="oar">'+I.arrow+'</span></button>'+
+    '<div class="foot" style="margin-top:12px">Everything adapts to what you log. Nothing here needs setting up first.</div></div>';
+}
 /* ============ TODAY ============ */
 function renderToday(){
   refreshDate();
@@ -698,24 +1014,118 @@ function renderToday(){
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
-    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:(isT?ic:""))+'</div></div>';}
+    /* Every day carries its icon now. It used to draw one only when the day was done or was
+       today, so the rest of the week rendered as blank circles and the plan was invisible. */
+    var past=(k<TODAY);
+    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div></div>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/4);
   var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+'</div>';
-  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+cutCardHTML()+todayLogHTML();
+  /* F - press-play. A recover day is the one day with room for a follow-along, so that is
+     where the guided session lives rather than bolted onto a lift day you are timing. */
+  var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
+  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+anchor+guided+(isFresh()?emptyStateHTML():weightCardHTML())+todayLogHTML();
 }
 function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
+/* ============ WEIGHT TREND CARD (Round B) ============
+   Replaces "Plan: ~1.3 lb/wk -> ~7 wk to 180", which showed a prescription in the position of a
+   forecast and demoted the one measured number to grey. Now: the headline is one of three states,
+   every rate is hedged, the only date given is the NEXT milestone rather than the final goal, and
+   the card refuses to draw a trend at all until there are enough weigh-ins to mean something. */
+function milestones(){
+  var st=weightStats();if(!st)return [];
+  var out=[],v=Math.floor((st.cur-0.01)/2)*2;
+  while(v>st.goal){out.push(v);v-=2;}
+  out.push(st.goal);
+  return out;
+}
+function trendState(){
+  var st=weightStats();
+  if(!st)return {state:"none"};
+  /* Gate: a line through two points months apart is not a trend, it is a rumour. */
+  if(st.recent<3)return {state:"thin",st:st};
+  if(st.stale)return {state:"stale",st:st};
+  if(st.rate==null)return {state:"thin",st:st};
+  var r=st.rate;
+  var state=(r<=-0.15)?"down":(r>=0.15)?"up":"flat";
+  return {state:state,st:st,rate:r};
+}
+function rateWords(r){
+  var a=Math.abs(r);
+  if(a<0.15)return "level";
+  if(a<0.4)return "about a quarter pound a week";
+  if(a<0.7)return "about half a pound a week";
+  if(a<1.2)return "about a pound a week";
+  if(a<1.7)return "about a pound and a half a week";
+  return "about "+(Math.round(a*2)/2)+" pounds a week";
+}
+function milestoneLine(t){
+  if(!t.rate||t.rate>=-0.05)return "";
+  var ms=milestones();if(!ms.length)return "";
+  var next=ms[0],away=t.st.cur-next;
+  if(away<=0.05)return "";
+  var wks=away/(-t.rate);
+  if(!isFinite(wks)||wks>26)return "";
+  var d=new Date(NOW);d.setDate(d.getDate()+Math.round(wks*7));
+  var when=d.toLocaleDateString(undefined,{month:"long",day:"numeric"});
+  return '<div class="anote" style="margin-top:10px">Next mark <b>'+next+' '+wLbl()+'</b>, on this trend around '+when+'.</div>';
+}
+function weightCardHTML(){
+  var st=weightStats(),t=trendState();
+  var head='<h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
+  if(!st)return '<div class="card">'+head+'<div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+S.profile.goalLb+'.</div></div>';
+  var title=(t.state==="down")?"Trending down":(t.state==="up")?"Trending up":(t.state==="flat")?"Holding steady":"Not enough weigh-ins yet";
+  var sub;
+  if(t.state==="thin")sub='Only '+st.recent+' weigh-in'+(st.recent===1?"":"s")+' in the last 28 days. Log a few more and this starts reading your real pace.';
+  else if(t.state==="stale")sub='Last weigh-in was '+st.ageDays+' days ago, so there is nothing current to read.';
+  else sub='Down '+rateWords(t.rate)+' over the last four weeks.';
+  if(t.state==="up")sub='Up '+rateWords(t.rate)+' over the last four weeks.';
+  if(t.state==="flat")sub='Level within the noise over the last four weeks.';
+  return '<div class="card">'+head+
+    '<div class="wtop"><div><div class="wbig num">'+st.cur.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wwhen">'+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
+    '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
+    trendChart()+
+    '<div class="wstate" data-s="'+t.state+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
+    milestoneLine(t)+'</div>';
+}
+function trendChart(){
+  var st=weightStats();if(!st||S.weigh.length<2)return "";
+  var t=trendState(),draw=(t.state==="down"||t.state==="up"||t.state==="flat");
+  var pts=S.weigh.slice(-24);
+  var a=0.12,ev=[],e=pts[0].w;pts.forEach(function(p,i){e=i===0?p.w:a*p.w+(1-a)*e;ev.push(e);});
+  var goal=st.goal,ws=pts.map(function(p){return p.w;});
+  var mn=Math.min.apply(null,ws.concat([goal]))-1.2,mx=Math.max.apply(null,ws)+1.2;
+  var W=320,H=112,pad=8;
+  function x(i){return pad+(pts.length<=1?W/2:(i/(pts.length-1))*(W-2*pad));}
+  function y(v){return pad+(1-(v-mn)/((mx-mn)||1))*(H-2*pad);}
+  var gy=y(goal).toFixed(1);
+  var dots=pts.map(function(p,i){return '<circle cx="'+x(i).toFixed(1)+'" cy="'+y(p.w).toFixed(1)+'" r="2" fill="var(--faint)" opacity=".55"/>';}).join("");
+  var line=draw?('<path d="'+ev.map(function(v,i){return (i?"L":"M")+x(i).toFixed(1)+" "+y(v).toFixed(1);}).join(" ")+'" fill="none" stroke="'+(t.state==="stale"?"var(--faint)":"var(--accent)")+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'):"";
+  var endDot=draw?('<circle cx="'+x(pts.length-1).toFixed(1)+'" cy="'+y(ev[ev.length-1]).toFixed(1)+'" r="3.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>'):"";
+  /* A projection is drawn as a widening dashed wedge and never as something mistakable for data. */
+  var wedge="";
+  if(draw&&t.rate&&t.rate<-0.05&&st.to>0.3){
+    var x0=x(pts.length-1),y0=y(ev[ev.length-1]),wk=(W-pad-x0)/((W-2*pad)/Math.max(pts.length-1,1))||4;
+    var slowY=y(Math.max(goal-0.5,ev[ev.length-1]+t.rate*0.6*4)),fastY=y(Math.max(goal-0.5,ev[ev.length-1]+t.rate*1.4*4));
+    wedge='<path d="M'+x0.toFixed(1)+' '+y0.toFixed(1)+' L'+(W-pad)+' '+fastY.toFixed(1)+' L'+(W-pad)+' '+slowY.toFixed(1)+' Z" fill="var(--accent)" opacity=".10"/>';
+  }
+  return '<div class="wchart"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Weight trend">'+
+    '<line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/>'+
+    wedge+dots+line+endDot+'</svg>'+
+    '<div class="wlegend"><span>goal '+goal+'</span><span>'+(draw?"trend, roughly two-week smoothing":S.weigh.length+" weigh-ins")+'</span></div></div>';
+}
 /* the cut, kept light: where you are, how fast it's coming off, one tap to log */
 function cutCardHTML(){
   var goal=S.profile.goalLb,st=weightStats();
-  if(!st)return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to set your pace to '+goal+'.</div></div>';
+  if(!st)return '<div class="card"><h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3><div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+goal+'.</div></div>';
   var head=(st.to>0.3?('<b>'+st.to.toFixed(1)+' '+wLbl()+'</b> to '+goal):'at '+goal);
   var plan=(st.to>0.3)?('Plan: ~'+st.tRate.toFixed(1)+' '+wLbl()+'/wk &rarr; ~'+st.wks+' wk to '+goal):'At goal - hold it here.';
   var actual=(st.rate!=null)?('Actual: '+(st.rate>=0?'+':'')+st.rate.toFixed(1)+' '+wLbl()+'/wk, last 28d'):(st.n<3?'Log a few more to read your actual pace.':'No recent weigh-ins - actual pace unknown.');
   var banner=st.stale?('<div class="anote" style="margin-top:6px;color:var(--accent);font-weight:600">Last weigh-in '+st.ageDays+' days ago. Log one to keep this real.</div>'):'';
-  return '<div class="card"><h3><span>Cut to '+goal+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
+  return '<div class="card"><h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>'+
     '<div style="display:flex;align-items:baseline;gap:10px;margin:2px 0 2px"><div class="num" style="font-size:22px;font-weight:800">'+st.cur.toFixed(1)+'<small style="font-size:13px;font-weight:600;color:var(--faint)"> '+wLbl()+'</small></div><div style="font-size:14px;font-weight:700;color:var(--accent)">'+head+'</div></div>'+
     '<div class="anote" style="margin-top:2px">'+plan+'</div>'+
     '<div class="anote" style="margin-top:2px;color:var(--faint)">'+actual+'</div>'+
@@ -752,7 +1162,10 @@ function setToday(w){
 /* ============ WORKOUT ============ */
 var woTimer=null;var openEx={};
 function AW(){return S.activeMode==="gen"?S.genWk:S.wk[TODAY];}
-function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();save();renderWorkout();show("workout");startWoTick();}
+/* CURV is the last real tab; remember it so closing or finishing a workout returns you where
+   you launched it from. Both paths used to hard-code Today, which stranded you off the Lift tab. */
+var RETV="today";
+function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};w.paused=false;w.start=Date.now();RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track")?CURV:"today";save();renderWorkout();show("workout");startWoTick();}
 function exComplete(o){return o.sets.length>0&&o.sets.every(function(s){return s.on;});}
 function elapsedSec(){var w=AW();if(!w)return 0;return Math.floor((w.accum||0)+((w.start&&!w.paused)?(Date.now()-w.start)/1000:0));}
 function startWoTick(){if(woTimer)clearInterval(woTimer);function t(){var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());}t();woTimer=setInterval(t,1000);updatePico();}
@@ -761,30 +1174,70 @@ function woFreeze(){var w=AW();if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w
 function woResume(){var w=AW();if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
 function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
 function startWorkout(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
-function closeWorkout(){woFreeze();endRest();show("today");}
+function closeWorkout(){woFreeze();endRest();show(RETV||"today");}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
     var wcell=o.bw?'<div class="bwtag">'+(e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
     var runit=o.unit==="s"?'<span class="u">s</span>':'';
     var rcell='<div class="stp"><button onclick="step('+oi+','+si+',\'reps\',-1)" aria-label="less reps">&minus;</button><input class="val num" inputmode="numeric" value="'+s.reps+'" aria-label="reps" onchange="setVal('+oi+','+si+',\'reps\',this.value)">'+runit+'<button onclick="step('+oi+','+si+',\'reps\',1)" aria-label="more reps">+</button></div>';
-    setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
+    /* Per-set clock. Start it when you begin the set, stop it when you rack; the elapsed
+       seconds are stored on the set itself, so time under tension survives the session. */
+    var running=(ST.oi===oi&&ST.si===si);
+    var held=s.sec||0;
+    var timeBtn=running
+      ? '<button class="tick sw run" onclick="stopSet('+oi+','+si+')" aria-label="stop set timer"><span class="swt num" id="swt-'+oi+'-'+si+'">'+mmss(setElapsed(s))+'</span></button>'
+      : '<button class="tick sw'+(held?" had":"")+'" onclick="startSet('+oi+','+si+')" aria-label="start set timer"><span class="swt num">'+(held?mmss(held):"Start")+'</span></button>';
+    setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+timeBtn+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
   });
   return '<div class="ex'+(isActive?" active":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div><div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
 function exDoneHTML(oi){var o=AW().order[oi],e=LIB[o.exId];var summ=o.sets.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ");
   return '<button class="exdone" onclick="openEx['+oi+']=true;renderWorkout()"><span class="edc">'+I.check+'</span><span class="edt"><span class="edn">'+esc(e.name)+'</span><span class="eds">'+summ+'</span></span><span class="ede">'+I.edit+'</span></button>';}
-function renderWorkout(){var w=AW();if(!w){show("today");return;}
+function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   var active=[],doneL=[];w.order.forEach(function(o,oi){if(exComplete(o)&&!openEx[oi])doneL.push(oi);else active.push(oi);});
   var h='<div class="warmcard"><b>Warm-up (3 min):</b> '+WARM+'</div>';
   active.forEach(function(oi,idx){h+=exCardHTML(oi,idx===0&&active.length>1);});
   if(doneL.length){h+='<div class="doneband">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
   h+='<div class="warmcard"><b>Cooldown (2-3 min):</b> '+COOL+'</div>';
+  h+=guidedHTML("recovery","Stretch it out","Optional, when you have the time for it.",3);
   document.getElementById("wo-body").innerHTML=h;}
 function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
   if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
   else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
   save();var el=document.getElementById("set-"+oi+"-"+si);if(el){var inp=el.querySelectorAll(".val");inp[0].value=s.w;inp[1].value=s.reps;}}
 function setVal(oi,si,f,v){var s=AW().order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
+/* Set stopwatch. ST holds which set is currently running; the tick only repaints one label,
+   so it never re-renders the card mid-set and steals your input focus. */
+var ST={oi:-1,si:-1,t0:0,int:null};
+function setElapsed(s){return (s.sec||0)+(ST.t0?Math.floor((Date.now()-ST.t0)/1000):0);}
+function startSet(oi,si){
+  if(ST.oi>=0)stopSet(ST.oi,ST.si,true);
+  ST.oi=oi;ST.si=si;ST.t0=Date.now();
+  if(ST.int)clearInterval(ST.int);
+  ST.int=setInterval(function(){
+    var w=AW();if(!w||ST.oi<0)return;
+    var el=document.getElementById("swt-"+ST.oi+"-"+ST.si);
+    if(!el){stopSet(ST.oi,ST.si,true);return;}
+    el.textContent=mmss(setElapsed(w.order[ST.oi].sets[ST.si]));
+  },1000);
+  endRest();renderWorkout();
+}
+function stopSet(oi,si,quiet){
+  var w=AW();if(!w)return;
+  if(ST.oi===oi&&ST.si===si&&ST.t0){
+    var s=w.order[oi].sets[si];
+    s.sec=(s.sec||0)+Math.floor((Date.now()-ST.t0)/1000);
+    save();
+  }
+  if(ST.int){clearInterval(ST.int);ST.int=null;}
+  ST={oi:-1,si:-1,t0:0,int:null};
+  if(!quiet){
+    /* Stopping a set is the natural moment to mark it done and start the rest clock. */
+    var st=w.order[oi].sets[si];
+    if(!st.on)toggleSet(oi,si);else renderWorkout();
+  }
+}
 function toggleSet(oi,si){var o=AW().order[oi],s=o.sets[si];
+  if(ST.oi===oi&&ST.si===si)stopSet(oi,si,true);
   s.on=!s.on;if(s.on)s.ts=Date.now();else delete s.ts;save();
   var last=(oi===AW().order.length-1&&si===o.sets.length-1);
   if(s.on&&!last){startRest(S.profile.rest||90);if(navigator.vibrate)navigator.vibrate(12);}
@@ -797,16 +1250,35 @@ function exMenu(oi){
   var o=AW().order[oi],e=LIB[o.exId];
   var m='<div class="grab"></div><h3>'+esc(e.name)+'</h3><div class="ssub">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>';
   m+=optRow(I.swap,"Swap exercise","Same movement, different lift","swapSheet("+oi+")");
-  m+=optRow(I.play,"Watch form","Opens a video search","openForm(\'"+e.q+"\')");
+  var fv=formVid(o.exId);
+  m+=fv?('<div class="vrow" style="grid-template-columns:1fr;margin:12px 0 4px">'+vidCardHTML(fv,true)+'</div>')
+       :optRow(I.play,"Watch form","Opens a video search","openForm(\'"+e.q+"\')");
   if(AW().order.length>1)m+=optRow(I.trash,"Remove from today","","removeEx("+oi+")",true);
   openSheet(m);
 }
+function formVid(id){for(var i=0;i<VID.length;i++){if(VID[i].c==="form"&&VID[i].ex===id)return VID[i];}return null;}
 function openForm(q){window.open(ytSearch(q),"_blank","noopener");closeSheet();}
+/* Swap already existed; what it lacked was any idea of what is in the room. Alternatives you can
+   actually do come first, the rest stay listed but marked, because "I do not have that" is a
+   different answer from "that does not exist" and hiding options would make the list a lie. */
+function exAvailable(id,eq){
+  var a=LIB[id];eq=eq||sessionEquip();
+  if(a.bw)return true;
+  if(a.equip==="band")return eq.indexOf("band")>=0;
+  if(a.equip==="bar")return eq.indexOf("bar")>=0;
+  if(a.equip==="DB"||a.equip==="dumbbell")return eq.indexOf("DB")>=0;
+  return true;
+}
 function swapSheet(oi){
-  var o=AW().order[oi],e=LIB[o.exId];
+  var o=AW().order[oi],e=LIB[o.exId],eq=sessionEquip();
   var alts=Object.keys(LIB).filter(function(id){return LIB[id].pattern===e.pattern&&id!==o.exId;});
-  var m='<div class="grab"></div><h3>Swap '+esc(e.name)+'</h3><div class="ssub">'+PATTERNS[e.pattern]+' alternatives</div>';
-  alts.forEach(function(id){var a=LIB[id];m+='<button class="opt" onclick="doSwap('+oi+',\''+id+'\')"><span class="oi">'+(a.equip==="band"?I.spark:a.bw?I.bolt:I.dumbbell)+'</span><span><div class="on2">'+esc(a.name)+'</div><div class="oc">'+a.equip+' &middot; '+a.diff+' &middot; '+esc(a.cue)+'</div></span><span class="oar">'+I.arrow+'</span></button>';});
+  var have=alts.filter(function(id){return exAvailable(id,eq);});
+  var lack=alts.filter(function(id){return !exAvailable(id,eq);});
+  function row(id,off){var a=LIB[id];
+    return '<button class="opt'+(off?" dim":"")+'" onclick="doSwap('+oi+',\''+id+'\')"><span class="oi">'+(a.equip==="band"?I.spark:a.bw?I.bolt:I.dumbbell)+'</span><span><div class="on2">'+esc(a.name)+'</div><div class="oc">'+a.equip+' &middot; '+a.diff+' &middot; '+esc(a.cue)+'</div></span><span class="oar">'+I.arrow+'</span></button>';}
+  var m='<div class="grab"></div><h3>Swap '+esc(e.name)+'</h3><div class="ssub">Same movement pattern. You have '+equipLabel(eq)+' today.</div>';
+  m+=have.map(function(id){return row(id,false);}).join("");
+  if(lack.length)m+='<div class="sectlbl" style="margin:14px 2px 6px">Needs kit you did not list</div>'+lack.map(function(id){return row(id,true);}).join("");
   openSheet(m);
 }
 function doSwap(oi,id){var o=AW().order[oi],e=LIB[id];
@@ -845,9 +1317,75 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
   S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;advanceCycle();if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
-  save();closeSheet();show("today");
+  save();closeSheet();show(RETV||"today");
   toast(prs.length?("New PR: "+prs[0]):("Logged - "+setsN+" sets, "+mmss(dur)+"."),null);}
+/* ============ ADAPTIVE COACH (Batch 4) ============
+   Progression already existed but only ever looked at the set you just finished. The coach adds
+   the two things that make a program adapt rather than merely increment: how hard the last few
+   sessions felt, and how long you have been away. Autoregulation is the standard traffic-light
+   model, green pushes, amber holds, red backs off, driven by logged session RPE rather than by
+   how you say you feel today. Deload is detected from accumulated load, not from the calendar,
+   because a light fortnight should not earn you a rest week. */
+function recentLiftRPE(n){
+  n=n||3;var out=[];
+  for(var i=S.sessions.length-1;i>=0&&out.length<n;i--){
+    var s=S.sessions[i];
+    if(s.type==="lift"&&typeof s.rpe==="number")out.push({rpe:s.rpe,date:s.id});
+  }
+  return out;
+}
+function daysSinceLift(){
+  var last=null;S.sessions.forEach(function(s){if(s.type==="lift"&&(!last||s.date>last))last=s.date;});
+  return last?daysBetween(last,TODAY):null;
+}
+/* green: push. amber: hold and repeat. red: back off a step. layoff: rebuild, no judgement. */
+function coachState(){
+  var gap=daysSinceLift(),rec=recentLiftRPE(3);
+  if(gap!=null&&gap>=14)return {k:"layoff",gap:gap,
+    t:"Back after "+gap+" days",d:"Loads are pulled back a step for the first session or two. This is a ramp, not a reset."};
+  if(!rec.length)return {k:"green",t:"Push",d:"Nothing logged yet, so the plan starts conservative and moves up as you finish sets."};
+  var avg=rec.reduce(function(a,x){return a+x.rpe;},0)/rec.length;
+  if(avg>=9)return {k:"red",avg:avg,t:"Back off",d:"Your last "+rec.length+" sessions averaged RPE "+avg.toFixed(1)+". Loads hold and volume drops until that comes down."};
+  if(avg>=8.2)return {k:"amber",avg:avg,t:"Hold",d:"Averaging RPE "+avg.toFixed(1)+". Repeat these loads and earn the jump rather than forcing it."};
+  return {k:"green",avg:avg,t:"Push",d:"Averaging RPE "+avg.toFixed(1)+", which is room to add. Take the top of the rep range, then add load."};
+}
+/* Accumulated load over four weeks decides the deload, so a quiet stretch does not trigger one. */
+function deloadState(){
+  var by=volumeByWeek(),ks=Object.keys(by).sort().slice(-4);
+  if(ks.length<4)return {due:false,weeks:ks.length};
+  var vals=ks.map(function(k){return by[k];});
+  var loaded=vals.filter(function(v){return v>0;}).length;
+  var rising=vals[3]>=vals[0]&&vals[0]>0;
+  var last=S.profile.lastDeload?daysBetween(S.profile.lastDeload,TODAY):999;
+  return {due:(loaded>=4&&rising&&last>=21),weeks:loaded,since:last};
+}
+function startDeload(){
+  S.profile.lastDeload=TODAY;
+  if(S.wk[TODAY]&&!S.wk[TODAY].start)delete S.wk[TODAY];
+  save();closeSheet();refreshCurrent();
+  toast("Deload week set. Two thirds of the volume, same movements.",null);
+}
+function deloading(){var d=S.profile.lastDeload;return d?daysBetween(d,TODAY)<7:false;}
+function coachCardHTML(){
+  var c=coachState(),dl=deloadState();
+  var h='<div class="card coach" data-k="'+c.k+'"><h3><span>The coach</span><span class="t">reads what you logged</span></h3>'+
+    '<div class="crow"><span class="cdot"></span><span class="ct">'+c.t+'</span></div>'+
+    '<div class="cd">'+c.d+'</div>';
+  if(deloading())h+='<div class="anote" style="margin-top:10px">Deload week in progress. Volume is cut to about two thirds; keep the loads and cut the sets.</div>';
+  else if(dl.due)h+='<div class="anote" style="margin-top:10px">Four straight weeks of rising volume. A deload week now protects the next block.</div>'+
+    '<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>';
+  return h+'</div>';
+}
 function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.high,weight:o.weight};
+  /* Autoregulation gates the increase: the same finished sets progress differently depending on
+     how the recent block has actually felt. */
+  var cs=coachState();
+  if(cs.k==="red"||cs.k==="layoff"){
+    t.low=o.low;t.high=o.high;
+    t.weight=(o.bw||!S.profile.adjustable)?o.weight:Math.max(0,(parseFloat(o.weight)||0)-inc());
+    t.ladderStep=(o.bw||!S.profile.adjustable)?"reps":"load";S.progress[o.exId]=t;return;
+  }
+  if(cs.k==="amber"){t.low=o.low;t.high=o.high;t.weight=o.weight;t.ladderStep="hold";S.progress[o.exId]=t;return;}
   var allHigh=sets.length>0&&sets.every(function(s){return (s.reps||0)>=o.high;});
   var repMode=(o.bw||!S.profile.adjustable);
   if(allHigh){if(repMode){if(o.high<20){t.low=o.high;t.high=o.high+2;}else{t.note="graduate";}t.weight=o.weight;}else{t.weight=(parseFloat(o.weight)||0)+inc();t.low=8;t.high=12;}}
@@ -898,10 +1436,61 @@ function saveRun(){var d=parseFloat((document.getElementById("r-dist")||{}).valu
   if(hot)toast("Logged. Keep easy runs easy - that protects your lifting.",null);
   renderRun();
 }
-function weighSheet(){openSheet('<div class="grab"></div><h3>Weigh-in</h3><div class="ssub">Morning scale. One number.</div>'+
-  '<div class="logrow"><label>Weight</label><div class="inp"><input id="w-val" inputmode="decimal" placeholder="0" aria-label="weight"><span class="u">'+wLbl()+'</span></div></div>'+
-  '<button class="sheet-cta" onclick="saveWeigh()">Save</button>');}
-function saveWeigh(){var v=parseFloat((document.getElementById("w-val")||{}).value);if(v>0){S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});S.weigh.push({date:TODAY,w:v});S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});save();}closeSheet();renderToday();}
+/* B2 - frictionless weigh-in. Opens pre-filled with your last number, so the common
+   case (a pound either side of yesterday) is two taps and Save, never typing. */
+function wStep(){return 0.1;} /* was 0.2 in lb, which could not match the scale exactly */
+function lastW(){return S.weigh.length?S.weigh[S.weigh.length-1].w:null;}
+function weighSheet(){
+  var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
+  var age=lw!=null?daysBetween(S.weigh[S.weigh.length-1].date,TODAY):null;
+  var sub=(lw!=null)?('Last was <b>'+lw.toFixed(1)+' '+wLbl()+'</b>'+(age===0?' earlier today':age===1?' yesterday':age!=null?', '+age+' days ago':'')+'. Nudge and save.'):'Morning scale. One number.';
+  openSheet('<div class="grab"></div><h3>Weigh-in</h3><div class="ssub">'+sub+'</div>'+
+    '<div class="wdial"><button class="wdb" onclick="nudgeW(-1)" aria-label="lower">&minus;</button>'+
+    '<input class="wbig num" id="w-val" inputmode="decimal" value="'+start.toFixed(1)+'" aria-label="weight" oninput="wDelta()">'+
+    '<button class="wdb" onclick="nudgeW(1)" aria-label="higher">+</button></div>'+
+    '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
+    (lw!=null?'<button class="sheet-cta ghost" onclick="quickWeigh('+lw+')">Same as last &middot; '+lw.toFixed(1)+'</button>':'')+
+    '<button class="sheet-cta" onclick="saveWeigh()">Save</button>');
+  wDelta();
+}
+function nudgeW(d){var el=document.getElementById("w-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);wDelta();}
+function wDelta(){
+  var el=document.getElementById("w-val"),out=document.getElementById("w-delta"),lw=lastW();
+  if(!el||!out)return;
+  var v=parseFloat(el.value);
+  if(lw==null||!(v>0)||Math.abs(v-lw)<0.05){out.innerHTML="";return;}
+  var d=v-lw;out.innerHTML=' &middot; <b style="color:'+(d<0?"var(--good)":"var(--sub)")+'">'+(d>0?"+":"")+d.toFixed(1)+'</b> vs last';
+}
+function quickWeigh(v){writeWeigh(v);}
+function saveWeigh(){writeWeigh(parseFloat((document.getElementById("w-val")||{}).value));}
+function writeWeigh(v){
+  if(v>0){
+    S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});
+    S.weigh.push({date:TODAY,w:v});
+    S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+    save();
+  }
+  closeSheet();refreshCurrent();
+  if(v>0)toast("Logged "+v.toFixed(1)+" "+wLbl()+".",null);
+}
+/* B4/B5 - protein consistency is a yes/no you tap, never a macro you re-enter.
+   Cal AI owns the counting; this only records whether you hit the target. */
+function proteinTarget(){
+  var lw=lastW();if(lw==null)return null;
+  var kg=(U()==="kg")?lw:lw*0.453592;
+  return {lo:Math.round(kg*1.6),hi:Math.round(kg*2.2)};
+}
+function toggleProtein(k){k=k||TODAY;if(S.protein[k])delete S.protein[k];else S.protein[k]=true;save();refreshCurrent();}
+function proteinStreak(n){
+  n=n||7;var hit=0;var d=new Date(NOW);
+  for(var i=0;i<n;i++){if(S.protein[keyOf(d)])hit++;d.setDate(d.getDate()-1);}
+  return hit;
+}
+function daysMoved(n){
+  n=n||7;var m=0;var d=new Date(NOW);
+  for(var i=0;i<n;i++){if(isDone(keyOf(d)))m++;d.setDate(d.getDate()-1);}
+  return m;
+}
 
 /* ============ WEEK ============ */
 function weekHTML(withRing){
@@ -922,22 +1511,99 @@ function weekHTML(withRing){
     '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>'+monthCal();
 }
 /* ============ LIFT (strength hub: today + plan + build + library) ============ */
+/* ============ LIFT: THE PROGRAM AND THE MOVEMENTS (Round D) ============
+   Today answers "what now". Lift answers "what am I running, and is it getting heavier", which is
+   the question nothing in the app used to answer. Two halves: the A/B/C rotation as a system you
+   can see and edit, and every movement with its working weight, its last result, its trend and its
+   next-time call. The old Lift top card duplicated Today's hero and is gone. */
+function cycleHTML(){
+  var next=letterFor();
+  var rows=LETTERS.map(function(L){
+    var tpl=DAYS[L],isNext=(L===next);
+    var last=null;
+    for(var i=S.sessions.length-1;i>=0;i--){var s=S.sessions[i];if(s.type==="lift"&&s.dayLetter===L){last=s;break;}}
+    var when=last?("last "+shortDate(last.date)):"not yet run";
+    return '<div class="prow'+(isNext?" next":"")+'"><div class="pl">'+L+'</div>'+
+      '<div class="pm"><div class="pn">'+esc(tpl.name)+'</div>'+
+      '<div class="pd">'+tpl.slots.length+' movements &middot; '+when+'</div></div>'+
+      (isNext?'<span class="ptag">Next</span>':'')+'</div>';
+  }).join("");
+  var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
+  return '<div class="card"><h3><span>The program</span><span class="t">three days, on rotation</span></h3>'+
+    '<div class="ksub">You run A, then B, then C, then round again. The next one is whatever you have not done, not whatever day of the week it is.</div>'+
+    rows+
+    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>';
+}
+/* Per-movement state: what you lift now, what happened last time, and what to do next. */
+function movementRows(){
+  var ids=Object.keys(LIB).filter(function(id){return lastEntry(id)||S.progress[id];});
+  if(!ids.length)return '<div class="card"><h3><span>Your movements</span></h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a session and every movement you trained shows up here with its working weight and its history.</div></div>';
+  ids.sort(function(a,b){var la=lastEntry(a),lb=lastEntry(b);return (lb?lb.date:"")<(la?la.date:"")?-1:1;});
+  var rows=ids.slice(0,14).map(function(id){
+    var e=LIB[id],le=lastEntry(id),t=S.progress[id]||{},pr=prFor(id);
+    var best=null;
+    if(le)le.e.sets.forEach(function(s){if(!s.completed)return;var w=s.weightLb||0,r=s.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
+    var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
+    var lastTxt=le&&best?(shortDate(le.date)+": "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"no completed sets yet";
+    return '<button class="mrow" onclick="movementSheet(\''+id+'\')">'+
+      '<span class="mi">'+(e.bw?I.bolt:I.dumbbell)+'</span>'+
+      '<span class="mm"><span class="mn">'+esc(e.name)+'</span><span class="md">'+lastTxt+'</span></span>'+
+      '<span class="mv"><span class="mw num">'+now+'</span>'+(pr?'<span class="mp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+'</span></button>';
+  }).join("");
+  return '<div class="card"><h3><span>Your movements</span><span class="t">working weight and last result</span></h3>'+
+    '<div class="ksub">Tap any movement for its history, its record, and how to do it.</div>'+rows+'</div>';
+}
+function movementSheet(id){
+  var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
+  var hist=[];
+  S.sessions.forEach(function(s){if(s.type!=="lift")return;s.entries.forEach(function(en){if(en.exerciseId!==id)return;
+    var best=null;en.sets.forEach(function(st){if(!st.completed)return;var w=st.weightLb||0,r=st.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
+    if(best)hist.push({date:s.id,w:best.w,r:best.r});});});
+  var spark="";
+  if(hist.length>=3){
+    var vs=hist.map(function(x){return e.bw?x.r:e1rm(x.w,x.r);});
+    var mn=Math.min.apply(null,vs),mx=Math.max.apply(null,vs),W=280,H=42;
+    var d=vs.map(function(v,i){var x=(i/(vs.length-1))*W,y=H-4-((v-mn)/((mx-mn)||1))*(H-10);return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ");
+    spark='<svg class="msp" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  var vid=formVid(id);
+  var next=e.bw?("Aim for "+((t.high||12))+" clean reps, then make it harder rather than longer.")
+               :("Hit "+(t.high||12)+" reps on every set, then put the weight up by "+inc()+wLbl()+".");
+  openSheet('<div class="grab"></div><h3>'+esc(e.name)+'</h3>'+
+    '<div class="ssub">'+PATTERNS[e.pattern]+' &middot; '+e.diff+'</div>'+
+    '<div class="msum"><div class="ms"><b class="num">'+(e.bw?((t.low||8)+"-"+(t.high||12)):((t.weight!=null?t.weight:15)+wLbl()))+'</b><span>'+(e.bw?"rep range":"working weight")+'</span></div>'+
+    '<div class="ms"><b class="num">'+(pr?(e.bw?"x"+pr.r:pr.w+wLbl()):"--")+'</b><span>best set</span></div>'+
+    '<div class="ms"><b class="num">'+hist.length+'</b><span>times trained</span></div></div>'+
+    spark+
+    '<div class="anote" style="margin-top:12px">'+next+'</div>'+
+    (vid?'<div class="vrow" style="grid-template-columns:1fr;margin-top:14px">'+vidCardHTML(vid,true)+'</div>':
+         '<a class="sheet-cta ghost" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener">Watch the form on YouTube</a>')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+}
 function renderLift(){
   refreshDate();
   var plan=todayPlan(),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
-  var h='<div class="head"><div><div class="date">Strength</div><div class="title">Lift</div></div></div>';
+  var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
+  var h='<div class="head"><div><div class="date">Day '+(L==="Gen"?"custom":L)+' next &middot; '+equipLabel(sessionEquip())+'</div><div class="title">Lift</div></div></div>';
   if(plan.type==="lift"){
-    var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor()),nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
-    h+='<div class="card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px">'+
-      '<div><div class="lbl">Today &middot; '+(L==="Gen"?"Custom":("Day "+L))+'</div><div style="font-weight:800;font-size:18px;margin:2px 0">'+nm+'</div>'+
-      '<div class="anote">'+nex+' exercises &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+(easingIn()?" &middot; ease-in":"")+'</div></div>'+
-      (liftDone?'<span class="done-pill">'+I.check+' Done</span>':'<button class="wbtn accent" onclick="startWorkout()">'+I.play+(resuming?"Resume":"Start")+'</button>')+'</div></div>';
+    var nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
+    h+='<div class="hero"><div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+nm+'</h2>'+
+      '<div class="meta"><b>'+nex+' movements</b> &middot; '+equipLabel(sessionEquip())+(easingIn()?' &middot; <b>ease-in</b>':'')+'</div>'+
+      (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
+        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
+      '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div></div>';
   }else{
-    h+='<div class="card"><div class="lbl">Today</div><div style="font-weight:800;font-size:18px;margin:2px 0">'+(plan.type==="run"?"Run day":"Recovery day")+'</div><div class="anote">No lift scheduled. Build one, or start any day from the week below.</div></div>';
+    h+='<div class="hero"><div class="lbl">Today</div><h2>'+(plan.type==="run"?"Run day":"Recovery day")+'</h2>'+
+      '<div class="meta">No lift scheduled. Day '+L+' is next when you want it.</div>'+
+      '<button class="big-start" onclick="startWorkout()">'+I.play+' Lift anyway &middot; Day '+L+'</button>'+
+      '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div></div>';
   }
-  h+='<div style="display:flex;gap:8px;margin:2px 0 4px"><button class="wbtn" style="flex:1" onclick="show(\'generate\')">'+I.bolt+'Build custom</button><button class="wbtn" style="flex:1" onclick="setMode(trainMode()===\'db\'?\'bw\':\'db\')">'+(trainMode()==="db"?"Dumbbell":"Bodyweight")+' mode</button></div>';
+  h+=coachCardHTML();
+  h+=cycleHTML();
+  h+=patternVolumeHTML();
+  h+=movementRows();
   h+=weekHTML(false);
-  h+='<div class="sectlbl" style="margin:16px 2px 6px">Library &amp; follow-alongs</div>'+libraryHTML("lift");
+  h+=libraryHTML("lift");
   document.getElementById("v-lift").innerHTML=h;
 }
 function dayDetail(k){
@@ -957,35 +1623,292 @@ function deleteDay(k){S.sessions=S.sessions.filter(function(s){return s.id!==k;}
 
 /* ============ TRACK (body, trends, PRs, settings) ============ */
 function renderTrack(){
-  var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div></div>';
-  h+=cutCardHTML()+progressHTML();
+  var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div>'+
+    '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
+    '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
+  h+=weightCardHTML()+scorecardHTML()+freshnessHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
   h+='<div class="sectlbl" style="margin:16px 2px 8px">Setup &amp; backend</div>';
   h+='<button class="sheet-cta ghost" onclick="weighSheet()">Log a weigh-in</button>';
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings</button>';
   document.getElementById("v-track").innerHTML=h;
 }
+/* ============ KPI SCORECARD (Round B) ============
+   Six measures, scored against a stated target, weekly bullet rows plus a 12-week strip so
+   "how am I doing" and "is this week normal for me" answer at once with no period toggle.
+   Geometry from Stephen Few's bullet-graph spec: bands are one hue at different intensities,
+   the value bar is about a third of the track, the target is a perpendicular line behind it.
+   Hue is never the only channel: every row also carries an uppercase status word.
+   Thresholds are numeric and printed, so amber means a stated tolerance and not a mood. */
+function mondayOfKey(k){var p=k.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);d.setDate(d.getDate()-((d.getDay()+6)%7));return keyOf(d);}
+function weekStartKey(back){var d=new Date(NOW);d.setDate(d.getDate()-((DOW+6)%7)-7*(back||0));return keyOf(d);}
+function weekDays(back){var s=weekStartKey(back),p=s.split("-"),out=[];var d=new Date(+p[0],+p[1]-1,+p[2]);
+  for(var i=0;i<7;i++){out.push(keyOf(d));d.setDate(d.getDate()+1);}return out;}
+function plannedMiles(){var mi=0;weekDays(0).forEach(function(k){var pl=planFor(k);if(pl&&pl.type==="run")mi+=(pl.dist||0);});return mi||5;}
+/* One week's raw numbers. back=0 is this week. */
+function weekMetrics(back){
+  var days=weekDays(back),today=TODAY,m={lifts:0,protein:0,moved:0,miles:0,anchor:0,days:0};
+  days.forEach(function(k){
+    if(k>today)return;
+    m.days++;
+    if(S.sessions.some(function(s){return s.date===k&&s.type==="lift";}))m.lifts++;
+    if(S.protein[k])m.protein++;
+    if(isDone(k))m.moved++;
+    if(anchorComplete(k))m.anchor++;
+    S.sessions.forEach(function(s){if(s.date===k&&(s.type==="run"||s.distanceMi))m.miles+=(s.distanceMi||0);});
+  });
+  return m;
+}
+/* Green at or above target, amber inside a stated tolerance below it, red outside. */
+function rag(val,target,tol){
+  if(target<=0)return "good";
+  if(val>=target-0.001)return "good";
+  if(val>=target*(1-(tol==null?0.3:tol)))return "amber";
+  return "red";
+}
+function kpiRows(){
+  var m=weekMetrics(0),miTarget=plannedMiles(),st=weightStats();
+  var rows=[
+    {k:"lifts",label:"Strength sessions",val:m.lifts,target:3,unit:"",fmt:function(v){return v;},
+     tag:{good:"On track",amber:"One short",red:"Behind"},act:"show('lift')"},
+    {k:"moved",label:"Days moved",val:m.moved,target:6,unit:"/ 7",fmt:function(v){return v;},
+     tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('today')"},
+    {k:"protein",label:"Protein days",val:m.protein,target:6,unit:"/ 7",fmt:function(v){return v;},
+     tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('track')"},
+    {k:"miles",label:"Miles run",val:Math.round(m.miles*10)/10,target:miTarget,unit:"mi",fmt:function(v){return v.toFixed(1);},
+     tag:{good:"On track",amber:"Short",red:"Behind"},act:"show('cardio')"},
+    {k:"anchor",label:"Morning anchor",val:m.anchor,target:6,unit:"/ 7",fmt:function(v){return v;},
+     tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('today')"}
+  ];
+  /* Score against the PRO-RATED target, not the full week's. On a Tuesday, one session out of a
+     weekly three is ahead of pace, and a scorecard that calls that "behind" every Monday and
+     Tuesday trains you to ignore it. The bullet still draws the full-week target so the whole
+     ask stays visible; the lighter tick is where you should be today. */
+  var elapsed=Math.max(m.days,1);
+  rows.forEach(function(r){
+    r.pace=r.target*(elapsed/7);
+    r.rag=rag(r.val,r.pace,0.3);
+    r.status=r.tag[r.rag];
+    if(r.rag==="good"&&r.val>=r.target)r.status="Done for the week";
+  });
+  /* Weight is an OUTCOME, not execution, so it is scored on direction rather than on a count
+     and it stays silent until there is enough data to say anything true. */
+  var w={k:"weight",label:"Weight trend",outcome:true,act:"weighSheet()"};
+  if(!st||st.rate==null){w.rag="none";w.status=st?"No recent data":"Not logged";w.val=null;}
+  else if(st.rate<=-0.25){w.rag="good";w.status="Coming off";w.val=st.rate;}
+  else if(st.rate<0.15){w.rag="amber";w.status="Holding";w.val=st.rate;}
+  else {w.rag="red";w.status="Climbing";w.val=st.rate;}
+  rows.push(w);
+  return rows;
+}
+function bulletSVG(val,target,pace){
+  /* Everything is expressed as a percentage of target, so preserveAspectRatio="none" lets the
+     row stretch to any width with no resize maths. Bar height 5 of 14 is Few's one-third rule. */
+  var pct=target>0?Math.min(140,(val/target)*100):0;
+  var tx=100/1.4; /* target sits at 100% of target on a 0-140% scale */
+  var vx=pct/1.4;
+  var px=(pace!=null&&target>0)?Math.min(100,(pace/target)*100/1.4):null;
+  var paceTick=(px!=null&&px>1&&px<tx-1)?'<rect x="'+(px-0.4).toFixed(1)+'" y="3" width="0.8" height="8" fill="var(--ink)" opacity=".28"/>':"";
+  return '<svg class="bullet" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">'+
+    '<rect x="0" y="0" width="'+(tx*0.7).toFixed(1)+'" height="14" fill="var(--line-2)"/>'+
+    '<rect x="'+(tx*0.7).toFixed(1)+'" y="0" width="'+(tx*0.3).toFixed(1)+'" height="14" fill="var(--line)"/>'+
+    '<rect x="'+tx.toFixed(1)+'" y="0" width="'+(100-tx).toFixed(1)+'" height="14" fill="var(--surface-2)"/>'+
+    '<rect class="val" x="0" y="4.5" width="'+vx.toFixed(1)+'" height="5" rx="0.5"/>'+
+    paceTick+'<rect x="'+(tx-0.6).toFixed(1)+'" y="1.5" width="1.2" height="11" fill="var(--ink)" opacity=".5"/></svg>';
+}
+/* Twelve weeks, quantized to five levels. Reads as a week per block and a quarter as a whole. */
+function kpiStrip(k){
+  var blocks="";
+  for(var i=11;i>=0;i--){
+    var m=weekMetrics(i),v,t;
+    if(k==="lifts"){v=m.lifts;t=3;} else if(k==="moved"){v=m.moved;t=6;}
+    else if(k==="protein"){v=m.protein;t=6;} else if(k==="anchor"){v=m.anchor;t=6;}
+    else if(k==="miles"){v=m.miles;t=plannedMiles();} else {v=0;t=1;}
+    var r=t>0?v/t:0,lvl=(m.days===0)?0:(r>=1?4:r>=0.7?3:r>=0.4?2:r>0?1:0);
+    blocks+='<i data-l="'+lvl+'"></i>';
+  }
+  return '<div class="kstrip" aria-hidden="true">'+blocks+'</div>';
+}
+function scorecardHTML(){
+  var rows=kpiRows(),h="";
+  rows.forEach(function(r){
+    var right;
+    if(r.outcome){
+      right=(r.val==null)?'<span class="kv num">--</span>':'<span class="kv num">'+(r.val>0?"+":"")+r.val.toFixed(1)+'<small> lb/wk</small></span>';
+    }else{
+      right='<span class="kv num">'+r.fmt(r.val)+'<small> '+(r.unit||("of "+r.target))+'</small></span>';
+    }
+    h+='<button class="kpi" data-rag="'+r.rag+'" onclick="'+r.act+'">'+
+       '<span class="krow"><span class="kl">'+r.label+'</span>'+right+'</span>'+
+       (r.outcome?'':bulletSVG(r.val,r.target,r.pace))+
+       '<span class="kfoot"><span class="ktag">'+r.status+'</span>'+
+       (r.outcome?'<span class="khint">measured, not projected</span>':'<span class="khint">'+(r.val>=r.target?'week target met':'target '+(r.k==="miles"?r.target.toFixed(1)+' mi':r.target)+' by Sunday')+'</span>')+'</span>'+
+       (r.outcome?'':kpiStrip(r.k))+'</button>';
+  });
+  var m=weekMetrics(0),green=kpiRows().filter(function(r){return r.rag==="good";}).length;
+  return '<div class="card"><h3><span>This week</span><span class="t">'+green+' of 6 green</span></h3>'+
+    '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div></div>';
+}
+/* Every measure on this tab is only as good as its last input, so the inputs get their own row
+   rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
+function freshness(){
+  var out=[],st=weightStats();
+  out.push({n:"Weigh-ins",age:st?st.ageDays:null,warn:8,bad:21,fix:"weighSheet()",
+            hint:st?(st.recent+" in the last 28 days"):"none logged"});
+  var nk=Object.keys(S.nutrition||{}).sort(),lastN=nk.length?nk[nk.length-1]:null;
+  out.push({n:"Nutrition",age:lastN?daysBetween(lastN,TODAY):null,warn:8,bad:16,fix:"calaiSheet()",
+            hint:nk.length?(nk.length+" days imported"):"never imported"});
+  var ls=null;S.sessions.forEach(function(x){if(!ls||x.date>ls)ls=x.date;});
+  out.push({n:"Sessions",age:ls?daysBetween(ls,TODAY):null,warn:4,bad:10,fix:"show('today')",
+            hint:S.sessions.length+" logged"});
+  var sk=Object.keys(S.steps||{}).sort(),lastS=sk.length?sk[sk.length-1]:null;
+  out.push({n:"Steps",age:lastS?daysBetween(lastS,TODAY):null,warn:4,bad:10,fix:"healthSheet()",
+            hint:sk.length?(sk.length+" days imported"):"needs an Apple Health export",pending:!sk.length});
+  return out;
+}
+function freshnessHTML(){
+  var rows=freshness().map(function(f){
+    var rag,txt;
+    if(f.pending){rag="none";txt="not connected";}
+    else if(f.age==null){rag="red";txt="never";}
+    else if(f.age>=f.bad){rag="red";txt=f.age+" days old";}
+    else if(f.age>=f.warn){rag="amber";txt=f.age+" days old";}
+    else {rag="good";txt=(f.age===0?"today":f.age===1?"yesterday":f.age+" days ago");}
+    return '<button class="frow" data-rag="'+rag+'" onclick="'+f.fix+'">'+
+      '<span class="fd"></span><span class="fn">'+f.n+'</span>'+
+      '<span class="fh">'+f.hint+'</span><span class="ft">'+txt+'</span></button>';
+  }).join("");
+  return '<div class="card"><h3><span>Where the numbers come from</span></h3>'+
+    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows+'</div>';
+}
+/* S.nutrition has been write-only since the Cal AI import shipped: every paste stored calories
+   and nothing ever displayed them. Protein already drives a scorecard row, so calories get the
+   trend treatment instead, read against maintenance implied by bodyweight. */
+function calSeries(days){
+  days=days||14;var out=[],dt=new Date(NOW);dt.setDate(dt.getDate()-days+1);
+  for(var i=0;i<days;i++){var k=keyOf(dt),n=(S.nutrition||{})[k];
+    out.push({date:k,c:n?(n.c||0):0,p:n?(n.p||0):0});dt.setDate(dt.getDate()+1);}
+  return out;
+}
+function maintenanceCals(){var w=lastW();return w?Math.round(w*14):null;}
+function calCardHTML(){
+  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
+  if(!logged.length)return "";
+  var avg=Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length);
+  var maint=maintenanceCals(),gap=maint?(maint-avg):null;
+  var vals=days.map(function(d){return d.c;});
+  var labels=days.map(function(d,i){return (i===days.length-1)?"now":"";});
+  var head=(gap==null)?"":(gap>150?("About "+gap+" under maintenance, which is roughly "+(Math.round(gap*7/3500*10)/10)+" lb a week."):
+            gap<-150?("About "+Math.abs(gap)+" over maintenance."):"Right around maintenance.");
+  return barChart("Calories","last 14 days, "+logged.length+" logged",vals,labels,function(v){return Math.round(v/100)/10+"k";},"")+
+    (head?'<div class="card" style="margin-top:-6px"><div class="ksub" style="margin:0">Averaging <b>'+avg.toLocaleString()+'</b> a day against an estimated maintenance of <b>'+maint.toLocaleString()+'</b>. '+head+'</div></div>':"");
+}
+/* B5 - the body hero. Latest ACTUAL weight leads (never the lagging EWMA);
+   the smoothed trend sits beside it as context, labelled as what it is. */
+function bodyHeroHTML(){
+  var st=weightStats();
+  if(!st)return '<div class="bhero"><div class="lbl">Bodyweight</div><div class="bnum" style="color:var(--faint)">--</div>'+
+    '<div class="anote" style="margin-top:10px">No weigh-in yet. One number gets the whole dashboard running.</div>'+
+    '<button class="big-start" onclick="weighSheet()" style="margin-top:12px">Log your first weigh-in</button></div>';
+  var when=st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago";
+  return '<div class="bhero"><div class="lbl">Bodyweight &middot; '+when+'</div>'+
+    '<div class="brow"><div class="bnum">'+st.cur.toFixed(1)+'<small>'+wLbl()+'</small></div>'+
+    '<div class="bside">'+(st.to>0.3?'<b>'+st.to.toFixed(1)+'</b> to '+st.goal:'<b>at goal</b>')+
+    trendLine()+'</div></div>'+
+    (st.stale?'<div class="anote" style="color:var(--accent);font-weight:600">'+st.ageDays+' days since your last weigh-in. Everything below is only as honest as that number.</div>':'')+
+    '</div>';
+}
+/* No EWMA in the hero, on purpose. The smoothing constant assumes near-daily weigh-ins;
+   against a real record of five readings across seven months it sits ~6 lb above the
+   actual scale number, and even a fresh burst stays anchored to the oldest point. That is
+   the v3.8 dual-weight bug wearing a different hat. The change since the previous weigh-in
+   is smaller, duller, and always true, so that is what ships. */
+function trendLine(){
+  if(S.weigh.length<2)return "";
+  var last=S.weigh[S.weigh.length-1],prev=S.weigh[S.weigh.length-2];
+  var d=last.w-prev.w,gap=daysBetween(prev.date,last.date);
+  var span=gap<=1?"the one before":gap+" days earlier";
+  return '<br>'+(Math.abs(d)<0.05?'level with ':((d>0?'+':'')+d.toFixed(1)+' vs '))+span;
+}
+/* Steps only exist once an Apple Health export lands. Until then the tile invites the import
+   rather than showing a permanent blank; a metric that can never fill is worse than one absent. */
+function stepsAvg(days){
+  days=days||7;var t=0,n=0,dt=new Date(NOW);dt.setDate(dt.getDate()-days+1);
+  for(var i=0;i<days;i++){var v=(S.steps||{})[keyOf(dt)];if(v){t+=v;n++;}dt.setDate(dt.getDate()+1);}
+  return n?{avg:Math.round(t/n),days:n}:null;
+}
+function stepsTileHTML(){
+  var st=stepsAvg(7);
+  if(!st)return '<button class="stat pend" onclick="healthSheet()" style="text-align:left"><div class="sl">Steps</div><div class="sv num" style="font-size:15px">Connect</div><div class="st flat">import from Apple Health</div></button>';
+  var rag=(st.avg>=8000)?"":" flat";
+  return '<div class="stat"><div class="sl">Steps</div><div class="sv num">'+(st.avg/1000).toFixed(1)+' <small>k avg</small></div><div class="st'+rag+'">'+(st.avg>=8000?"above the 8k floor":"under the 8k floor")+'</div></div>';
+}
+/* B5 - tiles. Live metrics render live; metrics that need the Apple Health pipe
+   render greyed and say so. Nothing here is invented. */
+function bodyTilesHTML(){
+  var pt=proteinTarget(),ph=proteinStreak(7),mv=daysMoved(7),streak=computeStreak();
+  var ptxt=pt?(pt.lo+"-"+pt.hi+" g"):"log a weigh-in";
+  /* Days moved and protein already have scorecard rows directly above, measured over the calendar
+     week. Repeating them here on a rolling-7 window put two different true numbers for the same
+     thing side by side, which reads as a bug. Only the streak and the pending Steps pipe remain. */
+  var h='<div class="stattiles">'+
+    stat("Streak",streak,streak===1?"day":"days","consecutive days moved","flat")+
+    stepsTileHTML()+
+    '</div>';
+  var on=!!S.protein[TODAY];
+  h+='<div class="card"><h3><span>Fuel</span><span class="t">Cal AI counts it, you confirm it</span></h3>'+
+    '<button class="ptog'+(on?" on":"")+'" onclick="toggleProtein()" aria-pressed="'+on+'"><span class="pc">'+I.check+'</span>'+
+    '<span><div class="pt">'+(on?"Protein hit today":"Hit your protein today?")+'</div>'+
+    '<div class="ps">'+(pt?("Aim "+pt.lo+"-"+pt.hi+" g. One tap, no macros to re-enter."):"Log a weigh-in to set your target.")+'</div></span></button>'+
+    '<button class="sheet-cta ghost" style="margin-top:10px" onclick="calaiSheet()">Paste a week from Cal AI</button>'+
+    '</div>';
+  return h;
+}
+/* B4 - recomp guidance. Rules from the deep-research file, computed against
+   the real number on the scale rather than stated in the abstract. */
+function recompHTML(){
+  var st=weightStats(),pt=proteinTarget();
+  if(!st)return "";
+  var lo=(st.cur*0.005),hi=(st.cur*0.01);
+  var rows=[
+    [I.bolt,"Protein is the lever",pt?("<b>"+pt.lo+"-"+pt.hi+" g a day</b> (1.6-2.2 g/kg). In a deficit this is what decides whether the weight you lose is fat or muscle."):"Log a weigh-in and this sets itself."],
+    [I.run,"Lose it slowly on purpose","<b>"+lo.toFixed(1)+"-"+hi.toFixed(1)+" "+wLbl()+" a week</b> (0.5-1% of bodyweight). Faster than that and you start spending muscle, then the scale wins and the mirror does not."],
+    [I.dumbbell,"Lifting is not for the deficit","It is the signal that tells your body to keep the muscle while the deficit takes the fat. Two sessions a week is the floor, three is the plan you are on."],
+    [I.rest,"Steps are the quiet half","A <b>~8,000-step floor</b> moves more weekly energy than any single workout does, and it costs you no recovery."]
+  ];
+  var body="";rows.forEach(function(r){body+='<div class="grow"><span class="gi">'+r[0]+'</span><span><div class="gt">'+r[1]+'</div><div class="gd">'+r[2]+'</div></span></div>';});
+  return '<div class="card"><h3><span>How the cut actually works</span></h3><div class="glist">'+body+'</div></div>';
+}
 function progressHTML(){
   var e=ewma(),goal=S.profile.goalLb,streak=computeStreak();
   var liftS=S.sessions.filter(function(s){return s.type==="lift";}),lifts=liftS.length;
   var avgDur=lifts?Math.round(liftS.reduce(function(a,s){return a+(s.durationSec||0);},0)/lifts):0;
-  var volByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;s.entries.forEach(function(en){if(en.unit==="s"||en.bw)return;en.sets.forEach(function(st){v+=(st.weightLb||0)*(st.reps||0);});});volByWk[wk]=(volByWk[wk]||0)+v;});
+  var volByWk=volumeByWeek();
   var thisWk=isoWeek(TODAY),lastVol=volByWk[thisWk]||0;
   var pd=new Date(NOW);pd.setDate(NOW.getDate()-7);var prevVol=volByWk[isoWeek(keyOf(pd))]||0;
-  var tiles='<div class="stattiles">'+
-    stat("Streak",streak,streak===1?"day":"days","","flat")+
-    stat("Bodyweight",S.weigh.length?S.weigh[S.weigh.length-1].w.toFixed(1):"--",wLbl(),S.weigh.length?("goal "+goal):"log one","flat")+
+  /* Streak + bodyweight now lead the Track tab in the body hero and tiles, so they
+     are deliberately not repeated here. Same numbers twice on one screen is how the
+     v3.8 dual-weight bug hid in plain sight. */
+  var tiles='<div class="sectlbl" style="margin:18px 2px 9px">Training</div><div class="stattiles">'+
     stat("Lifts",lifts,"logged","","flat")+
     stat("Avg session",avgDur?mmss(avgDur):"--",avgDur?"":"","","flat")+'</div>';
   var loadByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id);loadByWk[wk]=(loadByWk[wk]||0)+Math.round((s.rpe||7)*((s.durationSec||0)/60));});
   var thisLoad=loadByWk[thisWk]||0,prevLoad=loadByWk[isoWeek(keyOf(pd))]||0;
-  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+Math.round(lastVol/1000).toLocaleString()+'<small>k '+wLbl()+'</small></div><div class="st'+(lastVol>=prevVol?"":" flat")+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"first week")+'</div></div>'+
+  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+(lastVol>=prevVol?"":" flat")+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"first week")+'</div></div>'+
     '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+(thisLoad>=prevLoad?"":" flat")+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
   var exIds=Object.keys(LIB).filter(function(id){return prFor(id);}).sort(function(a,b){return prFor(b).date<prFor(a).date?-1:1;});
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
-  return tiles+weighChart()+volChart()+volTile+
+  /* weighChart() is deliberately NOT called here any more. The weight card at the top of Track
+     already owns the trend, and rendering a second chart with its own ETA text was the same
+     duplication that produced the dual-weight bug. One writer per number. */
+  return tiles+heatmapHTML()+lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
     (prHtml?'<div class="card"><h3>Personal records <span class="t">best set / est. 1-rep</span></h3><div class="prlist">'+prHtml+'</div></div>':'<div class="card"><h3>Personal records</h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a lift to start setting PRs.</div></div>')+
-    '<button class="big-start" onclick="exportSheet()" style="margin-bottom:10px">'+I.send+' Send my data to Claude</button>'+
-    '<div class="foot">Nothing leaves your device until you tap Export and share it yourself.</div>';
+    /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
+       chat was the only way this record could be read. Sync replaced it. The old footer line
+       ("nothing leaves your device") also stopped being true the day sync shipped, so both go;
+       what remains is a plain backup you keep. */
+    '<button class="sheet-cta ghost" onclick="exportSheet()" style="margin-bottom:10px">'+I.download+' Export a backup</button>'+
+    '<div class="foot">Your log lives on this device and syncs to your own private store. Export writes a copy you keep.</div>';
 }
 function stat(l,v,u,t,cls){return '<div class="stat"><div class="sl">'+l+'</div><div class="sv num">'+v+' <small>'+u+'</small></div>'+(t?'<div class="st '+(cls||"")+'">'+t+'</div>':'')+'</div>';}
 function weighChart(){
@@ -994,7 +1917,8 @@ function weighChart(){
   var pts=S.weigh.slice(-40),ev=full.slice(-40),ws=pts.map(function(p){return p.w;});
   var goal=S.profile.goalLb,cur=full[full.length-1],lastRaw=S.weigh[S.weigh.length-1].w;
   var _st=weightStats();
-  var rate=_st?_st.rate:null,eta=(rate!=null&&rate<-0.03&&cur>goal)?Math.ceil((cur-goal)/(-rate)):null;
+  /* ETA off the LATEST ACTUAL weight, never the smoothed value (v3.9 lesson). */
+  var rate=_st?_st.rate:null,eta=(rate!=null&&rate<-0.03&&_st.to>0.2)?Math.ceil(_st.to/(-rate)):null;
   var toGoal=_st?_st.to:(cur-goal);
   var head=(toGoal>0.2?toGoal.toFixed(1)+' '+wLbl()+' to goal':'at your goal')+(rate!=null?' &middot; '+(rate>=0?"+":"")+rate.toFixed(1)+'/wk'+(eta?' &middot; ~'+eta+' wk':''):(toGoal>0.2&&_st?' &middot; plan ~'+_st.tRate.toFixed(1)+'/wk':''));
   var mn=Math.min.apply(null,ws.concat([goal]))-1.5,mx=Math.max.apply(null,ws.concat([lastRaw]))+1.5;
@@ -1006,11 +1930,159 @@ function weighChart(){
   var gy=y(goal).toFixed(1);
   return '<div class="trend"><h3 style="margin-bottom:4px"><span>Weight trend</span><span class="t">now <b>'+lastRaw.toFixed(1)+'</b> '+wLbl()+'</span></h3><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">'+head+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="display:block"><line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1.2" stroke-dasharray="4 4"/><path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-weight:600;margin-top:4px"><span>goal '+goal+'</span><span>'+S.weigh.length+' weigh-ins</span></div></div>';
 }
-function volChart(){var volByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;s.entries.forEach(function(en){if(en.unit==="s"||en.bw)return;en.sets.forEach(function(st){v+=(st.weightLb||0)*(st.reps||0);});});volByWk[wk]=(volByWk[wk]||0)+v;});
+/* One bar chart for every weekly series. Tufte's normal-range band becomes a dashed mean line,
+   the latest bar is the only accented one, and each bar carries its value so the chart is
+   readable without an axis. Empty weeks draw a hairline rather than nothing, so a gap looks
+   like a zero instead of a rendering failure. */
+function barChart(title,note,vals,labels,fmt,unit){
+  if(!vals||vals.length<2)return "";
+  fmt=fmt||function(v){return Math.round(v);};
+  var mx=Math.max.apply(null,vals)||1;
+  var nz=vals.filter(function(v){return v>0;});
+  var mean=nz.length?nz.reduce(function(a,v){return a+v;},0)/nz.length:0;
+  var H=64;
+  var bars=vals.map(function(v,i){
+    var hh=v>0?Math.max(6,Math.round(v/mx*H)):2;
+    var last=(i===vals.length-1);
+    return '<div class="bcol"><span class="bv'+(last?" on":"")+'">'+(v>0?fmt(v):"")+'</span>'+
+      '<i class="'+(last?"on":"")+(v>0?"":" zero")+'" style="height:'+hh+'px"></i>'+
+      '<span class="bx">'+(labels&&labels[i]!=null?labels[i]:"")+'</span></div>';
+  }).join("");
+  var meanPct=mx?Math.round((mean/mx)*H):0;
+  return '<div class="card"><h3><span>'+title+'</span><span class="t">'+note+'</span></h3>'+
+    '<div class="bwrap" style="--bh:'+H+'px">'+(mean>0?'<div class="bmean" style="bottom:'+(meanPct+16)+'px"><span>avg '+fmt(mean)+(unit?" "+unit:"")+'</span></div>':'')+
+    '<div class="brow">'+bars+'</div></div></div>';
+}
+/* ============ VOLUME AND FATIGUE DIAGNOSTICS (Batch 5) ============
+   Sets per pattern per week is the unit that actually governs whether a muscle is trained enough,
+   so that is what gets counted rather than tonnage, which flatters whoever lifts heaviest. Ten
+   sets a week is the commonly cited working floor for a pattern you care about; six is the
+   maintenance line. Both are stated on the card so the colour can be argued with. */
+var PATTERN_FLOOR={squat:10,hinge:10,"h-push":10,"v-push":8,"h-pull":10,"v-pull":8,core:8,isolation:6};
+function setsByPattern(back){
+  var days=weekDays(back||0),out={};
+  Object.keys(PATTERNS).forEach(function(p){out[p]=0;});
+  S.sessions.forEach(function(s){
+    if(s.type!=="lift"||days.indexOf(s.date)<0)return;
+    s.entries.forEach(function(en){
+      var e=LIB[en.exerciseId];if(!e)return;
+      var n=(en.sets||[]).filter(function(x){return x.completed;}).length;
+      out[e.pattern]=(out[e.pattern]||0)+n;
+    });
+  });
+  return out;
+}
+function patternVolumeHTML(){
+  var wk=setsByPattern(0),prev=setsByPattern(1),any=0;
+  Object.keys(wk).forEach(function(p){any+=wk[p];});
+  if(!any)return "";
+  var rows=Object.keys(PATTERNS).map(function(p){
+    var v=wk[p]||0,floor=PATTERN_FLOOR[p]||8,pv=prev[p]||0;
+    var ragv=(v>=floor)?"good":(v>=floor*0.6)?"amber":"red";
+    var delta=v-pv;
+    return '<div class="pvrow" data-rag="'+ragv+'"><span class="pvn">'+PATTERNS[p]+'</span>'+
+      '<span class="pvbar"><i style="width:'+Math.min(100,(v/floor)*100).toFixed(0)+'%"></i></span>'+
+      '<span class="pvv num">'+v+'<small>/'+floor+'</small></span>'+
+      '<span class="pvd">'+(pv?((delta>0?"+":"")+delta):"new")+'</span></div>';
+  }).join("");
+  return '<div class="card"><h3><span>Sets per pattern</span><span class="t">this week</span></h3>'+
+    '<div class="ksub">Ten hard sets a week is the working floor for a pattern, six is maintenance. Anything red is the thing to add first.</div>'+
+    rows+'</div>';
+}
+/* Session RPE over time answers a question no single session can: is everything getting hard? */
+function rpeTrendHTML(){
+  var pts=[];
+  S.sessions.forEach(function(s){if(s.type==="lift"&&typeof s.rpe==="number")pts.push({d:s.id,v:s.rpe});});
+  if(pts.length<4)return "";
+  pts=pts.slice(-16);
+  var vals=pts.map(function(p){return p.v;});
+  var recent=vals.slice(-3).reduce(function(a,v){return a+v;},0)/Math.min(3,vals.length);
+  var early=vals.slice(0,3).reduce(function(a,v){return a+v;},0)/Math.min(3,vals.length);
+  var W=300,H=52,mn=5,mx=10;
+  var d=vals.map(function(v,i){var x=(i/(vals.length-1))*W,y=H-4-((v-mn)/(mx-mn))*(H-10);return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ");
+  var y8=(H-4-((8.2-mn)/(mx-mn))*(H-10)).toFixed(1);
+  var verdict=(recent>=early+0.8)?"Everything is getting harder. That is usually accumulated fatigue rather than lost fitness.":
+              (recent<=early-0.8)?"Sessions are feeling easier than they did. Room to add.":
+              "Effort is steady across the block.";
+  return '<div class="card"><h3><span>How hard it has felt</span><span class="t">last '+pts.length+' sessions</span></h3>'+
+    '<svg class="rpes" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'+
+    '<line x1="0" y1="'+y8+'" x2="'+W+'" y2="'+y8+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 4" opacity=".7"/>'+
+    '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+    '<div class="wlegend"><span>RPE 5</span><span>dashed line is 8.2, where the coach starts holding</span></div>'+
+    '<div class="ksub" style="margin:8px 0 0">'+verdict+'</div></div>';
+}
+/* ============ THE LONG VIEW (Batch 7) ============
+   Everything else in the app is a week. This is the year: one cell per day, quantized to five
+   levels the way GitHub's contribution grid does, which reads as a week down a column and as a
+   season across the whole thing without needing a period control. */
+function dayLevel(k){
+  var load=0;
+  S.sessions.forEach(function(s){if(s.date===k)load+=loadFor(s);});
+  if(!load)return isDone(k)?1:0;
+  return load>=60?4:load>=35?3:load>=18?2:1;
+}
+function heatmapHTML(){
+  var weeks=53,cells="",today=new Date(NOW);
+  var end=new Date(today);end.setDate(end.getDate()+(6-((end.getDay()+6)%7)));
+  var start=new Date(end);start.setDate(start.getDate()-(weeks*7-1));
+  var cols=[],cur=new Date(start),any=0;
+  for(var w=0;w<weeks;w++){
+    var col="";
+    for(var d=0;d<7;d++){
+      var k=keyOf(cur),future=(k>TODAY),lvl=future?-1:dayLevel(k);
+      if(lvl>0)any++;
+      col+='<i data-l="'+(future?"f":lvl)+'" title="'+k+'"></i>';
+      cur.setDate(cur.getDate()+1);
+    }
+    cols+='<div class="hcol">'+col+'</div>';
+  }
+  if(!any)return "";
+  var months="",mcur=new Date(start);
+  for(var m=0;m<12;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
+  return '<div class="card"><h3><span>The year</span><span class="t">'+any+' active days</span></h3>'+
+    '<div class="hscroll"><div class="hgrid">'+cols+'</div></div>'+
+    '<div class="hmonths">'+months+'</div>'+
+    '<div class="hlegend"><span>quiet</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>hard</span></div></div>';
+}
+function lifetimeHTML(){
+  var lifts=S.sessions.filter(function(x){return x.type==="lift";});
+  var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
+  var mins=S.sessions.reduce(function(a,x){return a+((x.durationSec||0)/60);},0);
+  var moved=Object.keys(S.done||{}).length;
+  if(!S.sessions.length)return "";
+  var first=S.sessions.reduce(function(a,x){return (!a||x.date<a)?x.date:a;},null);
+  var span=first?daysBetween(first,TODAY):0;
+  return '<div class="card"><h3><span>All time</span><span class="t">since '+(first||"")+'</span></h3>'+
+    '<div class="stattiles" style="margin-bottom:0">'+
+    stat("Sessions",S.sessions.length,"logged","",'flat')+
+    stat("Lifts",lifts.length,"","",'flat')+
+    stat("Miles",mi.toFixed(0),"run","",'flat')+
+    stat("Hours",(mins/60).toFixed(0),"training","",'flat')+
+    '</div><div class="foot" style="margin-top:10px">'+moved+' active days across '+span+' days, which is '+(span?Math.round(moved/span*100):0)+' percent of them.</div></div>';
+}
+/* Single source for weekly tonnage, shared by the tile and the chart. */
+/* A bodyweight rep is real work, but calling it zero pounds made "week volume" read 0k forever
+   on a bodyweight program. It is counted at a stated fraction of your bodyweight, which is a
+   ratio you can see and change in Settings rather than a constant buried in the code. */
+function bwFactor(){var f=S.profile.bwFactor;return (typeof f==="number"&&f>=10&&f<=100)?f/100:0.65;}
+function bwLoadLb(){return Math.round((lastW()||180)*bwFactor());}
+function volumeByWeek(){
+  var by={},bwLb=bwLoadLb();
+  S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;
+    s.entries.forEach(function(en){if(en.unit==="s")return;
+      en.sets.forEach(function(st){if(!st.completed)return;v+=(en.bw?bwLb:(st.weightLb||0))*(st.reps||0);});});
+    by[wk]=(by[wk]||0)+v;});
+  return by;
+}
+function volChart(){
+  /* Bodyweight sets used to contribute nothing, so "week volume" read 0 lb forever on a
+     bodyweight program. Reps now count as work at an assumed load so the series means something. */
+  var volByWk=volumeByWeek();
   var wks=Object.keys(volByWk).sort().slice(-10);if(wks.length<2)return "";
-  var vals=wks.map(function(k){return volByWk[k];}),mx=Math.max.apply(null,vals)||1;
-  var bars=vals.map(function(v,i){var hh=Math.max(4,Math.round(v/mx*46));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===vals.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
-  return '<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly lifting volume</span><span class="t">last '+wks.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:5px;height:52px">'+bars+'</div></div>';
+  var vals=wks.map(function(k){return volByWk[k];});
+  return barChart("Weekly lifting volume","last "+wks.length+" weeks",vals,
+    wks.map(function(k,i){return i===wks.length-1?"now":"";}),
+    function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb");
 }
 
 /* ============ EXPORT / IMPORT ============ */
@@ -1034,11 +2106,14 @@ function buildSummary(){
   return out;
 }
 function exportSheet(){
-  var m='<div class="grab"></div><h3>Send to Claude</h3><div class="ssub">Copy this, paste it to Claude, and it records into your Training Log. Nothing is ever sent automatically.</div>';
-  m+='<button class="sheet-cta" onclick="copyExport(\'both\')">'+"Copy summary + data"+'</button>';
-  m+='<button class="sheet-cta ghost" onclick="downloadExport()">Download backup (.json)</button>';
-  m+='<button class="sheet-cta ghost" onclick="importSheet()">Import / restore from backup</button>';
-  m+='<div class="foot" style="padding:14px 0 2px">This page has no network access (blocked at the browser level). Your data only moves when you copy or download it.</div>';
+  /* Download is the primary action now: a file you keep beats a clipboard you lose. The old copy
+     said this page has no network access, which stopped being true when cloud sync shipped. */
+  var n=S.sessions.length,w=S.weigh.length;
+  var m='<div class="grab"></div><h3>Back up your data</h3><div class="ssub">'+n+' session'+(n===1?"":"s")+' and '+w+' weigh-in'+(w===1?"":"s")+' in this log.</div>';
+  m+='<button class="sheet-cta" onclick="downloadExport()">'+I.download+' Download a .json file</button>';
+  m+='<button class="sheet-cta ghost" onclick="copyExport(\'both\')">Copy to clipboard instead</button>';
+  m+='<button class="sheet-cta ghost" onclick="importSheet()">Restore from a backup</button>';
+  m+='<div class="foot" style="padding:14px 0 2px">Your log lives in this browser and syncs to your own private store when you have paired a passphrase. A download is a copy only you hold.</div>';
   openSheet(m);
 }
 function copyExport(which){
@@ -1073,22 +2148,172 @@ function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;t
   if(o.profile){if(o.profile.bodyweightGoalLb)S.profile.goalLb=o.profile.bodyweightGoalLb;if(o.profile.bodyweightStretchLb)S.profile.stretchLb=o.profile.bodyweightStretchLb;}
   S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   S.sessions.forEach(function(s){S.done[s.date]=true;});
-  save();closeSheet();toast(mode==="merge"?"Merged. Nothing lost.":"Replaced.",null);show("progress");}
+  save();closeSheet();toast(mode==="merge"?"Merged. Nothing lost.":"Replaced.",null);show("track");}
 
 /* ============ LIBRARY ============ */
 function ytSearch(q){return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);}
+function ytWatch(id){return "https://www.youtube.com/watch?v="+id;}
+/* Verified follow-alongs. Every id, title and channel below was re-checked against the
+   YouTube oEmbed endpoint on 2026-07-28 - none are guessed, and the two Tom Merrick
+   routines that actually live on the Vivobarefoot channel are attributed to Vivobarefoot. */
+var VID=[
+ {id:"0VrLgzwTmTg",t:"10 Minute Morning Mobility Routine",a:"Tom Merrick",c:"mobility",m:"10m"},
+ {id:"1u30bEkE2dE",t:"15 Minute Relaxed Stretching Routine",a:"Tom Merrick",c:"mobility",m:"15m"},
+ {id:"XIXjdireZzE",t:"Morning Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m"},
+ {id:"u_eBTabTA0M",t:"Evening Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m"},
+ {id:"QfMlHzgzBwQ",t:"10 Min Intense Abs, No Equipment",a:"MadFit",c:"core",m:"10m"},
+ {id:"iMmMK_8BfcU",t:"10 Min Unbroken Ab Workout",a:"Caroline Girvan",c:"core",m:"10m"},
+ {id:"0DWkbOGQQXA",t:"20 Min Bodyweight Strength, Low Impact",a:"Sydney Cummings Houdyshell",c:"strength",m:"20m"},
+ {id:"gTs_LHfILa0",t:"20 Min Bodyweight Legs",a:"Sydney Cummings Houdyshell",c:"strength",m:"20m"},
+ {id:"V45sxyJBEbI",t:"Total Body HIIT, No Equipment",a:"Heather Robertson",c:"strength",m:"20m"},
+ {id:"JOilkvadChg",t:"Yoga To Get The Juices Flowing",a:"Yoga With Adriene",c:"yoga",m:"20m"},
+ {id:"r7xsYgTeM2Q",t:"Sunrise Yoga, 15 Minute Morning Practice",a:"Yoga With Adriene",c:"yoga",m:"15m"},
+ {id:"X3-gKPNyrTA",t:"Yoga For Neck, Shoulders, Upper Back",a:"Yoga With Adriene",c:"yoga",m:"10m"},
+ {id:"JUP_YdYyfQw",t:"Yoga For Text Neck",a:"Yoga With Adriene",c:"yoga",m:"10m"},
+ {id:"w1JKHQpcSmY",t:"20 Min Deep Stretch, Hamstrings and Back",a:"Sydney Cummings Houdyshell",c:"recovery",m:"20m"},
+ {id:"LWpUqhaFUOc",t:"20 Min Stretch, Tight Hips and Low Back",a:"Sydney Cummings Houdyshell",c:"recovery",m:"20m"},
+ {id:"ENYYb5vIMkU",t:"10 Minute Meditation To Start Your Day",a:"Goodful",c:"meditation",m:"10m"},
+ {id:"inpok4MKVLM",t:"5 Minute Meditation You Can Do Anywhere",a:"Goodful",c:"meditation",m:"5m"},
+ {id:"eE5Mnqu0QY0",t:"Mindfulness Meditation, Guided Breathing",a:"The Honest Guys",c:"meditation",m:"10m"}
+];
+var VCAT={mobility:"Mobility",core:"Core finishers",strength:"Strength",yoga:"Yoga",recovery:"Recovery",meditation:"Wind down"};
+
+/* Round E: 62 further follow-alongs and one form clip per movement, every id, title and
+   channel re-verified against the YouTube oEmbed endpoint on 2026-07-28. `ex` links a clip to
+   the movement it demonstrates, which is what lets the movement sheet show the right video. */
+VID=VID.concat([
+ {id:"LKSC_KujZ4g",t:"5 Minute Dynamic Warm Up for Strength Training",a:"Kaleigh Cohen Strength",c:"warmup",m:""},
+ {id:"E81GN-3A8XM",t:"The Most Effective Science-Based Warm Up & Mobility Routine (Full Body)",a:"Jeff Nippard",c:"warmup",m:""},
+ {id:"rKpcpsvclw0",t:"8 Min. Full Body Warm Up | Dynamic Gym Warm Up & Mobility | Follow Along | No Equipment | No Repeats",a:"mobility by julia reppel",c:"warmup",m:""},
+ {id:"QAj0VHx43fM",t:"5 Min. Dynamic Warm Up & Mobility | For Gym & Home Workouts | Follow Along, No Talking",a:"mobility by julia reppel",c:"warmup",m:""},
+ {id:"ixZVPFJWnRY",t:"10 Minute Full Body Pre-Workout Stretch/Warm-Up Routine",a:"Juice & Toya",c:"warmup",m:""},
+ {id:"c0VxUFHdYzs",t:"5 Min Full Body Warm Up with Caroline Girvan",a:"Caroline Girvan",c:"warmup",m:""},
+ {id:"9UYVecB2_08",t:"Do This Warm Up Before Every Workout | 10 Min Warm Up Routine",a:"Oliver Sjostrom",c:"warmup",m:""},
+ {id:"3kO7U5iXiaQ",t:"Pre Run Dynamic Warmup: Avoid Injuries and Run Strong",a:"Run Better with Ash",c:"runwarm",m:""},
+ {id:"AiohKZonPbo",t:"8 Min. Running Warm Up & Mobility | Follow Along |  Prevent Knee & Ankle Pain | Pre-Running Routine",a:"mobility by julia reppel",c:"runwarm",m:""},
+ {id:"L5MadhSA8MY",t:"5 Min PRE RUN DYNAMIC WARM UP | Follow Along",a:"Tom Peto Training",c:"runwarm",m:""},
+ {id:"3WUtJxLv-wI",t:"5 Minute Warm-Up You NEED before EVERY RUN",a:"Yoga With Tim",c:"runwarm",m:""},
+ {id:"sI1iHQSHOQE",t:"FOLLOW ALONG RUNNING WARM UP ROUTINE. QUICK & EASY WAY TO RUN BETTER!",a:"Ben Parkes",c:"runwarm",m:""},
+ {id:"McVkfqIqjzg",t:"7 Min Warm Up Before Running",a:"Run and Stretch",c:"runwarm",m:""},
+ {id:"IlHgLYdt3kc",t:"10 Min. Full Body Stretch | Cool Down & Recover | Do this after every Workout",a:"Mady Morrison",c:"recovery",m:""},
+ {id:"IjH_8pdybfs",t:"POST-WORKOUT STRETCH for Injury Prevention & Flexibility",a:"Kaleigh Cohen Strength",c:"recovery",m:""},
+ {id:"llNpwgxRSGs",t:"10 Min Full Body Cool Down Stretches - Do After Every Workout",a:"Oliver Sjostrom",c:"recovery",m:""},
+ {id:"CKnlEt5n3Sk",t:"10 Minute Lower Body Stretch to Keep Muscles Flexible and Help Recovery",a:"Alex Crockford",c:"recovery",m:""},
+ {id:"taiBlDZhFT4",t:"10 MIN Post-Run Stretching Routine for Optimal Recovery and Relaxation",a:"Run Better with Ash",c:"recovery",m:""},
+ {id:"MCf2QDOsy0E",t:"8 Min Post-Run Stretching | Cool Down Stretch For Runners",a:"Yoga With Tim",c:"recovery",m:""},
+ {id:"zJiKP_x8Uks",t:"15 Min FULL BODY STRETCH | All Standing Stretches for Flexibility, Mobility & Relaxation | Cool Down",a:"Eleni Fit",c:"recovery",m:""},
+ {id:"fAxabPIkAro",t:"The BEST Daily Core Routine (ONLY 8 MINUTES)",a:"Squat University",c:"core",m:""},
+ {id:"f2HbWMSV9Go",t:"10 MIN TOTAL CORE/AB WORKOUT (No Equipment, No Repeats)",a:"MadFit",c:"core",m:""},
+ {id:"Z_dgrjRlD_4",t:"10 Min AB WORKOUT with No Equipment (NOT abs in ten minutes)",a:"Caroline Girvan",c:"core",m:""},
+ {id:"4-6gz2AmBLw",t:"10 Min CALISTHENICS CORE WORKOUT at Home | No Equipment",a:"Tom Peto Training",c:"core",m:""},
+ {id:"2GjF7pmq8-Q",t:"5 Minute AB Workout // No Equipment // Beginners!",a:"Strength Side",c:"core",m:""},
+ {id:"Y12vQQ7meYs",t:"Quick Ab Workout | 5 Minutes (FOLLOW ALONG!)",a:"ATHLEAN-X™",c:"core",m:""},
+ {id:"NQxEUC3-aaE",t:"COMPLETE Core Strengthening In Just 10 Minutes! Follow-Along Workout",a:"Tone and Tighten",c:"core",m:""},
+ {id:"CkFzgR55gho",t:"How to Perform Dumbbell Goblet Squat",a:"Physique Development",c:"form",m:"",ex:"goblet"},
+ {id:"sjlsISvHyZs",t:"How To: Dumbbell Reverse Lunge",a:"ScottHermanFitness",c:"form",m:"",ex:"revlunge"},
+ {id:"hPlKPjohFS0",t:"The PERFECT Bulgarian Split Squat (Avoid These Errors!)",a:"Squat University",c:"form",m:"",ex:"bulgarian"},
+ {id:"aKj-6hgiViA",t:"How To PROPERLY Perform Dumbbell Step Ups (GLUTE FOCUSED)",a:"Colossus Fitness",c:"form",m:"",ex:"stepup"},
+ {id:"hQgFixeXdZo",t:"Dumbbell Romanian (RDL) Deadlift |TECHNIQUE for Beginners",a:"Mike | J2FIT Strength & Conditioning",c:"form",m:"",ex:"rdl"},
+ {id:"Zfr6wizR8rs",t:"The BEST Single-Leg RDL Tutorial (Romanian Deadlift)",a:"Squat University",c:"form",m:"",ex:"slrdl"},
+ {id:"29OfN4ztW_g",t:"Dumbbell Hip Thrust (FULL TUTORIAL) - Glute Exercises for Beginners",a:"Mike | J2FIT Strength & Conditioning",c:"form",m:"",ex:"hipthrust"},
+ {id:"tl6xvm4-Qk0",t:"How To Properly Perform The Glute Bridge |#AskSquatU Show Ep. 39|",a:"Squat University",c:"form",m:"",ex:"glutebridge"},
+ {id:"riT31sLb8HU",t:"Floor Press 101!",a:"[P]rehab",c:"form",m:"",ex:"floorpress"},
+ {id:"IODxDxX7oi4",t:"The Perfect Push Up | Do it right!",a:"Calisthenicmovement",c:"form",m:"",ex:"pushup"},
+ {id:"0f6-uCUKqgA",t:"Incline Dumbbell Press BETTER | Targeting The Muscle Series",a:"Renaissance Periodization",c:"form",m:"",ex:"inclinepress"},
+ {id:"SKPab2YC8BE",t:"How To: Decline Push-Up",a:"ScottHermanFitness",c:"form",m:"",ex:"feetpush"},
+ {id:"d3CRIDSCOhw",t:"Half Kneeling Single Arm DB Shoulder Press (Exercise Library)",a:"Horton Barbell",c:"form",m:"",ex:"kneelpress"},
+ {id:"LED1bhzkfLU",t:"Neutral-Grip Seated Dumbbell Press",a:"Testosterone Nation",c:"form",m:"",ex:"neutralpress"},
+ {id:"Zli1UXH9ZeE",t:"Band Overhead Press",a:"FitnessBlender",c:"form",m:"",ex:"bandpress"},
+ {id:"DMo3HJoawrU",t:"Single Arm Supported Dumbbell Row",a:"Renaissance Periodization",c:"form",m:"",ex:"row1"},
+ {id:"vmX58YYK3-8",t:"Perfect Dumbbell Chest Supported Rows (KING of Back Exercises)",a:"Seriously Strong Training",c:"form",m:"",ex:"csrow"},
+ {id:"5gMOQKL-SLM",t:"Seated Band Row",a:"Men's Health",c:"form",m:"",ex:"bandrow"},
+ {id:"KOaCM1HMwU0",t:"Inverted Row",a:"Renaissance Periodization",c:"form",m:"",ex:"invrow"},
+ {id:"B_VkNQS5YLs",t:"How to do a Band Assisted Pull-Up | Proper Form & Technique | NASM",a:"National Academy of Sports Medicine (NASM)",c:"form",m:"",ex:"pullup"},
+ {id:"BEHY9CwiWPI",t:"How to do Lat Pulldowns at Home | Proper Setup & AVOID MISTAKES!",a:"Clench Fitness",c:"form",m:"",ex:"bandpulldown"},
+ {id:"rOCrfoiYVu0",t:"Hanging For Spine Decompression: Good or Terrible?",a:"Squat University",c:"form",m:"",ex:"deadhang"},
+ {id:"0XVbn86Btj0",t:"You're Doing Dead Bugs WRONG! Fix This for Stronger Abs & a Bulletproof Core",a:"Squat University",c:"form",m:"",ex:"deadbug"},
+ {id:"pVh3zBMGrfA",t:"The Perfect Side Plank  | Master Side Plank Form",a:"Redefining Strength",c:"form",m:"",ex:"sideplank"},
+ {id:"y-hn_Ha1-RE",t:"How To Perform The Suitcase Carry",a:"Dr. Carl Baird",c:"form",m:"",ex:"suitcase"},
+ {id:"y1fOBVtANdM",t:"How to do a Standing Banded Pallof Press",a:"TurnFit - Vancouver Personal Trainers",c:"form",m:"",ex:"pallof"},
+ {id:"CSP7YpPv3ds",t:"Band Face Pull",a:"Men's Health",c:"form",m:"",ex:"facepull"},
+ {id:"QdGTI4Lshg4",t:"Prone Y T W",a:"The Active Life",c:"form",m:"",ex:"ytw"},
+ {id:"gsNoPYwWXeM",t:"Fix Your Squat (In Just 3-Minutes)",a:"Calisthenicmovement",c:"form",m:"",ex:"bwsquat"},
+ {id:"hXpGSa5HYqY",t:"How to do a SPLIT SQUAT",a:"Atomic Athlete",c:"form",m:"",ex:"bwsplit"},
+ {id:"Ry-wqegeKlE",t:"How To Perform The Reverse Lunge",a:"Dr. Carl Baird",c:"form",m:"",ex:"bwlunge"},
+ {id:"lIZ_C4VJnmc",t:"How to Master the Pike Pushup (Tutorial + Progressions)",a:"Chris Calisthenics",c:"form",m:"",ex:"pikepush"},
+ {id:"b1zTCyGJXCQ",t:"Single Leg Glute Bridge Exercise | How To Perform And Common Mistakes",a:"Dr. Carl Baird",c:"form",m:"",ex:"sglutebridge"},
+ {id:"QABW99qPiNM",t:"Bird Dog Exercise | Improve Your Core and Balance",a:"Muscle & Motion",c:"form",m:"",ex:"birddog"},
+ {id:"lismOShjHnA",t:"NEVER DO PLANKS LIKE THIS | 10 Most Common Mistakes",a:"FitnessFAQs",c:"form",m:"",ex:"plank"}
+]);
+VCAT.warmup="Warm up";VCAT.runwarm="Before a run";VCAT.core="Core finishers";VCAT.form="How to";
+function vidsBy(c){return VID.filter(function(v){return v.c===c;});}
+function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i];return null;}
+/* Press-play. The card is a local facade until tapped; tapping swaps in a nocookie iframe
+   in place, so the video plays inside the app. The YouTube link stays on every card either
+   way, because an in-app embed can still be blocked and a dead play button is worse than a link. */
+var vseq=0;
+function vidCardHTML(v,wide){
+  var slot="vp-"+(++vseq);
+  return '<div class="vcard'+(wide?" wide":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
+    '<button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
+      '<span class="vplay">'+I.play+'</span></button>'+
+    '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
+    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m:'')+' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a></div></div></div>';
+}
+function playVid(id,slot){
+  var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
+  var face=host.querySelector(".vface");if(!face)return;
+  var f=document.createElement("iframe");
+  f.className="vframe";
+  f.setAttribute("allow","accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen");
+  f.setAttribute("allowfullscreen","");
+  f.setAttribute("referrerpolicy","strict-origin-when-cross-origin");
+  f.setAttribute("title",v.t);
+  f.src="https://www.youtube-nocookie.com/embed/"+id+"?autoplay=1&rel=0&modestbranding=1&playsinline=1";
+  face.replaceWith(f);
+}
+/* Rotate the guided pick by date so a recover day is not the same video every week. */
+function pickVid(cat,offset){
+  var vs=vidsBy(cat);if(!vs.length)return null;
+  var p=TODAY.split("-"),n=Math.floor(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)+(offset||0);
+  return vs[((n%vs.length)+vs.length)%vs.length];
+}
+function guidedHTML(cat,label,note,offset){
+  var v=pickVid(cat,offset);if(!v)return "";
+  return '<div class="card"><h3><span>'+label+'</span><span class="t">plays here</span></h3>'+
+    (note?'<div class="ssub" style="text-align:left;margin:0 0 10px">'+note+'</div>':'')+
+    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div></div>';
+}
+function vidRowHTML(cat,label){
+  var vs=vidsBy(cat);if(!vs.length)return "";
+  var h='<div class="sectlbl">'+(label||VCAT[cat])+'</div><div class="vrow">';
+  vs.forEach(function(v){h+=vidCardHTML(v);});
+  return h+'</div>';
+}
 function libraryHTML(cat){
   cat=cat||"lift";
-  var quick=[["Full body","20 minute full body dumbbell workout at home","20m","lift"],["Upper body","20 minute upper body dumbbell workout home","20m","lift"],["Lower & glutes","20 minute lower body dumbbell workout home","20m","lift"],["Core & abs","10 minute core abs workout no equipment","10m","lift"],["Mobility","15 minute full body mobility follow along","15m","lift"],["Yoga","20 minute yoga for athletes recovery","20m","lift"],["Low-impact cardio","20 minute low impact cardio no jumping home","20m","cardio"],["Run warm-up","dynamic warm up before running follow along","5m","cardio"]];
-  var h='<div class="sectlbl" style="margin-top:6px">Follow-alongs</div><div class="libgrid">';
-  quick.filter(function(r){return r[3]===cat;}).forEach(function(r){h+='<a class="libcard" href="'+ytSearch(r[1])+'" target="_blank" rel="noopener"><span class="lci acc">'+I.play+'</span><span class="lcn">'+r[0]+'</span><span class="lctag">'+r[2]+'</span></a>';});
-  h+='</div>';
+  /* Verified follow-alongs first, playable in place. The per-exercise search grid stays
+     below them: those answer "how do I do this move", which a curated list cannot. */
+  /* Eighty facades stacked open turn a focused tab into a scroll. The guided card already puts
+     the right video in front of you where it matters, so the full shelf lives behind a disclosure
+     and the tab stays about training rather than about browsing. */
+  var groups=(cat==="lift")
+    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["core",null],["mobility",null],["yoga",null]]
+    : [["runwarm","Before a run"],["mobility","Mobility"],["recovery",null],["meditation",null]];
+  var inner="",n=0;
+  groups.forEach(function(g){inner+=vidRowHTML(g[0],g[1]);n+=vidsBy(g[0]).length;});
+  var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad">'+inner+'</div></details>';
   if(cat==="lift"){
+    /* Forty-odd exercise cards behind a disclosure, not stacked open. You come here to
+       follow along; you go looking for a single movement only when you want that movement. */
+    var n=Object.keys(LIB).length;
+    h+='<details class="libdrop"><summary><span>Look up a movement</span><span class="lcount">'+n+'</span></summary>';
     h+='<input class="libsearch" placeholder="Search exercises..." oninput="filterLib(this.value)" aria-label="search exercises">';
     var byPat={};Object.keys(LIB).forEach(function(id){var p=LIB[id].pattern;(byPat[p]=byPat[p]||[]).push(id);});
     Object.keys(PATTERNS).forEach(function(p){if(!byPat[p])return;h+='<div class="sectlbl libsec lbl">'+PATTERNS[p]+'</div><div class="libgrid libsec grid">';
       byPat[p].forEach(function(id){var e=LIB[id];h+='<a class="libcard libitem" data-name="'+esc(e.name.toLowerCase())+'" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener"><span class="lci'+(e.bw||e.equip==="band"?"":" acc")+'">'+(e.equip==="band"?I.spark:e.bw?I.bolt:I.dumbbell)+'</span><span class="lcn">'+esc(e.name)+'</span><span class="lctag">'+e.diff+'</span></a>';});
       h+='</div>';});
+    h+='</details>';
   }
   return h;
 }
@@ -1112,6 +2337,7 @@ function doReset(){try{localStorage.setItem("train_v2_backup",localStorage.getIt
 
 /* ============ settings ============ */
 function setMode(m,b){if(S.profile.mode!==m){S.profile.mode=m;if(m==="db"){var eq=(S.profile.equip||[]).slice();if(eq.indexOf("DB")<0)eq.push("DB");S.profile.equip=eq;}if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();toast(m==="db"?"Plan now uses dumbbells.":"Plan now bodyweight.",null);}if(b)segSel(b);refreshCurrent();}
+function setBwFactor(d){var v=Math.max(20,Math.min(100,Math.round(bwFactor()*100)+d));S.profile.bwFactor=v;var el=document.getElementById("bwf-set");if(el)el.textContent=v+"%";save();}
 function setGoal(d){S.profile.goalLb=Math.max(120,Math.min(400,(S.profile.goalLb||180)+d));var el=document.getElementById("goal-set");if(el)el.textContent=S.profile.goalLb;save();}
 function startEaseIn(){S.profile.programStart=TODAY;if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();closeSheet();toast("2-week ease-in started. Lighter volume, then full.",null);renderToday();}
 function settingsSheet(){
@@ -1121,6 +2347,7 @@ function settingsSheet(){
   m+='<div class="logrow"><label>Plan uses<div class="skc" style="font-weight:500">bodyweight now, add dumbbells anytime</div></label><div class="seg" style="max-width:210px"><button class="'+(trainMode()==="bw"?"sel":"")+'" onclick="setMode(\'bw\',this)">Bodyweight</button><button class="'+(trainMode()==="db"?"sel":"")+'" onclick="setMode(\'db\',this)">Dumbbells</button></div></div>';
   m+='<div class="logrow"><label>Adjustable dumbbells?<div class="skc" style="font-weight:500">adds weight instead of reps</div></label><div class="seg" style="max-width:120px"><button class="'+(p.adjustable?"sel":"")+'" onclick="setAdj(true,this)">Yes</button><button class="'+(p.adjustable?"":"sel")+'" onclick="setAdj(false,this)">No</button></div></div>';
   m+='<div class="sectlbl" style="margin:14px 2px 8px">Goal &amp; ease-in</div>';
+  m+='<div class="logrow"><label>Bodyweight counts as<div class="skc" style="font-weight:500">share of your weight per rep, for volume</div></label><div class="stp" style="max-width:160px"><button onclick="setBwFactor(-5)" aria-label="lower">&minus;</button><span class="num" id="bwf-set" style="min-width:46px;text-align:center;font-weight:700">'+Math.round(bwFactor()*100)+'%</span><button onclick="setBwFactor(5)" aria-label="raise">+</button></div></div>';
   m+='<div class="logrow"><label>Goal weight</label><div class="stp" style="max-width:160px"><button onclick="setGoal(-'+gstep+')" aria-label="lower goal">&minus;</button><span class="num" id="goal-set" style="min-width:46px;text-align:center;font-weight:700">'+p.goalLb+'</span><span class="u">'+wLbl()+'</span><button onclick="setGoal('+gstep+')" aria-label="raise goal">+</button></div></div>';
   m+='<div class="logrow"><label>2-week ease-in<div class="skc" style="font-weight:500">'+(easingIn()?"active - lighter volume":"lighter volume for two weeks")+'</div></label><button class="wbtn" style="max-width:130px" onclick="startEaseIn()">'+(easingIn()?"Restart":"Start today")+'</button></div>';
   m+='<div class="sectlbl" style="margin:14px 2px 8px">Preferences</div>';
@@ -1181,6 +2408,11 @@ var toastT=null,toastUndo=null;
 function toast(msg,undo){var t=document.getElementById("toast");document.getElementById("toast-m").textContent=msg;
   var ub=document.getElementById("toast-u");ub.style.display=undo?"block":"none";toastUndo=undo||null;
   t.classList.add("on");if(toastT)clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove("on")},undo?5000:2600);}
+/* Tapping anywhere on the toast dismisses it. The backup nag in particular used to sit on top of
+   the weight card with no way to clear it short of waiting. */
+function hideToast(){var t=document.getElementById("toast");if(t)t.classList.remove("on");if(toastT)clearTimeout(toastT);}
+(function(){var t=document.getElementById("toast");if(t)t.addEventListener("click",function(e){
+  if(e.target&&e.target.id==="toast-u")return; hideToast();});})();
 document.getElementById("toast-u").addEventListener("click",function(){if(toastUndo)toastUndo();document.getElementById("toast").classList.remove("on");});
 
 
@@ -1220,12 +2452,17 @@ function genRerollAll(){genBuild();renderGenerate();}
 function genUse(){if(!GEN.session||!GEN.session.order.length){return;}
   S.activeMode="gen";S.genWk={id:TODAY+"-g"+Date.now(),letter:"Gen",name:GEN.session.focus,gen:true,order:JSON.parse(JSON.stringify(GEN.session.order)),accum:0,start:null,paused:false};
   save();startActive();toast("Custom workout started.",null);}
+/* Build is reached from Lift (and could be from elsewhere); remember the origin so its
+   back button returns there rather than guessing. */
+var GENRET="lift";
+function openBuild(){GENRET=(CURV==="lift"||CURV==="today")?CURV:"lift";show("generate");}
 function renderGenerate(){
   if(!GEN.session)genBuild();
   function seg(k,v,l){return '<button class="'+(GEN[k]===v?"sel":"")+'" onclick="GEN.'+k+'=\''+v+'\';genBuild();renderGenerate()">'+l+'</button>';}
   function tseg(v){return '<button class="'+(GEN.time===v?"sel":"")+'" onclick="GEN.time='+v+';genBuild();renderGenerate()">'+v+' min</button>';}
   var eq=[["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"],["BW","Bodyweight"]];
-  var h='<div class="head"><div><div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
+  var h='<div class="head"><div><button class="wbtn" style="height:32px;padding:0 12px;margin-bottom:8px" onclick="show(GENRET||\'lift\')">&#8592; Back</button>'+
+    '<div class="date">Make me a workout</div><div class="title">Build</div></div></div>';
   h+='<div class="card"><h3>Focus</h3><div class="seg" style="height:auto;flex-wrap:wrap;gap:6px">'+seg("focus","full","Full")+seg("focus","upper","Upper")+seg("focus","lower","Lower")+seg("focus","push","Push")+seg("focus","pull","Pull")+seg("focus","legs","Legs")+'</div>'+
     '<div style="height:16px"></div><h3>Time</h3><div class="seg">'+tseg(20)+tseg(30)+tseg(45)+'</div>'+
     '<div style="height:16px"></div><h3>Energy</h3><div class="seg">'+seg("energy","low","Low")+seg("energy","normal","Normal")+seg("energy","high","High")+'</div>'+
@@ -1242,7 +2479,7 @@ function renderGenerate(){
     });
     h+='<div class="ex"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="color:var(--faint);font-weight:600;font-size:12px">/side</span>':'')+'</div><button class="more" onclick="genReroll('+oi+')" aria-label="swap this exercise">'+I.swap+'</button></div>'+
       '<div class="aim" style="color:var(--faint)">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>'+
-      '<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+sets+
+      '<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span>Clock</span><span>Done</span></div>'+sets+
       '<div class="setbtns"><button class="setbtn" onclick="genAddSet('+oi+')">+ Add set</button></div></div>';
   });
   h+='<button class="big-start" onclick="genUse()">'+I.check+' Use this workout</button>'+
@@ -1258,20 +2495,90 @@ function logSheet(){
     optRow(I.bolt,"Other workout","name + minutes","actSheet(\'other\')")+
     optRow(I.spark,"Weigh-in","today\'s weight","closeSheet();weighSheet()"));
 }
+/* A walk is minutes, sometimes miles, and often done on a treadmill with something playing.
+   So: type your own minutes rather than picking from two fixed buttons, add distance if you
+   have it, and note effort. Same sheet serves cycling, swimming and anything else. */
+var ACT_KINDS=[["walk","Walk"],["bike","Cycling"],["swim","Swim"],["hike","Hike"],["sport","Sport"],["other","Other"]];
 function actSheet(type){
   if(type==="run"){var d=(todayPlan().type==="run")?todayPlan().dist:2;runSheet(d);return;}
   var isWalk=(type==="walk");
-  var m='<div class="grab"></div><h3>Log '+(isWalk?"walk":"workout")+'</h3><div class="ssub">Quick and done.</div>';
-  if(!isWalk)m+='<div class="logrow"><label>What</label><input class="tin" id="a-name" placeholder="yoga, bike, tennis..." style="max-width:200px" aria-label="activity"></div>';
+  var m='<div class="grab"></div><h3>Log '+(isWalk?"walk":"activity")+'</h3><div class="ssub">Minutes is the only required field.</div>';
+  if(!isWalk){
+    m+='<div class="sectlbl" style="margin:6px 2px 8px">What</div><div class="eqchips" id="a-kinds">'+
+      ACT_KINDS.filter(function(k){return k[0]!=="walk";}).map(function(k,i){
+        return '<button class="eqchip'+(i===0?" on":"")+'" onclick="pickKind(this,\''+k[1]+'\')">'+k[1]+'</button>';}).join("")+'</div>'+
+      '<div class="logrow"><label>Or name it</label><input class="tin" id="a-name" placeholder="tennis, climbing..." style="max-width:190px" aria-label="activity"></div>';
+  }
   m+='<div class="logrow"><label>Minutes</label><div class="inp" style="max-width:130px"><input id="a-min" inputmode="numeric" placeholder="30" style="width:56px" aria-label="minutes"><span class="u">min</span></div></div>';
+  m+='<div class="logrow"><label>Distance <span style="color:var(--faint);font-weight:600">optional</span></label><div class="inp" style="max-width:130px"><input id="a-dist" inputmode="decimal" placeholder="0" style="width:56px" aria-label="distance"><span class="u">mi</span></div></div>';
+  m+='<div class="sectlbl" style="margin:14px 2px 8px">Effort</div><div class="seg" id="a-rpe">'+
+    ["Easy","Moderate","Hard"].map(function(r,i){return '<button class="'+(i===0?"sel":"")+'" onclick="pickActRpe(this,\''+r+'\')">'+r+'</button>';}).join("")+'</div>';
+  m+='<div class="logrow" style="margin-top:12px"><label>Note</label><input class="tin" id="a-note" placeholder="treadmill, podcast..." style="max-width:190px" aria-label="note"></div>';
   m+='<button class="sheet-cta" onclick="saveAct(\''+type+'\')">Save</button>';
   openSheet(m);
+  ACT_PICK={kind:(isWalk?"Walk":"Cycling"),rpe:"Easy"};
 }
+var ACT_PICK={kind:"Walk",rpe:"Easy"};
+function pickKind(b,name){ACT_PICK.kind=name;var p=b.parentNode;p.querySelectorAll("button").forEach(function(x){x.classList.remove("on")});b.classList.add("on");}
+function pickActRpe(b,r){ACT_PICK.rpe=r;segSel(b);}
 function saveAct(type){var min=parseInt((document.getElementById("a-min")||{}).value)||0;if(min<=0){closeSheet();return;}
-  var name=(type==="walk")?"Walk":((document.getElementById("a-name")||{}).value||"Workout");
-  S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,notes:""});
-  S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged "+name+", "+min+" min.",null);renderToday();}
+  var typed=((document.getElementById("a-name")||{}).value||"").trim();
+  var name=(type==="walk")?"Walk":(typed||ACT_PICK.kind||"Workout");
+  var dist=parseFloat((document.getElementById("a-dist")||{}).value)||0;
+  var note=((document.getElementById("a-note")||{}).value||"").slice(0,140);
+  var rec={id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:name,durationSec:min*60,rpe:ACT_PICK.rpe||"",notes:note};
+  if(dist>0){rec.distanceMi=dist;rec.paceSecPerMi=Math.round((min*60)/dist);}
+  S.sessions.push(rec);
+  S.done[TODAY]=true;advanceCycle();save();closeSheet();
+  toast("Logged "+name+", "+min+" min"+(dist>0?" and "+dist+" mi":"")+".",null);
+  refreshCurrent();}
 
+/* ============ CAL AI WEEKLY DUMP ============
+   Cal AI has no public API and no verified deep link, so nothing here pretends to talk to it.
+   What it does is accept a week of nutrition in one paste: either the JSON shape below, or plain
+   rows copied from a export, one day per line. Protein against your target sets the green days on
+   the scorecard; calories are stored for the trend. A day already logged is overwritten, so
+   re-pasting the same week is safe. */
+function calaiSheet(){
+  var pt=proteinTarget();
+  openSheet('<div class="grab"></div><h3>Weekly nutrition dump</h3>'+
+    '<div class="ssub">Paste a week from Cal AI. One day per line, or the JSON shape. '+(pt?('Protein target is <b>'+pt.lo+'-'+pt.hi+' g</b>.'):'Log a weigh-in to set your protein target.')+'</div>'+
+    '<textarea class="ta" id="cj" style="min-height:150px" placeholder="2026-07-27, 168, 2210&#10;2026-07-26, 141, 1980&#10;&#10;or&#10;{&quot;days&quot;:[{&quot;date&quot;:&quot;2026-07-27&quot;,&quot;proteinG&quot;:168,&quot;calories&quot;:2210}]}"></textarea>'+
+    '<div class="anote" style="margin-top:10px">Date, protein in grams, calories. Calories are optional.</div>'+
+    '<button class="sheet-cta" onclick="doCalai()">Import the week</button>');
+}
+function parseCalai(t){
+  t=(t||"").trim();if(!t)return [];
+  if(t.charAt(0)==="{"||t.charAt(0)==="["){
+    var o;try{o=JSON.parse(t)}catch(e){return null;}
+    var arr=o.days||o.entries||(Array.isArray(o)?o:[]);
+    return arr.map(function(r){
+      return {date:r.date,protein:+(r.proteinG!=null?r.proteinG:r.protein),cals:+(r.calories!=null?r.calories:r.cals)||0};
+    }).filter(function(r){return r.date&&!isNaN(r.protein);});
+  }
+  var out=[];
+  t.split(/\n+/).forEach(function(line){
+    var parts=line.split(/[,\t;]+/).map(function(x){return x.trim();});
+    if(parts.length<2)return;
+    var dt=parts[0],pr=parseFloat(parts[1]),cl=parts.length>2?parseFloat(parts[2]):0;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(dt)||isNaN(pr))return;
+    out.push({date:dt,protein:pr,cals:isNaN(cl)?0:cl});
+  });
+  return out;
+}
+function doCalai(){
+  var rows=parseCalai((document.getElementById("cj")||{}).value);
+  if(rows===null){toast("That is not valid JSON.",null);return;}
+  if(!rows.length){toast("Nothing readable in there. Date, protein, calories.",null);return;}
+  var pt=proteinTarget(),lo=pt?pt.lo:120,hit=0;
+  S.nutrition=S.nutrition||{};
+  rows.forEach(function(r){
+    S.nutrition[r.date]={p:r.protein,c:r.cals};
+    if(r.protein>=lo){S.protein[r.date]=true;hit++;}else{delete S.protein[r.date];}
+  });
+  save();closeSheet();refreshCurrent();
+  toast("Imported "+rows.length+" day"+(rows.length===1?"":"s")+", "+hit+" hit protein.",null);
+}
 /* ============ APPLE HEALTH IMPORT ============ */
 function healthSheet(){
   openSheet('<div class="grab"></div><h3>Import from Apple Health</h3><div class="ssub">Paste the JSON your Shortcut produces. Pulls in weight and workouts (incl. Apple Watch).</div>'+
@@ -1280,13 +2587,14 @@ function healthSheet(){
 }
 function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON.parse(t)}catch(e){toast("That is not valid JSON.",null);return;}
   var n=0;
+  if(o.steps)o.steps.forEach(function(x){if(x.date&&x.count!=null){S.steps[x.date]=+x.count;n++;}});
   if(o.weighins)o.weighins.forEach(function(w){if(w.date&&w.weightLb){S.weigh=S.weigh.filter(function(x){return x.date!==w.date;});S.weigh.push({date:w.date,w:w.weightLb});n++;}});
   S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
   if(o.activities)o.activities.forEach(function(a){if(!a.date)return;n++;
     if(a.type==="run"||a.distanceMi){S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health"});}
     else{S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});}
     S.done[a.date]=true;});
-  save();closeSheet();toast("Imported "+n+" items from Health.",null);show("progress");}
+  save();closeSheet();toast("Imported "+n+" items from Health.",null);show("track");}
 
 
 /* ============ TODAY LOG + done recompute ============ */
@@ -1329,7 +2637,7 @@ function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sess
   toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
 }
 function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
-function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);renderToday();}
+function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);refreshCurrent();}
 
 /* ============ EQUIPMENT + GEN set editing ============ */
 function toggleEquip(e){var arr=(S.profile.equip||[]).slice();var i=arr.indexOf(e);if(i>=0){if(arr.length>1)arr.splice(i,1);}else arr.push(e);S.profile.equip=arr;save();genBuild();renderGenerate();}
@@ -1401,25 +2709,163 @@ function nextRunTarget(){var rr=runRhythm();if(rr.gap!==null&&rr.gap>=7)return{m
 function runStatusLine(rr){if(rr.total===0)return"No runs logged yet. Start with an easy 2 miles - that is the whole ask.";if(rr.gap===0)return"You ran today. That is the streak working.";if(rr.gap<=3)return"In rhythm - last run "+rr.gap+" day"+(rr.gap===1?"":"s")+" ago. Keep it rolling.";if(rr.gap<=6)return rr.gap+" days since your last run. Get one in before the week resets.";return"It has been "+rr.gap+" days. Restart easy, no penalty - the rhythm repairs itself.";}
 function milesThisWeek(){var k=keyOf(mondayOf(NOW)),mi=0;S.sessions.forEach(function(s){if(s.type==="run"&&s.date>=k)mi+=(s.distanceMi||0);});return mi;}
 function weeklyMiHistory(){var by={};S.sessions.forEach(function(s){if(s.type!=="run")return;by[isoWeek(s.date)]=(by[isoWeek(s.date)]||0)+(s.distanceMi||0);});var ks=Object.keys(by).sort().slice(-12);return ks.map(function(k){return by[k];});}
-function zoneRow(name,pace,note){return '<div class="arow"><span class="an">'+name+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+note+'</div></span><span class="ad" style="font-size:14px">'+pace+' /mi</span></div>';}
+/* Pace zones as a proportional scale rather than four rows of text: the bar shows where each
+   zone sits relative to the others, so "most of your miles live down here" is visible instead
+   of merely asserted. Easy is the widest band on purpose. */
+var ZONES=[
+ {n:"Easy",lo:630,hi:660,note:"most of your miles",k:"easy"},
+ {n:"Long",lo:660,hi:690,note:"keep it relaxed",k:"long"},
+ {n:"Steady",lo:585,hi:600,note:"only if it feels easy",k:"steady"},
+ {n:"Tempo",lo:545,hi:560,note:"once the base is back",k:"tempo"}
+];
+function paceZonesHTML(){
+  var all=ZONES.reduce(function(a,z){return a.concat([z.lo,z.hi]);},[]);
+  var mn=Math.min.apply(null,all)-20,mx=Math.max.apply(null,all)+20;
+  function px(v){return ((v-mn)/(mx-mn))*100;}
+  var rows=ZONES.slice().sort(function(a,b){return b.lo-a.lo;}).map(function(z){
+    /* lo is the faster (smaller) pace, so it is the LEFT edge; width runs lo->hi. Reading these
+       the other way round made every band collapse to the 4% minimum. */
+    var x=px(z.lo),w=Math.max(px(z.hi)-px(z.lo),6);
+    return '<div class="zrow" data-z="'+z.k+'"><div class="zhead"><span class="zn">'+z.n+'</span><span class="zp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span></div>'+
+      '<div class="ztrack"><i style="left:'+x.toFixed(1)+'%;width:'+w.toFixed(1)+'%"></i></div>'+
+      '<div class="znote">'+z.note+'</div></div>';
+  }).join("");
+  return '<div class="card"><h3><span>Pace zones</span><span class="t">per mile</span></h3>'+
+    '<div class="ksub">Slower is to the right. You run hot, so nearly everything should sit in the two bands at the top.</div>'+
+    rows+'</div>';
+}
+function scrollToWarm(){var e=document.getElementById("warmblock");if(e)e.scrollIntoView({behavior:"smooth",block:"start"});}
+/* ============ CARDIO LEVEL SYSTEM (Round C) ============
+   Levels come from an exponentially weighted average of daily cardio load, the way TrainingPeaks
+   and Strava compute fitness, rather than from points added and taken away. That one choice makes
+   decay honest and non-punitive: missing a week is not a penalty event, it is the same formula
+   running with zero input, and the curve bends gently instead of docking you.
+   The displayed level never animates downward mid-session; it changes only when a real threshold
+   is crossed, and it is phrased as a location rather than a loss. */
+var CARDIO_TC=21; /* days; slower than a 7-day fatigue line, faster than a 42-day fitness one */
+function loadFor(s){
+  /* Load is minutes weighted by intensity, so a hard 20 counts more than an easy 20 and a walk
+     still counts for something. Distance is used when there is no duration. */
+  if(!s)return 0;
+  var min=(s.durationSec||0)/60;
+  if(!min&&s.distanceMi)min=s.distanceMi*10;
+  if(!min)return 0;
+  var k=1;
+  if(s.type==="run")k=1.5;
+  else if(s.activity==="Walk")k=0.45;
+  else if(s.type==="activity")k=0.9;
+  else if(s.type==="lift")k=0.6;
+  var rpe=(""+(s.rpe||"")).toLowerCase();
+  if(rpe.indexOf("hard")>=0)k*=1.25; else if(rpe.indexOf("easy")>=0)k*=0.9;
+  return min*k;
+}
+function dailyLoad(){
+  var by={};S.sessions.forEach(function(s){if(!s.date)return;by[s.date]=(by[s.date]||0)+loadFor(s);});return by;
+}
+/* Walk the calendar day by day so gaps feed real zeros into the average. */
+function fitnessSeries(days){
+  days=days||120;
+  var by=dailyLoad(),out=[],slow=0,fast=0,a=1/CARDIO_TC,af=1/7;
+  var d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){
+    var v=by[keyOf(d)]||0;
+    slow=slow+(v-slow)*a;
+    fast=fast+(v-fast)*af;
+    out.push({date:keyOf(d),slow:slow,fast:fast});
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+/* Levels scale so early ones arrive fast and later ones take real work. */
+function levelFloor(n){return Math.round(6*Math.pow(n-1,1.45));}
+function levelFor(score){var n=1;while(n<50&&score>=levelFloor(n+1))n++;return n;}
+function cardioLevel(){
+  var s=fitnessSeries(120);
+  if(!s.length)return {lvl:1,score:0,pct:0,into:0,span:1,fast:0,slow:0,trend:"flat",series:s};
+  var last=s[s.length-1],score=last.slow,lvl=levelFor(score);
+  var lo=levelFloor(lvl),hi=levelFloor(lvl+1),span=Math.max(hi-lo,1);
+  var monthAgo=s[Math.max(0,s.length-29)].slow;
+  var trend=(score>monthAgo+0.6)?"up":(score<monthAgo-0.6)?"down":"flat";
+  return {lvl:lvl,score:score,into:score-lo,span:span,pct:Math.max(0,Math.min(1,(score-lo)/span)),
+          fast:last.fast,slow:last.slow,trend:trend,delta:score-monthAgo,series:s};
+}
+function levelCaption(L){
+  if(L.trend==="up")return "Building. Up "+Math.round(L.delta)+" points in the last four weeks.";
+  if(L.trend==="flat")return "Holding. Level with where you were a month ago.";
+  return "Easing off. A couple of runs gets this climbing again.";
+}
+function levelRingHTML(L){
+  var r=40,C=2*Math.PI*r,off=C*(1-L.pct);
+  return '<svg class="lring" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+Math.round(L.pct*100)+' percent to level '+(L.lvl+1)+'">'+
+    '<g transform="rotate(-90 48 48)">'+
+    '<circle cx="48" cy="48" r="'+r+'" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
+    '<circle cx="48" cy="48" r="'+r+'" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
+    '<text x="48" y="46" text-anchor="middle" class="num" style="font-size:28px;font-weight:800;fill:var(--ink)">'+L.lvl+'</text>'+
+    '<text x="48" y="63" text-anchor="middle" style="font-size:9.5px;font-weight:700;letter-spacing:.08em;fill:var(--faint)">LEVEL</text></svg>';
+}
+function fitnessSpark(L){
+  var s=L.series.slice(-90);if(s.length<4)return "";
+  var vs=s.map(function(p){return p.slow;}),mx=Math.max.apply(null,vs)||1,mn=Math.min.apply(null,vs);
+  var W=300,H=30;
+  var d=vs.map(function(v,i){var x=(i/(vs.length-1))*W,y=H-2-((v-mn)/((mx-mn)||1))*(H-6);return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ");
+  return '<svg class="lspark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+/* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
+function badgeList(){
+  var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
+  var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
+  var L=cardioLevel();
+  var defs=[
+    {id:"first",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null},
+    {id:"ten",n:"Ten runs",d:"Bank ten runs",got:runs.length>=10,when:runs.length>=10?runs[9].date:null},
+    {id:"25mi",n:"25 miles",d:"25 miles total",got:total>=25,when:null},
+    {id:"100mi",n:"100 miles",d:"100 miles total",got:total>=100,when:null},
+    {id:"5k",n:"5K",d:"Run 3.1 in one go",got:longest>=3.1,when:null},
+    {id:"10k",n:"10K",d:"Run 6.2 in one go",got:longest>=6.2,when:null},
+    {id:"lvl5",n:"Level 5",d:"Reach level 5",got:L.lvl>=5,when:null},
+    {id:"lvl10",n:"Level 10",d:"Reach level 10",got:L.lvl>=10,when:null}
+  ];
+  var got=defs.filter(function(b){return b.got;}),left=defs.filter(function(b){return !b.got;});
+  var cells=got.concat(left).map(function(b){
+    return '<div class="badge'+(b.got?" got":"")+'"><div class="bdot">'+(b.got?I.trophy:I.rest)+'</div><div class="bn">'+b.n+'</div><div class="bd">'+(b.got&&b.when?shortDate(b.when):b.d)+'</div></div>';
+  }).join("");
+  return '<div class="card"><h3><span>Badges</span><span class="t">'+got.length+' of '+defs.length+'</span></h3><div class="badges">'+cells+'</div></div>';
+}
 function renderCardio(){
   refreshDate();
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
   var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
-  var C=2*Math.PI*45,off=C*(1-(inBlock/3));
-  var h='<div class="head"><div><div class="date">Return to run &middot; base build</div><div class="title">Cardio</div></div></div>';
-  h+='<div class="ringcard"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+tgt.mi+'</b><span>mi easy</span></div></div><div class="rmeta"><div class="rt">'+(tgt.restart?"Ease back in - easy "+tgt.mi+" mi":"Next run: easy "+tgt.mi+" mi")+'</div><div class="rd">'+runStatusLine(rr)+'</div></div></div>';
-  h+='<button class="big-start" onclick="runSheet('+tgt.mi+')">'+I.run+' Log a run</button>';
-  h+='<div class="card"><h3>Where you are <span class="t">count, not calendar</span></h3>';
-  h+='<div class="sumgrid"><div class="sg"><b>'+rr.total+'</b><span>runs banked</span></div><div class="sg"><b>'+rr.count+'</b><span>this rhythm</span></div><div class="sg"><b>'+(rr.gap===null?"--":rr.gap+"d")+'</b><span>since last</span></div></div>';
-  h+='<div class="foot" style="margin-top:8px">Distance steps up every 3 runs you actually bank - '+tgt.mi+' mi now, next bump after '+toNext+' more. A 7-day gap eases you back to 2, no penalty.</div></div>';
-  h+='<div class="card"><h3>Your pace zones <span class="t">easy first, you run hot</span></h3>'+zoneRow("Easy / Zone 2","10:30 - 11:00","most of your miles")+zoneRow("Long run","11:00 - 11:30","keep it relaxed")+zoneRow("Steady","9:45","only if it feels easy")+zoneRow("Tempo (later)","9:10","once the base is back")+'</div>';
+  var L=cardioLevel();
+  var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+(L.trend==="up"?"building":L.trend==="flat"?"holding":"easing off")+'</div><div class="title">Cardio</div></div></div>';
+  /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
+  h+='<div class="hero"><div class="lbl">Next run</div><h2>'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
+    '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
+    '<button class="big-start" onclick="runSheet('+tgt.mi+')">'+I.run+' Start a run</button>'+
+    '<div class="herorow"><button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button>'+
+    '<button class="wbtn" onclick="scrollToWarm()">Warm up first</button></div></div>';
+  /* The level system replaces the old wordy "where you are" card. */
+  h+='<div class="card lcard"><div class="lwrap">'+levelRingHTML(L)+
+    '<div class="lmeta"><div class="lt">'+Math.round(L.into)+' / '+Math.round(L.span)+' to level '+(L.lvl+1)+'</div>'+
+    '<div class="ld">'+levelCaption(L)+'</div>'+
+    '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+runs.reduce(function(a,s){return a+(s.distanceMi||0);},0).toFixed(0)+'</b> mi</span><span><b class="num">'+(rr.gap===null?"--":rr.gap+"d")+'</b> since</span></div></div></div>'+
+    fitnessSpark(L)+
+    '<div class="foot" style="margin-top:6px">Your level tracks a rolling average of what you actually do, so a quiet week bends it gently rather than taking points away.</div></div>';
+  /* Warm-up sits high on the page, directly after the call to action, because it only works as
+     a prompt if you meet it on the way out the door rather than below the history. */
+  h+='<div id="warmblock"></div>'+guidedHTML("runwarm","Warm up first","Five to ten minutes before you head out. This is the part that keeps you running.",1);
+  h+=paceZonesHTML();
+  h+=badgeList();
   if(runs.length){var rec=runs.slice(-5).reverse().map(function(s){return '<div class="arow"><span class="an">'+shortDate(s.date)+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+(s.rpe?esc(s.rpe):"easy")+'</div></span><span class="ad">'+(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+'</span></div>';}).join("");
     h+='<div class="card"><h3>Recent runs <span class="t">last '+Math.min(5,runs.length)+'</span></h3>'+rec+'</div>';}
   var hist=weeklyMiHistory();
-  if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
-    h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
-  h+='<div class="card"><h3>Walk &amp; recover <span class="t">counts as a day</span></h3><div class="anote">Easy movement on non-run days keeps the streak alive and the base building.</div><div style="display:flex;gap:8px;margin-top:10px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Log 15-min walk</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(20)">Log 20-min walk</button></div></div>';
+  h+=barChart("Weekly miles","last "+hist.length+" weeks",hist,
+      hist.map(function(v,i){return i===hist.length-1?"now":"";}),
+      function(v){return v.toFixed(1);},"mi");
+  h+='<div class="card"><h3>Walk <span class="t">counts as a day</span></h3>'+
+    '<div class="anote" style="margin-top:0;padding-top:0;border-top:0">Easy movement on non-run days keeps the base building and costs you no recovery.</div>'+
+    '<button class="big-start" style="margin-top:12px" onclick="actSheet(\'walk\')">'+I.run+' Log a walk</button>'+
+    '<div style="display:flex;gap:8px;margin-top:8px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Quick 15</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(30)">Quick 30</button></div></div>';
+  h+=guidedHTML("recovery","Cool down after","Stretch while you are still warm, not an hour later.",5);
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   h+=libraryHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
@@ -1429,7 +2875,12 @@ function renderCardio(){
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
 function maybeNagBackup(){if(!S.sessions.length)return;var last=S.profile.lastBackup;var days=last?((new Date(TODAY)-new Date(last))/86400000):999;if(days>14)toast("Time to back up your data (Track, then Export).",function(){exportSheet();});}
 applyTheme();
-if(!S.profile.setup){firstRun();}
+/* No gate on first open. The defaults are good enough to train on, and the one thing the app
+   genuinely needs from you, a weigh-in, is asked for by the empty state rather than by a form
+   standing between you and the app. Setup still lives in Settings for anyone who wants it. */
+/* Offline is a service-worker concern; registration is best-effort and silent. */
+if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").catch(function(){});}catch(e){}}
+if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||TODAY;S.profile.programStart=S.profile.programStart||TODAY;save();}
 document.addEventListener("visibilitychange",function(){var woOn=document.getElementById("v-workout").classList.contains("on");if(document.hidden){if(woOn)woFreeze();}else{refreshDate();if(woOn)woResume();else if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
 renderToday();
 setTimeout(maybeNagBackup,1500);
