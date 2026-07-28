@@ -247,7 +247,9 @@ input,select{border:0;background:none}
 .seg button.sel{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
 .tin{width:100%;background:var(--surface-2);border-radius:10px;height:44px;padding:0 14px;font-size:15px;font-weight:600}
 .ta{width:100%;background:var(--surface-2);border-radius:10px;padding:12px 14px;font-size:13px;font-weight:500;font-family:var(--sans);min-height:120px;resize:vertical;line-height:1.5}
-.sheet-cta{width:100%;height:54px;margin-top:16px;background:var(--accent);color:var(--white);border-radius:var(--r-btn);font-size:17px;font-weight:700}
+.sheet-cta{width:100%;height:54px;margin-top:16px;background:var(--accent);color:var(--white);border-radius:var(--r-btn);font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px}
+/* Without this the inline icon inherits no size and expands to fill the button. */
+.sheet-cta svg{width:18px;height:18px;flex:0 0 18px}
 .sheet-cta:active{background:var(--accent-press)}
 .sheet-cta.ghost{background:var(--surface-2);color:var(--ink);margin-top:8px}
 .celebrate{text-align:center;padding:6px 0 0}
@@ -325,6 +327,18 @@ input,select{border:0;background:none}
 .vmeta .vt{font-size:13.5px;font-weight:700;line-height:1.3}
 .vmeta .va{font-size:11.5px;color:var(--sub);font-weight:600;margin-top:3px;line-height:1.4}
 .vmeta .va a{color:var(--accent);text-decoration:none;font-weight:700}
+/* shared bar chart */
+.bwrap{position:relative;margin-top:6px}
+.brow{display:flex;align-items:flex-end;gap:5px;min-height:calc(var(--bh) + 34px)}
+.bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+.bcol i{display:block;width:70%;border-radius:3px 3px 2px 2px;background:var(--surface-2)}
+.bcol i.on{background:var(--accent)}
+.bcol i.zero{background:var(--line);border-radius:2px}
+.bcol .bv{font-size:10px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums;min-height:12px}
+.bcol .bv.on{color:var(--accent)}
+.bcol .bx{font-size:10px;font-weight:700;color:var(--faint);min-height:12px}
+.bmean{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2);pointer-events:none}
+.bmean span{position:absolute;right:0;top:-14px;font-size:10px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 3px}
 /* Lift: program rotation + movements (Round D) */
 .prow{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}
 .prow:first-of-type{border-top:0}
@@ -1609,10 +1623,11 @@ function trendLine(){
 function bodyTilesHTML(){
   var pt=proteinTarget(),ph=proteinStreak(7),mv=daysMoved(7),streak=computeStreak();
   var ptxt=pt?(pt.lo+"-"+pt.hi+" g"):"log a weigh-in";
+  /* Days moved and protein already have scorecard rows directly above, measured over the calendar
+     week. Repeating them here on a rolling-7 window put two different true numbers for the same
+     thing side by side, which reads as a bug. Only the streak and the pending Steps pipe remain. */
   var h='<div class="stattiles">'+
-    stat("Days moved",mv,"/ 7","last 7 days","flat")+
-    stat("Streak",streak,streak===1?"day":"days","","flat")+
-    '<div class="stat"><div class="sl">Protein hit</div><div class="sv num">'+ph+' <small>/ 7</small></div><div class="st'+(ph>=5?"":" flat")+'">target '+ptxt+'</div></div>'+
+    stat("Streak",streak,streak===1?"day":"days","consecutive days moved","flat")+
     '<div class="stat pend"><div class="sl">Steps</div><div class="sv num">--</div><div class="st flat">needs Apple Health</div></div>'+
     '</div>';
   var on=!!S.protein[TODAY];
@@ -1643,7 +1658,7 @@ function progressHTML(){
   var e=ewma(),goal=S.profile.goalLb,streak=computeStreak();
   var liftS=S.sessions.filter(function(s){return s.type==="lift";}),lifts=liftS.length;
   var avgDur=lifts?Math.round(liftS.reduce(function(a,s){return a+(s.durationSec||0);},0)/lifts):0;
-  var volByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;s.entries.forEach(function(en){if(en.unit==="s"||en.bw)return;en.sets.forEach(function(st){v+=(st.weightLb||0)*(st.reps||0);});});volByWk[wk]=(volByWk[wk]||0)+v;});
+  var volByWk=volumeByWeek();
   var thisWk=isoWeek(TODAY),lastVol=volByWk[thisWk]||0;
   var pd=new Date(NOW);pd.setDate(NOW.getDate()-7);var prevVol=volByWk[isoWeek(keyOf(pd))]||0;
   /* Streak + bodyweight now lead the Track tab in the body hero and tiles, so they
@@ -1654,11 +1669,14 @@ function progressHTML(){
     stat("Avg session",avgDur?mmss(avgDur):"--",avgDur?"":"","","flat")+'</div>';
   var loadByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id);loadByWk[wk]=(loadByWk[wk]||0)+Math.round((s.rpe||7)*((s.durationSec||0)/60));});
   var thisLoad=loadByWk[thisWk]||0,prevLoad=loadByWk[isoWeek(keyOf(pd))]||0;
-  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+Math.round(lastVol/1000).toLocaleString()+'<small>k '+wLbl()+'</small></div><div class="st'+(lastVol>=prevVol?"":" flat")+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"first week")+'</div></div>'+
+  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+(lastVol>=prevVol?"":" flat")+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"first week")+'</div></div>'+
     '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+(thisLoad>=prevLoad?"":" flat")+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
   var exIds=Object.keys(LIB).filter(function(id){return prFor(id);}).sort(function(a,b){return prFor(b).date<prFor(a).date?-1:1;});
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
-  return tiles+weighChart()+volChart()+volTile+
+  /* weighChart() is deliberately NOT called here any more. The weight card at the top of Track
+     already owns the trend, and rendering a second chart with its own ETA text was the same
+     duplication that produced the dual-weight bug. One writer per number. */
+  return tiles+volChart()+volTile+
     (prHtml?'<div class="card"><h3>Personal records <span class="t">best set / est. 1-rep</span></h3><div class="prlist">'+prHtml+'</div></div>':'<div class="card"><h3>Personal records</h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a lift to start setting PRs.</div></div>')+
     /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
        chat was the only way this record could be read. Sync replaced it. The old footer line
@@ -1687,11 +1705,47 @@ function weighChart(){
   var gy=y(goal).toFixed(1);
   return '<div class="trend"><h3 style="margin-bottom:4px"><span>Weight trend</span><span class="t">now <b>'+lastRaw.toFixed(1)+'</b> '+wLbl()+'</span></h3><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px">'+head+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="display:block"><line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1.2" stroke-dasharray="4 4"/><path d="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-weight:600;margin-top:4px"><span>goal '+goal+'</span><span>'+S.weigh.length+' weigh-ins</span></div></div>';
 }
-function volChart(){var volByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;s.entries.forEach(function(en){if(en.unit==="s"||en.bw)return;en.sets.forEach(function(st){v+=(st.weightLb||0)*(st.reps||0);});});volByWk[wk]=(volByWk[wk]||0)+v;});
+/* One bar chart for every weekly series. Tufte's normal-range band becomes a dashed mean line,
+   the latest bar is the only accented one, and each bar carries its value so the chart is
+   readable without an axis. Empty weeks draw a hairline rather than nothing, so a gap looks
+   like a zero instead of a rendering failure. */
+function barChart(title,note,vals,labels,fmt,unit){
+  if(!vals||vals.length<2)return "";
+  fmt=fmt||function(v){return Math.round(v);};
+  var mx=Math.max.apply(null,vals)||1;
+  var nz=vals.filter(function(v){return v>0;});
+  var mean=nz.length?nz.reduce(function(a,v){return a+v;},0)/nz.length:0;
+  var H=64;
+  var bars=vals.map(function(v,i){
+    var hh=v>0?Math.max(6,Math.round(v/mx*H)):2;
+    var last=(i===vals.length-1);
+    return '<div class="bcol"><span class="bv'+(last?" on":"")+'">'+(v>0?fmt(v):"")+'</span>'+
+      '<i class="'+(last?"on":"")+(v>0?"":" zero")+'" style="height:'+hh+'px"></i>'+
+      '<span class="bx">'+(labels&&labels[i]!=null?labels[i]:"")+'</span></div>';
+  }).join("");
+  var meanPct=mx?Math.round((mean/mx)*H):0;
+  return '<div class="card"><h3><span>'+title+'</span><span class="t">'+note+'</span></h3>'+
+    '<div class="bwrap" style="--bh:'+H+'px">'+(mean>0?'<div class="bmean" style="bottom:'+(meanPct+16)+'px"><span>avg '+fmt(mean)+(unit?" "+unit:"")+'</span></div>':'')+
+    '<div class="brow">'+bars+'</div></div></div>';
+}
+/* Single source for weekly tonnage, shared by the tile and the chart. */
+function volumeByWeek(){
+  var by={},bwLb=Math.round((lastW()||180)*0.65);
+  S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id),v=0;
+    s.entries.forEach(function(en){if(en.unit==="s")return;
+      en.sets.forEach(function(st){if(!st.completed)return;v+=(en.bw?bwLb:(st.weightLb||0))*(st.reps||0);});});
+    by[wk]=(by[wk]||0)+v;});
+  return by;
+}
+function volChart(){
+  /* Bodyweight sets used to contribute nothing, so "week volume" read 0 lb forever on a
+     bodyweight program. Reps now count as work at an assumed load so the series means something. */
+  var volByWk=volumeByWeek();
   var wks=Object.keys(volByWk).sort().slice(-10);if(wks.length<2)return "";
-  var vals=wks.map(function(k){return volByWk[k];}),mx=Math.max.apply(null,vals)||1;
-  var bars=vals.map(function(v,i){var hh=Math.max(4,Math.round(v/mx*46));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===vals.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
-  return '<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly lifting volume</span><span class="t">last '+wks.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:5px;height:52px">'+bars+'</div></div>';
+  var vals=wks.map(function(k){return volByWk[k];});
+  return barChart("Weekly lifting volume","last "+wks.length+" weeks",vals,
+    wks.map(function(k,i){return i===wks.length-1?"now":"";}),
+    function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb");
 }
 
 /* ============ EXPORT / IMPORT ============ */
@@ -2321,7 +2375,9 @@ function paceZonesHTML(){
   var mn=Math.min.apply(null,all)-20,mx=Math.max.apply(null,all)+20;
   function px(v){return ((v-mn)/(mx-mn))*100;}
   var rows=ZONES.slice().sort(function(a,b){return b.lo-a.lo;}).map(function(z){
-    var x=px(z.hi),w=Math.max(px(z.lo)-px(z.hi),4);
+    /* lo is the faster (smaller) pace, so it is the LEFT edge; width runs lo->hi. Reading these
+       the other way round made every band collapse to the 4% minimum. */
+    var x=px(z.lo),w=Math.max(px(z.hi)-px(z.lo),6);
     return '<div class="zrow" data-z="'+z.k+'"><div class="zhead"><span class="zn">'+z.n+'</span><span class="zp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span></div>'+
       '<div class="ztrack"><i style="left:'+x.toFixed(1)+'%;width:'+w.toFixed(1)+'%"></i></div>'+
       '<div class="znote">'+z.note+'</div></div>';
@@ -2454,8 +2510,9 @@ function renderCardio(){
   if(runs.length){var rec=runs.slice(-5).reverse().map(function(s){return '<div class="arow"><span class="an">'+shortDate(s.date)+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+(s.rpe?esc(s.rpe):"easy")+'</div></span><span class="ad">'+(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+'</span></div>';}).join("");
     h+='<div class="card"><h3>Recent runs <span class="t">last '+Math.min(5,runs.length)+'</span></h3>'+rec+'</div>';}
   var hist=weeklyMiHistory();
-  if(hist.length>=2){var hmx=Math.max.apply(null,hist)||1;var hb=hist.map(function(v,i){var hh=Math.max(3,Math.round(v/hmx*44));return '<div style="flex:1;display:flex;align-items:flex-end;justify-content:center"><div style="width:62%;height:'+hh+'px;border-radius:3px;background:'+(i===hist.length-1?"var(--accent)":"var(--surface-2)")+'"></div></div>';}).join("");
-    h+='<div class="trend"><h3 style="margin-bottom:8px"><span>Weekly miles logged</span><span class="t">last '+hist.length+' wks</span></h3><div style="display:flex;align-items:flex-end;gap:4px;height:50px">'+hb+'</div></div>';}
+  h+=barChart("Weekly miles","last "+hist.length+" weeks",hist,
+      hist.map(function(v,i){return i===hist.length-1?"now":"";}),
+      function(v){return v.toFixed(1);},"mi");
   h+='<div class="card"><h3>Walk <span class="t">counts as a day</span></h3>'+
     '<div class="anote" style="margin-top:0;padding-top:0;border-top:0">Easy movement on non-run days keeps the base building and costs you no recovery.</div>'+
     '<button class="big-start" style="margin-top:12px" onclick="actSheet(\'walk\')">'+I.run+' Log a walk</button>'+
