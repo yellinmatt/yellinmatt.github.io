@@ -6,7 +6,7 @@
 <!-- frame-src is youtube-nocookie only, and img-src deliberately does NOT include i.ytimg.com:
      remote thumbnails would ping Google on every library render. The facades are drawn locally,
      so nothing reaches YouTube until you actually tap play on a specific video. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube-nocookie.com; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -357,6 +357,28 @@ input,select{border:0;background:none}
 .hcard .hbig small{font-size:15px;color:var(--faint);font-weight:700}
 .hcard .hsub{font-size:12.5px;color:var(--sub);font-weight:600;line-height:1.45}
 .hcard .hsub b{color:var(--accent);font-weight:800}
+/* week strip labels */
+.dot .dl{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
+.dot.today .dl{color:var(--accent)}
+/* collapsible morning anchor */
+.acard{padding:0}
+.acard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px}
+.acard>summary::-webkit-details-marker{display:none}
+.acard .asum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.acard .aright{display:flex;align-items:center;gap:10px}
+.acard .acount{font-size:12px;font-weight:700;color:var(--sub)}
+.acard[open]>summary{border-bottom:1px solid var(--line)}
+.acard .abody{padding:4px 18px 14px}
+/* two-week heatmap reads as a strip, not a grid */
+.hcard[data-sm="1"] .hcol i{width:15px;height:15px;border-radius:4px}
+.hcard[data-sm="1"] .hgrid{gap:5px}
+.hcard[data-sm="1"] .hcol{gap:5px}
+.hcard[data-sm="1"] .hbig{font-size:26px}
+/* compact weight log card */
+.wlrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px}
+.wlnum{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.wlnum small{font-size:13px;color:var(--faint);font-weight:700}
+.wlsub{font-size:12.5px;font-weight:600;color:var(--sub);margin-top:4px}
 /* year heatmap */
 .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
 .hgrid{display:flex;gap:3.5px;min-width:min-content}
@@ -433,6 +455,17 @@ input,select{border:0;background:none}
 .lstats span{font-size:11.5px;font-weight:600;color:var(--faint)}
 .lstats b{font-size:15px;font-weight:800;color:var(--ink);display:block;line-height:1.1}
 .lspark{display:block;width:100%;height:30px;margin-top:12px}
+/* recent runs */
+.rrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:11px 0;border-top:1px solid var(--line)}
+.rrow:first-of-type{border-top:0}
+.rrow .rdate{font-size:12.5px;font-weight:700;color:var(--sub);flex:0 0 52px}
+.rrow .rbar{flex:1;height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden}
+.rrow .rbar i{display:block;height:8px;border-radius:4px;background:var(--accent);opacity:.75}
+.rrow .rmi{font-size:14px;font-weight:800;flex:0 0 auto;min-width:52px;text-align:right}
+.rrow .rmi small{font-size:10px;color:var(--faint);font-weight:700}
+.rrow .rpace{font-size:12.5px;font-weight:700;color:var(--faint);flex:0 0 46px;text-align:right}
+.rrow .rpace.best{color:var(--good)}
+.bdrop .badges{margin-top:2px}
 /* badges */
 .badges{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:4px}
 .badge{text-align:center;opacity:.4}
@@ -859,7 +892,7 @@ if(!S.profile.mode)S.profile.mode="bw";
 if(!S.daySlot)S.daySlot={};
 if(S.cycleNext==null)S.cycleNext=0;
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null,runPlanStart:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -1015,23 +1048,28 @@ function renderToday(){
       (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
       (plan.weigh?'<div style="margin-top:14px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
   }
-  // dots
+  // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
-    /* Every day carries its icon now. It used to draw one only when the day was done or was
-       today, so the rest of the week rendered as blank circles and the plan was invisible. */
+    var lab=pl?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):"Open";
     var past=(k<TODAY);
-    dots+='<div class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+((isT&&pl&&pl.type==="rest"&&!dn)?" rest":"")+'"><span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div></div>';}
+    dots+='<button class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+'" onclick="dayDetail(\''+k+'\')">'+
+      '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div>'+
+      '<span class="dl">'+lab+'</span></button>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/4);
-  var anchor='<div class="card"><h3><span>Morning anchor</span><span class="miniring"><svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg></span></h3>'+rows+'</div>';
+  var anchor='<details class="card acard"'+(ac<4?' open':'')+'><summary><span class="asum">Morning anchor</span>'+
+    '<span class="aright"><span class="acount">'+ac+' of 4</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+rows+'</div></details>';
   /* F - press-play. A recover day is the one day with room for a follow-along, so that is
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
-  document.getElementById("v-today").innerHTML=h+hero+'<div class="dots-card"><div class="dots">'+dots+'</div></div>'+heatmapHTML(true)+anchor+guided+(isFresh()?emptyStateHTML():weightCardHTML())+todayLogHTML();
+  document.getElementById("v-today").innerHTML=h+hero+
+    '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
+    anchor+guided+heatmapHTML("2w")+
+    (isFresh()?emptyStateHTML():weightLogCardHTML())+todayLogHTML();
 }
 function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
 /* ============ WEIGHT TREND CARD (Round B) ============
@@ -1076,6 +1114,19 @@ function milestoneLine(t){
   var d=new Date(NOW);d.setDate(d.getDate()+Math.round(wks*7));
   var when=d.toLocaleDateString(undefined,{month:"long",day:"numeric"});
   return '<div class="anote" style="margin-top:10px">Next mark <b>'+next+' '+wLbl()+'</b>, on this trend around '+when+'.</div>';
+}
+/* Today gets the ACTION, Track gets the ANALYSIS. Duplicating the full trend card on both tabs
+   made Today a second Track and blurred what each tab is for. */
+function weightLogCardHTML(){
+  var st=weightStats();
+  if(!st)return '<div class="card"><h3><span>Weight</span></h3><div class="anote" style="margin-top:2px">No weigh-in yet. One number switches on the whole Track tab.</div><button class="big-start" style="margin-top:12px" onclick="weighSheet()">Log your first weigh-in</button></div>';
+  var stale=st.ageDays>=7;
+  return '<div class="card"><h3><span>Weight</span><span class="t">'+(st.ageDays===0?"logged today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</span></h3>'+
+    '<div class="wlrow"><div><div class="wlnum num">'+st.cur.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wlsub">'+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
+    '<button class="wbtn accent" onclick="weighSheet()">'+(st.ageDays===0?"Update":"Log today")+'</button></div>'+
+    (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
+    '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
 }
 function weightCardHTML(){
   var st=weightStats(),t=trendState();
@@ -1164,6 +1215,39 @@ function setToday(w){
   renderToday();
 }
 
+/* ============ WARM-UP AND COOL-DOWN GATES ============
+   A warm-up prompt buried in a card is a prompt you scroll past. So starting a session opens the
+   right routine and plays it immediately, with skipping one tap away and never shamed. The pick is
+   tailored to what you are about to do: a runner's dynamic routine before a run, a lifting-specific
+   one before a lift, and the matching cool-down offered when you finish. */
+function warmCat(kind){return kind==="run"?"runwarm":"warmup";}
+function coolCat(kind){return kind==="run"?"recovery":"recovery";}
+function primeSheet(kind,go){
+  var v=pickVid(warmCat(kind),0);
+  if(!v){go();return;}
+  PRIME_GO=go;
+  openSheet('<div class="grab"></div><h3>Warm up first</h3>'+
+    '<div class="ssub">'+(kind==="run"?"Five minutes of this and your knees will thank you a mile in.":"Five minutes here makes every set below feel better.")+'</div>'+
+    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
+    '<button class="sheet-cta" onclick="primeGo()">'+(kind==="run"?"Start the run":"Start the workout")+'</button>'+
+    '<button class="sheet-cta ghost" onclick="primeGo()">Skip the warm-up</button>');
+  /* autoplay the moment the sheet is up, so it primes you rather than waiting to be tapped */
+  setTimeout(function(){
+    var f=document.querySelector("#sheet .vface");
+    if(f)f.click();
+  },220);
+}
+var PRIME_GO=null;
+function primeGo(){var g=PRIME_GO;PRIME_GO=null;closeSheet();if(g)setTimeout(g,120);}
+function coolSheet(kind){
+  var v=pickVid(coolCat(kind),4);
+  if(!v)return;
+  openSheet('<div class="grab"></div><h3>Cool down</h3>'+
+    '<div class="ssub">Stretch while you are still warm. This is the cheapest recovery there is.</div>'+
+    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Done for today</button>');
+  setTimeout(function(){var f=document.querySelector("#sheet .vface");if(f)f.click();},220);
+}
 /* ============ WORKOUT ============ */
 var woTimer=null;var openEx={};
 function AW(){return S.activeMode==="gen"?S.genWk:S.wk[TODAY];}
@@ -1178,7 +1262,8 @@ function updatePico(){var p=document.getElementById("wo-pico");if(!p)return;var 
 function woFreeze(){var w=AW();if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w.start)/1000;w.start=null;save();}if(woTimer){clearInterval(woTimer);woTimer=null;}}
 function woResume(){var w=AW();if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
 function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
-function startWorkout(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
+function startWorkout(){primeSheet("lift",function(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();});}
+function startWorkoutNow(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
 function closeWorkout(){woFreeze();endRest();show(RETV||"today");}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
@@ -1203,8 +1288,7 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   active.forEach(function(oi,idx){h+=exCardHTML(oi,idx===0&&active.length>1);});
   if(doneL.length){h+='<div class="doneband">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
   h+='<div class="warmcard"><b>Cooldown (2-3 min):</b> '+COOL+'</div>';
-  h+=guidedHTML("recovery","Stretch it out","Optional, when you have the time for it.",3);
-  document.getElementById("wo-body").innerHTML=h;}
+    document.getElementById("wo-body").innerHTML=h;}
 function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
   if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
   else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
@@ -1323,7 +1407,8 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
   save();closeSheet();show(RETV||"today");
-  toast(prs.length?("New PR: "+prs[0]):("Logged - "+setsN+" sets, "+mmss(dur)+"."),null);}
+  toast(prs.length?("New PR: "+prs[0]):("Logged - "+setsN+" sets, "+mmss(dur)+"."),null);
+  setTimeout(function(){coolSheet("lift");},900);}
 /* ============ ADAPTIVE COACH (Batch 4) ============
    Progression already existed but only ever looked at the set you just finished. The coach adds
    the two things that make a program adapt rather than merely increment: how hard the last few
@@ -1437,6 +1522,7 @@ function saveRun(){var d=parseFloat((document.getElementById("r-dist")||{}).valu
   S.sessions=S.sessions.filter(function(s){return !(s.id===TODAY&&s.type==="run");});
   S.sessions.push({id:TODAY,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
   S.done[TODAY]=true;advanceCycle();save();closeSheet();
+  setTimeout(function(){coolSheet("run");},900);
   var hot=(rpeRun==="Hard");
   if(hot)toast("Logged. Keep easy runs easy - that protects your lifting.",null);
   renderRun();
@@ -1513,7 +1599,7 @@ function weekHTML(withRing){
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
   return (withRing===false?'':ring)+
-    '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>'+monthCal();
+    '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>';
 }
 /* ============ LIFT (strength hub: today + plan + build + library) ============ */
 /* ============ LIFT: THE PROGRAM AND THE MOVEMENTS (Round D) ============
@@ -1605,7 +1691,6 @@ function renderLift(){
   }
   h+=coachCardHTML();
   h+=cycleHTML();
-  h+=patternVolumeHTML();
   h+=movementRows();
   h+=weekHTML(false);
   h+=libraryHTML("lift");
@@ -1624,14 +1709,14 @@ function dayDetail(k){
   m+='<button class="sheet-cta'+(lift||run?" ghost":"")+'" onclick="closeSheet()">Close</button>';
   openSheet(m);
 }
-function deleteDay(k){S.sessions=S.sessions.filter(function(s){return s.id!==k;});delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
+function deleteDay(k){S.sessions.forEach(function(s){if(s.id===k)tomb(s.id);});S.sessions=S.sessions.filter(function(s){return s.id!==k;});delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
 
 /* ============ TRACK (body, trends, PRs, settings) ============ */
 function renderTrack(){
   var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div>'+
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
-  h+=heatmapHTML(false)+weightCardHTML()+scorecardHTML()+freshnessHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
+  h+=scorecardHTML()+freshnessHTML()+heatmapHTML("6m")+weightCardHTML()+patternVolumeHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
   h+='<div class="sectlbl" style="margin:16px 2px 8px">Setup &amp; backend</div>';
   h+='<button class="sheet-cta ghost" onclick="weighSheet()">Log a weigh-in</button>';
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings</button>';
@@ -2028,8 +2113,8 @@ function dayLevel(k){
   if(!load)return isDone(k)?1:0;
   return load>=60?4:load>=35?3:load>=18?2:1;
 }
-function heatmapHTML(compact){
-  var weeks=compact?26:53,cells="",today=new Date(NOW);
+function heatmapHTML(mode){
+  var weeks=(mode==="2w")?2:(mode===true||mode==="6m")?26:53,cells="",today=new Date(NOW);
   var end=new Date(today);end.setDate(end.getDate()+(6-((end.getDay()+6)%7)));
   var start=new Date(end);start.setDate(start.getDate()-(weeks*7-1));
   var cols=[],cur=new Date(start),any=0,streakNow=computeStreak(),best=0,run=0;
@@ -2045,10 +2130,10 @@ function heatmapHTML(compact){
     }
     cols+='<div class="hcol">'+col+'</div>';
   }
-  var months="",mcur=new Date(start),nm=compact?6:12;
+  var months="",mcur=new Date(start),nm=(weeks<=2)?0:(weeks<=26)?6:12;
   for(var m=0;m<nm;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
   var pct=Math.round(any/(weeks*7)*100);
-  return '<div class="card hcard"><h3><span>'+(compact?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
+  return '<div class="card hcard"'+(weeks<=2?' data-sm="1"':'')+'><h3><span>'+(weeks<=2?"The last two weeks":weeks<=26?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
     '<div class="hhead"><div class="hbig num">'+pct+'<small>%</small></div>'+
     '<div class="hsub">of days moved'+(best?', longest run <b>'+best+'</b> days':'')+(streakNow?', on <b>'+streakNow+'</b> now':'')+'</div></div>'+
     '<div class="hscroll"><div class="hgrid">'+cols+'</div></div>'+
@@ -2280,7 +2365,7 @@ function playVid(id,slot){
   f.setAttribute("allowfullscreen","");
   f.setAttribute("referrerpolicy","strict-origin-when-cross-origin");
   f.setAttribute("title",v.t);
-  f.src="https://www.youtube-nocookie.com/embed/"+id+"?autoplay=1&rel=0&modestbranding=1&playsinline=1";
+  f.src="https://www.youtube.com/embed/"+id+"?autoplay=1&rel=0&playsinline=1";
   face.replaceWith(f);
 }
 /* Rotate the guided pick by date so a recover day is not the same video every week. */
@@ -2674,6 +2759,21 @@ function recomputeDone(k){
   var pl=planFor(k)||{type:"none"};
   if(has||(pl.type==="rest"&&anchorComplete(k)))S.done[k]=true;else delete S.done[k];
 }
+/* Practice entries from testing are indistinguishable from real ones once logged, so there is a
+   single control to clear a whole day rather than tapping each row and hoping it stays gone. */
+function clearToday(){
+  var mine=S.sessions.filter(function(s){return s.date===TODAY;});
+  if(!mine.length)return;
+  openSheet('<div class="grab"></div><h3>Clear today</h3><div class="ssub">Removes all '+mine.length+' entr'+(mine.length===1?"y":"ies")+' logged today, including any practice ones. This now sticks across sync.</div>'+
+    '<button class="sheet-cta" onclick="doClearToday()">Remove '+mine.length+' entr'+(mine.length===1?"y":"ies")+'</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Keep them</button>');
+}
+function doClearToday(){
+  S.sessions.filter(function(s){return s.date===TODAY;}).forEach(function(s){tomb(s.id);});
+  S.sessions=S.sessions.filter(function(s){return s.date!==TODAY;});
+  delete S.runs[TODAY];delete S.wk[TODAY];recomputeDone(TODAY);
+  save();closeSheet();refreshCurrent();toast("Today cleared.",null);
+}
 function todayLogHTML(){
   var items=S.sessions.filter(function(s){return s.date===TODAY;});
   var rows="";
@@ -2686,7 +2786,8 @@ function todayLogHTML(){
   });
   var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet.</div>';
   return '<div class="card"><h3><span>Today\'s log</span>'+(items.length?'<span class="t">'+items.length+' logged</span>':'')+'</h3>'+rows+empty+
-    '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log activity</button></div>';
+    '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log activity</button>'+
+    (items.length?'<button class="setbtn rm" style="width:100%;margin-top:8px;padding:11px" onclick="clearToday()">Clear everything logged today</button>':'')+'</div>';
 }
 function sessionSheet(id){var s=S.sessions.filter(function(x){return x.id===id;})[0];if(!s){closeSheet();return;}
   var title=s.type==="lift"?(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength"):s.type==="run"?"Easy run":esc(s.activity||"Workout");
@@ -2697,13 +2798,16 @@ function sessionSheet(id){var s=S.sessions.filter(function(x){return x.id===id;}
   m+='<button class="sheet-cta" onclick="editSessionSheet(\''+id+'\')">Edit</button><button class="sheet-cta ghost" onclick="closeSheet();delSession(\''+id+'\')">Delete</button><button class="sheet-cta ghost" onclick="closeSheet()">Close</button>';
   openSheet(m);
 }
+function tomb(id){S.deleted=S.deleted||[];for(var i=0;i<S.deleted.length;i++)if(S.deleted[i].id===String(id))return;S.deleted.push({id:String(id),at:Date.now()});}
+function untomb(id){S.deleted=(S.deleted||[]).filter(function(t){return t.id!==String(id);});}
 function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sessions[i].id===id){idx=i;break;}if(idx<0)return;
   var rm=S.sessions.splice(idx,1)[0];
+  tomb(id); /* without this the next sync pull puts it straight back */
   if(rm.type==="run")delete S.runs[rm.date];
   if(rm.type==="lift"&&S.wk[rm.date])delete S.wk[rm.date];
   recomputeDone(rm.date);save();renderToday();
   var lbl=rm.type==="lift"?"workout":rm.type==="run"?"run":(rm.activity||"activity");
-  toast("Removed "+lbl,function(){S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
+  toast("Removed "+lbl,function(){untomb(id);S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
 }
 function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
 function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);refreshCurrent();}
@@ -2883,23 +2987,64 @@ function fitnessSpark(L){
 function badgeList(){
   var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
   var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
-  var L=cardioLevel();
+  var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+  var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length;
+  var moved=Object.keys(S.done||{}).length,streak=computeStreak();
+  var earlyRuns=runs.filter(function(r){return /T0[0-7]/.test(r.date+"T06");}).length;
+  var wk=weeklyMiHistory(),bestWk=wk.length?Math.max.apply(null,wk):0;
+  function firstAt(pred){for(var i=0;i<runs.length;i++)if(pred(runs[i],i))return runs[i].date;return null;}
   var defs=[
-    {id:"first",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null},
-    {id:"ten",n:"Ten runs",d:"Bank ten runs",got:runs.length>=10,when:runs.length>=10?runs[9].date:null},
-    {id:"25mi",n:"25 miles",d:"25 miles total",got:total>=25,when:null},
-    {id:"100mi",n:"100 miles",d:"100 miles total",got:total>=100,when:null},
-    {id:"5k",n:"5K",d:"Run 3.1 in one go",got:longest>=3.1,when:null},
-    {id:"10k",n:"10K",d:"Run 6.2 in one go",got:longest>=6.2,when:null},
-    {id:"lvl5",n:"Level 5",d:"Reach level 5",got:L.lvl>=5,when:null},
-    {id:"lvl10",n:"Level 10",d:"Reach level 10",got:L.lvl>=10,when:null}
+    {g:"Distance",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null},
+    {g:"Distance",n:"25 miles",d:"25 miles banked",got:total>=25},
+    {g:"Distance",n:"50 miles",d:"50 miles banked",got:total>=50},
+    {g:"Distance",n:"100 miles",d:"100 miles banked",got:total>=100},
+    {g:"Distance",n:"250 miles",d:"250 miles banked",got:total>=250},
+    {g:"Distance",n:"500 miles",d:"500 miles banked",got:total>=500},
+    {g:"One run",n:"5K",d:"3.1 in one go",got:longest>=3.1,when:firstAt(function(r){return (r.distanceMi||0)>=3.1;})},
+    {g:"One run",n:"Five miles",d:"5.0 in one go",got:longest>=5},
+    {g:"One run",n:"10K",d:"6.2 in one go",got:longest>=6.2},
+    {g:"One run",n:"Ten miles",d:"10.0 in one go",got:longest>=10},
+    {g:"One run",n:"Half",d:"13.1 in one go",got:longest>=13.1},
+    {g:"Speed",n:"Sub 11",d:"A mile under 11:00",got:best>0&&best<660},
+    {g:"Speed",n:"Sub 10",d:"A mile under 10:00",got:best>0&&best<600},
+    {g:"Speed",n:"Sub 9",d:"A mile under 9:00",got:best>0&&best<540},
+    {g:"Speed",n:"Sub 8",d:"A mile under 8:00",got:best>0&&best<480},
+    {g:"Consistency",n:"Three in a row",d:"3 days moved",got:streak>=3||moved>=3},
+    {g:"Consistency",n:"A full week",d:"7 days moved",got:streak>=7},
+    {g:"Consistency",n:"Two weeks",d:"14 day streak",got:streak>=14},
+    {g:"Consistency",n:"A month",d:"30 day streak",got:streak>=30},
+    {g:"Consistency",n:"Hundred days",d:"100 days moved",got:moved>=100},
+    {g:"Volume",n:"Ten runs",d:"10 runs banked",got:runs.length>=10},
+    {g:"Volume",n:"Fifty runs",d:"50 runs banked",got:runs.length>=50},
+    {g:"Volume",n:"Ten lifts",d:"10 sessions",got:lifts>=10},
+    {g:"Volume",n:"Fifty lifts",d:"50 sessions",got:lifts>=50},
+    {g:"Volume",n:"Big week",d:"10 miles in a week",got:bestWk>=10},
+    {g:"Volume",n:"Bigger week",d:"20 miles in a week",got:bestWk>=20},
+    {g:"Level",n:"Level 3",d:"Reach level 3",got:L.lvl>=3},
+    {g:"Level",n:"Level 5",d:"Reach level 5",got:L.lvl>=5},
+    {g:"Level",n:"Level 10",d:"Reach level 10",got:L.lvl>=10},
+    {g:"Level",n:"Level 15",d:"Reach level 15",got:L.lvl>=15},
+    {g:"Level",n:"Level 20",d:"Reach level 20",got:L.lvl>=20},
+    {g:"Grit",n:"Back at it",d:"Return after 14 days off",got:runs.length>=2&&(function(){for(var i=1;i<runs.length;i++)if(daysBetween(runs[i-1].date,runs[i].date)>=14)return true;return false;})()},
+    {g:"Grit",n:"Never zero",d:"Log a 5-minute minimum day",got:S.sessions.some(function(x){return x.notes==="never-zero";})},
+    {g:"Grit",n:"Weigh-in habit",d:"10 weigh-ins logged",got:S.weigh.length>=10},
+    {g:"Grit",n:"On the record",d:"25 weigh-ins logged",got:S.weigh.length>=25}
   ];
-  var got=defs.filter(function(b){return b.got;}),left=defs.filter(function(b){return !b.got;});
-  var cells=got.concat(left).map(function(b){
-    return '<div class="badge'+(b.got?" got":"")+'"><div class="bdot">'+(b.got?I.trophy:I.rest)+'</div><div class="bn">'+b.n+'</div><div class="bd">'+(b.got&&b.when?shortDate(b.when):b.d)+'</div></div>';
-  }).join("");
-  return '<div class="card"><h3><span>Badges</span><span class="t">'+got.length+' of '+defs.length+'</span></h3><div class="badges">'+cells+'</div></div>';
+  var got=defs.filter(function(x){return x.got;}),left=defs.filter(function(x){return !x.got;});
+  function cell(x){return '<div class="badge'+(x.got?" got":"")+'"><div class="bdot">'+(x.got?I.trophy:I.rest)+'</div><div class="bn">'+x.n+'</div><div class="bd">'+(x.got&&x.when?shortDate(x.when):x.d)+'</div></div>';}
+  /* Earned first and in order, then the locked ones as visible goals rather than hidden ones. */
+  var next=left.slice(0,4).map(cell).join("");
+  var all="";
+  var groups={};defs.forEach(function(x){(groups[x.g]=groups[x.g]||[]).push(x);});
+  Object.keys(groups).forEach(function(g){
+    all+='<div class="sectlbl" style="margin:14px 2px 8px">'+g+'</div><div class="badges">'+groups[g].map(cell).join("")+'</div>';
+  });
+  return '<details class="libdrop bdrop"><summary><span>Badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
+    '<div class="libpad">'+(got.length?'<div class="sectlbl" style="margin:8px 2px">Earned</div><div class="badges">'+got.map(cell).join("")+'</div>':'')+
+    (next?'<div class="sectlbl" style="margin:16px 2px 8px">Next up</div><div class="badges">'+next+'</div>':'')+
+    '<div class="sectlbl" style="margin:18px 2px 8px">Everything</div>'+all+'</div></details>';
 }
+
 function renderCardio(){
   refreshDate();
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
@@ -2909,9 +3054,9 @@ function renderCardio(){
   /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
   h+='<div class="hero"><div class="lbl">Next run</div><h2>'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
-    '<button class="big-start" onclick="runSheet('+tgt.mi+')">'+I.run+' Start a run</button>'+
-    '<div class="herorow"><button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button>'+
-    '<button class="wbtn" onclick="scrollToWarm()">Warm up first</button></div></div>';
+    '<button class="big-start" onclick="primeSheet(\'run\',function(){runSheet('+tgt.mi+')})">'+I.run+' Start a run</button>'+
+    '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
+    '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
   /* The level system replaces the old wordy "where you are" card. */
   h+='<div class="card lcard"><div class="lwrap">'+levelRingHTML(L)+
     '<div class="lmeta"><div class="lt">'+Math.round(L.into)+' / '+Math.round(L.span)+' to level '+(L.lvl+1)+'</div>'+
@@ -2921,22 +3066,32 @@ function renderCardio(){
     '<div class="foot" style="margin-top:6px">Your level tracks a rolling average of what you actually do, so a quiet week bends it gently rather than taking points away.</div></div>';
   /* Warm-up sits high on the page, directly after the call to action, because it only works as
      a prompt if you meet it on the way out the door rather than below the history. */
-  h+='<div id="warmblock"></div>'+guidedHTML("runwarm","Warm up first","Five to ten minutes before you head out. This is the part that keeps you running.",1);
   h+=paceZonesHTML();
-  h+=badgeList();
-  if(runs.length){var rec=runs.slice(-5).reverse().map(function(s){return '<div class="arow"><span class="an">'+shortDate(s.date)+'<div style="font-size:12px;color:var(--faint);font-weight:500">'+(s.rpe?esc(s.rpe):"easy")+'</div></span><span class="ad">'+(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+'</span></div>';}).join("");
-    h+='<div class="card"><h3>Recent runs <span class="t">last '+Math.min(5,runs.length)+'</span></h3>'+rec+'</div>';}
+  if(runs.length){
+    var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+    var rec=runs.slice(-6).reverse().map(function(r){
+      var pace=r.paceSecPerMi?mmss(r.paceSecPerMi):null;
+      var isBest=(pace&&r.paceSecPerMi===best);
+      var mi=r.distanceMi||0,w=Math.max(6,Math.min(100,(mi/5)*100));
+      return '<button class="rrow" onclick="sessionSheet(\''+r.id+'\')">'+
+        '<span class="rdate">'+shortDate(r.date)+'</span>'+
+        '<span class="rbar"><i style="width:'+w.toFixed(0)+'%"></i></span>'+
+        '<span class="rmi num">'+mi.toFixed(1)+'<small> mi</small></span>'+
+        '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
+    }).join("");
+    h+='<div class="card"><h3><span>Recent runs</span><span class="t">'+(best?("best "+mmss(best)+"/mi"):"last "+Math.min(6,runs.length))+'</span></h3>'+rec+'</div>';}
+
   var hist=weeklyMiHistory();
-  h+=barChart("Weekly miles","last "+hist.length+" weeks",hist,
+  h+=barChart("Weekly miles","last "+hist.length+" weeks &middot; "+(hist.length?hist[hist.length-1].toFixed(1):"0")+" this week",hist,
       hist.map(function(v,i){return i===hist.length-1?"now":"";}),
       function(v){return v.toFixed(1);},"mi");
   h+='<div class="card"><h3>Walk <span class="t">counts as a day</span></h3>'+
     '<div class="anote" style="margin-top:0;padding-top:0;border-top:0">Easy movement on non-run days keeps the base building and costs you no recovery.</div>'+
     '<button class="big-start" style="margin-top:12px" onclick="actSheet(\'walk\')">'+I.run+' Log a walk</button>'+
     '<div style="display:flex;gap:8px;margin-top:8px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Quick 15</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(30)">Quick 30</button></div></div>';
-  h+=guidedHTML("recovery","Cool down after","Stretch while you are still warm, not an hour later.",5);
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   h+=libraryHTML("cardio");
+  h+=badgeList();
   document.getElementById("v-cardio").innerHTML=h;
 }
 

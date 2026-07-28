@@ -51,6 +51,7 @@
     return {
       sessions: Array.isArray(S.sessions) ? S.sessions : [],
       weighins: Array.isArray(S.weigh) ? S.weigh.map(function (w) { return { date: w.date, weightLb: w.w }; }) : [],
+      deleted: Array.isArray(S.deleted) ? S.deleted : [],
       progressState: S.progress || null,
       progressUpdatedAt: Date.now(),
     };
@@ -63,11 +64,30 @@
     var d = Number(s.duration || s.durationSec || s.durationMs || 0) || 0;
     return sets * 1e9 + d;
   }
-  function unionSessions(a, b) {
+  /* A plain union cannot express a deletion: whatever you remove locally comes straight back on
+     the next pull, because the server still has it and a union only ever adds. Deleted ids are
+     therefore carried as tombstones and filtered out of the merged result, so a delete survives
+     sync and propagates to the other device instead of silently resurrecting. */
+  function unionSessions(a, b, tomb) {
+    var dead = {};
+    (tomb || []).forEach(function (t) { if (t && t.id != null) dead[String(t.id)] = true; });
     var m = new Map();
-    (a || []).forEach(function (s) { if (s && s.id != null) m.set(String(s.id), s); });
-    (b || []).forEach(function (s) { if (!s || s.id == null) return; var k = String(s.id), p = m.get(k); if (!p || completeness(s) >= completeness(p)) m.set(k, s); });
+    (a || []).forEach(function (s) { if (s && s.id != null && !dead[String(s.id)]) m.set(String(s.id), s); });
+    (b || []).forEach(function (s) { if (!s || s.id == null || dead[String(s.id)]) return; var k = String(s.id), p = m.get(k); if (!p || completeness(s) >= completeness(p)) m.set(k, s); });
     return Array.from(m.values());
+  }
+  /* Tombstones are pruned after 120 days: long enough for every device to have seen the delete,
+     short enough that the list never grows without bound. */
+  function mergeTombs(a, b) {
+    var m = {}, cut = Date.now() - 120 * 86400000;
+    (a || []).concat(b || []).forEach(function (t) {
+      if (!t || t.id == null) return;
+      var at = +t.at || Date.now();
+      if (at < cut) return;
+      var k = String(t.id);
+      if (!m[k] || at > m[k].at) m[k] = { id: k, at: at };
+    });
+    return Object.keys(m).map(function (k) { return m[k]; });
   }
   // Merge server weighins ({date,weightLb}) into app weigh ({date,w,...}) by date; keep existing.
   function mergeWeigh(localWeigh, srvWeighins) {
@@ -111,7 +131,8 @@
         }
         var before = JSON.stringify(S);
         if (!localStorage.getItem(BACKUP_KEY)) { try { localStorage.setItem(BACKUP_KEY, before); } catch (e) {} }
-        S.sessions = unionSessions(S.sessions, srv.sessions);
+        S.deleted = mergeTombs(S.deleted, srv.deleted);
+        S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
@@ -133,7 +154,7 @@
     var S = { v: 2,
       profile: { setup: true, name: "", units: "lb", loc: "Miami", goalLb: 180, stretchLb: 175, rest: 90, theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null },
       progress: srv.progressState || {}, wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
-      done: {}, runs: {}, anchor: {},
+      done: {}, runs: {}, anchor: {}, deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
       planPos: 0, override: {}, activeMode: "plan", genWk: null };
     S.sessions.forEach(function (s) { if (s && s.date) S.done[s.date] = true; });
@@ -150,5 +171,5 @@
   if (document.readyState === "complete" || document.readyState === "interactive") setTimeout(start, 500);
   else global.addEventListener("load", function () { setTimeout(start, 500); });
 
-  global.TrainSyncAuto = { start: start, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh };
+  global.TrainSyncAuto = { start: start, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
 })(typeof window !== "undefined" ? window : this);
