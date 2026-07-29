@@ -64,9 +64,39 @@
       steps: S.steps && typeof S.steps === "object" ? S.steps : {},
       protein: S.protein && typeof S.protein === "object" ? S.protein : {},
       nutrition: S.nutrition && typeof S.nutrition === "object" ? S.nutrition : {},
+      runs: S.runs && typeof S.runs === "object" ? S.runs : {},
+      override: S.override && typeof S.override === "object" ? S.override : {},
+      daySlot: S.daySlot && typeof S.daySlot === "object" ? S.daySlot : {},
+      /* Settings and the cycle cursor are last-write-wins, so their timestamps must only move when
+         the value actually changed. Stamping Date.now() on every push would make whichever device
+         pushed most recently the winner, which is how an idle laptop silently undoes a setting
+         changed on the phone. `stampedAt` remembers the last value seen and reuses its timestamp. */
+      profile: S.profile || null,
+      profileUpdatedAt: stampedAt("profile", S.profile),
+      cursor: { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 },
+      cursorUpdatedAt: stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 }),
       progressState: S.progress || null,
-      progressUpdatedAt: Date.now(),
+      progressUpdatedAt: stampedAt("progress", S.progress),
     };
+  }
+  var STAMP_KEY = "train.syncStamps";
+  function stampedAt(name, value) {
+    var st = {};
+    try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
+    var sig = JSON.stringify(value === undefined ? null : value);
+    if (!st[name] || st[name].sig !== sig) {
+      st[name] = { sig: sig, at: Date.now() };
+      try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
+    }
+    return st[name].at;
+  }
+  /* Accepting the server's value means adopting its timestamp too, otherwise this device would
+     immediately re-stamp it as newer and push it straight back, and the two would ping-pong. */
+  function bumpStamp(name, value, at) {
+    var st = {};
+    try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
+    st[name] = { sig: JSON.stringify(value === undefined ? null : value), at: at || Date.now() };
+    try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
   }
   /* Steps take the larger of the two: a day's count only ever grows, and an export taken at noon
      must not overwrite one taken at midnight. Protein is a boolean hit, so it ORs. Nutrition keeps
@@ -153,7 +183,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, pf: p.profile, cu: p.cursor });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) lastSnap = snap; })
@@ -184,8 +214,23 @@
         S.steps = mergeSteps(S.steps, srv.steps);
         S.protein = mergeDone(S.protein, srv.protein);
         S.nutrition = mergeFill(S.nutrition, srv.nutrition);
+        S.runs = mergeFill(S.runs, srv.runs);
+        S.override = mergeFill(S.override, srv.override);
+        S.daySlot = mergeFill(S.daySlot, srv.daySlot);
+        /* Settings and the cursor only come down if the server's copy is genuinely newer than what
+           this device last stamped. Same rule the Worker applies, checked on both ends. */
+        if (srv.profile && Number(srv.profileUpdatedAt || 0) > stampedAt("profile", S.profile)) {
+          S.profile = srv.profile; bumpStamp("profile", S.profile, Number(srv.profileUpdatedAt));
+        }
+        if (srv.cursor && Number(srv.cursorUpdatedAt || 0) > stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 })) {
+          S.planPos = srv.cursor.planPos || 0; S.cycleNext = srv.cursor.cycleNext || 0;
+          bumpStamp("cursor", { planPos: S.planPos, cycleNext: S.cycleNext }, Number(srv.cursorUpdatedAt));
+        }
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
+        else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
+          S.progress = srv.progressState; bumpStamp("progress", S.progress, Number(srv.progressUpdatedAt));
+        }
         if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) S.profile.setup = true;
         var after = JSON.stringify(S);
         lastSnap = "";
