@@ -467,6 +467,14 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .msum .ms b{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em}
 .msum .ms span{display:block;font-size:10.5px;font-weight:600;color:var(--faint);margin-top:3px}
 .msp{display:block;width:100%;height:42px;margin-top:12px}
+.lring .lprog{transition:stroke-dashoffset .55s cubic-bezier(.22,1,.36,1)}
+.lring .lprog.snap{transition:none}
+@media (prefers-reduced-motion:reduce){.lring .lprog{transition:none}}
+.lcard[data-k="good"]{--lk:var(--good)}
+.lcard[data-k="flat"]{--lk:var(--sub)}
+.lcard[data-k="warn"]{--lk:var(--amber)}
+.lcard[data-k="base"]{--lk:var(--faint)}
+.lcard .ltag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--lk);margin:3px 0 2px}
 /* Cardio level system (Round C) */
 .herorow{display:flex;gap:8px;margin-top:10px}
 .herorow .wbtn{flex:1}
@@ -1477,7 +1485,14 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
   var nt=document.getElementById("rpe-notes");
   var rec={id:(AW().id||TODAY),date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries};
   S.sessions=S.sessions.filter(function(s){return s.id!==rec.id;});S.sessions.push(rec);
-  S.done[TODAY]=true;S.planPos=((S.planPos||0)+1)%3;advanceCycle();if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
+  /* A custom build is extra work, not the scheduled day. It marks the day trained so streaks,
+     volume and the level all count it, but the rotation does NOT advance, so the lift you were
+     owed simply moves to the next day instead of being silently consumed. */
+  S.done[TODAY]=true;
+  var wasCustom=(S.activeMode==="gen"||w.letter==="Gen");
+  if(!wasCustom){S.planPos=((S.planPos||0)+1)%3;advanceCycle();}
+  else{delete S.daySlot[TODAY];}
+  if(S.activeMode==="gen"){S.genWk=null;S.activeMode="plan";}
   if(woTimer){clearInterval(woTimer);woTimer=null;}endRest();rpePick=null;
   try{localStorage.setItem("train_v2_snapshot",JSON.stringify(S))}catch(e){}
   save();closeSheet();show(RETV||"today");
@@ -3026,73 +3041,169 @@ function scrollToWarm(){var e=document.getElementById("warmblock");if(e)e.scroll
    running with zero input, and the curve bends gently instead of docking you.
    The displayed level never animates downward mid-session; it changes only when a real threshold
    is crossed, and it is phrased as a location rather than a loss. */
-var CARDIO_TC=21; /* days; slower than a 7-day fatigue line, faster than a 42-day fitness one */
+/* ============ LEVEL SYSTEM v2 ============
+   Rebuilt to the spec at Daily-Tool/research/LEVELING-SPEC-2026-07-28.md, which found the previous
+   curve was calibrated for a professional: a symmetric 21-day average settles at mean daily load, so
+   four sessions a week parked the score at about 20 forever, and level 10 would have demanded
+   roughly eleven hours of running a week. The number could not move, which is the worst property a
+   level can have.
+
+   Load is TrainingPeaks' TSS algebra with a MET-based intensity substituted for a power meter,
+   hours x 100 x IF^2, where IF is the session's METs over 9.4, the published cost of running a ten
+   minute mile. MET regressions come from the 2024 Adult Compendium. That substitution is the one
+   genuinely novel move and it is what lets a run, a walk and a lift land on one scale without a
+   hand-tuned multiplier per activity.
+
+   The average is ASYMMETRIC: it rises on a 42-day constant and falls on a 120-day one. Detraining
+   research puts real VO2max loss near five percent over a fortnight, so a score that fell 28 percent
+   in the same fortnight was not measuring the athlete. Falling slowly also means a short lift is
+   never punished for being smaller than the running average. */
+var REF_MET=9.40,IF_CAP=1.30,DAY_CAP=300;
+var RISE_SLOW=42,FALL_SLOW=120,RISE_FAST=7,FALL_FAST=20;
+var LIFT_MET={6:3.5,7:4.2,8:5.0,9:5.5,10:6.0};
+var EFFORT_MET={easy:3.5,moderate:5.0,hard:7.5};
+function runMET(mph){return 1.4396*mph+0.7615;}
+function walkMET(mph){return Math.max(2.0,1.7630*mph-1.3589);}
+function intensityMET(s){
+  var pace=s.paceSecPerMi||0,mph=pace>0?(3600/pace):0;
+  if(s.type==="run"&&pace>=240&&pace<=1200)return runMET(mph);
+  if(s.type==="activity"&&pace>0&&pace<720)return runMET(mph);
+  if(s.type==="activity"&&pace>=720&&pace<=2400)return walkMET(mph);
+  if(s.type==="lift"&&typeof s.rpe==="number")return LIFT_MET[Math.max(6,Math.min(10,Math.round(s.rpe)))]||4.5;
+  if(s.type==="lift")return 4.5;
+  var lab=(""+(s.rpe||"")).toLowerCase();
+  if(EFFORT_MET[lab])return EFFORT_MET[lab];
+  if(s.type==="run")return 8.6;
+  return 3.8;
+}
+function sessionHours(s){
+  var sec=s.durationSec||0;
+  if(!sec&&s.distanceMi&&s.paceSecPerMi)sec=s.distanceMi*s.paceSecPerMi;
+  if(!sec&&s.type==="lift"&&s.entries){var n=0;s.entries.forEach(function(e){n+=(e.sets||[]).length;});sec=Math.min(n*240,5400);}
+  return sec/3600;
+}
 function loadFor(s){
-  /* Load is minutes weighted by intensity, so a hard 20 counts more than an easy 20 and a walk
-     still counts for something. Distance is used when there is no duration. */
   if(!s)return 0;
-  var min=(s.durationSec||0)/60;
-  if(!min&&s.distanceMi)min=s.distanceMi*10;
-  if(!min)return 0;
-  var k=1;
-  if(s.type==="run")k=1.5;
-  else if(s.activity==="Walk")k=0.45;
-  else if(s.type==="activity")k=0.9;
-  else if(s.type==="lift")k=0.6;
-  var rpe=(""+(s.rpe||"")).toLowerCase();
-  if(rpe.indexOf("hard")>=0)k*=1.25; else if(rpe.indexOf("easy")>=0)k*=0.9;
-  return min*k;
+  var hrs=sessionHours(s);if(hrs<=0)return 0;
+  var IF=Math.min(intensityMET(s)/REF_MET,IF_CAP);
+  return hrs*100*IF*IF;
 }
 function dailyLoad(){
-  var by={};S.sessions.forEach(function(s){if(!s.date)return;by[s.date]=(by[s.date]||0)+loadFor(s);});return by;
+  var by={};S.sessions.forEach(function(s){if(!s.date)return;by[s.date]=(by[s.date]||0)+loadFor(s);});
+  Object.keys(by).forEach(function(k){if(by[k]>DAY_CAP)by[k]=DAY_CAP;});
+  return by;
 }
-/* Walk the calendar day by day so gaps feed real zeros into the average. */
+/* The rise and fall constants must share a ratio on both lines, or fast minus slow carries a
+   permanent offset and the status word stops meaning anything. 42:120 and 7:20 are the same ratio. */
+function ewStep(cur,load,rise,fall){var tau=(load>cur)?rise:fall;return cur+(load-cur)/tau;}
 function fitnessSeries(days){
-  days=days||120;
-  var by=dailyLoad(),out=[],slow=0,fast=0,a=1/CARDIO_TC,af=1/7;
+  days=days||180;
+  var by=dailyLoad(),out=[],slow=0,fast=0;
   var d=new Date(NOW);d.setDate(d.getDate()-days+1);
   for(var i=0;i<days;i++){
     var v=by[keyOf(d)]||0;
-    slow=slow+(v-slow)*a;
-    fast=fast+(v-fast)*af;
-    out.push({date:keyOf(d),slow:slow,fast:fast});
+    slow=ewStep(slow,v,RISE_SLOW,FALL_SLOW);
+    fast=ewStep(fast,v,RISE_FAST,FALL_FAST);
+    out.push({date:keyOf(d),slow:slow,fast:fast,load:v});
     d.setDate(d.getDate()+1);
   }
   return out;
 }
-/* Levels scale so early ones arrive fast and later ones take real work. */
-function levelFloor(n){return Math.round(6*Math.pow(n-1,1.45));}
-function levelFor(score){var n=1;while(n<50&&score>=levelFloor(n+1))n++;return n;}
+/* T(n) = 0.22(n-1)^2 + 1.8(n-1). Quadratic rather than the old power curve, so one session moves
+   the ring between 0.8 and 2.1 pips all the way from level 3 to level 25. */
+function levelFloor(n){return n<=1?0:Math.round(0.22*Math.pow(n-1,2)+1.8*(n-1));}
+function levelFor(score){var n=1;while(n<200&&score>=levelFloor(n+1))n++;return n;}
 function cardioLevel(){
-  var s=fitnessSeries(120);
-  if(!s.length)return {lvl:1,score:0,pct:0,into:0,span:1,fast:0,slow:0,trend:"flat",series:s};
-  var last=s[s.length-1],score=last.slow,lvl=levelFor(score);
+  var s=fitnessSeries(180);
+  var last=s.length?s[s.length-1]:{slow:0,fast:0};
+  var score=last.slow,lvl=levelFor(score);
   var lo=levelFloor(lvl),hi=levelFloor(lvl+1),span=Math.max(hi-lo,1);
-  var monthAgo=s[Math.max(0,s.length-29)].slow;
-  var trend=(score>monthAgo+0.6)?"up":(score<monthAgo-0.6)?"down":"flat";
-  return {lvl:lvl,score:score,into:score-lo,span:span,pct:Math.max(0,Math.min(1,(score-lo)/span)),
-          fast:last.fast,slow:last.slow,trend:trend,delta:score-monthAgo,series:s};
+  var pips=Math.max(0,Math.min(9,Math.floor(10*(score-lo)/span)));
+  var monthAgo=s.length>29?s[s.length-30].slow:0;
+  var r=(last.fast-last.slow)/Math.max(last.slow,1);
+  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:last.fast,slow:last.slow,
+          r:r,delta:score-monthAgo,series:s,sessions:S.sessions.length};
 }
-function levelCaption(L){
-  if(L.trend==="up")return "Building. Up "+Math.round(L.delta)+" points in the last four weeks.";
-  if(L.trend==="flat")return "Holding. Level with where you were a month ago.";
-  return "Easing off. A couple of runs gets this climbing again.";
+/* Five words, no red state and no downward arrow. Amber is reserved for the one fixable condition. */
+function levelStatus(L){
+  var firstDate=null;S.sessions.forEach(function(x){if(!firstDate||x.date<firstDate)firstDate=x.date;});
+  var age=firstDate?daysBetween(firstDate,TODAY):0;
+  if(L.sessions<4||age<14)
+    return {w:"Getting a baseline",k:"base",c:"Four sessions before this number means anything."};
+  var mono=monotony();
+  var wkLoad=lastNLoad(7),base4=lastNLoad(28)/4;
+  if(mono>2.0&&base4>0&&wkLoad>base4*1.3&&sessionsIn(7)>=4)
+    return {w:"Ramping fast",k:"warn",c:"Every day the same effort this week. Make one of them easy."};
+  var r=L.r;
+  if(r>=0.20)return {w:"Ramping",k:"good",c:"Doing more than usual. Keep one of them easy."};
+  if(r>=0.06)return {w:"Building",k:"good",c:"Up "+Math.max(1,Math.round(L.delta))+" points in the last four weeks."};
+  if(r>-0.06)return {w:"Holding",k:"flat",c:"Level with where you were a month ago."};
+  if(r>-0.20)return {w:"Easing",k:"flat",c:"Quieter than usual. Nothing has been lost."};
+  return {w:"Coming back",k:"flat",c:"A couple of runs gets this climbing again."};
+}
+function lastNLoad(n){var by=dailyLoad(),t=0,d=new Date(NOW);for(var i=0;i<n;i++){t+=by[keyOf(d)]||0;d.setDate(d.getDate()-1);}return t;}
+function sessionsIn(n){var c=0,d=new Date(NOW);for(var i=0;i<n;i++){var k=keyOf(d);if(S.sessions.some(function(x){return x.date===k;}))c++;d.setDate(d.getDate()-1);}return c;}
+/* Foster's monotony: mean daily load over its standard deviation. High monotony plus a load spike is
+   the combination the overtraining literature associates with trouble. */
+function monotony(){
+  var by=dailyLoad(),v=[],d=new Date(NOW);
+  for(var i=0;i<7;i++){v.push(by[keyOf(d)]||0);d.setDate(d.getDate()-1);}
+  var m=v.reduce(function(a,x){return a+x;},0)/7;
+  if(m<=0)return 0;
+  var sd=Math.sqrt(v.reduce(function(a,x){return a+Math.pow(x-m,2);},0)/7);
+  return sd>0?(m/sd):0;
+}
+/* The level tracks training load. Easy pace answers the different question, whether you got fitter,
+   and it ships with its caveat visible because without heart rate "easy" is self-reported. */
+function easyPaceTrend(){
+  var A=[],B=[];
+  S.sessions.forEach(function(x){
+    if(x.type!=="run"||!x.paceSecPerMi)return;
+    if((""+(x.rpe||"")).toLowerCase()!=="easy")return;
+    var age=daysBetween(x.date,TODAY);
+    if(age<=56)A.push(x.paceSecPerMi);else if(age<=112)B.push(x.paceSecPerMi);
+  });
+  if(A.length<4||B.length<4)return null;
+  function med(a){a=a.slice().sort(function(x,y){return x-y;});var h=Math.floor(a.length/2);return a.length%2?a[h]:(a[h-1]+a[h])/2;}
+  var a=med(A),bm=med(B),diff=bm-a;
+  if(Math.abs(diff)<8)return null;
+  return {now:a,prev:bm,diff:diff};
 }
 function levelRingHTML(L){
-  var r=40,C=2*Math.PI*r,off=C*(1-L.pct);
-  return '<svg class="lring" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+Math.round(L.pct*100)+' percent to level '+(L.lvl+1)+'">'+
+  /* Three circles and two text nodes. The third circle punches ten hairline separators through both
+     the track and the arc, because 2 + 23.13 is exactly a tenth of the circumference, so the pips
+     need no per-pip geometry. Butt caps, because a round cap on a quantised arc overhangs its
+     separator and makes six pips look like six and a half. The rotation sits on the group rather
+     than the svg so the numeral stays upright. */
+  var C=251.33,off=C*(1-L.pips/10);
+  return '<svg class="lring" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+L.pips+' of 10 toward level '+(L.lvl+1)+'">'+
     '<g transform="rotate(-90 48 48)">'+
-    '<circle cx="48" cy="48" r="'+r+'" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
-    '<circle cx="48" cy="48" r="'+r+'" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
-    '<text x="48" y="46" text-anchor="middle" class="num" style="font-size:28px;font-weight:800;fill:var(--ink)">'+L.lvl+'</text>'+
-    '<text x="48" y="63" text-anchor="middle" style="font-size:9.5px;font-weight:700;letter-spacing:.08em;fill:var(--faint)">LEVEL</text></svg>';
+    '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
+    '<circle class="lprog" cx="48" cy="48" r="40" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="butt" stroke-dasharray="'+C+'" stroke-dashoffset="'+off.toFixed(2)+'"/>'+
+    '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface)" stroke-width="8" stroke-dasharray="2 23.13"/></g>'+
+    '<text x="48" y="45" text-anchor="middle" class="num" style="font-size:30px;font-weight:800;fill:var(--ink)">'+L.lvl+'</text>'+
+    '<text x="48" y="62" text-anchor="middle" style="font-size:9.5px;font-weight:700;letter-spacing:.08em;fill:var(--faint)">LEVEL</text></svg>';
 }
 function fitnessSpark(L){
   var s=L.series.slice(-90);if(s.length<4)return "";
   var vs=s.map(function(p){return p.slow;}),mx=Math.max.apply(null,vs)||1,mn=Math.min.apply(null,vs);
   var W=300,H=30;
   var d=vs.map(function(v,i){var x=(i/(vs.length-1))*W,y=H-2-((v-mn)/((mx-mn)||1))*(H-6);return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);}).join(" ");
-  return '<svg class="lspark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  /* vector-effect keeps the stroke an even 1.5px; without it preserveAspectRatio="none" smears it. */
+  return '<svg class="lspark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function levelCardHTML(){
+  var L=cardioLevel(),st=levelStatus(L),ep=easyPaceTrend();
+  var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
+  var head=(st.k==="base")?'Getting a baseline':(L.pips+' of 10 to Level '+(L.lvl+1));
+  return '<div class="card lcard" data-k="'+st.k+'"><div class="lwrap">'+levelRingHTML(L)+
+    '<div class="lmeta"><div class="lt">'+(st.k==="base"?head:'<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1))+'</div>'+
+    '<div class="ltag">'+st.w+'</div>'+
+    '<div class="ld">'+st.c+'</div></div></div>'+
+    fitnessSpark(L)+
+    '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+mi.toFixed(0)+'</b> mi</span><span><b class="num">'+Math.round(L.score)+'</b> load</span></div>'+
+    (ep?'<div class="anote" style="margin-top:12px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, about '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago, at self-reported easy effort. That is the fitness part, which the level cannot show.</div>':'')+
+    '<div class="foot" style="margin-top:10px">This is a training-load level, not a fitness test. It rises on a six-week average and falls on a seventeen-week one, so a quiet fortnight bends it rather than docking you.</div></div>';
 }
 /* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
 function badgeList(){
@@ -3160,8 +3271,8 @@ function renderCardio(){
   refreshDate();
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
   var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
-  var L=cardioLevel();
-  var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+(L.trend==="up"?"building":L.trend==="flat"?"holding":"easing off")+'</div><div class="title">Cardio</div></div></div>';
+  var L=cardioLevel(),LS=levelStatus(L);
+  var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+LS.w.toLowerCase()+'</div><div class="title">Cardio</div></div></div>';
   /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
   h+='<div class="hero"><div class="lbl">Next run</div><h2>'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
@@ -3169,12 +3280,7 @@ function renderCardio(){
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
     '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
   /* The level system replaces the old wordy "where you are" card. */
-  h+='<div class="card lcard"><div class="lwrap">'+levelRingHTML(L)+
-    '<div class="lmeta"><div class="lt">'+Math.round(L.into)+' / '+Math.round(L.span)+' to level '+(L.lvl+1)+'</div>'+
-    '<div class="ld">'+levelCaption(L)+'</div>'+
-    '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+runs.reduce(function(a,s){return a+(s.distanceMi||0);},0).toFixed(0)+'</b> mi</span><span><b class="num">'+(rr.gap===null?"--":rr.gap+"d")+'</b> since</span></div></div></div>'+
-    fitnessSpark(L)+
-    '<div class="foot" style="margin-top:6px">Your level tracks a rolling average of what you actually do, so a quiet week bends it gently rather than taking points away.</div></div>';
+  h+=levelCardHTML();
   /* Warm-up sits high on the page, directly after the call to action, because it only works as
      a prompt if you meet it on the way out the door rather than below the history. */
   h+=paceZonesHTML();
