@@ -847,7 +847,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.9";
+var VERSION="v7.0";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1156,7 +1156,11 @@ function U(){return S.profile.units;}
 function inc(){return U()==="kg"?2.5:5;}
 function mmss(s){s=Math.max(0,Math.round(s));var m=Math.floor(s/60);return m+":"+("0"+(s%60)).slice(-2);}
 function todayPlan(){return planFor(TODAY);}
-function esc(s){return (s||"").replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+/* esc() used to assume a string. Anything numeric reaching it threw, and because Today's log
+   escapes a run's effort rating, one record with a numeric rpe took out the whole Today tab rather
+   than one row. A bad import or a hand-edited record should never be able to kill a view. Found by
+   the continuum audit, 2026-07-29. */
+function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
 function isDone(k){return !!S.done[k];}
 function letterFor(){return LETTERS[(S.planPos||0)%3];}
 
