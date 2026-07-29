@@ -556,6 +556,22 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .chero .lvlw[data-k="base"]{color:var(--sub)}
 .chero .lvlp{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
 .chero .lvlp b{color:var(--ink);font-weight:800}
+/* Tier colours. Ascending heat: steel, teal, amber, coral. */
+[data-tier="base"]{--tier:#7C8794}
+[data-tier="built"]{--tier:#1D9E75}
+[data-tier="strong"]{--tier:#D8901F}
+[data-tier="elite"]{--tier:var(--accent)}
+.lring .lprog{stroke:var(--tier,var(--accent))}
+.tierpill{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--tier);background:color-mix(in srgb,var(--tier) 14%,transparent);border-radius:6px;padding:3px 7px;margin-left:7px;vertical-align:2px}
+/* Today's two level cards */
+.lvlrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
+.lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
+.lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
+.lvlcard .lctxt{min-width:0}
+.lvlcard .lck{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.lvlcard .lcw{display:block;font-size:13.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvlcard .lct{display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--tier);margin-top:1px}
 .chsplit{height:1px;background:var(--line);margin:16px 0 14px}
 .ldelta{display:flex;align-items:baseline;gap:9px}
 .ldelta .ldv{font-size:26px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--sub)}
@@ -848,7 +864,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.3";
+var VERSION="v7.4";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1363,6 +1379,7 @@ function renderToday(){
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
   document.getElementById("v-today").innerHTML=h+hero+
+    levelRowHTML()+
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
     /* Hero, the week strip and the morning anchor stay open: those three ARE the morning. The
        history below them is reference and collapses like everywhere else. The Lift coach is the
@@ -2177,7 +2194,8 @@ function renderLift(){
   var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
   var LL=liftLevel(),LLS=liftLevelStatus(LL);
   var h='<div class="head"><div><div class="date">Day '+(L==="Gen"?"custom":L)+' next &middot; '+equipLabel(sessionEquip())+'</div><div class="title">Lift</div></div>'+
-    '<div class="tools">'+streakChipHTML("lift")+'</div></div>';
+    '<div class="tools">'+streakChipHTML("lift")+
+    '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   /* The Lift hero used to be the Today hero with different words, which made two tabs feel like
      one. It now leads with the thing only this tab knows: WHERE you are in the A/B/C rotation,
      drawn as a rail so it reads at a glance. Four ways out sit under it in order of likelihood:
@@ -2187,7 +2205,7 @@ function renderLift(){
   var scheduled=(plan.type==="lift");
   h+='<div class="hero">'+
     '<div class="chero"><div class="cheroL">'+levelRingHTML(LL)+'</div>'+
-    '<div class="cheroR"><div class="lvlk">Level '+LL.lvl+'</div>'+
+    '<div class="cheroR" data-tier="'+levelTier(LL.lvl).k+'"><div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+levelTier(LL.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
     '<div class="lvlp">'+(LLS.k==="base"?(LL.sessions+' of 4 sessions logged'):('<b class="num">'+LL.pips+'</b> of 10 to Level '+(LL.lvl+1)))+'</div>'+
     '</div></div><div class="chsplit"></div>'+
@@ -3140,6 +3158,26 @@ function setLadderAfter(track,lv){
    about progress, which is the whole point of a course. These are progression LISTS, not fixed
    playlists: when the Runna sessions run out, more videos appended to the same track with the next
    `lv` numbers simply extend the ladder and these columns keep counting. (Matthew, 2026-07-29) */
+/* Two small cards on Today carrying the Cardio and Lift levels, tier-coloured, tapping through to
+   their own tab. Matthew asked for these on 2026-07-29 alongside the 1-to-100 rescale: the levels
+   are the incentive, so they should be visible on the tab he opens first rather than only on the
+   tab he has to go looking for. Small ring, big number, tier name. */
+function miniLevelHTML(kind){
+  var L=(kind==="lift")?liftLevel():cardioLevel();
+  var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
+  var t=levelTier(L.lvl),C=2*Math.PI*18,off=C*(1-L.pips/10);
+  return '<button class="lvlcard" data-tier="'+t.k+'" onclick="show(\''+(kind==="lift"?"lift":"cardio")+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+'">'+
+    '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
+      '<circle cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
+      '<g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--tier)" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
+      '</svg><span class="lcnum num">'+L.lvl+'</span></span>'+
+    '<span class="lctxt"><span class="lck">'+(kind==="lift"?"Lift":"Cardio")+'</span>'+
+    '<span class="lcw">'+esc(st.w)+'</span>'+
+    '<span class="lct">'+t.w+'</span></span></button>';
+}
+function levelRowHTML(){
+  return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
+}
 function primeRowHTML(){
   var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],cols="";
   tracks.forEach(function(t){
@@ -3820,10 +3858,23 @@ function fitnessSeries(days){
   }
   return out;
 }
-/* T(n) = 0.22(n-1)^2 + 1.8(n-1). Quadratic rather than the old power curve, so one session moves
-   the ring between 0.8 and 2.1 pips all the way from level 3 to level 25. */
-function levelFloor(n){return n<=1?0:Math.round(0.22*Math.pow(n-1,2)+1.8*(n-1));}
-function levelFor(score){var n=1;while(n<200&&score>=levelFloor(n+1))n++;return n;}
+/* T(n) = 0.109 * (n-1)^1.6, capped at 100 levels. Matthew asked for a 1-to-100 scale on
+   2026-07-29, for more frequent level-ups and a ceiling worth climbing toward. The exponent was
+   chosen so that level 100 lands on 170 load, which was the practical ceiling of the old 25-level
+   curve, and so the early levels come quickly: level 2 at 0.11, level 5 at 1.0, level 10 at 3.7.
+   Calibration against real training: three months steady reaches about 13, six months solid about
+   26, a hard year about 52. Nobody hits 100 by accident, which is the point of a ceiling. */
+var LVL_A=0.109, LVL_P=1.6, LVL_MAX=100;
+function levelFloor(n){return n<=1?0:LVL_A*Math.pow(n-1,LVL_P);}
+function levelFor(score){var n=1;while(n<LVL_MAX&&score>=levelFloor(n+1))n++;return n;}
+/* Four tiers over the hundred, named and coloured. The ramp is a heat ramp rather than a
+   good-to-bad one, because a low level is not a failure state, it is an early one. */
+function levelTier(n){
+  if(n>=70)return {k:"elite",w:"Elite"};
+  if(n>=45)return {k:"strong",w:"Strong"};
+  if(n>=20)return {k:"built",w:"Built"};
+  return {k:"base",w:"Base"};
+}
 function cardioLevel(){
   var s=fitnessSeries(180);
   var last=s.length?s[s.length-1]:{slow:0,fast:0};
@@ -3953,7 +4004,8 @@ function levelRingHTML(L){
      separator and makes six pips look like six and a half. The rotation sits on the group rather
      than the svg so the numeral stays upright. */
   var C=251.33,off=C*(1-L.pips/10);
-  return '<svg class="lring" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+L.pips+' of 10 toward level '+(L.lvl+1)+'">'+
+  var _t=levelTier(L.lvl);
+  return '<svg class="lring" data-tier="'+_t.k+'" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+L.pips+' of 10 toward level '+(L.lvl+1)+'">'+
     '<g transform="rotate(-90 48 48)">'+
     '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
     '<circle class="lprog" cx="48" cy="48" r="40" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="butt" stroke-dasharray="'+C+'" stroke-dashoffset="'+off.toFixed(2)+'"/>'+
@@ -4082,7 +4134,8 @@ function renderCardio(){
   var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
   var L=cardioLevel(),LS=levelStatus(L);
   var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+LS.w.toLowerCase()+'</div><div class="title">Cardio</div></div>'+
-    '<div class="tools">'+streakChipHTML("cardio")+'</div></div>';
+    '<div class="tools">'+streakChipHTML("cardio")+
+    '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
   /* Cardio's hero now carries the level ring itself rather than repeating a Today-shaped card and
      then showing the level underneath. The ring is the one thing this tab knows that no other tab
@@ -4095,7 +4148,7 @@ function renderCardio(){
      chips were removed entirely: they belong on Today and were pulling attention off the run.
      (Matthew, 2026-07-29) */
   h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L)+'</div>'+
-    '<div class="cheroR"><div class="lvlk">Level '+L.lvl+'</div>'+
+    '<div class="cheroR" data-tier="'+levelTier(L.lvl).k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+levelTier(L.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'+
     '<div class="lvlp">'+(LS.k==="base"?(allRuns().length+' of 4 runs logged'):('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1)))+'</div>'+
     '</div></div>'+
