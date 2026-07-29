@@ -829,7 +829,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.0";
+var VERSION="v6.1";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1973,10 +1973,10 @@ function cycleHTML(){
       (isNext?'<span class="ptag">Next</span>':'')+'</div>';
   }).join("");
   var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
-  return collapsible("The program","Day "+next+" next",'<div>'+
+  return collapsible("The rotation","A, B, C",'<div>'+
     '<div class="ksub">You run A, then B, then C, then round again. The next one is whatever you have not done, not whatever day of the week it is.</div>'+
     rows+
-    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.dumbbell,"");
+    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.swap,"");
 }
 /* Per-movement state: what you lift now, what happened last time, and what to do next. */
 function movementRows(){
@@ -1994,8 +1994,9 @@ function movementRows(){
       '<span class="mm"><span class="mn">'+esc(e.name)+'</span><span class="md">'+lastTxt+'</span></span>'+
       '<span class="mv"><span class="mw num">'+now+'</span>'+(pr?'<span class="mp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+'</span></button>';
   }).join("");
-  return collapsible("Your movements",ids.length+" tracked",
-    '<div class="ksub">Tap any movement for its history, its record, its form video and what to do next time.</div>'+rows);
+  var prs=ids.filter(function(id){return prFor(id);}).length;
+  return collapsible("Your movements",ids.length+" tracked"+(prs?(", "+prs+" with a record"):""),
+    '<div class="ksub">Tap any movement for its history, its record, its form video and what to do next time.</div>'+rows,false,I.trophy,"");
 }
 function movementSheet(id){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
