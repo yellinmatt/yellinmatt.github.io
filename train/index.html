@@ -965,7 +965,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.8";
+var VERSION="v7.9";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2671,17 +2671,22 @@ function nextMove(){
 }
 /* Sync is a first-class health signal now, because a silent sync failure makes every other number
    on this tab confidently wrong. */
+/* v7.9. This read `train.syncStamps`, which records when a VALUE LAST CHANGED for last-write-wins.
+   That is not a health signal: it would have reported "today" while every push and pull failed for a
+   week, which is the precise failure this row exists to catch, and it is the same class of mistake as
+   reading a moved day as a completed lift. `train-sync-auto.js` now writes `train.syncHealth` with an
+   explicit lastOk, lastTry and consecutive failure count, and this reads that. If the key is absent
+   the answer is "unknown", never a reassuring guess. */
 function syncHealth(){
-  var tok=null,stamps=null;
-  try{tok=localStorage.getItem("train.syncToken");stamps=JSON.parse(localStorage.getItem("train.syncStamps")||"null");}catch(e){}
+  var tok=null,h=null;
+  try{tok=localStorage.getItem("train.syncToken");h=JSON.parse(localStorage.getItem("train.syncHealth")||"null");}catch(e){}
   if(!tok)return {rag:"none",txt:"not connected",hint:"no passphrase on this device"};
-  var last=null;
-  if(stamps)for(var k in stamps){var v=stamps[k];var t=(v&&v.at)||v;if(typeof t==="number"&&(!last||t>last))last=t;}
-  if(!last)return {rag:"amber",txt:"never",hint:"connected, nothing exchanged yet"};
-  var d=Math.floor((Date.now()-last)/86400000);
-  return {rag:d>=3?"red":d>=1?"amber":"good",
-          txt:d===0?"today":d===1?"yesterday":d+" days old",
-          hint:"last exchange with your private store"};
+  if(!h||!h.lastTry)return {rag:"amber",txt:"unknown",hint:"connected, no exchange recorded yet"};
+  if(!h.lastOk)return {rag:"red",txt:"never",hint:(h.fails||0)+" failed attempt"+((h.fails||0)===1?"":"s")+(h.lastErr?", "+h.lastErr:"")};
+  var d=Math.floor((Date.now()-h.lastOk)/86400000);
+  var txt=(d===0)?"today":(d===1)?"yesterday":d+" days ago";
+  var hint=(h.fails>0)?("last exchange "+txt+", "+h.fails+" failure"+(h.fails===1?"":"s")+" since"):"last successful exchange";
+  return {rag:(h.fails>2||d>=3)?"red":(h.fails>0||d>=1)?"amber":"good",txt:txt,hint:hint};
 }
 function measureRowsHTML(){
   return kpiRows().map(function(r){
