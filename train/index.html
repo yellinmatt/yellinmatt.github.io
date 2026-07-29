@@ -844,7 +844,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.7";
+var VERSION="v6.8";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1326,8 +1326,13 @@ function renderToday(){
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
   document.getElementById("v-today").innerHTML=h+hero+
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
-    anchor+guided+heatmapHTML("2w")+
-    (isFresh()?emptyStateHTML():weightLogCardHTML())+todayLogHTML();
+    /* Hero, the week strip and the morning anchor stay open: those three ARE the morning. The
+       history below them is reference and collapses like everywhere else. The Lift coach is the
+       one other exception, because he asked for it directly under that hero. (2026-07-29) */
+    anchor+guided+
+    drawerize(heatmapHTML("2w"),I.cal,"")+
+    (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,""))+
+    drawerize(todayLogHTML(),I.check,"");
 }
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
