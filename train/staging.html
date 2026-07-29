@@ -2485,21 +2485,28 @@ function trackDashHTML(){
 }
 /* ============ TRACK v7.6 - THE STUDY ============
    Every analytic card, grouped by the question it answers rather than stacked in build order. */
+/* Card law rule 2: no two drawers on a tab share an icon. Track had been quietly breaking it since
+   before this pass, with trophy on both This week and All time, spark on both Weight and the
+   freshness card, and chart on both Calories and Weekly volume. Nine drawers, nine glyphs now,
+   assigned in one place so the next card added has to pick from what is left. (v7.6) */
 function deepHTML(){
   var h='<div class="grouphd"><span class="gn">Execution</span><span class="gl"></span><span class="gc">did you do the work</span></div>';
   h+=scorecardHTML();
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
-  h+=patternVolumeHTML()||collapsible("Sets per pattern","nothing this week",
-      '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.flame,"");
+  h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
+      '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
   h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">what the scale and the food say</span></div>';
   h+=drawerize(weightCardHTML(),I.spark,"");
-  h+=calCardHTML()||collapsible("Calories","not connected",
+  /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
+     which put a second open card on a tab whose law allows exactly one. */
+  h+=drawerize(calCardHTML(),I.chart,"")||collapsible("Calories","not connected",
       '<div class="emptyd">Cal AI has never imported. <b>Paste a week</b> and calories, the maintenance gap and the implied rate all switch on together.</div>',false,I.chart,"");
   h+=drawerize(bodyTilesHTML(),I.flame,"");
   h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">the long view</span></div>';
   h+=progressHTML();
   h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc">where the numbers come from</span></div>';
   h+=freshnessHTML();
+  h+=backupBlockHTML();
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>';
   return h;
 }
@@ -2684,7 +2691,7 @@ function scorecardHTML(){
   var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
   return collapsible("This week",green+" of "+scored+" green",
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
-    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.trophy,green>=scored?"good":green<=2?"warn":"");
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.check,green>=scored?"good":green<=2?"warn":"");
 }
 /* Every measure on this tab is only as good as its last input, so the inputs get their own row
    rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
@@ -2719,7 +2726,7 @@ function freshnessHTML(){
   }).join("");
   var bad=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
   return collapsible("Where the numbers come from",(bad?bad+" stale":"all current"),
-    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows,false,I.spark,bad?"warn":"good");
+    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows,false,I.bolt,bad?"warn":"good");
 }
 /* S.nutrition has been write-only since the Cal AI import shipped: every paste stored calories
    and nothing ever displayed them. Protein already drives a scorecard row, so calories get the
@@ -2818,7 +2825,13 @@ function progressHTML(){
   /* The old weighChart() is gone entirely as of v5.3. The weight card at the top of Track
      already owns the trend, and rendering a second chart with its own ETA text was the same
      duplication that produced the dual-weight bug. One writer per number. */
-  return lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
+  return lifetimeHTML()+rpeTrendHTML()+volChart()+volTile;
+}
+/* The export button and the storage footer used to hang off the end of the Training block. They
+   are a data-and-backup concern, so v7.6 moves them into that group and progressHTML keeps only
+   the training analytics. */
+function backupBlockHTML(){
+  return "" +
     /* Personal records live on Lift, inside each movement, and on Cardio above the badges. A third
        copy here was the same information a third time. */
     /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
@@ -2902,7 +2915,7 @@ function setsByPattern(back){
   });
   return out;
 }
-function patternVolumeHTML(){
+function patternVolumeHTML(icon){
   var wk=setsByPattern(0),prev=setsByPattern(1),any=0;
   Object.keys(wk).forEach(function(p){any+=wk[p];});
   if(!any)return "";
@@ -2917,7 +2930,7 @@ function patternVolumeHTML(){
   }).join("");
   var under=Object.keys(PATTERNS).filter(function(p){return (wk[p]||0)<(PATTERN_FLOOR[p]||8);}).length;
   return collapsible("Sets per pattern",(under?under+" under":"all met"),
-    '<div class="ksub">These are maintenance floors for a cut, not growth targets. In a deficit the job is keeping the muscle you have.</div>'+rows);
+    '<div class="ksub">These are maintenance floors for a cut, not growth targets. In a deficit the job is keeping the muscle you have.</div>'+rows,false,icon||I.dumbbell,under?"warn":"good");
 }
 /* Session RPE over time answers a question no single session can: is everything getting hard? */
 function rpeTrendHTML(){
@@ -2939,7 +2952,7 @@ function rpeTrendHTML(){
     '<line x1="0" y1="'+y8+'" x2="'+W+'" y2="'+y8+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 4" opacity=".7"/>'+
     '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '<div class="wlegend"><span>RPE 5</span><span>dashed line is 8, where the coach starts holding</span></div>'+
-    '<div class="ksub" style="margin:8px 0 0">'+verdict+'</div></div>',false,I.flame,"");
+    '<div class="ksub" style="margin:8px 0 0">'+verdict+'</div></div>',false,I.rest,"");
 }
 /* ============ THE LONG VIEW (Batch 7) ============
    Everything else in the app is a week. This is the year: one cell per day, quantized to five
