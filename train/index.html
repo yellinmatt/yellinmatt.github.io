@@ -757,7 +757,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v5.5";
+var VERSION="v5.6";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1238,7 +1238,11 @@ function renderToday(){
 }
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
-  recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();
+  recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();
+  /* Finishing the anchor is what moves the mobility ladder on. Deliberately does NOT re-render:
+     the video he is halfway through must not swap under him. Tomorrow's session is the next one. */
+  if(anchorComplete(TODAY))advanceLadder("mobility");
+  save();
   var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
   if(!el){renderToday();return;}
   el.classList.toggle("checked",!!a[i]);el.setAttribute("aria-pressed",!!a[i]);
@@ -2573,7 +2577,99 @@ VID=VID.concat([
  {id:"QABW99qPiNM",t:"Bird Dog Exercise | Improve Your Core and Balance",a:"Muscle & Motion",c:"form",m:"",ex:"birddog"},
  {id:"lismOShjHnA",t:"NEVER DO PLANKS LIKE THIS | 10 Most Common Mistakes",a:"FitnessFAQs",c:"form",m:"",ex:"plank"}
 ]);
-VCAT.warmup="Warm up";VCAT.runwarm="Before a run";VCAT.core="Core finishers";VCAT.form="How to";
+/* The Runna guided ladders, added 2026-07-29. Three coach-led series of 26 numbered
+   sessions each, plus five standalone Runna routines. Every id was read off the real
+   playlist pages and then verified through the YouTube oEmbed endpoint; titles and the
+   channel name below are the verbatim oEmbed response, never written from memory. The
+   `lv` field is the session number, which is what makes the morning anchor a ladder that
+   develops him rather than a pile it shuffles. NOTE: stretch session 8 is deliberately
+   named differently from its siblings; that is the real title, not a typo. */
+VID=VID.concat([
+ {id:"hh0W27v54pc",t:"Mobility for Runners | Session 1/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:1},
+ {id:"tatieNlfrQU",t:"Mobility for Runners | Session 2/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:2},
+ {id:"2nKFO8gdpwg",t:"Mobility for Runners | Session 3/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:3},
+ {id:"Iv7wK0Ai2EA",t:"Mobility for Runners | Session 4/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:4},
+ {id:"hHgE1mqVuks",t:"Mobility for Runners | Session 5/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:5},
+ {id:"Wv9b0fSZ04A",t:"Mobility for Runners | Session 6/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:6},
+ {id:"nTX6Wenp8k8",t:"Mobility for Runners | Session 7/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:7},
+ {id:"KbM8Yu_eIyI",t:"Mobility for Runners | Session 8/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:8},
+ {id:"Um_WV249UIk",t:"Mobility for Runners | Session 9/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:9},
+ {id:"I44z8_MmU14",t:"Mobility for Runners | Session 10/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:10},
+ {id:"rDjMOLLa-RI",t:"Mobility for Runners | Session 11/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:11},
+ {id:"NMDKUNE89K4",t:"Mobility for Runners | Session 12/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:12},
+ {id:"JKnhCNqLrrw",t:"Mobility for Runners | Session 13/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:13},
+ {id:"5UIfaFra0_c",t:"Mobility for Runners | Session 14/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:14},
+ {id:"86QIAbl4Cno",t:"Mobility for Runners | Session 15/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:15},
+ {id:"dzeNLM6oZDA",t:"Mobility for Runners | Session 16/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:16},
+ {id:"4t2mWFZnpPU",t:"Mobility for Runners | Session 17/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:17},
+ {id:"MZNoPh5xy38",t:"Mobility for Runners | Session 18/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:18},
+ {id:"n-HjWYGPtFg",t:"Mobility for Runners | Session 19/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:19},
+ {id:"uwjaOtc_Jxo",t:"Mobility for Runners | Session 20/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:20},
+ {id:"RfUIzH-sU-w",t:"Mobility for Runners | Session 21/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:21},
+ {id:"Ia3Dg-tutDA",t:"Mobility for Runners | Session 22/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:22},
+ {id:"_1Om0zJUKjg",t:"Mobility for Runners | Session 23/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:23},
+ {id:"BGDy8eAsg_s",t:"Mobility for Runners | Session 24/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:24},
+ {id:"mbAd3nWc3hI",t:"Mobility for Runners | Session 25/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:25},
+ {id:"MRx5ibuNBSs",t:"Mobility for Runners | Session 26/26 | Stretch and Yoga with Coach Torzi from Runna",a:"Runna",c:"mobility",m:"",lv:26},
+ {id:"SAsfqrrghyk",t:"Pilates for Runners | Session 1/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:1},
+ {id:"fYtr9dJINMU",t:"Pilates for Runners | Session 2/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:2},
+ {id:"kI_usx7HW4Y",t:"Pilates for Runners | Session 3/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:3},
+ {id:"3D7nE0eUozU",t:"Pilates for Runners | Session 4/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:4},
+ {id:"gbbwFjNtLWw",t:"Pilates for Runners | Session 5/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:5},
+ {id:"fqZH9kOtKxQ",t:"Pilates for Runners | Session 6/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:6},
+ {id:"ugpI5RH_qzU",t:"Pilates for Runners | Session 7/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:7},
+ {id:"q1SakmNw8Ng",t:"Pilates for Runners | Session 8/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:8},
+ {id:"e5WID-IMKY0",t:"Pilates for Runners | Session 9/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:9},
+ {id:"_Tn5qj-i3iM",t:"Pilates for Runners | Session 10/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:10},
+ {id:"nnY3pj4RYoQ",t:"Pilates for Runners | Session 11/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:11},
+ {id:"gfsYfruHk5s",t:"Pilates for Runners | Session 12/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:12},
+ {id:"Uur9CrAEcTU",t:"Pilates for Runners | Session 13/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:13},
+ {id:"nU6qR6s8YrU",t:"Pilates for Runners | Session 14/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:14},
+ {id:"o7ihzCxi6yI",t:"Pilates for Runners | Session 15/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:15},
+ {id:"YWToUDvqTrk",t:"Pilates for Runners | Session 16/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:16},
+ {id:"U2fKqp57jxY",t:"Pilates for Runners | Session 17/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:17},
+ {id:"6ZqfAY5_88A",t:"Pilates for Runners | Session 18/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:18},
+ {id:"qKU7Xy_eWGw",t:"Pilates for Runners | Session 19/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:19},
+ {id:"lcNo9RliAdA",t:"Pilates for Runners | Session 20/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:20},
+ {id:"26u7B_beY8M",t:"Pilates for Runners | Session 21/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:21},
+ {id:"2z1U16c_EVY",t:"Pilates for Runners | Session 22/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:22},
+ {id:"J6grT-OuPUQ",t:"Pilates for Runners | Session 23/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:23},
+ {id:"va3bWDQz9l8",t:"Pilates for Runners | Session 24/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:24},
+ {id:"S_py_XdfpWQ",t:"Pilates for Runners | Session 25/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:25},
+ {id:"k8fHzkMlIV4",t:"Pilates for Runners | Session 26/26 | Pilates with Coach Christie from Runna",a:"Runna",c:"pilates",m:"",lv:26},
+ {id:"F_8KolfIxBo",t:"Stretch & Stability for Runners | Session 1/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:1},
+ {id:"XSO1FooNwnE",t:"Stretch & Stability for Runners | Session 2/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:2},
+ {id:"4NkRtI6w4Dg",t:"Stretch & Stability for Runners | Session 3/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:3},
+ {id:"Z2RvFL3NxG0",t:"Stretch & Stability for Runners | Session 4/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:4},
+ {id:"Ra3FBLQ1qPA",t:"Stretch & Stability for Runners | Session 5/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:5},
+ {id:"Q4EFB0UJ58U",t:"Stretch & Stability for Runners | Session 6/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:6},
+ {id:"zF59u5i6xlE",t:"Stretch & Stability for Runners | Session 7/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:7},
+ {id:"K9EPBIZlRSU",t:"Every Runner Needs This Routine | Stretch & Stability with Coach Fraser (8/26)",a:"Runna",c:"recovery",m:"",lv:8},
+ {id:"vH9q8HIXQZw",t:"Stretch & Stability for Runners | Session 9/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:9},
+ {id:"s5OX59x29H0",t:"Stretch & Stability for Runners | Session 10/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:10},
+ {id:"qNLzn9H6LhQ",t:"Stretch & Stability for Runners | Session 11/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:11},
+ {id:"BRuENghS0zA",t:"Stretch & Stability for Runners | Session 12/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:12},
+ {id:"Pe8jDNzCZMs",t:"Stretch & Stability for Runners | Session 13/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:13},
+ {id:"rvoKQRRKkek",t:"Stretch & Stability for Runners | Session 14/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:14},
+ {id:"n9Wxd9QW5fE",t:"Stretch & Stability for Runners | Session 15/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:15},
+ {id:"dGncu-ZmHRw",t:"Stretch & Stability for Runners | Session 16/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:16},
+ {id:"UB-4AFYZ3Uc",t:"Stretch & Stability for Runners | Session 17/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:17},
+ {id:"ir1LlhhEZsM",t:"Stretch & Stability for Runners | Session 18/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:18},
+ {id:"yDYrflxmgnU",t:"Stretch & Stability for Runners | Session 19/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:19},
+ {id:"XDTFPL84z1Q",t:"Stretch & Stability for Runners | Session 20/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:20},
+ {id:"T7ZUtwe24xY",t:"Stretch & Stability for Runners | Session 21/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:21},
+ {id:"ETncvzSiR_A",t:"Stretch & Stability for Runners | Session 22/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:22},
+ {id:"lhLn-hXdh-c",t:"Stretch & Stability for Runners | Session 23/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:23},
+ {id:"fKiCBqsyM-0",t:"Stretch & Stability for Runners | Session 24/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:24},
+ {id:"X1q4K6lDBVs",t:"Stretch & Stability for Runners | Session 25/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:25},
+ {id:"zRqjRtAC7Qk",t:"Stretch & Stability for Runners | Session 26/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:26},
+ {id:"TIHs5EQ2KYw",t:"10 minute foam roller routine for runners | Runna",a:"Runna",c:"strength",m:""},
+ {id:"m2zKKJmdExg",t:"20 minute core workout for runners | Runna",a:"Runna",c:"strength",m:""},
+ {id:"6LB__vPvaaE",t:"20 minute leg strength workout for runners | Runna",a:"Runna",c:"strength",m:""},
+ {id:"6-tZaV4W_mI",t:"30 minute pilates for running session | Runna",a:"Runna",c:"strength",m:""},
+ {id:"elOy2I6yp9w",t:"30 minute full body stretching and mobility session for runners | Runna",a:"Runna",c:"strength",m:""},
+]);
+VCAT.pilates="Pilates";VCAT.warmup="Warm up";VCAT.runwarm="Before a run";VCAT.core="Core finishers";VCAT.form="How to";
 function vidsBy(c){return VID.filter(function(v){return v.c===c;});}
 function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i];return null;}
 /* Press-play. The card is a local facade until tapped; tapping swaps in a nocookie iframe
@@ -2617,11 +2713,32 @@ function pickVid(cat,offset){
 }
 /* The anchor's video. Short mobility only, rotated by date so it is not the same clip every
    morning, and played in place so the morning is one screen and one tap. */
+/* ============ THE LADDERS ============
+   A track like mobility is not a pile to shuffle, it is a course to walk up. Before this the
+   anchor picked a mobility clip by date, so the morning never developed him, it just rotated four
+   videos forever. A ladder remembers where he is and moves on only on a day he actually finished
+   the anchor, which means the routine gets harder because he kept showing up, not because a
+   calendar turned over. Position lives in S.progress so it rides the sync across devices. */
+function ladderList(track){return VID.filter(function(v){return v.c===track&&v.lv;}).sort(function(a,b){return a.lv-b.lv;});}
+function ladderPos(track){var p=(S.progress||{})["ladder_"+track];return (typeof p==="number"&&p>=0)?p:0;}
+function ladderVid(track){var l=ladderList(track);if(!l.length)return null;return l[ladderPos(track)%l.length];}
+function advanceLadder(track){
+  var l=ladderList(track);if(!l.length)return;
+  S.progress=S.progress||{};
+  var kd="ladderday_"+track;
+  if(S.progress[kd]===TODAY)return; /* one step per day, never two for the same morning */
+  S.progress["ladder_"+track]=(ladderPos(track)+1)%l.length;
+  S.progress[kd]=TODAY;
+}
 function anchorVidHTML(){
-  var v=pickVid("mobility",0);
+  var v=ladderVid("mobility")||pickVid("mobility",0);
   if(!v)return "";
+  var n=ladderList("mobility").length;
+  var note=v.lv
+    ? 'Session '+v.lv+' of '+n+' in the Runna mobility course. It moves on when you finish the anchor, so the morning develops you rather than repeating.'
+    : 'Rotates each day. Tap for a different one in the library below.';
   return '<div class="avid"><div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
-    '<div class="foot" style="margin:8px 0 14px">Rotates each day. Tap for a different one in the library below.</div></div>';
+    '<div class="foot" style="margin:8px 0 14px">'+note+'</div></div>';
 }
 function guidedHTML(cat,label,note,offset){
   var v=pickVid(cat,offset);if(!v)return "";
@@ -2643,8 +2760,8 @@ function libraryHTML(cat){
      the right video in front of you where it matters, so the full shelf lives behind a disclosure
      and the tab stays about training rather than about browsing. */
   var groups=(cat==="lift")
-    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["core",null],["mobility",null],["yoga",null]]
-    : [["runwarm","Before a run"],["mobility","Mobility"],["recovery",null],["meditation",null]];
+    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["pilates","Pilates, the Runna course"],["core",null],["mobility","Mobility, the Runna course"],["yoga",null]]
+    : [["runwarm","Before a run"],["mobility","Mobility, the Runna course"],["pilates","Pilates, the Runna course"],["recovery","Stretch and stability"],["meditation",null]];
   var inner="",n=0;
   groups.forEach(function(g){inner+=vidRowHTML(g[0],g[1]);n+=vidsBy(g[0]).length;});
   var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad">'+inner+'</div></details>';
