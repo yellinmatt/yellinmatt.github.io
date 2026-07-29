@@ -864,7 +864,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.4";
+var VERSION="v7.5";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1157,7 +1157,7 @@ function load(){
   return Object.assign(seed(),raw);
 }
 var saveWarned=false;
-function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
+function save(){invalidateDayIndex();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
 
 /* ============ dates ============ */
 function keyOf(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
@@ -1178,7 +1178,34 @@ function todayPlan(){return planFor(TODAY);}
    than one row. A bad import or a hand-edited record should never be able to kill a view. Found by
    the continuum audit, 2026-07-29. */
 function esc(s){return (s==null?"":String(s)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
-function isDone(k){return !!S.done[k];}
+/* v7.5 BUG 1. S.done is written only for TODAY, at log time. The JSON-import path backfills it
+   from sessions (see the importer) but the SYNC path never did, so every session that arrived
+   from another device marked no day at all. That is why All time read "1 active days across 747"
+   against 27 logged sessions. Rather than add a third writer, "moved" is DERIVED at read time: a
+   day counts if it was ticked, or carries a session or a run, or completed the anchor. One
+   reader, one truth, and every existing device heals with no migration. (2026-07-29) */
+var SDIX=null;
+function invalidateDayIndex(){SDIX=null;}
+function sessionDayIndex(){
+  if(SDIX)return SDIX;
+  SDIX={};
+  S.sessions.forEach(function(s){SDIX[s.date]=true;});
+  for(var r in (S.runs||{}))if(S.runs[r])SDIX[r]=true;
+  return SDIX;
+}
+function isDone(k){
+  if(S.done[k])return true;
+  if(sessionDayIndex()[k])return true;
+  return S.anchor[k]?anchorComplete(k):false;
+}
+/* Every day the record says he moved, capped at today. Used by All time. */
+function activeDayKeys(){
+  var seen={},ix=sessionDayIndex();
+  for(var k in ix)seen[k]=true;
+  for(var d in S.done)if(S.done[d])seen[d]=true;
+  for(var a in S.anchor)if(anchorComplete(a))seen[a]=true;
+  return Object.keys(seen).filter(function(d){return d<=TODAY;});
+}
 function letterFor(){return LETTERS[(S.planPos||0)%3];}
 
 /* build (or fetch) today's working lift session */
@@ -2278,20 +2305,24 @@ function renderTrack(){
    whether you are keeping up, then the six lights behind it. Everything below is the detail. */
 function trackStatusHTML(){
   var rows=kpiRows(),green=rows.filter(function(r){return r.rag==="good";}).length;
+  /* v7.5 BUG 5. The denominator was the hardcoded 6, but Weight scores "none" until there is
+     enough data, so six of six was arithmetically unreachable and the card announced a shortfall
+     that no amount of training could close. Score against what is actually scoreable. */
+  var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
   var red=rows.filter(function(r){return r.rag==="red";});
   var st=weightStats(),t=trendState();
   var head,tone;
   if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(green>=5){head="On plan.";tone="good";}
-  else if(green>=3){head="Mostly on plan.";tone="amber";}
+  else if(green>=scored-1){head="On plan.";tone="good";}
+  else if(green>=Math.ceil(scored/2)){head="Mostly on plan.";tone="amber";}
   else {head="Off plan this week.";tone="red";}
   var sub;
   if(!st)sub="Nothing to measure against yet.";
-  else if(t.state==="down")sub="Weight is coming down and "+green+" of 6 measures are green.";
-  else if(t.state==="up")sub="Weight is up and "+green+" of 6 measures are green.";
-  else if(t.state==="flat")sub="Weight is holding and "+green+" of 6 measures are green.";
-  else sub=green+" of 6 measures are green.";
+  else if(t.state==="down")sub="Weight is coming down and "+green+" of "+scored+" measures are green.";
+  else if(t.state==="up")sub="Weight is up and "+green+" of "+scored+" measures are green.";
+  else if(t.state==="flat")sub="Weight is holding and "+green+" of "+scored+" measures are green.";
+  else sub=green+" of "+scored+" measures are green.";
   var lights=rows.map(function(r){
     return '<button class="light" data-rag="'+r.rag+'" onclick="'+r.act+'" title="'+esc(r.label)+'"><span class="ldot"></span><span class="llab">'+esc(r.label.split(" ")[0])+'</span></button>';
   }).join("");
@@ -2436,10 +2467,11 @@ function scorecardHTML(){
        (r.outcome?'<span class="khint">measured, not projected</span>':'<span class="khint">'+(r.val>=r.target?'week target met':'target '+(r.k==="miles"?r.target.toFixed(1)+' mi':r.target)+' by Sunday')+'</span>')+'</span>'+
        (r.outcome?'':kpiStrip(r.k))+'</button>';
   });
-  var m=weekMetrics(0),green=kpiRows().filter(function(r){return r.rag==="good";}).length;
-  return collapsible("This week",green+" of 6 green",
+  var m=weekMetrics(0),green=rows.filter(function(r){return r.rag==="good";}).length;
+  var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
+  return collapsible("This week",green+" of "+scored+" green",
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
-    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.trophy,green>=6?"good":green<=2?"warn":"");
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.trophy,green>=scored?"good":green<=2?"warn":"");
 }
 /* Every measure on this tab is only as good as its last input, so the inputs get their own row
    rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
@@ -2558,19 +2590,22 @@ function progressHTML(){
   /* Streak + bodyweight now lead the Track tab in the body hero and tiles, so they
      are deliberately not repeated here. Same numbers twice on one screen is how the
      v3.8 dual-weight bug hid in plain sight. */
-  var tiles='<div class="sectlbl" style="margin:18px 2px 9px">Training</div><div class="stattiles">'+
-    stat("Lifts",lifts,"logged","","flat")+
-    stat("Avg session",avgDur?mmss(avgDur):"--",avgDur?"":"","","flat")+'</div>';
+  /* v7.5 BUG 2. The "Training" tile pair printed Lifts and Avg session immediately above an
+     All time card that printed Lifts again. Both numbers now live in All time only. */
   var loadByWk={};S.sessions.forEach(function(s){if(s.type!=="lift")return;var wk=isoWeek(s.id);loadByWk[wk]=(loadByWk[wk]||0)+Math.round((s.rpe||7)*((s.durationSec||0)/60));});
   var thisLoad=loadByWk[thisWk]||0,prevLoad=loadByWk[isoWeek(keyOf(pd))]||0;
-  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+(lastVol>=prevVol?"":" flat")+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"first week")+'</div></div>'+
-    '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+(thisLoad>=prevLoad?"":" flat")+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
+  /* v7.5 BUG 4. With no prior week, 0 >= 0 was true, so a week with nothing in it rendered its
+     caption GREEN and said "first week". Green means done. Absence of data is neutral. */
+  var volCls=prevVol?(lastVol>=prevVol?"":" flat"):" flat";
+  var loadCls=prevLoad?(thisLoad>=prevLoad?"":" flat"):" flat";
+  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+volCls+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"no week to compare")+'</div></div>'+
+    '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+loadCls+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
   var exIds=Object.keys(LIB).filter(function(id){return prFor(id);}).sort(function(a,b){return prFor(b).date<prFor(a).date?-1:1;});
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
   /* The old weighChart() is gone entirely as of v5.3. The weight card at the top of Track
      already owns the trend, and rendering a second chart with its own ETA text was the same
      duplication that produced the dual-weight bug. One writer per number. */
-  return tiles+lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
+  return lifetimeHTML()+rpeTrendHTML()+volChart()+volTile+
     /* Personal records live on Lift, inside each movement, and on Cardio above the badges. A third
        copy here was the same information a third time. */
     /* The "send my data to Claude" button predates cloud sync, when pasting an export into a
@@ -2751,17 +2786,25 @@ function lifetimeHTML(){
   var lifts=S.sessions.filter(function(x){return x.type==="lift";});
   var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
   var mins=S.sessions.reduce(function(a,x){return a+((x.durationSec||0)/60);},0);
-  var moved=Object.keys(S.done||{}).length;
   if(!S.sessions.length)return "";
   var first=S.sessions.reduce(function(a,x){return (!a||x.date<a)?x.date:a;},null);
-  var span=first?daysBetween(first,TODAY):0;
+  /* v7.5 BUG 1. Was Object.keys(S.done).length, which on a synced device counted only the days
+     ticked on THIS phone and printed "1 active days" over a 27-session record. */
+  var moved=activeDayKeys().length;
+  var span=first?daysBetween(first,TODAY)+1:0;
+  var pct=span?Math.round(moved/span*100):0;
+  /* v7.5 BUG 2. Avg session lived in a "Training" tile pair directly above this card, alongside a
+     second Lifts count. Two writers, one number, four inches apart. Both move in here. */
+  var avgDur=S.sessions.length?Math.round(mins*60/S.sessions.length):0;
   return collapsible("All time","since "+(first||""),'<div>'+
     '<div class="stattiles" style="margin-bottom:0">'+
     stat("Sessions",S.sessions.length,"logged","",'flat')+
-    stat("Lifts",lifts.length,"","",'flat')+
+    stat("Lifts",lifts.length,lifts.length===1?"logged":"logged","",'flat')+
     stat("Miles",mi.toFixed(0),"run","",'flat')+
     stat("Hours",(mins/60).toFixed(0),"training","",'flat')+
-    '</div><div class="foot" style="margin-top:10px">'+moved+' active days across '+span+' days, which is '+(span?Math.round(moved/span*100):0)+' percent of them.</div></div>',false,I.trophy,"");
+    stat("Avg session",avgDur?mmss(avgDur):"--",avgDur?"":"","",'flat')+
+    stat("Active days",moved,span?("of "+span):"","",'flat')+
+    '</div><div class="foot" style="margin-top:10px">You moved on '+moved+' of the '+span+' day'+(span===1?'':'s')+' since '+(first||'')+', which is '+pct+' percent of them.</div></div>',false,I.trophy,"");
 }
 /* Single source for weekly tonnage, shared by the tile and the chart. */
 /* A bodyweight rep is real work, but calling it zero pounds made "week volume" read 0k forever
@@ -2780,11 +2823,26 @@ function volumeByWeek(){
 function volChart(){
   /* Bodyweight sets used to contribute nothing, so "week volume" read 0 lb forever on a
      bodyweight program. Reps now count as work at an assumed load so the series means something. */
-  var volByWk=volumeByWeek();
-  var wks=Object.keys(volByWk).sort().slice(-10);if(wks.length<2)return "";
-  var vals=wks.map(function(k){return volByWk[k];});
-  return drawerize(barChart("Weekly lifting volume","last "+wks.length+" weeks",vals,
-    wks.map(function(k,i){return i===wks.length-1?"now":"";}),
+  /* v7.5 BUG 3. This used to take the last ten weeks THAT HELD DATA, then label the last of them
+     "now". On a record whose lifting stopped in April, the chart printed an April week as this
+     week and read 0.5k while the Week volume tile directly below it read 0.0k. Two writers for
+     one number, disagreeing on screen. The series is now twelve real calendar weeks ending on
+     this one, which matches the twelve-week strip on every scorecard row, so a gap draws as the
+     zero it is and "now" is genuinely now. */
+  var volByWk=volumeByWeek(),N=12,wks=[],d=new Date(NOW);
+  d.setDate(d.getDate()-(N-1)*7);
+  for(var i=0;i<N;i++){wks.push(isoWeek(keyOf(d)));d.setDate(d.getDate()+7);}
+  var vals=wks.map(function(k){return volByWk[k]||0;});
+  var keys=Object.keys(volByWk).sort(),lastWk=keys.length?keys[keys.length-1]:null;
+  /* An empty window used to make the whole drawer vanish, which reads as a rendering failure
+     rather than as the fact that nothing has been lifted. Say the fact. */
+  if(!vals.some(function(v){return v>0;})){
+    if(!lastWk)return "";
+    return collapsible("Weekly lifting volume","nothing in 12 weeks",
+      '<div class="ksub" style="margin:0">No lifting logged in the last twelve weeks. The last week that carried any was '+lastWk.replace("-W"," week ")+'.</div>',false,I.chart,"warn");
+  }
+  return drawerize(barChart("Weekly lifting volume","last "+N+" weeks",vals,
+    wks.map(function(k,i){return i===N-1?"now":"";}),
     function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb"),I.chart,"");
 }
 
