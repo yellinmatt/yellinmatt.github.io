@@ -631,6 +631,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard .dsum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
 .dcard[open]>summary{border-bottom:1px solid var(--line)}
 .dcard .dbody{padding:14px 18px 16px}
+.dcard .dbody>.card{background:transparent;border:0;box-shadow:none;padding:0;margin:0}
+.dcard .dbody>.card>h3{display:none}
 /* PR bar */
 .prbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 4px}
 .prcell{background:var(--surface-2);border-radius:11px;padding:11px 6px;text-align:center}
@@ -841,7 +843,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.4";
+var VERSION="v6.5";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2092,7 +2094,14 @@ function renderTrack(){
   var h='<div class="head"><div><div class="date">Body &amp; metrics</div><div class="title">Track</div></div>'+
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
-  h+=trackStatusHTML()+scorecardHTML()+freshnessHTML()+heatmapHTML("6m")+weightCardHTML()+patternVolumeHTML()+bodyTilesHTML()+calCardHTML()+progressHTML();
+  /* Hero (the status card) open, everything else a drawer. Same rule as the other three tabs. */
+  h+=trackStatusHTML()+scorecardHTML()+freshnessHTML()+
+     drawerize(heatmapHTML("6m"),I.cal,"")+
+     drawerize(weightCardHTML(),I.spark,"")+
+     patternVolumeHTML()+
+     drawerize(bodyTilesHTML(),I.flame,"")+
+     drawerize(calCardHTML(),I.chart,"")+
+     progressHTML();
   h+='<div class="sectlbl" style="margin:16px 2px 8px">Setup &amp; backend</div>';
   h+='<button class="sheet-cta ghost" onclick="weighSheet()">Log a weigh-in</button>';
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings</button>';
@@ -2223,6 +2232,18 @@ function kpiStrip(k){
    drawers and nothing signalled which was worth opening. A card now says what it is with an icon
    and how it is doing with a coloured chip, and whether it opens by default is a per-card decision
    rather than a default. (Matthew's audit, 2026-07-29) */
+function drawerize(html,icon,tone,openByDefault){
+  if(!html)return "";
+  var m=html.match(/<h3>\s*<span>([\s\S]*?)<\/span>\s*(?:<span class="t">([\s\S]*?)<\/span>\s*)?<\/h3>/);
+  var title,note;
+  if(m){title=m[1];note=m[2]||"";html=html.replace(m[0],"");}
+  else{
+    var m2=html.match(/<h3>([^<]*)<span class="t">([\s\S]*?)<\/span><\/h3>/);
+    if(!m2)return html;
+    title=m2[1].trim();note=m2[2];html=html.replace(m2[0],"");
+  }
+  return collapsible(title,note,html,!!openByDefault,icon,tone||"");
+}
 function collapsible(title,note,inner,openByDefault,icon,tone){
   return '<details class="card dcard"'+(openByDefault?' open':'')+(tone?' data-tone="'+tone+'"':'')+'><summary>'+
     '<span class="dleft">'+(icon?'<span class="dsi">'+icon+'</span>':'')+'<span class="dsum">'+title+'</span></span>'+
@@ -2248,7 +2269,7 @@ function scorecardHTML(){
   var m=weekMetrics(0),green=kpiRows().filter(function(r){return r.rag==="good";}).length;
   return collapsible("This week",green+" of 6 green",
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
-    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',green<6,I.trophy,green>=6?"good":green<=2?"warn":"");
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.trophy,green>=6?"good":green<=2?"warn":"");
 }
 /* Every measure on this tab is only as good as its last input, so the inputs get their own row
    rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
@@ -2283,7 +2304,7 @@ function freshnessHTML(){
   }).join("");
   var bad=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
   return collapsible("Where the numbers come from",(bad?bad+" stale":"all current"),
-    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows);
+    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows,bad>0,I.spark,bad?"warn":"good");
 }
 /* S.nutrition has been write-only since the Cal AI import shipped: every paste stored calories
    and nothing ever displayed them. Protein already drives a scorecard row, so calories get the
@@ -2548,9 +2569,10 @@ function heatmapHTML(mode){
     return '<div class="card hcard" data-sm="1"><h3><span>The last two weeks</span><span class="t">'+any+' of 14 active</span></h3>'+
       '<div class="strip">'+strip+'</div></div>';
   }
-  return '<div class="card hcard"><h3><span>'+(weeks<=2?"The last two weeks":weeks<=26?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
+  var htitle=(weeks<=2?"The last two weeks":weeks<=26?"The last six months":"The year");
+  return '<div class="card hcard" data-title="'+htitle+'" data-any="'+any+'"><h3><span>'+htitle+'</span><span class="t">'+any+' active days</span></h3>'+
     '<div class="hhead"><div class="hbig num">'+pct+'<small>%</small></div>'+
-    '<div class="hsub">of days moved'+(best?', longest run <b>'+best+'</b> days':'')+(streakNow?', on <b>'+streakNow+'</b> now':'')+'</div></div>'+
+    '<div class="hsub">of days moved'+(best?', longest run <b>'+best+'</b> day'+(best===1?'':'s'):'')+(streakNow?', on <b>'+streakNow+'</b> now':'')+'</div></div>'+
     '<div class="hscroll"><div class="hgrid">'+cols+'</div></div>'+
     '<div class="hmonths">'+months+'</div>'+
     '<div class="hlegend"><span>quiet</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>hard</span></div></div>';
