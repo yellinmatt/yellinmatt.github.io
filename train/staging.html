@@ -897,17 +897,17 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .emptyd{font-size:13.5px;line-height:1.62;color:var(--sub);margin:0}
 .emptyd b{color:var(--ink);font-weight:650}
 /* odometer, geometry from the Nike Run Club Activity card */
-.odo2{padding:18px 20px 19px}
-.odo2 .oseg{display:flex;background:var(--surface-2);border-radius:999px;padding:3px;margin-bottom:15px}
-.odo2 .oseg button{flex:1;height:30px;border:0;border-radius:999px;background:transparent;color:var(--sub);font-size:13px;font-weight:700}
-.odo2 .oseg button.on{background:var(--accent);color:var(--white)}
-.odo2 .octx{font-size:14.5px;font-weight:650;color:var(--ink);margin-bottom:6px}
-.odo2 .oN{font-size:52px;font-weight:800;letter-spacing:-.045em;line-height:.92;color:var(--ink);font-variant-numeric:tabular-nums}
-.odo2 .oU{font-size:13px;font-weight:500;color:var(--sub);margin-top:3px}
-.odo2 .orow{display:flex;gap:30px;margin-top:17px}
-.odo2 .orow div{min-width:0}
-.odo2 .orow b{display:block;font-size:18px;font-weight:750;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
-.odo2 .orow span{display:block;font-size:12.5px;font-weight:500;color:var(--sub);margin-top:2px}
+.odo2body{padding:2px 0 2px}
+.odo2body .oseg{display:flex;background:var(--surface-2);border-radius:999px;padding:3px;margin-bottom:15px}
+.odo2body .oseg button{flex:1;height:30px;border:0;border-radius:999px;background:transparent;color:var(--sub);font-size:13px;font-weight:700}
+.odo2body .oseg button.on{background:var(--accent);color:var(--white)}
+.odo2body .octx{font-size:14.5px;font-weight:650;color:var(--ink);margin-bottom:6px}
+.odo2body .oN{font-size:52px;font-weight:800;letter-spacing:-.045em;line-height:.92;color:var(--ink);font-variant-numeric:tabular-nums}
+.odo2body .oU{font-size:13px;font-weight:500;color:var(--sub);margin-top:3px}
+.odo2body .orow{display:flex;gap:30px;margin-top:17px}
+.odo2body .orow div{min-width:0}
+.odo2body .orow b{display:block;font-size:18px;font-weight:750;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+.odo2body .orow span{display:block;font-size:12.5px;font-weight:500;color:var(--sub);margin-top:2px}
 
 </style>
 </head>
@@ -966,6 +966,7 @@ var I={
   dumbbell:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 6.5v11M4 9v5M17.5 6.5v11M20 9v5M6.5 12h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   cal:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
 chart:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  gauge:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 17a8.5 8.5 0 1 1 16 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M12 17l4.2-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1.6" fill="currentColor"/></svg>',
   fork:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 3v6a2.5 2.5 0 0 0 5 0V3M9.5 11.5V21M17 3c-1.4 1.2-2 3-2 5s.6 2.8 2 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="15.5" cy="4.2" r="2.1" fill="currentColor"/><path d="M13.2 21.5l2.1-5.2-3-2.8.9-4.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.2 8.9L9.6 10.6 7.7 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.2 8.9l3.6 1.5 1.1 3.4 2.6.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.3 13.5L8.4 15.9l-2.6-.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   rest:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 5a7 7 0 1 0 2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -2492,10 +2493,12 @@ function trackDashHTML(){
   else {head="Off plan this week.";tone="red";}
   var mv=nextMove();
   var m=weekMetrics(0);
-  var sub='You have moved <b>'+m.moved+'</b> of '+m.days+' day'+(m.days===1?'':'s')+' this week and '+
-    (green?('<b>'+green+'</b> of '+scored+' measures are green'):('none of the '+scored+' measures are green'))+
-    (stale?(', but <b>'+stale+'</b> input'+(stale===1?' has':'s have')+' gone quiet, so some of this is a gap in the record rather than in the training'):'')+'. '+
-    'The single thing that would fix the most is <b>'+mv.t.toLowerCase()+'</b>, because '+mv.why+'.';
+  /* One line. The first build ran four sentences here and Matthew's read was "too much narrative".
+     The bands underneath already carry the numbers, so this says only what they cannot: how many
+     days, how many green, and whether the record itself is the problem. The recommended move is
+     the button, not a clause. */
+  var sub='<b>'+m.moved+'</b> of '+m.days+' day'+(m.days===1?'':'s')+' moved, <b>'+green+'</b> of '+scored+' green'+
+    (stale?(', <b>'+stale+'</b> input'+(stale===1?'':'s')+' stale'):'')+'.';
   var wl=lastW(),goal=S.profile.goalLb;
   var body=wl?('<div class="bodyb"><div><div class="bn">'+wl.toFixed(1)+'</div><div class="bu">'+wLbl()+', '+(st&&st.ageDays===0?"today":"latest")+'</div></div>'+
     '<div class="br">'+(goal?('<b>'+Math.abs(wl-goal).toFixed(1)+' '+wLbl()+'</b> to '+goal+'<br>'):'')+
@@ -2506,9 +2509,9 @@ function trackDashHTML(){
       '<div class="dact"><button onclick="'+mv.a+'">'+mv.t+'</button>'+
       '<button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
     '<div class="dband"><div class="bandlbl">This week<span class="bx">'+green+' of '+scored+' green</span></div>'+measureRowsHTML()+'</div>'+
-    '<div class="dband"><div class="bandlbl">Where you stand</div>'+levelPairHTML()+'</div>'+
+    '<div class="dband"><div class="bandlbl">Levels</div>'+levelPairHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
-    '<div class="dband"><div class="bandlbl">Can you trust this<span class="bx">'+(stale?stale+' stale':'all current')+'</span></div>'+dataHealthHTML()+'</div>'+
+    '<div class="dband"><div class="bandlbl">Data<span class="bx">'+(stale?stale+' stale':'all current')+'</span></div>'+dataHealthHTML()+'</div>'+
     '</div>';
 }
 /* ============ TRACK v7.6 - THE STUDY ============
@@ -2518,21 +2521,21 @@ function trackDashHTML(){
    freshness card, and chart on both Calories and Weekly volume. Nine drawers, nine glyphs now,
    assigned in one place so the next card added has to pick from what is left. (v7.6) */
 function deepHTML(){
-  var h='<div class="grouphd"><span class="gn">Execution</span><span class="gl"></span><span class="gc">did you do the work</span></div>';
+  var h='<div class="grouphd"><span class="gn">Execution</span><span class="gl"></span><span class="gc">5 cards</span></div>';
   h+=scorecardHTML();
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
   h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
       '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">what the scale and the food say</span></div>';
+  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">3 cards</span></div>';
   h+=drawerize(weightCardHTML(),I.spark,"");
   /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
      which put a second open card on a tab whose law allows exactly one. */
   h+=drawerize(calCardHTML(),I.fork,"")||collapsible("Calories","not connected",
       '<div class="emptyd">Cal AI has never imported. <b>Paste a week</b> and calories, the maintenance gap and the implied rate all switch on together.</div>',false,I.fork,"");
   h+=drawerize(bodyTilesHTML(),I.flame,"");
-  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">the long view</span></div>';
+  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">4 cards</span></div>';
   h+=progressHTML();
-  h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc">where the numbers come from</span></div>';
+  h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc">2 cards</span></div>';
   h+=freshnessHTML();
   h+=backupBlockHTML();
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>';
@@ -4456,7 +4459,13 @@ function odoPeriod(p){
   if(p==="y")return {runs:r.filter(function(x){return x.date.slice(0,4)===TODAY.slice(0,4);}),ctx:"This year"};
   return {runs:r,ctx:"All time"};
 }
-function setOdo(p){ODOP=p;var e=document.getElementById("odoslot");if(e)e.outerHTML=odoCardHTML();}
+function setOdo(p){
+  ODOP=p;
+  var e=document.getElementById("odoslot");if(!e)return;
+  var tmp=document.createElement("div");tmp.innerHTML=odoCardHTML();
+  var fresh=tmp.querySelector("#odoslot");
+  if(fresh)e.innerHTML=fresh.innerHTML;
+}
 function hms(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
   return h?(h+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)):(m+":"+("0"+x).slice(-2));}
 function odoCardHTML(){
@@ -4467,7 +4476,10 @@ function odoCardHTML(){
   var pace=(mi>0&&secs>0)?Math.round(secs/mi):0;
   var seg=["w","m","y","all"].map(function(k){
     return '<button class="'+(k===ODOP?"on":"")+'" onclick="setOdo(\''+k+'\')">'+(k==="all"?"All":k.toUpperCase())+'</button>';}).join("");
-  return '<div class="card odo2" id="odoslot">'+
+  /* Matthew's call after seeing it live: a drawer like every other card on this tab, not a
+     standing card. That also retires the card-law exception it would otherwise have needed. The
+     lifetime total rides on the summary line, so it is readable without opening anything. */
+  var body='<div class="odo2body" id="odoslot">'+
     '<div class="oseg">'+seg+'</div>'+
     '<div class="octx">'+d.ctx+'</div>'+
     '<div class="oN">'+mi.toFixed(1)+'</div><div class="oU">Miles</div>'+
@@ -4476,6 +4488,8 @@ function odoCardHTML(){
       '<div><b>'+(pace?mmss(pace):"--")+'</b><span>Avg. Pace</span></div>'+
       '<div><b>'+(secs?hms(secs):"--")+'</b><span>Time</span></div>'+
     '</div></div>';
+  var total=allRuns().reduce(function(a,x){return a+(x.distanceMi||0);},0);
+  return collapsible("Miles",total.toFixed(1)+" mi all time",body,false,I.gauge,"");
 }
 
 function renderCardio(){
