@@ -844,7 +844,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.6";
+var VERSION="v6.7";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1406,7 +1406,8 @@ function weightLogCardHTML(){
 }
 function weightCardHTML(){
   var st=weightStats(),t=trendState();
-  var head='<h3><span>Weight</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
+  var _lw=(S.weigh&&S.weigh.length)?S.weigh[S.weigh.length-1]:null;
+  var head='<h3><span>Weight</span><span class="t">'+(_lw?(_lw.w+' '+wLbl()):'not logged yet')+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
   if(!st)return '<div class="card">'+head+'<div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+S.profile.goalLb+'.</div></div>';
   var title=(t.state==="down")?"Trending down":(t.state==="up")?"Trending up":(t.state==="flat")?"Holding steady":"Not enough weigh-ins yet";
   var sub;
@@ -2617,9 +2618,9 @@ function volChart(){
   var volByWk=volumeByWeek();
   var wks=Object.keys(volByWk).sort().slice(-10);if(wks.length<2)return "";
   var vals=wks.map(function(k){return volByWk[k];});
-  return barChart("Weekly lifting volume","last "+wks.length+" weeks",vals,
+  return drawerize(barChart("Weekly lifting volume","last "+wks.length+" weeks",vals,
     wks.map(function(k,i){return i===wks.length-1?"now":"";}),
-    function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb");
+    function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb"),I.chart,"");
 }
 
 /* ============ EXPORT / IMPORT ============ */
