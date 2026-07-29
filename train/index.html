@@ -364,6 +364,13 @@ input,select{border:0;background:none}
 .frow .ft{font-size:12px;font-weight:700;color:var(--rag);flex:0 0 auto}
 /* shared bar chart */
 .bwrap{position:relative;margin-top:6px}
+.bwrap.tall{margin:10px 0 4px;padding-bottom:2px}
+.bwrap.tall .brow{gap:5px;align-items:flex-end}
+.bwrap.tall .bcol{gap:7px}
+.bwrap.tall .bcol i{width:100%;max-width:20px;border-radius:4px 4px 2px 2px}
+.bwrap.tall .bcol .bv{font-size:11px;min-height:15px;letter-spacing:0}
+.bwrap.tall .bcol .bx{font-size:10px;min-height:14px;white-space:nowrap}
+.bbase{height:1px;background:var(--line);margin-top:-14px;position:relative;z-index:0}
 .brow{display:flex;align-items:flex-end;gap:4px;min-height:calc(var(--bh) + 34px)}
 .bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
 .bcol i{display:block;width:70%;border-radius:3px 3px 2px 2px;background:var(--surface-2)}
@@ -542,6 +549,11 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .chero .lvlp{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
 .chero .lvlp b{color:var(--ink);font-weight:800}
 .chsplit{height:1px;background:var(--line);margin:16px 0 14px}
+.ldelta{display:flex;align-items:baseline;gap:9px}
+.ldelta .ldv{font-size:26px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--sub)}
+.ldelta .ldl{font-size:12.5px;font-weight:600;color:var(--faint)}
+.ldelta[data-d="up"] .ldv{color:var(--good)}
+.ldelta[data-d="down"] .ldv{color:var(--amber)}
 /* Collapsed cards were all identical grey rows, so nothing told you which one was worth opening.
    Each now carries its own icon and a status chip that is coloured by state. (2026-07-29) */
 .dcard>summary .dsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
@@ -829,7 +841,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.1";
+var VERSION="v6.3";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -839,7 +851,9 @@ var I={
   play2:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6l10 6-10 6V6Z" fill="currentColor"/></svg>',
   check:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   dumbbell:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 6.5v11M4 9v5M17.5 6.5v11M20 9v5M6.5 12h11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="17" cy="5" r="1.9" fill="currentColor"/><path d="M7 21l3-4M16 21l-2-4l-3-3l1-6M6 12l2-3l4-1l3 3l3 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3.5 9.5h17M8 3.5v3M16 3.5v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+chart:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="17" cy="5" r="1.9" fill="currentColor"/><path d="M7 21l3-4M16 21l-2-4l-3-3l1-6M6 12l2-3l4-1l3 3l3 1" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   rest:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 5a7 7 0 1 0 2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   flame:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3 4 4 4 8a4 4 0 1 1-8 0c0-1 .5-2 1-2.5C9 10 9 12 9 12S8 8 12 3Z" fill="currentColor"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="12" r="1.6" fill="currentColor"/></svg>',
@@ -854,7 +868,7 @@ var I={
   send:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12l16-8-6 16-3-6-7-2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0V4ZM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M9 20h6M12 15v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   bolt:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 3L5 13h5l-1 8 8-11h-5l1-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
-  spark:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 13h3.5l2.5-7 4 14 2.5-7H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'
 };
 
@@ -1951,8 +1965,13 @@ function weekHTML(withRing){
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
+  /* Collapsed like everything else below the hero. The hero is the thing to act on; the week is
+     reference, and leaving it open pushed the coach and the rotation off the first screen.
+     (Matthew, 2026-07-29) */
+  var wnote=totLifts?(doneLifts+' of '+totLifts+' lifts'):'nothing scheduled';
   return (withRing===false?'':ring)+
-    '<div class="card"><h3>This week <span class="t">tap a day to view or edit</span></h3><div class="weeklist">'+list+'</div></div>';
+    collapsible("This week",wnote,'<div class="ksub">Tap a day to view or edit it.</div><div class="weeklist">'+list+'</div>',
+      false,I.cal,(totLifts&&doneLifts>=totLifts)?"good":"");
 }
 /* ============ LIFT (strength hub: today + plan + build + library) ============ */
 /* ============ LIFT: THE PROGRAM AND THE MOVEMENTS (Round D) ============
@@ -2375,6 +2394,33 @@ function stat(l,v,u,t,cls){return '<div class="stat"><div class="sl">'+l+'</div>
    the latest bar is the only accented one, and each bar carries its value so the chart is
    readable without an axis. Empty weeks draw a hairline rather than nothing, so a gap looks
    like a zero instead of a rendering failure. */
+/* The old chart printed a number over EVERY bar and an x-label under every bar, so twelve weeks
+   in a phone-width card became a wall of 9px digits with no air. Reference charts (Strava's weekly
+   volume, Apple Health's bar summaries) label the ends and the peak and leave the rest to the
+   shape. This does the same: a taller plot, value labels only on the latest bar and the best one,
+   sparse x-labels, a real baseline, and the average as a dashed rule read at the right.
+   (Matthew: "visually looks really smooched together and smothered", 2026-07-29) */
+function barBody(vals,fmt,unit){
+  if(!vals||vals.length<2)return '<div class="ksub">Not enough weeks logged yet.</div>';
+  fmt=fmt||function(v){return Math.round(v);};
+  var mx=Math.max.apply(null,vals)||1;
+  var nz=vals.filter(function(v){return v>0;});
+  var mean=nz.length?nz.reduce(function(a,v){return a+v;},0)/nz.length:0;
+  var H=96,last=vals.length-1,peak=vals.indexOf(mx);
+  var bars=vals.map(function(v,i){
+    var hh=v>0?Math.max(4,Math.round(v/mx*H)):2;
+    var isLast=(i===last),isPeak=(i===peak&&v>0&&peak!==last);
+    var show=(isLast||isPeak)&&v>0;
+    var xl=(i===0)?(vals.length+"w ago"):(isLast?"now":"");
+    return '<div class="bcol"><span class="bv'+(isLast?" on":"")+'">'+(show?fmt(v):"")+'</span>'+
+      '<i class="'+(isLast?"on":"")+(v>0?"":" zero")+'" style="height:'+hh+'px"></i>'+
+      '<span class="bx">'+xl+'</span></div>';
+  }).join("");
+  var meanPct=mx?Math.round((mean/mx)*H):0;
+  return '<div class="bwrap tall" style="--bh:'+H+'px">'+
+    (mean>0?'<div class="bmean" style="bottom:'+(meanPct+22)+'px"><span>avg '+fmt(mean)+(unit?" "+unit:"")+'</span></div>':'')+
+    '<div class="brow">'+bars+'</div><div class="bbase"></div></div>';
+}
 function barChart(title,note,vals,labels,fmt,unit){
   if(!vals||vals.length<2)return "";
   fmt=fmt||function(v){return Math.round(v);};
@@ -3681,10 +3727,31 @@ function fitnessSpark(L){
 /* The ring and the headline moved up into the hero, so what is left here is the reading BEHIND
    the number: the trend line, the totals, the easy-pace check and the caveat about what a training
    load level is and is not. That is reference, not a call to action, so it is collapsed. */
+/* Strava's Fitness & Freshness page makes the point that "the overall numbers aren't as important
+   as general trends", and puts a seven-day delta beside the score for exactly that reason. The
+   level had a number and a ring and no direction, so it could not answer the only question worth
+   asking, which is whether this is going up. `research/exemplars-leveling-2026-07-28/
+   strava_fitness-and-freshness.md`. (2026-07-29) */
+function levelDelta(L){
+  var ser=L.series||[];if(ser.length<8)return null;
+  var now=ser[ser.length-1],prev=ser[ser.length-8];
+  if(!now||!prev)return null;
+  var a=now.slow||0,b=prev.slow||0;
+  if(!b&&!a)return null;
+  var d=a-b;
+  return {d:d,pct:b?Math.round(d/b*100):null,dir:(Math.abs(d)<0.15)?"flat":(d>0?"up":"down")};
+}
+function levelDeltaHTML(L){
+  var dl=levelDelta(L);if(!dl)return "";
+  var w=dl.dir==="flat"?"holding":(dl.dir==="up"?"rising":"easing off");
+  var sign=dl.d>0?"+":"";
+  return '<div class="ldelta" data-d="'+dl.dir+'"><span class="ldv num">'+sign+dl.d.toFixed(1)+'</span>'+
+    '<span class="ldl">over 7 days &middot; '+w+'</span></div>';
+}
 function levelDetailHTML(){
   var L=cardioLevel(),st=levelStatus(L),ep=easyPaceTrend();
   var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
-  var inner='<div class="ld" style="margin-bottom:10px">'+st.c+'</div>'+
+  var inner=levelDeltaHTML(L)+'<div class="ld" style="margin:10px 0">'+st.c+'</div>'+
     fitnessSpark(L)+
     '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+mi.toFixed(0)+'</b> mi</span><span><b class="num">'+Math.round(L.score)+'</b> load</span></div>'+
     (ep?'<div class="anote" style="margin-top:12px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, about '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago, at self-reported easy effort. That is the fitness part, which the level cannot show.</div>':'')+
@@ -3807,12 +3874,11 @@ function renderCardio(){
         '<span class="rmi num">'+mi.toFixed(1)+'<small> mi</small></span>'+
         '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
     }).join("");
-    h+='<div class="card"><h3><span>Recent runs</span><span class="t">'+(best?("best "+mmss(best)+"/mi"):"last "+Math.min(6,runs.length))+'</span></h3>'+rec+'</div>';}
+    h+=collapsible("Recent runs",(best?("best "+mmss(best)+"/mi"):("last "+Math.min(6,runs.length))),rec,false,I.run,"");}
 
   var hist=weeklyMiHistory();
-  h+=barChart("Weekly miles","last "+hist.length+" weeks &middot; "+(hist.length?hist[hist.length-1].toFixed(1):"0")+" this week",hist,
-      hist.map(function(v,i){return i===hist.length-1?"now":"";}),
-      function(v){return v.toFixed(1);},"mi");
+  h+=collapsible("Weekly miles",(hist.length?hist[hist.length-1].toFixed(1)+" mi this week":"no runs yet"),
+      barBody(hist,function(v){return v.toFixed(1);},"mi"),false,I.chart,"");
   /* The standalone Walk card is gone. "Log a walk" already sits in the hero at the top of this
      tab, beside "Log a run", which is where a logging action belongs. Two entry points for the
      same action on one screen was the duplication flagged twice. */
