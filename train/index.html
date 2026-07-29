@@ -385,6 +385,10 @@ details[open]>summary .chev{transform:rotate(180deg)}
 /* week strip labels */
 .dot .dl{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
 .dot.today .dl{color:var(--accent)}
+.acard .adone{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--good-tint);color:var(--good);font-size:13.5px;font-weight:700}
+.acard .adone svg{width:16px;height:16px}
+.acard.alldone .acount{color:var(--good)}
+.acard .avid{margin-top:2px}
 /* collapsible morning anchor */
 .acard{padding:0}
 .acard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px}
@@ -1203,10 +1207,14 @@ function renderToday(){
       '<span class="dl">'+lab+'</span></button>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
-  anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
-  var C=2*Math.PI*13,off=C*(1-ac/4);
-  var anchor='<details class="card acard"><summary><span class="asum">Morning anchor</span>'+
-    '<span class="aright"><span class="acount">'+ac+' of 4</span><span class="chev">'+I.chevD+'</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+rows+'</div></details>';
+  anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
+  var C=2*Math.PI*13,off=C*(1-ac/anchorList().length);
+  var anchor='<details class="card acard"'+(ac>=anchorList().length?'':' open')+'><summary><span class="asum">Morning anchor</span>'+
+    '<span class="aright"><span class="acount">'+ac+' of '+anchorList().length+'</span><span class="chev">'+I.chevD+'</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+
+    '<div class="ksub" style="margin:2px 0 12px">Play the routine, then tick the four off. That is the whole morning.</div>'+
+    anchorVidHTML()+rows+
+    '<div class="adone"'+(ac>=anchorList().length?'':' style="display:none"')+'>'+I.check+' Morning done. Everything else today is a bonus.</div>'+
+    '</div></details>';
   /* F - press-play. A recover day is the one day with room for a follow-along, so that is
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
@@ -1215,7 +1223,24 @@ function renderToday(){
     anchor+guided+heatmapHTML("2w")+
     (isFresh()?emptyStateHTML():weightLogCardHTML())+todayLogHTML();
 }
-function toggleAnchor(i){var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();renderToday();}
+function toggleAnchor(i,btn){
+  var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
+  recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();save();
+  var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
+  if(!el){renderToday();return;}
+  el.classList.toggle("checked",!!a[i]);el.setAttribute("aria-pressed",!!a[i]);
+  /* repaint only the count and the ring, so the disclosure keeps its state */
+  var n=anchorList().length,ac=0;for(var k=0;k<n;k++)if(a[k])ac++;
+  var card=el.closest("details");
+  if(card){
+    var cnt=card.querySelector(".acount");if(cnt)cnt.textContent=ac+" of "+n;
+    var ring=card.querySelector(".miniring circle:last-child");
+    if(ring){var C=2*Math.PI*13;ring.setAttribute("stroke-dashoffset",(C*(1-ac/n)).toFixed(1));}
+    card.classList.toggle("alldone",ac>=n);
+    var done=card.querySelector(".adone");
+    if(done)done.style.display=(ac>=n)?"":"none";
+  }
+}
 /* ============ WEIGHT TREND CARD (Round B) ============
    Replaces "Plan: ~1.3 lb/wk -> ~7 wk to 180", which showed a prescription in the position of a
    forecast and demoted the one measured number to grey. Now: the headline is one of three states,
@@ -2593,6 +2618,14 @@ function pickVid(cat,offset){
   var p=TODAY.split("-"),n=Math.floor(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)+(offset||0);
   return vs[((n%vs.length)+vs.length)%vs.length];
 }
+/* The anchor's video. Short mobility only, rotated by date so it is not the same clip every
+   morning, and played in place so the morning is one screen and one tap. */
+function anchorVidHTML(){
+  var v=pickVid("mobility",0);
+  if(!v)return "";
+  return '<div class="avid"><div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
+    '<div class="foot" style="margin:8px 0 14px">Rotates each day. Tap for a different one in the library below.</div></div>';
+}
 function guidedHTML(cat,label,note,offset){
   var v=pickVid(cat,offset);if(!v)return "";
   return '<div class="card"><h3><span>'+label+'</span><span class="t">plays here</span></h3>'+
@@ -2986,12 +3019,15 @@ function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON
 
 
 /* ============ TODAY LOG + done recompute ============ */
-function anchorComplete(k){var a=S.anchor[k]||{};for(var i=0;i<ANCHOR.length;i++)if(!a[i])return false;return true;}
+function anchorComplete(k){var a=S.anchor[k]||{},n=anchorList().length;for(var i=0;i<n;i++)if(!a[i])return false;return true;}
 function planDow(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getDay();}
 function recomputeDone(k){
   var has=S.sessions.some(function(s){return s.date===k;})|| !!S.runs[k];
   var pl=planFor(k)||{type:"none"};
-  if(has||(pl.type==="rest"&&anchorComplete(k)))S.done[k]=true;else delete S.done[k];
+  /* Completing the morning anchor marks the day moved on ANY day, not just a recover day. It is
+     the declared minimum: the four movements plus the mobility routine. Lifts and runs are what
+     gets added on top of it, so they cannot be the only thing that counts. */
+  if(has||anchorComplete(k))S.done[k]=true;else delete S.done[k];
 }
 /* Practice entries from testing are indistinguishable from real ones once logged, so there is a
    single control to clear a whole day rather than tapping each row and hoping it stays gone. */
@@ -3418,10 +3454,9 @@ function renderCardio(){
   h+=barChart("Weekly miles","last "+hist.length+" weeks &middot; "+(hist.length?hist[hist.length-1].toFixed(1):"0")+" this week",hist,
       hist.map(function(v,i){return i===hist.length-1?"now":"";}),
       function(v){return v.toFixed(1);},"mi");
-  h+='<div class="card"><h3>Walk <span class="t">counts as a day</span></h3>'+
-    '<div class="anote" style="margin-top:0;padding-top:0;border-top:0">Easy movement on non-run days keeps the base building and costs you no recovery.</div>'+
-    '<button class="big-start" style="margin-top:12px" onclick="actSheet(\'walk\')">'+I.run+' Log a walk</button>'+
-    '<div style="display:flex;gap:8px;margin-top:8px"><button class="wbtn" style="flex:1" onclick="logWalkQuick(15)">Quick 15</button><button class="wbtn" style="flex:1" onclick="logWalkQuick(30)">Quick 30</button></div></div>';
+  /* The standalone Walk card is gone. "Log a walk" already sits in the hero at the top of this
+     tab, beside "Log a run", which is where a logging action belongs. Two entry points for the
+     same action on one screen was the duplication flagged twice. */
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   h+=libraryHTML("cardio");
   h+=badgeList();
