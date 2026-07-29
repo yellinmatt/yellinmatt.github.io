@@ -80,6 +80,20 @@
     };
   }
   var STAMP_KEY = "train.syncStamps";
+  /* v7.9. `train.syncStamps` records when a VALUE LAST CHANGED, which is what last-write-wins needs
+     and is emphatically NOT the same thing as when a sync last succeeded. The Track dashboard's
+     "Sync" row was reading those stamps as a health signal, so it would happily say "today" while
+     every push and pull had been failing for a week, which is the exact failure the row exists to
+     catch. Success and failure are now recorded explicitly, here, by the only code that knows. */
+  var HEALTH_KEY = "train.syncHealth";
+  function mark(ok, what) {
+    var h = {};
+    try { h = JSON.parse(localStorage.getItem(HEALTH_KEY)) || {}; } catch (e) { h = {}; }
+    h.lastTry = Date.now();
+    if (ok) { h.lastOk = Date.now(); h.fails = 0; h.lastErr = null; }
+    else { h.fails = (h.fails || 0) + 1; h.lastErr = String(what || "failed").slice(0, 80); }
+    try { localStorage.setItem(HEALTH_KEY, JSON.stringify(h)); } catch (e) {}
+  }
   function stampedAt(name, value) {
     var st = {};
     try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
@@ -186,14 +200,14 @@
     var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, pf: p.profile, cu: p.cursor });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
-      .then(function (r) { if (r.ok) lastSnap = snap; })
-      .catch(function () {});
+      .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { mark(false, "push " + r.status); } })
+      .catch(function (e) { mark(false, "push " + (e && e.message)); });
   }
 
   function pullAndMerge() {
     var t = getToken(); if (!t) return Promise.resolve();
     return fetch(EP + "/pull", { headers: { "Authorization": "Bearer " + t } })
-      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (r) { if (r.ok) { mark(true); } else { mark(false, "pull " + r.status); } return r.ok ? r.json() : null; })
       .then(function (srv) {
         if (!srv) return;
         var S = loadState();
@@ -242,7 +256,7 @@
           }
         }
       })
-      .catch(function () {});
+      .catch(function (e) { mark(false, "pull " + (e && e.message)); });
   }
 
   function bootstrapFromServer(srv) {
