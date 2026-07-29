@@ -2184,7 +2184,17 @@ function weekHTML(withRing){
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
   var doneLifts=0,totLifts=0,miDone=0,totMi=0,list="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k)||{type:"none"},dn=isDone(k),isT=(k===TODAY);
-    if(pl.type==="lift"){totLifts++;if(dn)doneLifts++;}if(pl.type==="run"){totMi+=(pl.dist||0);if(S.runs[k])miDone+=(parseFloat(S.runs[k].dist)||0);}
+    /* v7.6 BUG. This counted a prescribed lift as COMPLETED whenever isDone(k) was true, but
+       isDone means "moved at all" and the morning anchor alone satisfies it. Matthew did the
+       anchor on 29 July, had never lifted on this tool, and the week card told him 1 of 5 lifts
+       while Track told him 0 of 3 strength sessions - the same week, two answers. v7.5 widened
+       the blast radius by making isDone derive from sessions as well, so the proxy had to go.
+       A lift is done when a LIFT SESSION exists on that day. Mileage likewise comes from the
+       sessions rather than the parallel S.runs record, which a partial delete can orphan. */
+    var didLift=S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
+    if(pl.type==="lift"){totLifts++;if(didLift)doneLifts++;}
+    if(pl.type==="run"){totMi+=(pl.dist||0);
+      S.sessions.forEach(function(x){if(x.date===k&&(x.type==="run"||x.distanceMi))miDone+=(x.distanceMi||0);});}
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
@@ -2367,11 +2377,28 @@ function rewindRotationFor(rec){
   var n=cycleLen();
   S.cycleNext=(((S.cycleNext||0)-1)%n+n)%n;
 }
+/* v7.6 BUG. This function read its one argument two different ways: it matched k against SESSION
+   IDS to filter the array, then used the same k as a DATE KEY against S.runs, S.wk, S.done and
+   S.daySlot. Those coincide only if a session's id equals its date, which it never does for a
+   logged entry, so every delete through this path left the parallel run record behind. That is
+   the residue Matthew found after deleting his test run. Both delete paths now resolve the record
+   first and clean the derived stores by rec.date, through one shared function. */
+function purgeDerived(date){
+  if(!date)return;
+  var stillRun=S.sessions.some(function(x){return x.date===date&&(x.type==="run"||x.distanceMi);});
+  var stillLift=S.sessions.some(function(x){return x.date===date&&x.type==="lift";});
+  if(!stillRun)delete S.runs[date];
+  if(!stillLift&&S.wk[date])delete S.wk[date];
+  /* S.daySlot is deliberately NOT cleared: it pins which rotation day this date was PRESCRIBED,
+     which is set before any lift happens and must survive a deletion. */
+  recomputeDone(date);
+}
 function deleteDay(k){
-  S.sessions.forEach(function(s){if(s.id===k){tomb(s.id);rewindRotationFor(s);}});
+  var rec=null;
+  S.sessions.forEach(function(s){if(s.id===k){rec=s;tomb(s.id);rewindRotationFor(s);}});
   S.sessions=S.sessions.filter(function(s){return s.id!==k;});
-  delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];delete S.daySlot[k];
-  recomputeDone(k);
+  var date=rec?rec.date:(/^\d{4}-\d{2}-\d{2}/.test(k)?k.slice(0,10):null);
+  if(date){delete S.done[date];purgeDerived(date);}
   save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
 
 /* ============ TRACK (body, trends, PRs, settings) ============ */
@@ -3962,10 +3989,8 @@ function untomb(id){S.deleted=(S.deleted||[]).filter(function(t){return t.id!==S
 function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sessions[i].id===id){idx=i;break;}if(idx<0)return;
   var rm=S.sessions.splice(idx,1)[0];
   tomb(id); /* without this the next sync pull puts it straight back */
-  if(rm.type==="run")delete S.runs[rm.date];
-  if(rm.type==="lift"&&S.wk[rm.date])delete S.wk[rm.date];
   rewindRotationFor(rm); /* the rotation moved when this was saved; it moves back now */
-  recomputeDone(rm.date);save();refreshCurrent();
+  purgeDerived(rm.date);save();refreshCurrent();
   var lbl=rm.type==="lift"?"workout":rm.type==="run"?"run":(rm.activity||"activity");
   toast("Removed "+lbl,function(){untomb(id);S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};
     var adv=(rm.advancedRotation!=null)?rm.advancedRotation:(rm.type==="lift"&&rm.dayLetter&&rm.dayLetter!=="Gen");
@@ -4526,6 +4551,18 @@ applyTheme();
    standing between you and the app. Setup still lives in Settings for anyone who wants it. */
 /* Offline is a service-worker concern; registration is best-effort and silent. */
 if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").catch(function(){});}catch(e){}}
+/* Any device that deleted an entry before v7.6 still carries the orphaned run record the old
+   deleteDay left behind, and no amount of fixing the delete path repairs a store that is already
+   wrong. The derived run records are reconciled against the sessions on every load: a run record
+   for a day that holds no run session is residue by definition. Sessions, weigh-ins and the
+   prescription pins are never touched. */
+(function reconcileDerived(){
+  var changed=false;
+  Object.keys(S.runs||{}).forEach(function(d){
+    if(!S.sessions.some(function(x){return x.date===d&&(x.type==="run"||x.distanceMi);})){delete S.runs[d];changed=true;}
+  });
+  if(changed){invalidateDayIndex();save();}
+})();
 if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||TODAY;S.profile.programStart=S.profile.programStart||TODAY;save();}
 document.addEventListener("visibilitychange",function(){var woOn=document.getElementById("v-workout").classList.contains("on");if(document.hidden){if(woOn)woFreeze();}else{refreshDate();if(woOn)woResume();else if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
 renderToday();
