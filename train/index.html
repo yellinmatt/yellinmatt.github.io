@@ -232,6 +232,8 @@ input,select{border:0;background:none}
 .opt .oi svg{width:18px;height:18px}
 .opt .on2{font-size:15px;font-weight:600}.opt .oc{font-size:12.5px;color:var(--sub)}
 .opt.dim{opacity:.5}
+.opt.sel{background:var(--accent-tint)}
+.opt.sel .oar{color:var(--accent)}
 .opt.danger .on2{color:var(--accent)}
 .opt .oar{margin-left:auto;color:var(--faint)}.opt .oar svg{width:18px;height:18px}
 .logrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line)}
@@ -357,6 +359,29 @@ input,select{border:0;background:none}
 .hcard .hbig small{font-size:15px;color:var(--faint);font-weight:700}
 .hcard .hsub{font-size:12.5px;color:var(--sub);font-weight:600;line-height:1.45}
 .hcard .hsub b{color:var(--accent);font-weight:800}
+/* two-week strip, sized to its container */
+.strip{display:flex;gap:4px;margin-top:4px}
+.scell{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+.scell .sd{font-size:9px;font-weight:700;color:var(--faint)}
+.scell .sn{font-size:9.5px;font-weight:700;color:var(--faint)}
+.scell .sq{display:block;width:100%;aspect-ratio:1;border-radius:4px;background:var(--surface-2)}
+.scell[data-l="f"] .sq{background:transparent;border:1px dashed var(--line-2)}
+.scell[data-l="1"] .sq{background:var(--accent);opacity:.3}
+.scell[data-l="2"] .sq{background:var(--accent);opacity:.55}
+.scell[data-l="3"] .sq{background:var(--accent);opacity:.78}
+.scell[data-l="4"] .sq{background:var(--accent)}
+.scell.today .sq{box-shadow:0 0 0 2px var(--accent)}
+.scell.today .sd,.scell.today .sn{color:var(--accent)}
+/* openable affordance */
+.chev{display:flex;color:var(--faint);transition:transform .2s ease}
+.chev svg{width:16px;height:16px}
+details[open]>summary .chev{transform:rotate(180deg)}
+@media (prefers-reduced-motion:no-preference){
+  details:not([open])>summary .chev{animation:nudge 2.4s ease-in-out 3}
+}
+@keyframes nudge{0%,88%,100%{transform:translateY(0)}92%{transform:translateY(2px)}96%{transform:translateY(0)}}
+/* projected days read lighter than committed ones */
+.dot.ahead .dl{opacity:.7}
 /* week strip labels */
 .dot .dl{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
 .dot.today .dl{color:var(--accent)}
@@ -683,6 +708,7 @@ var VERSION="v4.2";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
+  chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   chevL:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   pause:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="7" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="13.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg>',
   play2:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 6l10 6-10 6V6Z" fill="currentColor"/></svg>',
@@ -792,20 +818,55 @@ function equipLabel(eq){
   return out.slice(0,-1).join(", ")+" and "+out[out.length-1];
 }
 /* Change the kit for THIS session only, and rebuild it around what is actually in the room. */
+/* Named scenarios rather than a checkbox soup. You are almost never assembling equipment from
+   scratch: you are in one of a handful of places, and each place has a known kit. Pick the place,
+   then adjust if something is missing. The scenario list stays short on purpose. */
+var EQ_SCENES=[
+  {id:"home",n:"Home, bodyweight",d:"Nothing but the floor",eq:["BW"]},
+  {id:"bands",n:"Home, plus bands",d:"Bodyweight and resistance bands",eq:["BW","band"]},
+  {id:"light",n:"Light dumbbells",d:"A fixed pair, 15 to 25",eq:["BW","DB"]},
+  {id:"adj",n:"Adjustable dumbbells",d:"A pair you can load up",eq:["BW","DB"],adj:true},
+  {id:"full",n:"Full home setup",d:"Dumbbells, bands and a bar",eq:["BW","DB","band","bar"],adj:true},
+  {id:"gym",n:"A real gym",d:"Everything, loaded properly",eq:["BW","DB","band","bar"],adj:true},
+  {id:"travel",n:"Travelling",d:"Hotel room, no kit",eq:["BW"]}
+];
+function currentScene(){
+  var eq=sessionEquip().slice().sort().join(","),adj=!!S.profile.adjustable;
+  for(var i=0;i<EQ_SCENES.length;i++){
+    var sc=EQ_SCENES[i];
+    if(sc.eq.slice().sort().join(",")===eq&&(!!sc.adj)===adj)return sc.id;
+  }
+  return null;
+}
 function equipSheet(){
-  var cur=sessionEquip().slice();
+  var cur=sessionEquip().slice(),now=currentScene();
+  var scenes=EQ_SCENES.map(function(sc){
+    return '<button class="opt'+(sc.id===now?" sel":"")+'" onclick="pickScene(\''+sc.id+'\')"><span class="oi">'+(sc.eq.indexOf("DB")>=0?I.dumbbell:I.bolt)+'</span>'+
+      '<span><div class="on2">'+sc.n+'</div><div class="oc">'+sc.d+'</div></span>'+
+      '<span class="oar">'+(sc.id===now?I.check:I.arrow)+'</span></button>';
+  }).join("");
   var opts=[["BW","Bodyweight"],["DB","Dumbbells"],["band","Bands"],["bar","Pull-up bar"]];
   var chips=opts.map(function(o){
     return '<button class="eqchip'+(cur.indexOf(o[0])>=0?" on":"")+'" onclick="toggleSessEquip(this,\''+o[0]+'\')">'+o[1]+'</button>';
   }).join("");
-  openSheet('<div class="grab"></div><h3>Equipment today</h3>'+
-    '<div class="ssub">What you actually have in the room right now. This changes today\'s session only, not the plan.</div>'+
-    '<div class="eqchips" style="margin:6px 0 4px">'+chips+'</div>'+
-    '<div class="anote" style="margin-top:14px">Swapping kit rebuilds today\'s exercises. Sets you have already logged are kept.</div>'+
+  openSheet('<div class="grab"></div><h3>What have you got today?</h3>'+
+    '<div class="ssub">Pick where you are. This changes today\'s session only, never the plan.</div>'+
+    scenes+
+    '<div class="sectlbl" style="margin:16px 2px 8px">Or set it piece by piece</div>'+
+    '<div class="eqchips" style="margin:0 0 4px">'+chips+'</div>'+
+    '<div class="logrow" style="margin-top:10px"><label>Can you add weight?<div class="skc" style="font-weight:500">adjustable dumbbells let the plan load up</div></label><div class="seg" style="max-width:120px"><button class="'+(S.profile.adjustable?"sel":"")+'" onclick="frAdjSess(true,this)">Yes</button><button class="'+(S.profile.adjustable?"":"sel")+'" onclick="frAdjSess(false,this)">No</button></div></div>'+
     '<button class="sheet-cta" onclick="applySessEquip()">Rebuild today</button>'+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
   EQ_PICK=cur;
 }
+function pickScene(id){
+  var sc=null;EQ_SCENES.forEach(function(x){if(x.id===id)sc=x;});
+  if(!sc)return;
+  EQ_PICK=sc.eq.slice();S.profile.adjustable=!!sc.adj;
+  applySessEquip();
+}
+function frAdjSess(v,btn){S.profile.adjustable=v;save();segSel(btn);}
+
 var EQ_PICK=null;
 function toggleSessEquip(btn,k){
   EQ_PICK=EQ_PICK||sessionEquip().slice();
@@ -876,6 +937,16 @@ function planFor(k){
   if(S.override[k])return S.override[k];
   if(S.daySlot&&S.daySlot[k]!=null)return resolveSlot(CYCLE[S.daySlot[k]%cycleLen()]);
   if(k===TODAY){ensureTodaySlot();return resolveSlot(CYCLE[S.daySlot[TODAY]%cycleLen()]);}
+  /* Project the rest of the week forward. The plan is a sequence, not a calendar, so a future
+     day shows what comes next assuming you complete the days before it. Marked as projected so
+     the strip can render it lighter than a fixed commitment. */
+  if(k>TODAY){
+    ensureTodaySlot();
+    var base=S.daySlot[TODAY]||0,ahead=daysBetween(TODAY,k);
+    var pl=resolveSlot(CYCLE[(base+ahead)%cycleLen()]);
+    if(pl)pl.projected=true;
+    return pl;
+  }
   return null;
 }
 function advanceCycle(){
@@ -990,7 +1061,8 @@ function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[
 var CURV="today";
 function show(v){
   refreshDate();
-  if(!document.getElementById("v-"+v))v="today"; /* stale view name fails soft, never throws */
+  if(!document.getElementById("v-"+v))v="today";
+  stopAllVideo(); /* stale view name fails soft, never throws */
   document.querySelectorAll(".view").forEach(function(s){s.classList.remove("on")});
   document.getElementById("v-"+v).classList.add("on");
   var full=(v==="workout"||v==="run"||v==="generate");
@@ -1052,7 +1124,9 @@ function renderToday(){
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
-    var lab=pl?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):"Open";
+    /* A past day with no record is genuinely unknown, so it gets a dash rather than a label that
+       implies a plan existed. Only future days are projected. */
+    var lab=pl?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):(dn?"Done":"\u2014");
     var past=(k<TODAY);
     dots+='<button class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+'" onclick="dayDetail(\''+k+'\')">'+
       '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div>'+
@@ -1061,8 +1135,8 @@ function renderToday(){
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" onclick="toggleAnchor('+i+')" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/4);
-  var anchor='<details class="card acard"'+(ac<4?' open':'')+'><summary><span class="asum">Morning anchor</span>'+
-    '<span class="aright"><span class="acount">'+ac+' of 4</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+rows+'</div></details>';
+  var anchor='<details class="card acard"><summary><span class="asum">Morning anchor</span>'+
+    '<span class="aright"><span class="acount">'+ac+' of 4</span><span class="chev">'+I.chevD+'</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+rows+'</div></details>';
   /* F - press-play. A recover day is the one day with room for a follow-along, so that is
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
@@ -1541,7 +1615,8 @@ function weighSheet(){
     '<button class="wdb" onclick="nudgeW(1)" aria-label="higher">+</button></div>'+
     '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
     (lw!=null?'<button class="sheet-cta ghost" onclick="quickWeigh('+lw+')">Same as last &middot; '+lw.toFixed(1)+'</button>':'')+
-    '<button class="sheet-cta" onclick="saveWeigh()">Save</button>');
+    '<button class="sheet-cta" onclick="saveWeigh()">Save</button>'+
+    (S.weigh.some(function(x){return x.date===TODAY;})?'<button class="sheet-cta ghost" onclick="removeTodayWeigh()">Remove today\'s weigh-in</button>':''));
   wDelta();
 }
 function nudgeW(d){var el=document.getElementById("w-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);wDelta();}
@@ -1553,6 +1628,12 @@ function wDelta(){
   var d=v-lw;out.innerHTML=' &middot; <b style="color:'+(d<0?"var(--good)":"var(--sub)")+'">'+(d>0?"+":"")+d.toFixed(1)+'</b> vs last';
 }
 function quickWeigh(v){writeWeigh(v);}
+/* A mistyped weigh-in used to be permanent, and a wrong number poisons the trend, the protein
+   target and the whole scorecard. */
+function removeTodayWeigh(){
+  S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});
+  save();closeSheet();refreshCurrent();toast("Today's weigh-in removed.",null);
+}
 function saveWeigh(){writeWeigh(parseFloat((document.getElementById("w-val")||{}).value));}
 function writeWeigh(v){
   if(v>0){
@@ -2133,7 +2214,23 @@ function heatmapHTML(mode){
   var months="",mcur=new Date(start),nm=(weeks<=2)?0:(weeks<=26)?6:12;
   for(var m=0;m<nm;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
   var pct=Math.round(any/(weeks*7)*100);
-  return '<div class="card hcard"'+(weeks<=2?' data-sm="1"':'')+'><h3><span>'+(weeks<=2?"The last two weeks":weeks<=26?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
+  if(weeks<=2){
+    /* Two weeks is a strip, not a grid. Rendered as 14 equal columns that flex to the card width,
+       so it fits its space exactly at any screen size rather than overflowing or leaving a gap. */
+    var strip="",sc=new Date(start);
+    for(var q=0;q<14;q++){
+      var kk=keyOf(sc),fut=(kk>TODAY),lv=fut?-1:dayLevel(kk),isT=(kk===TODAY);
+      var pl2=planFor(kk);
+      strip+='<div class="scell'+(isT?" today":"")+'" data-l="'+(fut?"f":lv)+'">'+
+        '<span class="sd">'+DWL[sc.getDay()]+'</span>'+
+        '<span class="sq"></span>'+
+        '<span class="sn">'+(+kk.slice(-2))+'</span></div>';
+      sc.setDate(sc.getDate()+1);
+    }
+    return '<div class="card hcard" data-sm="1"><h3><span>The last two weeks</span><span class="t">'+any+' of 14 active</span></h3>'+
+      '<div class="strip">'+strip+'</div></div>';
+  }
+  return '<div class="card hcard"><h3><span>'+(weeks<=2?"The last two weeks":weeks<=26?"The last six months":"The year")+'</span><span class="t">'+any+' active days</span></h3>'+
     '<div class="hhead"><div class="hbig num">'+pct+'<small>%</small></div>'+
     '<div class="hsub">of days moved'+(best?', longest run <b>'+best+'</b> days':'')+(streakNow?', on <b>'+streakNow+'</b> now':'')+'</div></div>'+
     '<div class="hscroll"><div class="hgrid">'+cols+'</div></div>'+
@@ -2497,7 +2594,21 @@ function finishSetup(){S.profile.name=(document.getElementById("fr-name")||{}).v
 
 /* ============ sheet + toast ============ */
 function openSheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("scrim").classList.add("on");}
-function closeSheet(){document.getElementById("scrim").classList.remove("on");}
+function closeSheet(){
+  var sc=document.getElementById("scrim");if(sc)sc.classList.remove("on");
+  /* Tear the sheet down after the close animation. An <iframe> that leaves the screen keeps
+     playing audio until it is removed from the document, which is why skipping a warm-up left a
+     video running behind the workout. Killing the src first stops it immediately. */
+  setTimeout(function(){
+    var sh=document.getElementById("sheet");if(!sh)return;
+    sh.querySelectorAll("iframe").forEach(function(f){try{f.src="about:blank";}catch(e){}f.remove();});
+    sh.innerHTML="";
+  },220);
+}
+/* Any full-screen view change should also silence a playing video, wherever it was started. */
+function stopAllVideo(){
+  document.querySelectorAll("iframe.vframe").forEach(function(f){try{f.src="about:blank";}catch(e){}f.remove();});
+}
 document.getElementById("scrim").addEventListener("click",function(e){if(e.target===this)closeSheet();});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet();});
 var toastT=null,toastUndo=null;
