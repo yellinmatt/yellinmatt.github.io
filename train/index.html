@@ -249,6 +249,9 @@ input,select{border:0;background:none}
 .rpe{display:flex;gap:8px;margin:14px 0 4px}
 .rpe button{flex:1;height:44px;border-radius:11px;background:var(--surface-2);font-size:14px;font-weight:700;color:var(--sub)}
 .rpe button.sel{background:var(--accent-tint);color:var(--accent)}
+.rpe.wide{gap:4px;margin-bottom:2px}
+.rpe.wide button{height:40px;font-size:13px;border-radius:9px;min-width:0;padding:0}
+.rpeanch{display:flex;justify-content:space-between;margin:0 2px 4px;font-size:10.5px;font-weight:600;color:var(--faint)}
 .seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
 .seg button{flex:1;height:38px;border-radius:9px;font-size:13.5px;font-weight:700;color:var(--sub)}
 .seg button.sel{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
@@ -844,7 +847,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.8";
+var VERSION="v6.9";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -860,7 +863,7 @@ run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="17" cy=
   rest:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M17 5a7 7 0 1 0 2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   flame:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c1 3 4 4 4 8a4 4 0 1 1-8 0c0-1 .5-2 1-2.5C9 10 9 12 9 12S8 8 12 3Z" fill="currentColor"/></svg>',
   more:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="6" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="18" cy="12" r="1.6" fill="currentColor"/></svg>',
-  gear:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37 1 .608 2.296.07 2.572-1.065z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>',
   swap:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4L4 7l3 3M4 7h11M17 20l3-3-3-3M20 17H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   trash:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 5l5 5M4 20l1-4L16 5l3 3L8 19l-4 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1275,7 +1278,6 @@ function renderToday(){
   var streak=computeStreak();
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
     '<div class="tools"><div class="streak'+(streak?"":" zero")+'">'+I.flame+'<b class="num">'+streak+'</b><span>'+(streak===1?"day":"days")+'</span></div>'+
-    '<button class="iconbtn" onclick="logSheet()" aria-label="Log activity">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   // hero
   var hero='';
@@ -1510,7 +1512,7 @@ function primeSheet(kind,go){
      be on a phone. Do not put the auto-click back. (2026-07-29) */
 }
 var PRIME_GO=null;
-function primeGo(){var g=PRIME_GO;PRIME_GO=null;closeSheet();if(g)setTimeout(g,120);}
+function primeGo(){var g=PRIME_GO;PRIME_GO=null;stopAllVideo();closeSheet();if(g)setTimeout(g,120);}
 function coolSheet(kind){
   var v=pickVid(coolCat(kind),4);
   if(!v)return;
@@ -1684,7 +1686,11 @@ function doSwap(oi,id){var o=AW().order[oi],e=LIB[id];
 function removeEx(oi){var o=AW().order[oi];var rm=AW().order.splice(oi,1)[0];save();closeSheet();renderWorkout();
   toast("Removed "+LIB[rm.exId].name,function(){AW().order.splice(oi,0,rm);save();renderWorkout();});}
 var rpePick=null;
-function finishWorkout(){var w=AW();if(!w)return;var wp=wkProgress(AW());if(wp.done===0){toast("Log at least one set first, or tap Today to leave.",null);return;}rpePick=null;verifySheet(wp);}
+/* The session ends when you say it ends, not when you finish reading the summary. The clock used
+   to keep running behind the Finish sheet, so the duration saved was however long you spent looking
+   at it. Freeze first, then show. (Matthew, 2026-07-29) */
+function finishWorkout(){var w=AW();if(!w)return;var wp=wkProgress(AW());if(wp.done===0){toast("Log at least one set first, or tap Today to leave.",null);return;}
+  woFreeze();endRest();rpePick=null;verifySheet(wp);}
 function verifySheet(wp){var w=AW(),dur=elapsedSec(),setsN=0,vol=0,rows="";
   w.order.forEach(function(o){var done=o.sets.filter(function(s){return s.on;});if(!done.length)return;done.forEach(function(s){setsN++;if(o.unit!=="s")vol+=(parseFloat(s.w)||0)*(parseInt(s.reps)||0);});
     rows+='<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px"><span style="font-weight:600">'+esc(LIB[o.exId].name)+'</span><span style="color:var(--sub);font-variant-numeric:tabular-nums">'+done.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ")+'</span></div>';});
@@ -1692,7 +1698,13 @@ function verifySheet(wp){var w=AW(),dur=elapsedSec(),setsN=0,vol=0,rows="";
   var m='<div class="grab"></div><h3>Finish workout</h3><div class="ssub">Look it over, then save.'+(partial?' '+wp.done+' of '+wp.total+' sets done.':'')+'</div>'+
     '<div class="sumgrid"><div class="sg"><b class="num">'+setsN+'</b><span>sets</span></div><div class="sg"><b class="num">'+Math.round(vol).toLocaleString()+'</b><span>'+wLbl()+'</span></div><div class="sg"><b class="num">'+mmss(dur)+'</b><span>time</span></div></div>'+
     '<div style="margin-top:8px">'+rows+'</div>'+
-    '<div class="sectlbl" style="margin:16px 2px 8px">How hard? <span style="text-transform:none;font-weight:500;color:var(--sub)">optional</span></div><div class="rpe" id="v-rpe">'+[6,7,8,9,10].map(function(n){return '<button onclick="setRpe('+n+',this)">'+n+'</button>';}).join("")+'</div>'+
+    /* Was 6 to 10, which is the scale for a single SET (reps in reserve). This is a whole-session
+       rating, and session RPE is Foster's 1 to 10. Truncating it meant an genuinely easy session had
+       nowhere to sit and the coach never saw a low number. Anchors added so the ends mean
+       something. (Matthew, 2026-07-29) */
+    '<div class="sectlbl" style="margin:16px 2px 8px">How hard? <span style="text-transform:none;font-weight:500;color:var(--sub)">optional</span></div>'+
+    '<div class="rpe wide" id="v-rpe">'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<button onclick="setRpe('+n+',this)">'+n+'</button>';}).join("")+'</div>'+
+    '<div class="rpeanch"><span>very easy</span><span>hard</span><span>all out</span></div>'+
     '<textarea class="ta" id="rpe-notes" placeholder="Notes (optional): how it felt, the shoulder, energy..." style="min-height:78px;margin-top:10px"></textarea>'+
     '<button class="sheet-cta" onclick="doFinish()">Confirm &amp; save</button><button class="sheet-cta ghost" onclick="closeSheet()">Keep going</button>';
   openSheet(m);}
@@ -1708,7 +1720,11 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
       if(nb){if(o.bw){if(!prev||nb.r>prev.r)prs.push(LIB[o.exId].name+" x"+nb.r);}else{if(!prev||nb.v>prev.e+0.01)prs.push(LIB[o.exId].name+" "+nb.w+wLbl()+" x"+nb.r);}}}
   });
   var nt=document.getElementById("rpe-notes");
-  var rec={id:(AW().id||TODAY),date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries};
+  var _wasCustom=(S.activeMode==="gen"||w.letter==="Gen");
+  /* Record whether THIS session moved the rotation on, so deleting it can move the rotation back.
+     Without this the app treated a deleted lift as still having happened and stayed on the next
+     letter, which is what Matthew hit after removing a practice session. (2026-07-29) */
+  var rec={id:(AW().id||TODAY),date:TODAY,type:"lift",dayLetter:w.letter,durationSec:dur,rpe:rpePick,notes:nt?nt.value.slice(0,300):"",entries:entries,advancedRotation:!_wasCustom};
   S.sessions=S.sessions.filter(function(s){return s.id!==rec.id;});S.sessions.push(rec);
   /* A custom build is extra work, not the scheduled day. It marks the day trained so streaks,
      volume and the level all count it, but the rotation does NOT advance, so the lift you were
@@ -2094,7 +2110,23 @@ function dayDetail(k){
   m+='<button class="sheet-cta'+(lift||run?" ghost":"")+'" onclick="closeSheet()">Close</button>';
   openSheet(m);
 }
-function deleteDay(k){S.sessions.forEach(function(s){if(s.id===k)tomb(s.id);});S.sessions=S.sessions.filter(function(s){return s.id!==k;});delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
+/* Removing a session has to undo everything that session caused, not just remove the row. It
+   advanced the A/B/C letter and the rhythm slot; both go back. Older records predate the
+   advancedRotation flag, so a plain scheduled lift is inferred to have advanced. */
+function rewindRotationFor(rec){
+  if(!rec||rec.type!=="lift")return;
+  var adv=(rec.advancedRotation!=null)?rec.advancedRotation:(rec.dayLetter&&rec.dayLetter!=="Gen");
+  if(!adv)return;
+  S.planPos=(((S.planPos||0)-1)%3+3)%3;
+  var n=cycleLen();
+  S.cycleNext=(((S.cycleNext||0)-1)%n+n)%n;
+}
+function deleteDay(k){
+  S.sessions.forEach(function(s){if(s.id===k){tomb(s.id);rewindRotationFor(s);}});
+  S.sessions=S.sessions.filter(function(s){return s.id!==k;});
+  delete S.runs[k];if(S.wk[k])delete S.wk[k];delete S.done[k];delete S.daySlot[k];
+  recomputeDone(k);
+  save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
 
 /* ============ TRACK (body, trends, PRs, settings) ============ */
 function renderTrack(){
@@ -3170,13 +3202,23 @@ function clearSyncPass(){try{localStorage.removeItem("train.syncToken");}catch(e
 
 /* ============ first-run ============ */
 /* ============ sheet + toast ============ */
-function openSheet(html){document.getElementById("sheet").innerHTML=html;document.getElementById("scrim").classList.add("on");}
+/* SHEET GENERATION. closeSheet schedules a teardown 220ms out, to let the close animation finish
+   before an iframe is destroyed. Any flow that closes one sheet and opens another inside that
+   window therefore had its NEW sheet wiped by the OLD sheet's teardown. That is the warm-up gate
+   exactly: primeGo closes at 0ms and opens the run sheet at 120ms, so at 220ms the run sheet was
+   emptied and the screen went dead. It hit "Start the run" as well as "Skip the warm-up"; Matthew
+   happened to find it on skip. The teardown now only runs if no sheet has been opened since.
+   (2026-07-29) */
+var SHEET_GEN=0;
+function openSheet(html){SHEET_GEN++;document.getElementById("sheet").innerHTML=html;document.getElementById("scrim").classList.add("on");}
 function closeSheet(){
+  var gen=SHEET_GEN;
   var sc=document.getElementById("scrim");if(sc)sc.classList.remove("on");
   /* Tear the sheet down after the close animation. An <iframe> that leaves the screen keeps
      playing audio until it is removed from the document, which is why skipping a warm-up left a
      video running behind the workout. Killing the src first stops it immediately. */
   setTimeout(function(){
+    if(gen!==SHEET_GEN)return; /* a new sheet opened in the meantime; it is not ours to tear down */
     var sh=document.getElementById("sheet");if(!sh)return;
     sh.querySelectorAll("iframe").forEach(function(f){try{f.src="about:blank";}catch(e){}f.remove();});
     sh.innerHTML="";
@@ -3496,9 +3538,13 @@ function delSession(id){var idx=-1;for(var i=0;i<S.sessions.length;i++)if(S.sess
   tomb(id); /* without this the next sync pull puts it straight back */
   if(rm.type==="run")delete S.runs[rm.date];
   if(rm.type==="lift"&&S.wk[rm.date])delete S.wk[rm.date];
-  recomputeDone(rm.date);save();renderToday();
+  rewindRotationFor(rm); /* the rotation moved when this was saved; it moves back now */
+  recomputeDone(rm.date);save();refreshCurrent();
   var lbl=rm.type==="lift"?"workout":rm.type==="run"?"run":(rm.activity||"activity");
-  toast("Removed "+lbl,function(){untomb(id);S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};recomputeDone(rm.date);save();renderToday();});
+  toast("Removed "+lbl,function(){untomb(id);S.sessions.splice(idx,0,rm);if(rm.type==="run")S.runs[rm.date]={dist:rm.distanceMi,time:mmss(rm.durationSec),pace:rm.paceSecPerMi?mmss(rm.paceSecPerMi):"--",rpe:rm.rpe};
+    var adv=(rm.advancedRotation!=null)?rm.advancedRotation:(rm.type==="lift"&&rm.dayLetter&&rm.dayLetter!=="Gen");
+    if(adv){S.planPos=((S.planPos||0)+1)%3;var n=cycleLen();S.cycleNext=((S.cycleNext||0)+1)%n;}
+    recomputeDone(rm.date);save();refreshCurrent();});
 }
 function logMin(){S.sessions.push({id:TODAY+"-m"+Date.now(),date:TODAY,type:"activity",activity:"5-minute minimum",durationSec:300,notes:"never-zero"});S.done[TODAY]=true;advanceCycle();save();closeSheet();toast("Logged. Streak kept.",null);renderToday();}
 function logWalkQuick(min){min=min||15;S.sessions.push({id:TODAY+"-a"+Date.now(),date:TODAY,type:"activity",activity:"Walk",durationSec:min*60,notes:"recover"});S.done[TODAY]=true;advanceCycle();save();toast(min+"-min walk logged. Never zero.",null);refreshCurrent();}
