@@ -57,9 +57,32 @@
          the app that did not survive a second device. */
       anchor: S.anchor && typeof S.anchor === "object" ? S.anchor : {},
       done: S.done && typeof S.done === "object" ? S.done : {},
+      /* Steps, protein and nutrition are measurements, and they were being left behind for the
+         same reason the anchor was: the wire schema was written before any of them existed and
+         nobody widened it. Cal AI gets pasted on the phone and the scorecard is read on the
+         laptop, so leaving these local meant the two devices disagreed about what he had eaten. */
+      steps: S.steps && typeof S.steps === "object" ? S.steps : {},
+      protein: S.protein && typeof S.protein === "object" ? S.protein : {},
+      nutrition: S.nutrition && typeof S.nutrition === "object" ? S.nutrition : {},
       progressState: S.progress || null,
       progressUpdatedAt: Date.now(),
     };
+  }
+  /* Steps take the larger of the two: a day's count only ever grows, and an export taken at noon
+     must not overwrite one taken at midnight. Protein is a boolean hit, so it ORs. Nutrition keeps
+     whatever the device already has and only fills gaps, which is the weigh-in rule and avoids two
+     devices thrashing a value neither of them timestamps. */
+  function mergeSteps(local, srv) {
+    var out = {}, k;
+    for (k in (local || {})) out[k] = local[k];
+    for (k in (srv || {})) if (!(k in out) || srv[k] > out[k]) out[k] = srv[k];
+    return out;
+  }
+  function mergeFill(local, srv) {
+    var out = {}, k;
+    for (k in (local || {})) out[k] = local[k];
+    for (k in (srv || {})) if (!(k in out)) out[k] = srv[k];
+    return out;
   }
 
   /* Anchor days merge on ticks, not on recency: the device that actually did the routine holds
@@ -130,7 +153,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) lastSnap = snap; })
@@ -158,6 +181,9 @@
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
         S.anchor = mergeAnchor(S.anchor, srv.anchor);
         S.done = mergeDone(S.done, srv.done);
+        S.steps = mergeSteps(S.steps, srv.steps);
+        S.protein = mergeDone(S.protein, srv.protein);
+        S.nutrition = mergeFill(S.nutrition, srv.nutrition);
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
         if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) S.profile.setup = true;
@@ -181,6 +207,9 @@
       done: (srv.done && typeof srv.done === "object") ? srv.done : {},
       runs: {},
       anchor: (srv.anchor && typeof srv.anchor === "object") ? srv.anchor : {},
+      steps: (srv.steps && typeof srv.steps === "object") ? srv.steps : {},
+      protein: (srv.protein && typeof srv.protein === "object") ? srv.protein : {},
+      nutrition: (srv.nutrition && typeof srv.nutrition === "object") ? srv.nutrition : {},
       deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
       planPos: 0, override: {}, activeMode: "plan", genWk: null };
