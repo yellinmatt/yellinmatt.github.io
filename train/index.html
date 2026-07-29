@@ -633,6 +633,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard .dbody{padding:14px 18px 16px}
 .dcard .dbody>.card{background:transparent;border:0;box-shadow:none;padding:0;margin:0}
 .dcard .dbody>.card>h3{display:none}
+.dxtra{display:flex;justify-content:flex-end;margin:0 0 10px}
 /* PR bar */
 .prbar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 4px}
 .prcell{background:var(--surface-2);border-radius:11px;padding:11px 6px;text-align:center}
@@ -843,7 +844,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v6.5";
+var VERSION="v6.6";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2234,15 +2235,18 @@ function kpiStrip(k){
    rather than a default. (Matthew's audit, 2026-07-29) */
 function drawerize(html,icon,tone,openByDefault){
   if(!html)return "";
-  var m=html.match(/<h3>\s*<span>([\s\S]*?)<\/span>\s*(?:<span class="t">([\s\S]*?)<\/span>\s*)?<\/h3>/);
-  var title,note;
-  if(m){title=m[1];note=m[2]||"";html=html.replace(m[0],"");}
-  else{
-    var m2=html.match(/<h3>([^<]*)<span class="t">([\s\S]*?)<\/span><\/h3>/);
-    if(!m2)return html;
-    title=m2[1].trim();note=m2[2];html=html.replace(m2[0],"");
-  }
-  return collapsible(title,note,html,!!openByDefault,icon,tone||"");
+  var m=html.match(/<h3>([\s\S]*?)<\/h3>/);
+  if(!m)return html;
+  var head=m[1],title="",note="",extra="";
+  var t=head.match(/^\s*<span>([\s\S]*?)<\/span>/);
+  if(t){title=t[1];head=head.slice(t[0].length);}
+  else{var t2=head.match(/^([^<]+)/);if(t2){title=t2[1].trim();head=head.slice(t2[0].length);}}
+  var n=head.match(/<span class="t">([\s\S]*?)<\/span>/);
+  if(n){note=n[1];head=head.replace(n[0],"");}
+  extra=head.trim();
+  if(!title)return html;
+  var body=html.replace(m[0],extra?('<div class="dxtra">'+extra+'</div>'):"");
+  return collapsible(title,note,body,!!openByDefault,icon,tone||"");
 }
 function collapsible(title,note,inner,openByDefault,icon,tone){
   return '<details class="card dcard"'+(openByDefault?' open':'')+(tone?' data-tone="'+tone+'"':'')+'><summary>'+
@@ -2304,7 +2308,7 @@ function freshnessHTML(){
   }).join("");
   var bad=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
   return collapsible("Where the numbers come from",(bad?bad+" stale":"all current"),
-    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows,bad>0,I.spark,bad?"warn":"good");
+    '<div class="ksub">Everything above is only as current as these. Tap any row that has gone quiet.</div>'+rows,false,I.spark,bad?"warn":"good");
 }
 /* S.nutrition has been write-only since the Cal AI import shipped: every paste stored calories
    and nothing ever displayed them. Protein already drives a scorecard row, so calories get the
