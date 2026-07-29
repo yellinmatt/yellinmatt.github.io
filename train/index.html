@@ -501,6 +501,39 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .lcard .ltag{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--lk);margin:3px 0 2px}
 /* Cardio level system (Round C) */
 .herorow{display:flex;gap:8px;margin-top:10px}
+/* PRIME ROW - the "or just do this" strip under the day's action. Small on purpose: it must not
+   compete with the headline, only be there when the headline feels like too much. (2026-07-29) */
+.primerow{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.primelbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+.primechips{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.primechips::-webkit-scrollbar{display:none}
+.pchip{flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:9px 13px;border:1px solid var(--line);border-radius:11px;background:var(--surface-2);min-width:112px}
+.pchip .pcn{font-size:13px;font-weight:700;color:var(--ink)}
+.pchip .pcs{font-size:11px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
+.pchip.gd{border-color:var(--good);background:var(--good-tint)}
+.pchip.gd .pcn,.pchip.gd .pcs{color:var(--good)}
+/* LIFT hero - an A/B/C rail so the day you are on is a picture, not a letter in a sentence. */
+.dayrail{display:flex;gap:6px;margin:12px 0 4px}
+.drseg{flex:1;height:5px;border-radius:3px;background:var(--line)}
+.drseg.on{background:var(--accent)}
+.drseg.past{background:var(--good)}
+.draw{display:flex;justify-content:space-between;margin-top:7px}
+.draw span{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--faint);flex:1}
+.draw span.on{color:var(--accent)}
+.draw span.past{color:var(--good)}
+/* CARDIO hero - the level ring lives INSIDE the hero now instead of repeating below it. */
+.chero{display:flex;align-items:center;gap:16px}
+.chero .cheroL{flex:none}
+.chero .cheroR{flex:1;min-width:0}
+/* Collapsed cards were all identical grey rows, so nothing told you which one was worth opening.
+   Each now carries its own icon and a status chip that is coloured by state. (2026-07-29) */
+.dcard>summary .dsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
+.dcard>summary .dsi svg{width:14px;height:14px}
+.dcard>summary .dleft{display:flex;align-items:center;min-width:0;flex:1}
+.dcard .acount.gd{color:var(--good);background:var(--good-tint);border-radius:7px;padding:3px 8px}
+.dcard .acount.wn{color:var(--amber);background:var(--amber-tint);border-radius:7px;padding:3px 8px}
+.dcard[data-tone="good"]>summary .dsi{background:var(--good-tint);color:var(--good)}
+.dcard[data-tone="warn"]>summary .dsi{background:var(--amber-tint);color:var(--amber)}
 .herorow .wbtn{flex:1}
 .lcard{padding-bottom:14px}
 .lwrap{display:flex;align-items:center;gap:16px}
@@ -777,7 +810,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v5.8";
+var VERSION="v5.9";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1216,19 +1249,19 @@ function renderToday(){
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+'</div>';
+        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+primeRowHTML()+'</div>';
   }else if(plan.type==="run"){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
-      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+'</div>';
+      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+primeRowHTML()+'</div>';
   }else{
     var recDone=S.sessions.some(function(s){return s.date===TODAY&&(s.type==="activity"||s.type==="run");});
     var wk=plan.walk||15;
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
       '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
-      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
+      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+primeRowHTML()+
       (plan.weigh?'<div style="margin-top:14px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
   }
   // week strip: each day says what it is, so the plan is readable at a glance
@@ -1698,6 +1731,26 @@ function startDeload(){
   toast("Deload week set. Two thirds of the volume, same movements.",null);
 }
 function deloading(){var d=S.profile.lastDeload;return d?daysBetween(d,TODAY)<7:false;}
+/* A, B and C as a filled rail. Days already behind you in this rotation read green, the one you
+   are on reads coral, the rest are empty. One glance answers "where am I", which a letter buried
+   in a sentence never did. */
+function dayRailHTML(cur){
+  var order=["A","B","C"],i=order.indexOf(cur);if(i<0)i=0;
+  var segs="",labs="";
+  order.forEach(function(x,n){
+    var cls=(n===i)?"on":(n<i?"past":"");
+    segs+='<span class="drseg '+cls+'"></span>';
+    labs+='<span class="'+cls+'">Day '+x+'</span>';
+  });
+  return '<div class="lbl">The rotation</div><div class="dayrail">'+segs+'</div><div class="draw">'+labs+'</div>';
+}
+/* Some days the answer is not "run the plan", it is "put something on and move". The strength
+   follow-alongs were buried three drawers down; one of them now sits on the hero. */
+function liftGuidedBtnHTML(){
+  var vs=vidsBy("strength");if(!vs.length)return "";
+  var v=pickVid("strength",0)||vs[0];
+  return '<button class="wbtn" style="width:100%;margin-top:8px" onclick="sessionVidSheet(\''+v.id+'\')">'+I.play+' Play a guided session instead</button>';
+}
 function coachCardHTML(){
   var c=coachState(),dl=deloadState();
   var h='<div class="card coach" data-k="'+c.k+'"><h3><span>The coach</span><span class="t">reads what you logged</span></h3>'+
@@ -1872,7 +1925,7 @@ function cycleHTML(){
   return collapsible("The program","Day "+next+" next",'<div>'+
     '<div class="ksub">You run A, then B, then C, then round again. The next one is whatever you have not done, not whatever day of the week it is.</div>'+
     rows+
-    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>');
+    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.dumbbell,"");
 }
 /* Per-movement state: what you lift now, what happened last time, and what to do next. */
 function movementRows(){
@@ -1925,19 +1978,22 @@ function renderLift(){
   var plan=todayPlan(),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
   var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
   var h='<div class="head"><div><div class="date">Day '+(L==="Gen"?"custom":L)+' next &middot; '+equipLabel(sessionEquip())+'</div><div class="title">Lift</div></div></div>';
-  if(plan.type==="lift"){
-    var nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
-    h+='<div class="hero"><div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+nm+'</h2>'+
-      '<div class="meta"><b>'+nex+' movements</b> &middot; '+equipLabel(sessionEquip())+(easingIn()?' &middot; <b>ease-in</b>':'')+'</div>'+
-      (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
-      '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div></div>';
-  }else{
-    h+='<div class="hero"><div class="lbl">Today</div><h2>'+(plan.type==="run"?"Run day":"Recovery day")+'</h2>'+
-      '<div class="meta">No lift scheduled. Day '+L+' is next when you want it.</div>'+
-      '<button class="big-start" onclick="startWorkout()">'+I.play+' Lift anyway &middot; Day '+L+'</button>'+
-      '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div></div>';
-  }
+  /* The Lift hero used to be the Today hero with different words, which made two tabs feel like
+     one. It now leads with the thing only this tab knows: WHERE you are in the A/B/C rotation,
+     drawn as a rail so it reads at a glance. Four ways out sit under it in order of likelihood:
+     start the prescribed day, play a guided session instead, change the kit, build your own.
+     (Matthew, 2026-07-29) */
+  var nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
+  var scheduled=(plan.type==="lift");
+  h+='<div class="hero">'+dayRailHTML(L)+
+    '<h2>'+(scheduled?nm:("Day "+L+" &middot; "+nm))+'</h2>'+
+    '<div class="meta">'+(scheduled?('<b>'+nex+' movements</b> &middot; '+equipLabel(sessionEquip())+(easingIn()?' &middot; <b>ease-in</b>':'')):
+      ('<b>'+nex+' movements</b> &middot; not scheduled today, yours when you want it'))+'</div>'+
+    (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
+      '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):(scheduled?"Start workout":("Lift anyway &middot; Day "+L)))+'</button>')+
+    liftGuidedBtnHTML()+
+    '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div>'+
+    '</div>';
   h+=coachCardHTML();
   h+=cycleHTML();
   h+=movementRows();
@@ -2092,10 +2148,14 @@ function kpiStrip(k){
   }
   return '<div class="kstrip" aria-hidden="true">'+blocks+'</div>';
 }
-function collapsible(title,note,inner,openByDefault){
-  return '<details class="card dcard"'+(openByDefault?' open':'')+'><summary>'+
-    '<span class="dsum">'+title+'</span>'+
-    '<span class="aright">'+(note?'<span class="acount">'+note+'</span>':'')+'<span class="chev">'+I.chevD+'</span></span>'+
+/* Every collapsed card used to render the same grey row, so the page read as eight identical
+   drawers and nothing signalled which was worth opening. A card now says what it is with an icon
+   and how it is doing with a coloured chip, and whether it opens by default is a per-card decision
+   rather than a default. (Matthew's audit, 2026-07-29) */
+function collapsible(title,note,inner,openByDefault,icon,tone){
+  return '<details class="card dcard"'+(openByDefault?' open':'')+(tone?' data-tone="'+tone+'"':'')+'><summary>'+
+    '<span class="dleft">'+(icon?'<span class="dsi">'+icon+'</span>':'')+'<span class="dsum">'+title+'</span></span>'+
+    '<span class="aright">'+(note?'<span class="acount'+(tone==="good"?" gd":tone==="warn"?" wn":"")+'">'+note+'</span>':'')+'<span class="chev">'+I.chevD+'</span></span>'+
     '</summary><div class="dbody">'+inner+'</div></details>';
 }
 function scorecardHTML(){
@@ -2117,7 +2177,7 @@ function scorecardHTML(){
   var m=weekMetrics(0),green=kpiRows().filter(function(r){return r.rag==="good";}).length;
   return collapsible("This week",green+" of 6 green",
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
-    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>');
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',green<6,I.trophy,green>=6?"good":green<=2?"warn":"");
 }
 /* Every measure on this tab is only as good as its last input, so the inputs get their own row
    rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
@@ -2342,7 +2402,7 @@ function rpeTrendHTML(){
     '<line x1="0" y1="'+y8+'" x2="'+W+'" y2="'+y8+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 4" opacity=".7"/>'+
     '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
     '<div class="wlegend"><span>RPE 5</span><span>dashed line is 8, where the coach starts holding</span></div>'+
-    '<div class="ksub" style="margin:8px 0 0">'+verdict+'</div></div>');
+    '<div class="ksub" style="margin:8px 0 0">'+verdict+'</div></div>',false,I.flame,"");
 }
 /* ============ THE LONG VIEW (Batch 7) ============
    Everything else in the app is a week. This is the year: one cell per day, quantized to five
@@ -2411,7 +2471,7 @@ function lifetimeHTML(){
     stat("Lifts",lifts.length,"","",'flat')+
     stat("Miles",mi.toFixed(0),"run","",'flat')+
     stat("Hours",(mins/60).toFixed(0),"training","",'flat')+
-    '</div><div class="foot" style="margin-top:10px">'+moved+' active days across '+span+' days, which is '+(span?Math.round(moved/span*100):0)+' percent of them.</div></div>');
+    '</div><div class="foot" style="margin-top:10px">'+moved+' active days across '+span+' days, which is '+(span?Math.round(moved/span*100):0)+' percent of them.</div></div>',false,I.trophy,"");
 }
 /* Single source for weekly tonnage, shared by the tile and the chart. */
 /* A bodyweight rep is real work, but calling it zero pounds made "week volume" read 0k forever
@@ -2776,6 +2836,32 @@ function setLadderAfter(track,lv){
   S.progress=S.progress||{};
   S.progress["ladder_"+track]=lv%l.length;
   S.progress["ladderday_"+track]=TODAY;
+}
+/* The day's plan is the headline and stays the headline. Underneath it sits a quiet strip of the
+   three courses with the exact session he is up to, because the honest failure mode is not "I did
+   the wrong thing", it is "I opened the app, the run felt like a lot, and I closed it". This gives
+   him something he can start in one tap without arguing with himself about the plan. Chips turn
+   green once that session is ticked. (Matthew, 2026-07-29) */
+function primeRowHTML(){
+  var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],chips="";
+  tracks.forEach(function(t){
+    var l=ladderList(t[0]);if(!l.length)return;
+    var v=l[ladderPos(t[0])%l.length];if(!v)return;
+    var on=vDone(v.id);
+    chips+='<button class="pchip'+(on?" gd":"")+'" onclick="sessionVidSheet(\''+v.id+'\')">'+
+      '<span class="pcn">'+t[1]+'</span><span class="pcs">'+(on?"done today":"session "+v.lv)+'</span></button>';
+  });
+  if(!chips)return "";
+  return '<div class="primerow"><div class="primelbl">Or just do one of these</div><div class="primechips">'+chips+'</div></div>';
+}
+/* One video, full width, with its tick right there. Opening a sheet rather than jumping tabs keeps
+   the day's plan on screen behind it, so choosing this is not abandoning that. */
+function sessionVidSheet(id){
+  var v=vidById(id);if(!v)return;
+  openSheet('<div class="grab"></div><h3>'+esc(VCAT[v.c]||v.c)+'</h3>'+
+    '<div class="ssub">'+(v.lv?("Session "+v.lv+" of "+ladderList(v.c).length+". Tick it when you have done it and the course moves on."):"Put it on and follow.")+'</div>'+
+    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
 function anchorVidHTML(){
   var v=ladderVid("mobility")||pickVid("mobility",0);
@@ -3508,18 +3594,18 @@ function fitnessSpark(L){
   /* vector-effect keeps the stroke an even 1.5px; without it preserveAspectRatio="none" smears it. */
   return '<svg class="lspark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true"><path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 }
-function levelCardHTML(){
+/* The ring and the headline moved up into the hero, so what is left here is the reading BEHIND
+   the number: the trend line, the totals, the easy-pace check and the caveat about what a training
+   load level is and is not. That is reference, not a call to action, so it is collapsed. */
+function levelDetailHTML(){
   var L=cardioLevel(),st=levelStatus(L),ep=easyPaceTrend();
   var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
-  var head=(st.k==="base")?'Getting a baseline':(L.pips+' of 10 to Level '+(L.lvl+1));
-  return '<div class="card lcard" data-k="'+st.k+'"><div class="lwrap">'+levelRingHTML(L)+
-    '<div class="lmeta"><div class="lt">'+(st.k==="base"?head:'<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1))+'</div>'+
-    '<div class="ltag">'+st.w+'</div>'+
-    '<div class="ld">'+st.c+'</div></div></div>'+
+  var inner='<div class="ld" style="margin-bottom:10px">'+st.c+'</div>'+
     fitnessSpark(L)+
     '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+mi.toFixed(0)+'</b> mi</span><span><b class="num">'+Math.round(L.score)+'</b> load</span></div>'+
     (ep?'<div class="anote" style="margin-top:12px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, about '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago, at self-reported easy effort. That is the fitness part, which the level cannot show.</div>':'')+
-    '<div class="foot" style="margin-top:10px">This is a training-load level, not a fitness test. It rises on a six-week average and falls on a seventeen-week one, so a quiet fortnight bends it rather than docking you.</div></div>';
+    '<div class="foot" style="margin-top:10px">This is a training-load level, not a fitness test. It rises on a six-week average and falls on a seventeen-week one, so a quiet fortnight bends it rather than docking you.</div>';
+  return collapsible("Where the level comes from","Level "+L.lvl,inner,false,I.spark,st.k==="base"?"warn":"");
 }
 /* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
 function badgeList(){
@@ -3599,13 +3685,20 @@ function renderCardio(){
   var L=cardioLevel(),LS=levelStatus(L);
   var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+LS.w.toLowerCase()+'</div><div class="title">Cardio</div></div></div>';
   /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
-  h+='<div class="hero"><div class="lbl">Next run</div><h2>'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
-    '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
+  /* Cardio's hero now carries the level ring itself rather than repeating a Today-shaped card and
+     then showing the level underneath. The ring is the one thing this tab knows that no other tab
+     does, so it belongs beside the call to action, not below it. The detail that used to sit in
+     the level card moved into a drawer under it. (Matthew, 2026-07-29) */
+  h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L)+'</div>'+
+    '<div class="cheroR"><div class="lbl">Next run</div>'+
+    '<h2 style="padding-right:0;margin-top:4px">'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
+    '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div></div></div>'+
+    '<div class="meta" style="margin-top:12px">'+(LS.k==="base"?"Getting a baseline":('<b>'+L.pips+' of 10</b> to Level '+(L.lvl+1)))+' &middot; '+esc(LS.w.toLowerCase())+'</div>'+
     '<button class="big-start" onclick="primeSheet(\'run\',function(){runSheet('+tgt.mi+')})">'+I.run+' Start a run</button>'+
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
-    '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
-  /* The level system replaces the old wordy "where you are" card. */
-  h+=levelCardHTML();
+    '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div>'+
+    primeRowHTML()+'</div>';
+  h+=levelDetailHTML();
   /* Warm-up sits high on the page, directly after the call to action, because it only works as
      a prompt if you meet it on the way out the door rather than below the history. */
   h+=paceZonesHTML();
