@@ -169,9 +169,12 @@ input,select{border:0;background:none}
 .set{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .set:first-of-type{border-top:0}
 .set .sn{width:26px;height:26px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--sub);margin:0 auto}
-.set.on .sn{background:var(--accent-tint);color:var(--accent)}
+/* GREEN MEANS DONE. Matthew liked the green the anchor turns when it is complete, so that is now
+   the language for every finished thing: a logged set, a finished movement, a ticked video. Coral
+   stays the colour of what is LIVE and asking for you. One colour per meaning. (2026-07-29) */
+.set.on .sn{background:var(--good-tint);color:var(--good)}
 .stp{display:flex;align-items:center;background:var(--surface-2);border-radius:10px;height:42px;overflow:hidden}
-.set.on .stp{background:var(--accent-tint)}
+.set.on .stp{background:var(--good-tint)}
 /* per-set stopwatch button */
 .tick.sw{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
 .tick.sw .swt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
@@ -185,9 +188,9 @@ input,select{border:0;background:none}
 .bwtag{height:42px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--sub)}
 .tick{width:42px;height:42px;border-radius:10px;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;margin-left:auto}
 .tick svg{width:17px;height:17px;opacity:0}
-.set.on .tick{background:var(--accent);border-color:var(--accent);color:var(--white);animation:pop .25s ease}
+.set.on .tick{background:var(--good);border-color:var(--good);color:var(--white);animation:pop .25s ease}
 .set.on .tick svg{opacity:1}
-.set.on .val{color:var(--accent)}
+.set.on .val{color:var(--good)}
 .setbtns{display:flex;gap:8px;margin:6px 0 6px}
 .setbtn{flex:1;padding:9px;border:1px dashed var(--line-2);border-radius:10px;font-size:12.5px;font-weight:600;color:var(--sub)}
 .setbtn:active{background:var(--surface-2)}
@@ -308,12 +311,28 @@ input,select{border:0;background:none}
 .libdrop .libsearch{margin:12px 14px 4px;width:calc(100% - 28px)}
 .libdrop .sectlbl,.libdrop .libgrid{margin-left:14px;margin-right:14px}
 .libpad{padding:4px 14px 12px}
+.libpad.nested{padding:0}
+.libsub{border-top:1px solid var(--line)}
+.libsub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;font-size:13.5px;font-weight:700}
+.libsub>summary::-webkit-details-marker{display:none}
+.libsub .lcount{font-size:11px;font-weight:700;color:var(--faint);background:var(--surface-2);border-radius:7px;padding:3px 8px;flex:none}
+.libsub .lcount.gd{color:var(--good);background:var(--good-tint)}
+.libsub .vrow{padding:0 14px 12px;margin-bottom:0}
+.libsub .libsub>summary{padding-left:28px;font-size:12.5px;font-weight:600;color:var(--sub)}
+.libsub .libsub .vrow{padding-left:28px}
+.libnote{padding:2px 14px 10px;font-size:12px;line-height:1.45;color:var(--sub)}
 .libpad .sectlbl:first-child{margin-top:8px}
 .libdrop .libgrid{margin-bottom:12px}
 /* press-play video cards */
 .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
 .vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
 .vcard.wide{grid-column:1/-1}
+.vtick{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px;border:0;border-top:1px solid var(--line);background:var(--surface);color:var(--sub);font:inherit;font-size:12.5px;font-weight:700}
+.vtick .vtb{display:flex;width:17px;height:17px;border-radius:50%;border:1.5px solid var(--line-2);align-items:center;justify-content:center;color:transparent}
+.vtick .vtb svg{width:11px;height:11px}
+.vtick.on{background:var(--good-tint);color:var(--good)}
+.vtick.on .vtb{background:var(--good);border-color:var(--good);color:var(--white)}
+.vcard.vdone{border-color:var(--good)}
 .vesc{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--surface-2);color:var(--sub);font:inherit;font-size:13px;font-weight:600;text-align:center;text-decoration:none}
 .vface,.vframe{display:block;width:100%;aspect-ratio:16/9;border:0}
 /* Facades are drawn locally rather than pulled from ytimg, so they get their identity from a
@@ -688,7 +707,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .woprog{display:flex;align-items:center;gap:10px;margin:0 2px 12px}
 .woprog .wpn{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);flex:none;font-variant-numeric:tabular-nums}
 .woprog .wpd{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
-.woprog .wpd i{display:block;height:100%;background:var(--accent);border-radius:2px;transition:width .25s ease}
+.woprog .wpd i{display:block;height:100%;background:var(--good);border-radius:2px;transition:width .25s ease}
 .exeyebrow{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:0 2px 7px}
 .unrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
 .unrow .unn{width:25px;height:25px;border-radius:50%;background:var(--surface-2);color:var(--sub);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-variant-numeric:tabular-nums}
@@ -698,8 +717,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .unrow .une{color:var(--faint);flex:none;font-size:12px;font-weight:700}
 .doneband{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:6px;margin:8px 2px 8px}
 .doneband svg{width:14px;height:14px;color:var(--good)}
+.doneband.gd{color:var(--good)}
 .exdone{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
-.exdone .edc{width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none}
+.exdone .edc{width:26px;height:26px;border-radius:50%;background:var(--good);color:var(--white);display:flex;align-items:center;justify-content:center;flex:none}
 .exdone .edc svg{width:14px;height:14px}
 .exdone .edt{flex:1;min-width:0}.exdone .edn{font-size:14.5px;font-weight:700;display:block}.exdone .eds{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
 .exdone .ede{color:var(--faint);flex:none}.exdone .ede svg{width:16px;height:16px}
@@ -757,7 +777,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v5.7";
+var VERSION="v5.8";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -972,7 +992,11 @@ var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
 /* morning anchor: push-ups + squats EVERY day, plus two rotating mobility picks
    weighted to desk-worker needs (neck/shoulder/hips) -- Matthew's headache + sitting lever */
 var ANCHOR_FIXED=[{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"Bodyweight squats",d:"x10"}];
-var ANCHOR_ROT=[{n:"Chin tucks",d:"x10 (neck)"},{n:"Cat-cow",d:"x8 slow"},{n:"Doorway chest stretch",d:"30s/side"},{n:"Wall angels",d:"x10 (shoulders)"},{n:"Hip-flexor stretch",d:"30s/side"},{n:"Neck side-stretch",d:"20s/side"},{n:"Thoracic rotations",d:"x8/side"},{n:"Standing hamstring reach",d:"30s"}];
+/* Every rotating item is COUNTED, never held. Matthew's rule, 2026-07-29: at six in the morning
+   he will do thirty reps and he will not stand still counting to thirty, so a timed hold is a
+   movement that quietly does not happen. The four static stretches that used to sit here are now
+   their dynamic equivalents, which train the same tissue and can be counted. */
+var ANCHOR_ROT=[{n:"Chin tucks",d:"x10 (neck)"},{n:"Cat-cow",d:"x8 slow"},{n:"Doorway chest press-through",d:"x8/side"},{n:"Wall angels",d:"x10 (shoulders)"},{n:"Kneeling hip-flexor rocks",d:"x8/side"},{n:"Neck side-bends",d:"x8/side"},{n:"Thoracic rotations",d:"x8/side"},{n:"Standing hamstring reaches",d:"x10"},{n:"Shoulder rolls",d:"x10 back"},{n:"Deep squat rocks",d:"x8"},{n:"Scapular push-ups",d:"x10"},{n:"Ankle circles",d:"x10/side"}];
 function anchorList(){
   var y=TODAY.slice(0,4);var day=Math.floor((new Date(TODAY)-new Date(y+"-01-01"))/86400000);
   var n=ANCHOR_ROT.length,a=ANCHOR_ROT[day%n],b=ANCHOR_ROT[(day+3)%n];if(b.n===a.n)b=ANCHOR_ROT[(day+4)%n];
@@ -1239,9 +1263,6 @@ function renderToday(){
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
   recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();
-  /* Finishing the anchor is what moves the mobility ladder on. Deliberately does NOT re-render:
-     the video he is halfway through must not swap under him. Tomorrow's session is the next one. */
-  if(anchorComplete(TODAY))advanceLadder("mobility");
   save();
   var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
   if(!el){renderToday();return;}
@@ -1497,7 +1518,7 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   }else{
     h+='<div class="exeyebrow">Every movement done &middot; tap Finish</div>';
   }
-  if(doneL.length){h+='<div class="doneband">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
+  if(doneL.length){h+='<div class="doneband'+(active.length?"":" gd")+'">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
   h+='<div class="warmcard"><b>Cooldown (2-3 min):</b> '+COOL+'</div>';
   document.getElementById("wo-body").innerHTML=h;}
 function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
@@ -2676,13 +2697,38 @@ function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i
    in place, so the video plays inside the app. The YouTube link stays on every card either
    way, because an in-app embed can still be blocked and a dead play button is worse than a link. */
 var vseq=0;
+/* Whether a session actually happened is HIS call, not something inferred from the player.
+   Pressing play and wandering off is not the same as doing the thing, and neither is watching
+   nine tenths of it. So every card carries a box he ticks himself, and for a laddered session
+   that tick is the ONLY thing that moves the course forward. (Matthew, 2026-07-29) */
+function vDone(id){return !!(((S.progress||{}).vdone||{})[id]);}
+function toggleVDone(id,btn){
+  S.progress=S.progress||{};S.progress.vdone=S.progress.vdone||{};
+  var was=vDone(id);
+  if(was)delete S.progress.vdone[id];else S.progress.vdone[id]=TODAY;
+  var v=vidById(id);
+  if(v&&v.lv&&!was)setLadderAfter(v.c,v.lv);
+  save();
+  /* Update the one card in place. Re-rendering here would tear down a playing iframe. */
+  if(btn){
+    var on=vDone(id);
+    btn.classList.toggle("on",on);
+    btn.setAttribute("aria-pressed",on?"true":"false");
+    var lbl=btn.querySelector(".vdt");if(lbl)lbl.textContent=on?"Done":"Mark done";
+    var card=btn.closest(".vcard");if(card)card.classList.toggle("vdone",on);
+  }
+}
 function vidCardHTML(v,wide){
   var slot="vp-"+(++vseq);
-  return '<div class="vcard'+(wide?" wide":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
+  var on=vDone(v.id);
+  return '<div class="vcard'+(wide?" wide":"")+(on?" vdone":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
     '<button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
       '<span class="vplay">'+I.play+'</span></button>'+
     '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
-    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m:'')+' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a></div></div></div>';
+    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m:'')+' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a></div></div>'+
+    '<button class="vtick'+(on?" on":"")+'" aria-pressed="'+(on?"true":"false")+'" onclick="toggleVDone(\''+v.id+'\',this)">'+
+      '<span class="vtb">'+I.check+'</span><span class="vdt">'+(on?"Done":"Mark done")+'</span></button>'+
+    '</div>';
 }
 function playVid(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
@@ -2722,13 +2768,14 @@ function pickVid(cat,offset){
 function ladderList(track){return VID.filter(function(v){return v.c===track&&v.lv;}).sort(function(a,b){return a.lv-b.lv;});}
 function ladderPos(track){var p=(S.progress||{})["ladder_"+track];return (typeof p==="number"&&p>=0)?p:0;}
 function ladderVid(track){var l=ladderList(track);if(!l.length)return null;return l[ladderPos(track)%l.length];}
-function advanceLadder(track){
+/* Ticking session N means the course now sits at N+1, which is right whether he worked straight
+   through or jumped ahead. Replaced the old blind +1 on anchor completion: that inferred the
+   session from a checkbox about press-ups, which is not the same claim. */
+function setLadderAfter(track,lv){
   var l=ladderList(track);if(!l.length)return;
   S.progress=S.progress||{};
-  var kd="ladderday_"+track;
-  if(S.progress[kd]===TODAY)return; /* one step per day, never two for the same morning */
-  S.progress["ladder_"+track]=(ladderPos(track)+1)%l.length;
-  S.progress[kd]=TODAY;
+  S.progress["ladder_"+track]=lv%l.length;
+  S.progress["ladderday_"+track]=TODAY;
 }
 function anchorVidHTML(){
   var v=ladderVid("mobility")||pickVid("mobility",0);
@@ -2746,6 +2793,41 @@ function guidedHTML(cat,label,note,offset){
     (note?'<div class="ssub" style="text-align:left;margin:0 0 10px">'+note+'</div>':'')+
     '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div></div>';
 }
+/* A hundred and sixty facades behind one disclosure is a wall, not a library. Each track is now
+   its own drawer carrying its own count, and the three Runna courses are chunked into blocks of
+   six with the block he is currently in opened by default, so reaching the next session is a tap
+   instead of a scroll past everything he has already done. Counts turn green as blocks complete,
+   which is the same done-language as the rest of the app. (Matthew, 2026-07-29) */
+function libSection(cat,label){
+  var vs=vidsBy(cat);if(!vs.length)return "";
+  var lad=ladderList(cat),inner="",note="";
+  if(lad.length>6){
+    var pos=ladderPos(cat),cur=lad[pos%lad.length],curBlock=Math.floor((pos%lad.length)/6);
+    note='You are on session '+(cur?cur.lv:1)+' of '+lad.length+'.';
+    for(var b=0;b*6<lad.length;b++){
+      var chunk=lad.slice(b*6,b*6+6);
+      var dn=0;chunk.forEach(function(v){if(vDone(v.id))dn++;});
+      inner+='<details class="libsub"'+(b===curBlock?' open':'')+'><summary><span>Sessions '+chunk[0].lv+' to '+chunk[chunk.length-1].lv+'</span>'+
+        '<span class="lcount'+(dn===chunk.length?' gd':'')+'">'+dn+' of '+chunk.length+'</span></summary><div class="vrow">';
+      chunk.forEach(function(v){inner+=vidCardHTML(v);});
+      inner+='</div></details>';
+    }
+    var extra=vs.filter(function(v){return !v.lv;});
+    if(extra.length){
+      inner+='<details class="libsub"><summary><span>Standalone</span><span class="lcount">'+extra.length+'</span></summary><div class="vrow">';
+      extra.forEach(function(v){inner+=vidCardHTML(v);});
+      inner+='</div></details>';
+    }
+  }else{
+    inner='<div class="vrow">';
+    vs.forEach(function(v){inner+=vidCardHTML(v);});
+    inner+='</div>';
+  }
+  var done=0;vs.forEach(function(v){if(vDone(v.id))done++;});
+  return '<details class="libsub top"><summary><span>'+(label||VCAT[cat]||cat)+'</span>'+
+    '<span class="lcount'+(done?' gd':'')+'">'+(done?done+' of '+vs.length:vs.length)+'</span></summary>'+
+    (note?'<div class="libnote">'+note+'</div>':'')+inner+'</details>';
+}
 function vidRowHTML(cat,label){
   var vs=vidsBy(cat);if(!vs.length)return "";
   var h='<div class="sectlbl">'+(label||VCAT[cat])+'</div><div class="vrow">';
@@ -2760,11 +2842,11 @@ function libraryHTML(cat){
      the right video in front of you where it matters, so the full shelf lives behind a disclosure
      and the tab stays about training rather than about browsing. */
   var groups=(cat==="lift")
-    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["pilates","Pilates, the Runna course"],["core",null],["mobility","Mobility, the Runna course"],["yoga",null]]
-    : [["runwarm","Before a run"],["mobility","Mobility, the Runna course"],["pilates","Pilates, the Runna course"],["recovery","Stretch and stability"],["meditation",null]];
+    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["pilates","Pilates course"],["mobility","Mobility course"],["core","Core finishers"],["yoga","Yoga"]]
+    : [["runwarm","Before a run"],["mobility","Mobility course"],["recovery","Stretch and stability"],["pilates","Pilates course"],["meditation","Wind down"]];
   var inner="",n=0;
-  groups.forEach(function(g){inner+=vidRowHTML(g[0],g[1]);n+=vidsBy(g[0]).length;});
-  var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad">'+inner+'</div></details>';
+  groups.forEach(function(g){inner+=libSection(g[0],g[1]);n+=vidsBy(g[0]).length;});
+  var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad nested">'+inner+'</div></details>';
   if(cat==="lift"){
     /* Forty-odd exercise cards behind a disclosure, not stacked open. You come here to
        follow along; you go looking for a single movement only when you want that movement. */
