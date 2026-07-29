@@ -252,6 +252,11 @@ input,select{border:0;background:none}
 .rpe.wide{gap:4px;margin-bottom:2px}
 .rpe.wide button{height:40px;font-size:13px;border-radius:9px;min-width:0;padding:0}
 .rpeanch{display:flex;justify-content:space-between;margin:0 2px 4px;font-size:10.5px;font-weight:600;color:var(--faint)}
+.setnote{font-size:12.5px;color:var(--sub);margin:0 2px 10px;line-height:1.45}
+.syncdot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line-2);margin-right:7px;vertical-align:1px}
+.syncdot.on{background:var(--good)}
+.danger{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
+.sheet-cta.dang{color:var(--accent)}
 .seg{display:flex;background:var(--surface-2);border-radius:11px;padding:3px;gap:3px}
 .seg button{flex:1;height:38px;border-radius:9px;font-size:13.5px;font-weight:700;color:var(--sub)}
 .seg button.sel{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
@@ -785,6 +790,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .unrow .unname{font-size:14.5px;font-weight:700;display:block}
 .unrow .unsub{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
 .unrow .une{color:var(--faint);flex:none;font-size:12px;font-weight:700}
+.mgroup{padding:0 14px 10px}
+.mvthumb{display:flex;width:38px;height:27px;border-radius:6px;background:var(--accent-tint);color:var(--accent);align-items:center;justify-content:center;flex:none}
+.mvthumb svg{width:13px;height:13px}
 .doneband{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;gap:6px;margin:8px 2px 8px}
 .doneband svg{width:14px;height:14px;color:var(--good)}
 .doneband.gd{color:var(--good)}
@@ -795,13 +803,6 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .exdone .ede{color:var(--faint);flex:none}.exdone .ede svg{width:16px;height:16px}
 .libsearch{width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;height:44px;padding:0 14px;font-size:15px;box-shadow:var(--shadow);margin-bottom:8px;color:var(--ink)}
 .libgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
-.libcard{display:flex;flex-direction:column;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;text-decoration:none;color:inherit}
-.libcard:active{background:var(--surface-2)}
-.libcard .lci{width:40px;height:40px;border-radius:11px;background:var(--surface-2);color:var(--sub);display:flex;align-items:center;justify-content:center}
-.libcard .lci.acc{background:var(--accent-tint);color:var(--accent)}
-.libcard .lci svg{width:20px;height:20px}
-.libcard .lcn{font-size:14px;font-weight:700;line-height:1.25}
-.libcard .lctag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--faint);background:var(--surface-2);border-radius:6px;padding:3px 7px;align-self:flex-start}
 </style>
 </head>
 <body>
@@ -847,7 +848,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.0";
+var VERSION="v7.2";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1212,6 +1213,37 @@ function prFor(exId){var ex=LIB[exId];if(!ex||ex.unit==="s")return null;var best
 
 /* streak / stats */
 function computeStreak(){refreshDate();var s=0,d=new Date(NOW);if(!isDone(keyOf(d)))d.setDate(d.getDate()-1);for(var i=0;i<500;i++){if(isDone(keyOf(d))){s++;d.setDate(d.getDate()-1);}else break;}return s;}
+/* Three streaks, because one number cannot answer three questions. Today's is "did I move at all",
+   which is the everyday commitment and counts the anchor. Lift and Cardio count only their own
+   kind, and they are WEEK streaks rather than day streaks, because nobody lifts daily and a
+   consecutive-day counter for lifting would read zero forever and teach you to ignore it.
+   (Matthew, 2026-07-29) */
+function didKindOn(kind,k){
+  if(kind==="lift")return S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
+  return S.sessions.some(function(x){return x.date===k&&(x.type==="run"||(x.type==="activity"&&/walk/i.test(x.activity||"")));})||!!S.runs[k];
+}
+function weekKeyOf(d){var x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return keyOf(x);}
+function kindInWeek(kind,mondayKey){
+  var p=mondayKey.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+  for(var i=0;i<7;i++){if(didKindOn(kind,keyOf(d)))return true;d.setDate(d.getDate()+1);}
+  return false;
+}
+function kindStreak(kind){
+  refreshDate();
+  var d=new Date(NOW),wk=weekKeyOf(d),n=0;
+  if(!kindInWeek(kind,wk)){var p=wk.split("-");var pd=new Date(+p[0],+p[1]-1,+p[2]);pd.setDate(pd.getDate()-7);wk=keyOf(pd);}
+  for(var i=0;i<200;i++){
+    if(!kindInWeek(kind,wk))break;
+    n++;
+    var q=wk.split("-");var prev=new Date(+q[0],+q[1]-1,+q[2]);prev.setDate(prev.getDate()-7);wk=keyOf(prev);
+  }
+  return n;
+}
+function streakChipHTML(kind){
+  var n=(kind==="all")?computeStreak():kindStreak(kind);
+  var unit=(kind==="all")?(n===1?"day":"days"):(n===1?"week":"weeks");
+  return '<div class="streak'+(n?"":" zero")+'">'+I.flame+'<b class="num">'+n+'</b><span>'+unit+'</span></div>';
+}
 /* Time-weighted exponential smoother, tau = 10 days. alpha = 1 - exp(-dt/tau), so a reading after
    a long gap almost fully replaces the old estimate instead of being averaged with a number from
    months ago. The old per-reading filter put the trend about ten pounds above the actual scale on
@@ -1281,7 +1313,7 @@ function renderToday(){
   var _hr=NOW.getHours(),_part=_hr<12?"Morning":_hr<18?"Afternoon":"Evening";var greet=S.profile.name?(_part+", "+esc(S.profile.name)):_part;
   var streak=computeStreak();
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
-    '<div class="tools"><div class="streak'+(streak?"":" zero")+'">'+I.flame+'<b class="num">'+streak+'</b><span>'+(streak===1?"day":"days")+'</span></div>'+
+    '<div class="tools">'+streakChipHTML("all")+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   // hero
   var hero='';
@@ -1835,6 +1867,38 @@ function coachExit(c){
   if(c.avg==null)return "Tap an effort number when you finish and the coach starts reading you.";
   return "It moves to Hold if the three-session average reaches 8.2.";
 }
+/* The coach did not go away, it moved. Its verdict now sets the level's status word, and the
+   things only it knows - the exit condition, the deload block, what to do THIS session - live in
+   the drawer under the ring, matching how Cardio puts its reading behind the number. */
+function liftLevelDetailHTML(){
+  var L=liftLevel(),st=liftLevelStatus(L),c=coachState(),dl=deloadState();
+  var rated=S.sessions.filter(function(x){return x.type==="lift"&&typeof x.rpe==="number";}).length;
+  var total=S.sessions.filter(function(x){return x.type==="lift";}).length;
+  var steps=[["red","Back off"],["amber","Hold"],["green","Push"]],rail="";
+  steps.forEach(function(x){var on=(c.k===x[0])||(c.k==="layoff"&&x[0]==="red");
+    rail+='<span class="cstep'+(on?" on":"")+'">'+x[1]+'</span>';});
+  var inner=liftDeltaHTML(L)+'<div class="ld" style="margin:10px 0 12px">'+st.c+'</div>'+
+    '<div class="coach" data-k="'+c.k+'" style="padding:0;background:none;border:0;box-shadow:none">'+
+      '<div class="crail">'+rail+'</div>'+
+      '<div class="cd">'+c.d+'</div>'+
+      '<div class="cexit">'+I.arrow+'<span>'+coachExit(c)+'</span></div>'+
+      '<div class="cblock"><span>Deload block</span><span class="cbv num">'+dl.weeks+' of 4 weeks</span></div>'+
+    '</div>'+
+    (dl.due?'<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>':'')+
+    '<div class="lstats" style="margin-top:12px"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
+    '<div class="foot" style="margin-top:10px">Load is effort multiplied by minutes, the standard measure for lifting, scaled to sit on the same axis as your cardio level. '+
+    (rated<total?('The '+(total-rated)+' session'+(total-rated===1?'':'s')+' you did not rate are priced at effort 7. Rate them and this gets truer.'):'Every session is rated, so this is measured rather than assumed.')+'</div>';
+  return collapsible("Where the lift level comes from","Level "+L.lvl,inner,false,I.dumbbell,st.k==="base"?"warn":"");
+}
+function liftDeltaHTML(L){
+  var ser=L.series||[];if(ser.length<8)return "";
+  var now=ser[ser.length-1],prev=ser[ser.length-8];if(!now||!prev)return "";
+  var d=(now.slow||0)-(prev.slow||0);
+  if(!now.slow&&!prev.slow)return "";
+  var dir=(Math.abs(d)<0.15)?"flat":(d>0?"up":"down");
+  var w=dir==="flat"?"holding":(dir==="up"?"rising":"easing off");
+  return '<div class="ldelta" data-d="'+dir+'"><span class="ldv num">'+(d>0?"+":"")+d.toFixed(1)+'</span><span class="ldl">over 7 days &middot; '+w+'</span></div>';
+}
 function coachCardHTML(){
   var c=coachState(),dl=deloadState();
   var steps=[["red","Back off"],["amber","Hold"],["green","Push"]];
@@ -2027,24 +2091,58 @@ function cycleHTML(){
     '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.swap,"");
 }
 /* Per-movement state: what you lift now, what happened last time, and what to do next. */
+/* YOUR MOVEMENTS, variation M1 (Matthew picked it, 2026-07-29).
+   It was a flat list of the fourteen most recently touched movements, and "Look up a movement" was
+   a SECOND, separate drawer holding the other thirty-six with their form videos. Two shelves for
+   one question. They are now one thing, grouped by the day you actually do them, because that is
+   when you look a movement up. Every row carries its working weight, its record and its last
+   session; tapping opens the form video and full history. Movements not in any day (anything you
+   built custom, or the library's extras) fall into a final group so nothing is orphaned. */
+function movementDayGroups(){
+  var g={A:[],B:[],C:[]},seen={};
+  ["A","B","C"].forEach(function(L){
+    (DAYS[L]?DAYS[L].slots:[]).forEach(function(sl){
+      var id=slotEx(sl);if(!id||!LIB[id]||seen[L+id])return;
+      seen[L+id]=1;g[L].push(id);
+    });
+  });
+  var inDay={};["A","B","C"].forEach(function(L){g[L].forEach(function(id){inDay[id]=1;});});
+  var other=Object.keys(LIB).filter(function(id){return !inDay[id]&&(lastEntry(id)||S.progress[id]);});
+  return {A:g.A,B:g.B,C:g.C,other:other};
+}
+function movementRowHTML(id){
+  var e=LIB[id],le=lastEntry(id),t=S.progress[id]||{},pr=prFor(id);
+  var best=null;
+  if(le)le.e.sets.forEach(function(x){if(!x.completed)return;var w=x.weightLb||0,r=x.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
+  var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
+  var lastTxt=le&&best?(shortDate(le.date)+" &middot; "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"not trained yet";
+  return '<button class="mrow" onclick="movementSheet(\''+id+'\')">'+
+    '<span class="mvthumb">'+I.play+'</span>'+
+    '<span class="mm"><span class="mn">'+esc(e.name)+'</span><span class="md">'+lastTxt+'</span></span>'+
+    '<span class="mv"><span class="mw num">'+now+'</span>'+(pr?'<span class="mp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+'</span></button>';
+}
 function movementRows(){
-  var ids=Object.keys(LIB).filter(function(id){return lastEntry(id)||S.progress[id];});
-  if(!ids.length)return '<div class="card"><h3><span>Your movements</span></h3><div class="ssub" style="text-align:left;margin:8px 0 0">Finish a session and every movement you trained shows up here with its working weight and its history.</div></div>';
-  ids.sort(function(a,b){var la=lastEntry(a),lb=lastEntry(b);return (lb?lb.date:"")<(la?la.date:"")?-1:1;});
-  var rows=ids.slice(0,14).map(function(id){
-    var e=LIB[id],le=lastEntry(id),t=S.progress[id]||{},pr=prFor(id);
-    var best=null;
-    if(le)le.e.sets.forEach(function(s){if(!s.completed)return;var w=s.weightLb||0,r=s.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
-    var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
-    var lastTxt=le&&best?(shortDate(le.date)+": "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"no completed sets yet";
-    return '<button class="mrow" onclick="movementSheet(\''+id+'\')">'+
-      '<span class="mi">'+(e.bw?I.bolt:I.dumbbell)+'</span>'+
-      '<span class="mm"><span class="mn">'+esc(e.name)+'</span><span class="md">'+lastTxt+'</span></span>'+
-      '<span class="mv"><span class="mw num">'+now+'</span>'+(pr?'<span class="mp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+'</span></button>';
-  }).join("");
-  var prs=ids.filter(function(id){return prFor(id);}).length;
-  return collapsible("Your movements",ids.length+" tracked"+(prs?(", "+prs+" with a record"):""),
-    '<div class="ksub">Tap any movement for its history, its record, its form video and what to do next time.</div>'+rows,false,I.trophy,"");
+  var g=movementDayGroups(),L=letterFor(),inner="",total=0,prs=0;
+  ["A","B","C"].forEach(function(k){
+    if(!g[k].length)return;
+    total+=g[k].length;
+    g[k].forEach(function(id){if(prFor(id))prs++;});
+    var trained=g[k].filter(function(id){return lastEntry(id);}).length;
+    inner+='<details class="libsub"'+(k===L?' open':'')+'><summary>'+
+      '<span>Day '+k+' &middot; '+esc(DAYS[k]?DAYS[k].name:"")+'</span>'+
+      '<span class="lcount'+(trained===g[k].length?" gd":"")+'">'+g[k].length+' movements</span></summary>'+
+      '<div class="mgroup">'+g[k].map(movementRowHTML).join("")+'</div></details>';
+  });
+  if(g.other.length){
+    total+=g.other.length;
+    inner+='<details class="libsub"><summary><span>Outside the rotation</span>'+
+      '<span class="lcount">'+g.other.length+'</span></summary>'+
+      '<div class="mgroup">'+g.other.map(movementRowHTML).join("")+'</div></details>';
+  }
+  if(!inner)return "";
+  return collapsible("Your movements",total+" movements"+(prs?(", "+prs+" with a record"):""),
+    '<div class="ksub" style="padding:0 14px 8px">Grouped by the day you train them. Tap any movement for its form video, its history and what to do next time.</div>'+inner,
+    false,I.trophy,"");
 }
 function movementSheet(id){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
@@ -2077,7 +2175,9 @@ function renderLift(){
   refreshDate();
   var plan=todayPlan(),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
   var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
-  var h='<div class="head"><div><div class="date">Day '+(L==="Gen"?"custom":L)+' next &middot; '+equipLabel(sessionEquip())+'</div><div class="title">Lift</div></div></div>';
+  var LL=liftLevel(),LLS=liftLevelStatus(LL);
+  var h='<div class="head"><div><div class="date">Day '+(L==="Gen"?"custom":L)+' next &middot; '+equipLabel(sessionEquip())+'</div><div class="title">Lift</div></div>'+
+    '<div class="tools">'+streakChipHTML("lift")+'</div></div>';
   /* The Lift hero used to be the Today hero with different words, which made two tabs feel like
      one. It now leads with the thing only this tab knows: WHERE you are in the A/B/C rotation,
      drawn as a rail so it reads at a glance. Four ways out sit under it in order of likelihood:
@@ -2085,7 +2185,13 @@ function renderLift(){
      (Matthew, 2026-07-29) */
   var nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
   var scheduled=(plan.type==="lift");
-  h+='<div class="hero">'+dayRailHTML(L)+
+  h+='<div class="hero">'+
+    '<div class="chero"><div class="cheroL">'+levelRingHTML(LL)+'</div>'+
+    '<div class="cheroR"><div class="lvlk">Level '+LL.lvl+'</div>'+
+    '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
+    '<div class="lvlp">'+(LLS.k==="base"?"finding a baseline":('<b class="num">'+LL.pips+'</b> of 10 to Level '+(LL.lvl+1)))+'</div>'+
+    '</div></div><div class="chsplit"></div>'+
+    dayRailHTML(L)+
     '<h2>'+(scheduled?nm:("Day "+L+" &middot; "+nm))+'</h2>'+
     '<div class="meta">'+(scheduled?('<b>'+nex+' movements</b> &middot; '+equipLabel(sessionEquip())+(easingIn()?' &middot; <b>ease-in</b>':'')):
       ('<b>'+nex+' movements</b> &middot; not scheduled today, yours when you want it'))+'</div>'+
@@ -2094,7 +2200,7 @@ function renderLift(){
     liftGuidedBtnHTML(L)+
     '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div>'+
     '</div>';
-  h+=coachCardHTML();
+  h+=liftLevelDetailHTML();
   h+=cycleHTML();
   h+=movementRows();
   h+=weekHTML(false);
@@ -3129,23 +3235,10 @@ function libraryHTML(cat){
   var inner="",n=0;
   groups.forEach(function(g){inner+=libSection(g[0],g[1]);n+=vidsBy(g[0]).length;});
   var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad nested">'+inner+'</div></details>';
-  if(cat==="lift"){
-    /* Forty-odd exercise cards behind a disclosure, not stacked open. You come here to
-       follow along; you go looking for a single movement only when you want that movement. */
-    var n=Object.keys(LIB).length;
-    h+='<details class="libdrop"><summary><span>Look up a movement</span><span class="lcount">'+n+'</span></summary>';
-    h+='<input class="libsearch" placeholder="Search exercises..." oninput="filterLib(this.value)" aria-label="search exercises">';
-    var byPat={};Object.keys(LIB).forEach(function(id){var p=LIB[id].pattern;(byPat[p]=byPat[p]||[]).push(id);});
-    Object.keys(PATTERNS).forEach(function(p){if(!byPat[p])return;h+='<div class="sectlbl libsec lbl">'+PATTERNS[p]+'</div><div class="libgrid libsec grid">';
-      byPat[p].forEach(function(id){var e=LIB[id];h+='<a class="libcard libitem" data-name="'+esc(e.name.toLowerCase())+'" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener"><span class="lci'+(e.bw||e.equip==="band"?"":" acc")+'">'+(e.equip==="band"?I.spark:e.bw?I.bolt:I.dumbbell)+'</span><span class="lcn">'+esc(e.name)+'</span><span class="lctag">'+e.diff+'</span></a>';});
-      h+='</div>';});
-    h+='</details>';
-  }
+  /* The lift tab used to append a second "Look up a movement" drawer here holding all forty
+     exercises with their form videos. Retired 2026-07-29: Your Movements now carries every
+     movement grouped by day, with the video on each row, so this was the same shelf twice. */
   return h;
-}
-function filterLib(q){q=(q||"").toLowerCase().trim();
-  document.querySelectorAll("#v-lift .libitem").forEach(function(a){a.style.display=(!q||a.getAttribute("data-name").indexOf(q)>=0)?"":"none";});
-  document.querySelectorAll("#v-lift .libsec.grid").forEach(function(g){var vis=false;g.querySelectorAll(".libitem").forEach(function(a){if(a.style.display!=="none")vis=true;});g.style.display=vis?"":"none";var lbl=g.previousElementSibling;if(lbl&&lbl.classList.contains("lbl"))lbl.style.display=vis?"":"none";});
 }
 function setUnits(u,b){S.profile.units=u;save();segSel(b);toast("Units set to "+u,null);}
 function setLoc(l,b){S.profile.loc=l;save();segSel(b);}
@@ -3184,12 +3277,18 @@ function settingsSheet(){
   m+='<div class="logrow"><label>Theme</label><div class="seg" style="max-width:190px"><button class="'+((!p.theme||p.theme==="system")?"sel":"")+'" onclick="setTheme(\'system\',this)">Auto</button><button class="'+(p.theme==="light"?"sel":"")+'" onclick="setTheme(\'light\',this)">Light</button><button class="'+(p.theme==="dark"?"sel":"")+'" onclick="setTheme(\'dark\',this)">Dark</button></div></div>';
   var _tok=(localStorage.getItem("train.syncToken")||"").trim();
   m+='<div class="sectlbl" style="margin:14px 2px 8px">Sync</div>';
-  m+='<div class="logrow"><label>Cross-device sync<div class="skc" style="font-weight:500">'+(_tok?"paired on this device":"not paired yet")+'</div></label><button class="wbtn" style="max-width:150px" onclick="closeSheet();syncPassSheet()">'+(_tok?"Change passphrase":"Set up")+'</button></div>';
+  m+='<div class="logrow"><label><span class="syncdot'+(_tok?" on":"")+'"></span>Cross-device sync<div class="skc" style="font-weight:500">'+(_tok?"paired on this device":"not paired yet, this device is on its own")+'</div></label><button class="wbtn" style="max-width:150px" onclick="closeSheet();syncPassSheet()">'+(_tok?"Change":"Set up")+'</button></div>';
   m+='<div class="sectlbl" style="margin:14px 2px 8px">Your data</div>';
+  var _bk=backupAgeDays();
+  m+='<div class="setnote">'+S.sessions.length+' sessions, '+S.weigh.length+' weigh-ins &middot; '+
+     (_bk==null?'never backed up':(_bk===0?'backed up today':'last backup '+_bk+' day'+(_bk===1?'':'s')+' ago'))+'</div>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">Back up to a file</button>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">Back up / send my data</button>';
-  m+='<button class="sheet-cta ghost" onclick="confirmReset()">Reset all data</button>';
   m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
+  /* Reset lives below Done, behind a rule, on its own. It was sitting in the same stack as Import
+     and Back up, which is how a mis-tap erases a year. */
+  m+='<div class="danger"><div class="sectlbl" style="margin:0 2px 8px">Danger</div>'+
+     '<button class="sheet-cta ghost dang" onclick="confirmReset()">Reset all data</button></div>';
   m+='<div class="foot">Train '+VERSION+' - stored on this device, synced to your own private store</div>';
   openSheet(m);
 }
@@ -3781,6 +3880,72 @@ function easyPaceTrend(){
   if(Math.abs(diff)<8)return null;
   return {now:a,prev:bm,diff:diff};
 }
+/* ============ THE LIFT LEVEL ============
+   Matthew's call, 2026-07-29: he did not want any of the three coach designs, he wanted the Cardio
+   level system again, for lifting. So this is not a lookalike. It is the SAME machinery: the same
+   asymmetric EWMA with the same 42/120 constants, the same quadratic level curve, the same ten
+   pips, the same five-word status vocabulary. Only the load unit differs, because a lift is not a
+   run.
+
+   Cardio prices a session in MET-hours. Lifting has no MET worth trusting, so it uses the standard
+   resistance-training unit instead: Foster's session RPE, effort multiplied by minutes. The app has
+   collected both since the RPE picker was widened to 1-10. An unrated session is priced at 7, which
+   is a real assumption and is stated on the card rather than hidden.
+
+   The divide-by-four is a scale match, not a fudge: a 30-minute lift at RPE 7 is 210 Foster units
+   against about 50 for a 30-minute easy run, so dividing by four puts the two on ONE scale. That is
+   deliberate. Lift level 6 and cardio level 6 should mean roughly the same amount of training. */
+var LIFT_RPE_ASSUMED=7, LIFT_SCALE=4;
+function liftLoadFor(s){
+  if(!s||s.type!=="lift")return 0;
+  var mins=(s.durationSec||0)/60;if(mins<=0)return 0;
+  var rpe=(typeof s.rpe==="number"&&s.rpe>0)?s.rpe:LIFT_RPE_ASSUMED;
+  return (rpe*mins)/LIFT_SCALE;
+}
+function liftDailyLoad(){
+  var by={};S.sessions.forEach(function(x){if(!x.date||x.type!=="lift")return;by[x.date]=(by[x.date]||0)+liftLoadFor(x);});
+  Object.keys(by).forEach(function(k){if(by[k]>DAY_CAP)by[k]=DAY_CAP;});
+  return by;
+}
+function liftSeries(days){
+  days=days||180;
+  var by=liftDailyLoad(),out=[],slow=0,fast=0;
+  var d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){
+    var v=by[keyOf(d)]||0;
+    slow=ewStep(slow,v,RISE_SLOW,FALL_SLOW);
+    fast=ewStep(fast,v,RISE_FAST,FALL_FAST);
+    out.push({date:keyOf(d),slow:slow,fast:fast,load:v});
+    d.setDate(d.getDate()+1);
+  }
+  return out;
+}
+function liftLevel(){
+  var s=liftSeries(180);
+  var last=s.length?s[s.length-1]:{slow:0,fast:0};
+  var score=last.slow,lvl=levelFor(score);
+  var lo=levelFloor(lvl),hi=levelFloor(lvl+1),span=Math.max(hi-lo,1);
+  var pips=Math.max(0,Math.min(9,Math.floor(10*(score-lo)/span)));
+  var monthAgo=s.length>29?s[s.length-30].slow:0;
+  var r=(last.fast-last.slow)/Math.max(last.slow,1);
+  var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
+  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:last.fast,slow:last.slow,
+          r:r,delta:score-monthAgo,series:s,sessions:n};
+}
+/* Same vocabulary as Cardio, with the one lifting-specific amber: training hard while never
+   actually adding load is the failure mode that a level alone cannot see. */
+function liftLevelStatus(L){
+  if(L.sessions<4)return {w:"Getting a baseline",k:"base",c:"Four sessions before this number means anything."};
+  var c=coachState();
+  if(c.k==="layoff")return {w:"Coming back",k:"flat",c:"Loads pull back a step for a session or two. This is a ramp, not a reset."};
+  if(c.k==="red")return {w:"Ramping fast",k:"warn",c:"Effort has averaged "+(c.avg?c.avg.toFixed(1):"high")+" over three sessions. Hold the loads until that settles."};
+  var r=L.r;
+  if(r>=0.20)return {w:"Ramping",k:"good",c:"Doing more than usual. Keep the next one honest rather than heavier."};
+  if(r>=0.06)return {w:"Building",k:"good",c:"Up "+Math.max(1,Math.round(L.delta))+" points in the last four weeks."};
+  if(r>-0.06)return {w:"Holding",k:"flat",c:"Level with a month ago. "+(c.k==="green"?"There is room to add load.":"Repeat the loads and earn the jump.")};
+  if(r>-0.20)return {w:"Easing",k:"flat",c:"Quieter than usual. Nothing has been lost."};
+  return {w:"Coming back",k:"flat",c:"One session gets this climbing again."};
+}
 function levelRingHTML(L){
   /* Three circles and two text nodes. The third circle punches ten hairline separators through both
      the track and the arc, because 2 + 23.13 is exactly a tenth of the circumference, so the pips
@@ -3916,7 +4081,8 @@ function renderCardio(){
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
   var inBlock=tgt.restart?0:(rr.count%3),toNext=3-inBlock;
   var L=cardioLevel(),LS=levelStatus(L);
-  var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+LS.w.toLowerCase()+'</div><div class="title">Cardio</div></div></div>';
+  var h='<div class="head"><div><div class="date">Level '+L.lvl+' &middot; '+LS.w.toLowerCase()+'</div><div class="title">Cardio</div></div>'+
+    '<div class="tools">'+streakChipHTML("cardio")+'</div></div>';
   /* Top card mirrors Today: one headline, one call to action, nothing to read first. */
   /* Cardio's hero now carries the level ring itself rather than repeating a Today-shaped card and
      then showing the level underneath. The ring is the one thing this tab knows that no other tab
