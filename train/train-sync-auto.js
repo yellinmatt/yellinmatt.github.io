@@ -52,9 +52,31 @@
       sessions: Array.isArray(S.sessions) ? S.sessions : [],
       weighins: Array.isArray(S.weigh) ? S.weigh.map(function (w) { return { date: w.date, weightLb: w.w }; }) : [],
       deleted: Array.isArray(S.deleted) ? S.deleted : [],
+      /* The morning anchor and the moved-day map. These were missing until 2026-07-29, which meant
+         the declared minimum day - open the anchor, do the four movements - was the one thing in
+         the app that did not survive a second device. */
+      anchor: S.anchor && typeof S.anchor === "object" ? S.anchor : {},
+      done: S.done && typeof S.done === "object" ? S.done : {},
       progressState: S.progress || null,
       progressUpdatedAt: Date.now(),
     };
+  }
+
+  /* Anchor days merge on ticks, not on recency: the device that actually did the routine holds
+     the fuller record. Moved days merge as a logical OR, and the app recomputes them from
+     sessions and the anchor on load, so a genuine removal corrects itself there. */
+  function ticks(a) { var n = 0; for (var k in (a || {})) if (a[k]) n++; return n; }
+  function mergeAnchor(local, srv) {
+    var out = {}, k;
+    for (k in (local || {})) out[k] = local[k];
+    for (k in (srv || {})) if (!out[k] || ticks(srv[k]) > ticks(out[k])) out[k] = srv[k];
+    return out;
+  }
+  function mergeDone(local, srv) {
+    var out = {}, k;
+    for (k in (local || {})) if (local[k]) out[k] = true;
+    for (k in (srv || {})) if (srv[k]) out[k] = true;
+    return out;
   }
 
   function completeness(s) {
@@ -108,7 +130,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) lastSnap = snap; })
@@ -134,6 +156,8 @@
         S.deleted = mergeTombs(S.deleted, srv.deleted);
         S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
+        S.anchor = mergeAnchor(S.anchor, srv.anchor);
+        S.done = mergeDone(S.done, srv.done);
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
         if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) S.profile.setup = true;
@@ -154,7 +178,10 @@
     var S = { v: 2,
       profile: { setup: true, name: "", units: "lb", loc: "Miami", goalLb: 180, stretchLb: 175, rest: 90, theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null },
       progress: srv.progressState || {}, wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
-      done: {}, runs: {}, anchor: {}, deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
+      done: (srv.done && typeof srv.done === "object") ? srv.done : {},
+      runs: {},
+      anchor: (srv.anchor && typeof srv.anchor === "object") ? srv.anchor : {},
+      deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
       planPos: 0, override: {}, activeMode: "plan", genWk: null };
     S.sessions.forEach(function (s) { if (s && s.date) S.done[s.date] = true; });
