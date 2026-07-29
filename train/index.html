@@ -909,6 +909,17 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .odo2body .orow b{display:block;font-size:18px;font-weight:750;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
 .odo2body .orow span{display:block;font-size:12.5px;font-weight:500;color:var(--sub);margin-top:2px}
 
+
+/* v7.8 weight card: chart + milestone ladder */
+.wchart{overflow:visible}
+.mlad{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.mladt{display:flex;align-items:baseline;font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.mladt span{margin-left:auto;font-size:11.5px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--sub);font-variant-numeric:tabular-nums}
+.mladr{display:flex;gap:5px;margin:9px 0 7px}
+.mpip{flex:1;height:6px;border-radius:3px;background:var(--surface-2)}
+.mpip.done{background:var(--good)}
+.mpip.next{background:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 26%,transparent)}
+.mladf{font-size:12px;color:var(--faint)}
 </style>
 </head>
 <body>
@@ -954,7 +965,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.7";
+var VERSION="v7.8";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1400,20 +1411,321 @@ function trendSeries(){
   return out;
 }
 function ewma(){var t=trendSeries();return t.length?t[t.length-1].v:null;}
-/* Honest weight model shared by the cut card + trend. Realized pace only when data is FRESH
-   (>=3 weigh-ins in the last 28 days spanning >=5 days); otherwise show a goal-oriented plan
-   at a healthy target rate (~0.7% bodyweight/wk, clamped 0.5-1.5 lb/wk). Flags staleness. */
+/* ============ WEIGHT, v7.8 ============
+   Built to `Health/Daily-Tool/research/WEIGHT-SPEC-2026-07-28.md`, which is settled. The one
+   sentence the spec turns on: the old card SMOOTHED IN READING-SPACE AND REASONED IN
+   ENDPOINT-SPACE, when it should smooth in time-space and reason in regression-space. v7.x fixed
+   the first half by making the smoother time-weighted. This fixes the second half.
+   What changed and why it matters more than it looks:
+   - The rate was `(cur - first)/days*7`, which throws away every reading in between and inherits
+     the full noise of both endpoints. It is now an ordinary least squares slope on the RAW weights,
+     carrying its own standard error. Raw rather than smoothed, deliberately: successive trend
+     values are autocorrelated by construction, so regressing the trend understates the true
+     uncertainty badly, and this card needs an honest error bar more than a stable third decimal.
+   - That error bar is the point. On Matthew's actual pattern, four weekly weigh-ins in a month,
+     SE on the weekly rate is about 0.67 lb/wk. The old fixed +/-0.15 gate therefore declared a
+     direction on pure noise roughly half the time, and then printed it to one decimal place. The
+     gate is now max(0.15, k x SE), and the number is never printed, only its word band.
+   - A slow but real loser used to be told "holding steady" forever by a fixed 28-day window. The
+     window now widens 28 -> 56 -> 84 until it has the data AND clears its gate, with a 1.5x
+     multiplicity penalty on the wider looks. The window actually used is always named in the copy.
+   - The hero is the TREND, with the raw scale reading demoted beneath it. Raw stays visible,
+     because hiding what he read off the scale sixty seconds ago would be its own lie. */
+var WSPAN_MIN={28:14,56:28,84:42},WMIN_N={28:3,56:4,84:5},WGATE_K={28:1.0,56:1.5,84:1.5};
+/* The user's own scale noise, as the RMSE of raw weights about the trend over 90 days. Until 90
+   days of data exist this falls back to 1.5 lb, which is the conservative middle of Walker's own
+   7 lb range across a flat month, TrendWeight's "3-5 lb in a day" and MacroFactor's "a few". */
+function sUser(){
+  var tr=trendSeries(),n=0,ss=0;
+  for(var i=0;i<S.weigh.length;i++){
+    if(daysBetween(S.weigh[i].date,TODAY)>90)continue;
+    var d=S.weigh[i].w-tr[i].v;ss+=d*d;n++;
+  }
+  if(n<8)return 1.5;
+  return Math.max(0.6,Math.min(3.0,Math.sqrt(ss/n)));
+}
+/* OLS on the raw weights inside a window. Returns null when the window cannot support a fit. */
+function olsFit(win){
+  var pts=[],t0=null;
+  for(var i=0;i<S.weigh.length;i++){
+    var ago=daysBetween(S.weigh[i].date,TODAY);
+    if(ago>win||ago<0)continue;
+    if(t0===null)t0=S.weigh[i].date;
+    pts.push({x:daysBetween(t0,S.weigh[i].date),y:S.weigh[i].w});
+  }
+  var n=pts.length;if(n<3)return null;
+  var span=pts[n-1].x-pts[0].x;
+  var mx=0,my=0;pts.forEach(function(p){mx+=p.x;my+=p.y;});mx/=n;my/=n;
+  var sxx=0,sxy=0;pts.forEach(function(p){sxx+=(p.x-mx)*(p.x-mx);sxy+=(p.x-mx)*(p.y-my);});
+  if(sxx<=0)return null;
+  var b=sxy/sxx;
+  var ss=0;pts.forEach(function(p){var e=p.y-(my+b*(p.x-mx));ss+=e*e;});
+  /* With n = 3 the residual SD has one degree of freedom and is worthless, so it is floored by the
+     user's own long-run scale noise. */
+  var sFit=(n>2)?Math.sqrt(ss/(n-2)):0;
+  var s=Math.max(sFit,sUser(),0.6);
+  return {n:n,span:span,rate:7*b,se:7*(s/Math.sqrt(sxx))};
+}
 function weightStats(){
   if(!S.weigh.length)return null;
-  var latest=S.weigh[S.weigh.length-1],cur=latest.w,goal=S.profile.goalLb,to=cur-goal;
+  var tr=trendSeries(),T=tr[tr.length-1].v;
+  var latest=S.weigh[S.weigh.length-1];
+  var goal=S.profile.goalLb;
   var ageDays=daysBetween(latest.date,TODAY);
-  var rate=null,rec=[];for(var i=0;i<S.weigh.length;i++){if(daysBetween(S.weigh[i].date,TODAY)<=28)rec.push(i);}
-  if(rec.length>=3){var f=rec[0],days=(new Date(latest.date)-new Date(S.weigh[f].date))/86400000;if(days>=5)rate=(cur-S.weigh[f].w)/days*7;}
-  var unit=(U()==="kg")?2.20462:1; // ~0.7% BW/wk target, clamp to a healthy band
-  var tRate=Math.max(0.5/unit,Math.min(1.5/unit,Math.round(cur*0.007*10)/10));
-  var wks=(to>0.3)?Math.ceil(to/tRate):0;
-  return {cur:cur,goal:goal,to:to,ageDays:ageDays,rate:rate,tRate:tRate,wks:wks,stale:ageDays>10,n:S.weigh.length,recent:rec.length};
+  var rec=0;for(var i=0;i<S.weigh.length;i++)if(daysBetween(S.weigh[i].date,TODAY)<=28)rec++;
+  /* Shortest window that has the data and clears its own gate. */
+  var chosen=null;
+  [28,56,84].forEach(function(w){
+    if(chosen)return;
+    var f=olsFit(w);
+    if(!f||f.n<WMIN_N[w]||f.span<WSPAN_MIN[w])return;
+    var gate=Math.max(0.15,WGATE_K[w]*f.se);
+    if(Math.abs(f.rate)>=gate)chosen={win:w,fit:f,gate:gate};
+  });
+  /* Nothing cleared: report the widest window that at least had the data, so the copy can name a
+     real gate rather than an imaginary one. */
+  var fallback=null;
+  if(!chosen){
+    [84,56,28].forEach(function(w){
+      if(fallback)return;
+      var f=olsFit(w);
+      if(f&&f.n>=WMIN_N[w]&&f.span>=WSPAN_MIN[w])fallback={win:w,fit:f,gate:Math.max(0.15,WGATE_K[w]*f.se)};
+    });
+  }
+  var use=chosen||fallback;
+  var band=(U()==="kg")?1.134:2.5;
+  return {trend:T,raw:latest.w,rawDate:latest.date,cur:T,goal:goal,to:T-goal,
+    ageDays:ageDays,recent:rec,n:S.weigh.length,
+    rate:chosen?chosen.fit.rate:null,se:use?use.fit.se:null,win:use?use.win:null,
+    fitN:use?use.fit.n:0,gate:use?use.gate:null,called:!!chosen,
+    inBand:Math.abs(T-goal)<=band,band:band,stale:ageDays>10,
+    minTrend:tr.reduce(function(a,x){return Math.min(a,x.v);},tr[0].v)};
 }
+/* Three states about the body, four non-states about the DATA. Never more. */
+function trendState(){
+  var st=weightStats();
+  if(!st)return {state:"none"};
+  if(st.ageDays>=28)return {state:"dead",st:st};
+  if(st.ageDays>=11)return {state:"gone",st:st};
+  if(!st.win||st.recent<3)return {state:"thin",st:st};
+  if(!st.called)return {state:"flat",st:st,rate:st.rate};
+  return {state:(st.rate<0?"down":"up"),st:st,rate:st.rate};
+}
+/* Never toFixed a rate. Word bands, plus a qualifier chosen from the standard error, so the
+   sentence carries its own confidence. */
+function rateWords(r,se){
+  var kg=(U()==="kg"),a=Math.abs(r)*(kg?1/2.20462:1);
+  var band;
+  if(kg){
+    band=(a<0.11)?"a tenth of a kilo":(a<0.18)?"a quarter kilo":(a<0.32)?"half a kilo":
+         (a<0.45)?"three quarters of a kilo":(a<0.8)?"a kilo":(Math.round(a*2)/2)+" kilos";
+  }else{
+    band=(a<0.40)?"a quarter pound a week":(a<0.70)?"half a pound a week":(a<1.20)?"a pound a week":
+         (a<1.70)?"a pound and a half a week":(a<2.50)?"two pounds a week":(Math.round(a*2)/2)+" pounds a week";
+  }
+  var qual=(se!=null&&se>0.5*Math.abs(r))?"somewhere around ":"about ";
+  return qual+band;
+}
+/* ---- MILESTONES ----
+   Absolute weights on a round ladder anchored to multiples of the step, so a mark never moves when
+   the current weight moves. The step floors at 2 lb because a 1 lb mark sits inside scale noise and
+   would be crossed and un-crossed by hydration alone. */
+function milestoneLadder(){
+  var st=weightStats();if(!st)return [];
+  var start=S.weigh[0].w,goal=st.goal,dist=start-goal;
+  if(dist<=0.5)return [goal];
+  var step=[2,2.5,5,10].filter(function(s){return Math.ceil(dist/s)<=8;})[0]||10;
+  var out=[],v=Math.floor((start-0.001)/step)*step;
+  while(v>goal+0.001){out.push(Math.round(v*10)/10);v-=step;}
+  out.push(goal);
+  return out;
+}
+/* Reached is judged on the MINIMUM TREND, never on the best raw weigh-in. One dehydrated morning
+   must not ratchet a milestone permanently and leave him "un-losing" a pound he never lost. The set
+   of reached marks is monotone, so a milestone can never un-complete, and it needs no stored state,
+   so it survives an export, an import and a cleared cache. */
+function nextMilestone(){
+  var st=weightStats();if(!st)return null;
+  var lad=milestoneLadder();
+  for(var i=0;i<lad.length;i++)if(st.minTrend>lad[i]+0.001)return lad[i];
+  return null;
+}
+function monthThird(d){var day=d.getDate();return day<=10?"early":day<=20?"mid":"late";}
+function mName(d){return d.toLocaleDateString(undefined,{month:"long"});}
+/* A point ETA jitters because the rate jitters and the division amplifies it. Defence: compute a
+   RANGE, then quantise the ANSWER to thirds of a month rather than quantising the input, so a five
+   day wobble usually prints the same words. And refuse outright when the range is not a range. */
+function milestoneLine(t){
+  var st=t.st;if(!st)return "";
+  if(st.inBand){
+    return '<div class="anote" style="margin-top:10px">Inside your maintenance range, '+
+      (st.goal-st.band).toFixed(1)+' to '+(st.goal+st.band).toFixed(1)+' '+wLbl()+'. The job now is staying here.</div>';
+  }
+  var mark=nextMilestone();
+  if(mark==null)return "";
+  var d=st.trend-mark;
+  if(d<=0.05)return "";
+  if(t.state!=="down"||st.rate==null||st.se==null)
+    return '<div class="anote" style="margin-top:10px">Next mark <b>'+mark+' '+wLbl()+'</b>, '+d.toFixed(1)+' '+wLbl()+' away. No date until the trend has a direction.</div>';
+  var a=Math.abs(st.rate);
+  if(a<=st.se)return '<div class="anote" style="margin-top:10px">Next mark <b>'+mark+' '+wLbl()+'</b>, '+d.toFixed(1)+' '+wLbl()+' away.</div>';
+  var rf=(a+st.se)/7,rs=Math.max(0.01,(a-st.se)/7);
+  var tf=d/rf,ts=d/rs;
+  if(ts>112)return '<div class="anote" style="margin-top:10px">Next mark <b>'+mark+' '+wLbl()+'</b>, '+d.toFixed(1)+' '+wLbl()+' away. Too far out to put a date on.</div>';
+  var df=new Date(NOW);df.setDate(df.getDate()+Math.round(tf));
+  var ds=new Date(NOW);ds.setDate(ds.getDate()+Math.round(ts));
+  var when;
+  if(mName(df)===mName(ds)&&monthThird(df)===monthThird(ds))when="around "+monthThird(df)+" "+mName(df);
+  else if(mName(df)===mName(ds))when="somewhere from "+monthThird(df)+" to "+monthThird(ds)+" "+mName(df);
+  else when="somewhere from "+monthThird(df)+" "+mName(df)+" into "+mName(ds);
+  return '<div class="anote" style="margin-top:10px">Next mark <b>'+mark+' '+wLbl()+'</b>, on this trend '+when+'.</div>';
+}
+/* ---- THE CHART ----
+   Two rules do most of the work. The x axis is TIME, at every reading count, so two weigh-ins two
+   hundred days apart sit at opposite ends with nothing between them rather than adjacent like a
+   two-day pair. And the viewBox is built at the measured pixel width instead of being stretched by
+   preserveAspectRatio, which is what used to smear every stroke into a wedge and every circle into
+   an ellipse on a wide container. */
+function chartW(){
+  var app=document.querySelector(".app");
+  var w=app?app.clientWidth-38:332;
+  return Math.max(296,Math.min(470,Math.round(w)));
+}
+function trendChart(){
+  var st=weightStats();if(!st)return "";
+  var t=trendState(),tr=trendSeries();
+  if(S.weigh.length<2)return '<div class="ksub" style="margin:10px 0 0">One weigh-in. A second one starts the chart.</div>';
+  var W=chartW(),H=132,pl=3,pr=W-40,pt=12,pb=H-16,pw=pr-pl,ph=pb-pt;
+  var todayX=pl+0.76*pw,histW=todayX-pl,futW=pr-todayX;
+  /* D widens in 28-day steps until it holds five readings, so one rule serves a daily weigher and
+     someone with five readings across seven months. The chosen D is named in the legend, so the
+     axis is never anonymous. */
+  var D=84;
+  while(D<365){var c=0;for(var i=0;i<S.weigh.length;i++)if(daysBetween(S.weigh[i].date,TODAY)<=D)c++;if(c>=5)break;D+=28;}
+  var shown=[],shownT=[];
+  for(var i=0;i<S.weigh.length;i++){
+    var ago=daysBetween(S.weigh[i].date,TODAY);
+    if(ago<=D&&ago>=0){shown.push(S.weigh[i]);shownT.push(tr[i]);}
+  }
+  if(shown.length<2){D=365;shown=S.weigh.slice();shownT=tr.slice();}
+  var ws=shown.map(function(p){return p.w;}).concat(shownT.map(function(p){return p.v;}));
+  var lo=Math.min.apply(null,ws),hi=Math.max.apply(null,ws),range=hi-lo;
+  var goal=st.goal,goalIn=(goal>=lo-1.4*Math.max(range,1));
+  if(goalIn)lo=Math.min(lo,goal);
+  var pad=Math.max(1.0,0.06*(hi-lo));
+  var yMin=lo-pad,yMax=hi+pad;
+  function X(dateK){var ago=daysBetween(dateK,TODAY);return pl+Math.max(0,Math.min(1,1-ago/D))*histW;}
+  function XF(days){return todayX+Math.max(0,Math.min(1,days/56))*futW;}
+  function Y(v){return pt+(1-(v-yMin)/(yMax-yMin))*ph;}
+  var g='';
+  /* Maintenance band and goal line. */
+  if(goalIn){
+    g+='<rect x="'+pl+'" y="'+Y(goal+st.band).toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+Math.abs(Y(goal-st.band)-Y(goal+st.band)).toFixed(1)+'" fill="var(--good)" opacity=".07"/>';
+    g+='<line x1="'+pl+'" y1="'+Y(goal).toFixed(1)+'" x2="'+pr.toFixed(1)+'" y2="'+Y(goal).toFixed(1)+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="4 4" opacity=".5" vector-effect="non-scaling-stroke"/>';
+  }else{
+    g+='<path d="M'+(pr-6).toFixed(1)+' '+(pb+2)+' l7 0 l-3.5 5 z" fill="var(--good)" opacity=".6"/>';
+  }
+  g+='<line x1="'+todayX.toFixed(1)+'" y1="'+pt+'" x2="'+todayX.toFixed(1)+'" y2="'+pb+'" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+  /* The projection wedge, bounded by rate +/- SE and capped at the next mark and eight weeks. It is
+     supposed to look like an uncomfortable amount of uncertainty, because it is one. */
+  var drawTrend=(t.state==="down"||t.state==="up"||t.state==="flat"||t.state==="gone");
+  if(t.state==="down"&&st.rate!=null&&st.se!=null&&!st.inBand){
+    var a=Math.abs(st.rate),rf=a+st.se,rs=Math.max(0.05,a-st.se);
+    var mk=nextMilestone(),dRem=(mk!=null)?(st.trend-mk):(st.trend-goal);
+    var Hd=Math.min(56,Math.max(7,Math.round(dRem/(rf/7))));
+    var T0=st.trend,xh=XF(Hd);
+    var yf=Y(Math.max(yMin,T0-rf*Hd/7)),ys=Y(Math.max(yMin,T0-rs*Hd/7)),ym=Y(Math.max(yMin,T0-a*Hd/7));
+    var lx=X(st.rawDate);
+    g+='<path d="M'+lx.toFixed(1)+' '+Y(T0).toFixed(1)+' L'+xh.toFixed(1)+' '+yf.toFixed(1)+' L'+xh.toFixed(1)+' '+ys.toFixed(1)+' Z" fill="var(--accent)" opacity=".09"/>';
+    g+='<path d="M'+lx.toFixed(1)+' '+Y(T0).toFixed(1)+' L'+xh.toFixed(1)+' '+ym.toFixed(1)+'" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 4" opacity=".3" vector-effect="non-scaling-stroke"/>';
+  }
+  /* Strings tie each raw reading to the trend at that date, which is the picture of how far a
+     single morning can lie. Dropped past 24 points, where they become hatching. */
+  if(shown.length<=24){
+    for(var i=0;i<shown.length;i++)
+      g+='<line x1="'+X(shown[i].date).toFixed(1)+'" y1="'+Y(shown[i].w).toFixed(1)+'" x2="'+X(shown[i].date).toFixed(1)+'" y2="'+Y(shownT[i].v).toFixed(1)+'" stroke="var(--line)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+  }
+  var rr=(shown.length>60)?1.6:2.4,ro=(shown.length>60)?.35:.5;
+  for(var i=0;i<shown.length;i++)
+    g+='<circle cx="'+X(shown[i].date).toFixed(1)+'" cy="'+Y(shown[i].w).toFixed(1)+'" r="'+rr+'" fill="var(--faint)" opacity="'+ro+'"/>';
+  if(drawTrend&&shownT.length>=2){
+    var d="",prev=null;
+    for(var i=0;i<shownT.length;i++){
+      var gap=prev?daysBetween(prev,shownT[i].date):0;
+      d+=((!prev||gap>21)?"M":"L")+X(shownT[i].date).toFixed(1)+" "+Y(shownT[i].v).toFixed(1)+" ";
+      prev=shownT[i].date;
+    }
+    var col=(t.state==="gone"||t.state==="dead")?"var(--faint)":"var(--accent)";
+    g+='<path d="'+d.trim()+'" fill="none" stroke="'+col+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+    var lx2=X(shownT[shownT.length-1].date),ly=Y(shownT[shownT.length-1].v);
+    if(st.ageDays>3)g+='<line x1="'+lx2.toFixed(1)+'" y1="'+ly.toFixed(1)+'" x2="'+todayX.toFixed(1)+'" y2="'+ly.toFixed(1)+'" stroke="var(--faint)" stroke-width="1" stroke-dasharray="1 3" opacity=".5" vector-effect="non-scaling-stroke"/>';
+    g+='<circle cx="'+lx2.toFixed(1)+'" cy="'+ly.toFixed(1)+'" r="3.5" fill="'+col+'" stroke="var(--surface)" stroke-width="1.5"/>';
+    var yl1=Math.max(16,Math.min(120,ly)),yl2=goalIn?Math.max(16,Math.min(120,Y(goal))):null;
+    if(yl2!=null&&Math.abs(yl1-yl2)<12){var def=(12-Math.abs(yl1-yl2))/2;if(yl1<yl2){yl1-=def;yl2+=def;}else{yl1+=def;yl2-=def;}}
+    g+='<text x="'+(pr+4)+'" y="'+(yl1+3).toFixed(1)+'" font-size="10" font-weight="700" fill="var(--accent)" class="num">'+st.trend.toFixed(1)+'</text>';
+    if(yl2!=null)g+='<text x="'+(pr+4)+'" y="'+(yl2+3).toFixed(1)+'" font-size="10" font-weight="700" fill="var(--good)" class="num">'+goal+'</text>';
+  }
+  var dW=Math.round(D/7);
+  var left=(D>84)?("last "+shown.length+" weigh-ins, since "+shortDate(shown[0].date)):("last "+dW+" weeks");
+  var aria="Weight "+(t.state==="down"?"trending down":t.state==="up"?"trending up":"holding steady")+
+    ", currently "+st.trend.toFixed(1)+" "+wLbl()+", goal "+goal+".";
+  return '<svg class="wchart" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%;height:'+H+'px;display:block;margin:12px 0 0" role="img" aria-label="'+esc(aria)+'">'+g+'</svg>'+
+    '<div class="wlegend"><span>'+left+'</span><span>trend, ~10-day smoothing</span></div>';
+}
+/* ---- THE READOUT ----
+   Six slots, and the inversion that matters is the first two: the hero is the trend, the scale
+   reading is the footnote under it. Every sentence names its window and its sample size, because a
+   rate with no stated basis is noise wearing a decimal point. */
+function weightCardHTML(){
+  var st=weightStats();
+  var head='<h3><span>Weight</span><span class="t">'+(st?(st.raw.toFixed(1)+' '+wLbl()+' on the scale'):'not logged yet')+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
+  if(!st)return '<div class="card">'+head+'<div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+S.profile.goalLb+'.</div></div>';
+  var t=trendState();
+  var title,tone;
+  if(t.state==="down"){title="Trending down";tone="down";}
+  else if(t.state==="up"){title="Trending up";tone="up";}
+  else if(t.state==="flat"){title="Holding steady";tone="flat";}
+  else if(t.state==="thin"){title="Not enough weigh-ins yet";tone="thin";}
+  else if(t.state==="gone"){title="Nothing logged for "+st.ageDays+" days";tone="thin";}
+  else {title="No weigh-ins in the last four weeks";tone="thin";}
+  var W=st.win?Math.round(st.win/7):null,sub;
+  if(t.state==="thin")
+    sub=st.recent+' weigh-in'+(st.recent===1?'':'s')+' in the last 28 days. Three, at least two weeks apart, is where this starts reading your real pace.';
+  else if(t.state==="gone")
+    sub='Last weigh-in was '+st.ageDays+' days ago, so there is nothing current to read. The dots are still your history; the trend needs new data.';
+  else if(t.state==="dead")
+    sub='No weigh-ins in the last four weeks. The dots are still your history; the trend needs new data.';
+  else if(t.state==="flat")
+    sub='Level within the noise over the last '+W+' weeks. At '+st.fitN+' weigh-ins, anything under '+rateWords(st.gate,0).replace(/^about /,'')+' is not measurable.'+(st.inBand?' You are inside your maintenance range.':'');
+  else
+    sub=(t.state==="down"?'Down ':'Up ')+rateWords(st.rate,st.se)+' over the last '+W+' weeks, from '+st.fitN+' weigh-ins.';
+  if(st.ageDays>=4&&st.ageDays<=10&&(t.state==="down"||t.state==="up"||t.state==="flat"))
+    sub+=' As of '+shortDate(st.rawDate)+'.';
+  return '<div class="card">'+head+
+    '<div class="wtop"><div><div class="wbig num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wwhen">'+st.raw.toFixed(1)+' on the scale, '+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
+    '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
+    trendChart()+
+    '<div class="wstate" data-s="'+tone+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
+    milestoneLine(t)+
+    ladderHTML()+'</div>';
+}
+/* The ladder itself, as a row of marks. Reached is monotone, so this is a record rather than a
+   scoreboard that can take a step backwards. */
+function ladderHTML(){
+  var st=weightStats();if(!st)return "";
+  var lad=milestoneLadder();if(lad.length<2)return "";
+  var nx=nextMilestone();
+  var pips=lad.slice().reverse().map(function(m){
+    var done=(st.minTrend<=m+0.001),isNext=(m===nx);
+    return '<span class="mpip'+(done?" done":"")+(isNext?" next":"")+'" title="'+m+' '+wLbl()+'"></span>';
+  }).join("");
+  var got=lad.filter(function(m){return st.minTrend<=m+0.001;}).length;
+  return '<div class="mlad"><div class="mladt">Milestones<span>'+got+' of '+lad.length+'</span></div>'+
+    '<div class="mladr">'+pips+'</div>'+
+    '<div class="mladf">'+lad[lad.length-1]+' '+wLbl()+' goal, in steps of '+(Math.round((lad[0]-lad[1])*10)/10)+'</div></div>';
+}
+
 function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));var day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day+3);var f=new Date(Date.UTC(d.getUTCFullYear(),0,4));var w=1+Math.round(((d-f)/86400000-3+((f.getUTCDay()+6)%7))/7);return d.getUTCFullYear()+"-W"+("0"+w).slice(-2);}
 
 /* ============ router ============ */
@@ -1537,44 +1849,10 @@ function toggleAnchor(i,btn){
    forecast and demoted the one measured number to grey. Now: the headline is one of three states,
    every rate is hedged, the only date given is the NEXT milestone rather than the final goal, and
    the card refuses to draw a trend at all until there are enough weigh-ins to mean something. */
-function milestones(){
-  var st=weightStats();if(!st)return [];
-  var out=[],v=Math.floor((st.cur-0.01)/2)*2;
-  while(v>st.goal){out.push(v);v-=2;}
-  out.push(st.goal);
-  return out;
-}
-function trendState(){
-  var st=weightStats();
-  if(!st)return {state:"none"};
-  /* Gate: a line through two points months apart is not a trend, it is a rumour. */
-  if(st.recent<3)return {state:"thin",st:st};
-  if(st.stale)return {state:"stale",st:st};
-  if(st.rate==null)return {state:"thin",st:st};
-  var r=st.rate;
-  var state=(r<=-0.15)?"down":(r>=0.15)?"up":"flat";
-  return {state:state,st:st,rate:r};
-}
-function rateWords(r){
-  var a=Math.abs(r);
-  if(a<0.15)return "level";
-  if(a<0.4)return "about a quarter pound a week";
-  if(a<0.7)return "about half a pound a week";
-  if(a<1.2)return "about a pound a week";
-  if(a<1.7)return "about a pound and a half a week";
-  return "about "+(Math.round(a*2)/2)+" pounds a week";
-}
-function milestoneLine(t){
-  if(!t.rate||t.rate>=-0.05)return "";
-  var ms=milestones();if(!ms.length)return "";
-  var next=ms[0],away=t.st.cur-next;
-  if(away<=0.05)return "";
-  var wks=away/(-t.rate);
-  if(!isFinite(wks)||wks>26)return "";
-  var d=new Date(NOW);d.setDate(d.getDate()+Math.round(wks*7));
-  var when=d.toLocaleDateString(undefined,{month:"long",day:"numeric"});
-  return '<div class="anote" style="margin-top:10px">Next mark <b>'+next+' '+wLbl()+'</b>, on this trend around '+when+'.</div>';
-}
+
+
+
+
 /* Today gets the ACTION, Track gets the ANALYSIS. Duplicating the full trend card on both tabs
    made Today a second Track and blurred what each tab is for. */
 function weightLogCardHTML(){
@@ -1588,55 +1866,8 @@ function weightLogCardHTML(){
     (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
     '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
 }
-function weightCardHTML(){
-  var st=weightStats(),t=trendState();
-  var _lw=(S.weigh&&S.weigh.length)?S.weigh[S.weigh.length-1]:null;
-  var head='<h3><span>Weight</span><span class="t">'+(_lw?(_lw.w+' '+wLbl()):'not logged yet')+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
-  if(!st)return '<div class="card">'+head+'<div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+S.profile.goalLb+'.</div></div>';
-  var title=(t.state==="down")?"Trending down":(t.state==="up")?"Trending up":(t.state==="flat")?"Holding steady":"Not enough weigh-ins yet";
-  var sub;
-  if(t.state==="thin")sub='Only '+st.recent+' weigh-in'+(st.recent===1?"":"s")+' in the last 28 days. Log a few more and this starts reading your real pace.';
-  else if(t.state==="stale")sub='Last weigh-in was '+st.ageDays+' days ago, so there is nothing current to read.';
-  else sub='Down '+rateWords(t.rate)+' over the last four weeks.';
-  if(t.state==="up")sub='Up '+rateWords(t.rate)+' over the last four weeks.';
-  if(t.state==="flat")sub='Level within the noise over the last four weeks.';
-  return '<div class="card">'+head+
-    '<div class="wtop"><div><div class="wbig num">'+st.cur.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wwhen">'+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
-    '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
-    trendChart()+
-    '<div class="wstate" data-s="'+t.state+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
-    milestoneLine(t)+'</div>';
-}
-function trendChart(){
-  var st=weightStats();if(!st||S.weigh.length<2)return "";
-  var t=trendState(),draw=(t.state==="down"||t.state==="up"||t.state==="flat");
-  var pts=S.weigh.slice(-40),tr=trendSeries().slice(-40);
-  var goal=st.goal,ws=pts.map(function(p){return p.w;});
-  var mn=Math.min.apply(null,ws.concat([goal]))-1.2,mx=Math.max.apply(null,ws)+1.2;
-  var W=332,H=132,pad=8;
-  /* A DATE scale, not an index scale. Sparse readings must sit where they actually happened or the
-     line lies about how fast anything moved. */
-  var t0=new Date(pts[0].date).getTime(),t1=new Date(pts[pts.length-1].date).getTime();
-  var span=Math.max(t1-t0,86400000);
-  function x(dt){return pad+((new Date(dt).getTime()-t0)/span)*(W-2*pad);}
-  function y(v){return pad+(1-(v-mn)/((mx-mn)||1))*(H-2*pad);}
-  var gy=y(goal).toFixed(1);
-  var dots=pts.map(function(p){return '<circle cx="'+x(p.date).toFixed(1)+'" cy="'+y(p.w).toFixed(1)+'" r="2.2" fill="var(--faint)" opacity=".6"/>';}).join("");
-  var line=draw?('<path d="'+tr.map(function(p,i){return (i?"L":"M")+x(p.date).toFixed(1)+" "+y(p.v).toFixed(1);}).join(" ")+'" fill="none" stroke="'+(t.state==="stale"?"var(--faint)":"var(--accent)")+'" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>'):"";
-  var last=tr[tr.length-1];
-  var endDot=draw?('<circle cx="'+x(last.date).toFixed(1)+'" cy="'+y(last.v).toFixed(1)+'" r="3.5" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>'):"";
-  var wedge="";
-  if(draw&&t.rate&&t.rate<-0.05&&st.to>0.3){
-    var x0=x(last.date),y0=y(last.v);
-    var fastY=y(Math.max(goal-0.5,last.v+t.rate*1.4*4)),slowY=y(Math.max(goal-0.5,last.v+t.rate*0.6*4));
-    wedge='<path d="M'+x0.toFixed(1)+' '+y0.toFixed(1)+' L'+(W-pad)+' '+fastY.toFixed(1)+' L'+(W-pad)+' '+slowY.toFixed(1)+' Z" fill="var(--accent)" opacity=".10"/>';
-  }
-  return '<div class="wchart"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Weight trend">'+
-    '<line x1="0" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="4 4" opacity=".6"/>'+
-    wedge+dots+line+endDot+'</svg>'+
-    '<div class="wlegend"><span>goal '+goal+'</span><span>'+(draw?"trend, ten-day smoothing":S.weigh.length+" weigh-ins")+'</span></div></div>';
-}
+
+
 
 /* the cut, kept light: where you are, how fast it's coming off, one tap to log */
 /* ============ change-today ============ */
