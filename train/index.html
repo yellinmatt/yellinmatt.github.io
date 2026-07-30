@@ -4931,6 +4931,13 @@ document.addEventListener("visibilitychange",function(){var woOn=document.getEle
 renderToday();
 
 </script>
-<script src="train-sync-auto.js"></script>
+<script>
+/* v7.10. The sync script was referenced with a bare src, and Pages serves it with max-age=600, so
+   after every change to it each device kept running the OLD sync code for up to ten minutes, and
+   longer behind the service worker. That is how a sync fix ships and appears not to work. Loading
+   it with the app's own VERSION appended means the URL changes on every release and the two can
+   never drift apart, because the version is read from the constant rather than typed twice. */
+(function(){var s=document.createElement("script");s.src="train-sync-auto.js?v="+VERSION;s.async=false;document.body.appendChild(s);})();
+</script>
 </body>
 </html>
