@@ -920,6 +920,31 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .mpip.done{background:var(--good)}
 .mpip.next{background:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 26%,transparent)}
 .mladf{font-size:12px;color:var(--faint)}
+
+/* v7.10 Settings. The selected segment used var(--surface), which in dark mode is DARKER than the
+   var(--surface-2) track, so selection read as a hole rather than a raised chip. A dedicated chip
+   colour, genuinely lighter than its track in dark and white in light. */
+:root{--seg-chip:var(--surface)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--seg-chip:#333B46}}
+html[data-theme="dark"]{--seg-chip:#333B46}
+html[data-theme="light"]{--seg-chip:#FFFFFF}
+.seg button.sel{background:var(--seg-chip);color:var(--ink);box-shadow:var(--shadow)}
+/* One control width, so the right edge of the sheet is a line rather than a ragged margin. */
+.ctlw{width:176px;flex:none}
+.ctlw .seg,.ctlw .stp,.ctlw .wbtn{width:100%;max-width:none}
+.logrow label{min-width:0;padding-right:12px}
+.stp .num{min-width:46px;text-align:center;font-weight:700}
+/* A status row that carries a light, a finding, and the one action that changes it. */
+.cadrow{display:flex;align-items:flex-start;gap:11px;background:var(--surface-2);border-radius:13px;padding:13px 14px;margin:10px 0 2px}
+.cadrow .caddot{width:8px;height:8px;border-radius:50%;flex:none;margin-top:5px;background:var(--faint)}
+.cadrow[data-rag="good"] .caddot{background:var(--good)}
+.cadrow[data-rag="amber"] .caddot{background:var(--amber)}
+.cadrow[data-rag="red"] .caddot{background:var(--accent)}
+.cadrow>div{flex:1;min-width:0}
+.cadrow .cadt{font-size:14px;font-weight:700;color:var(--ink)}
+.cadrow .cads{font-size:12.5px;line-height:1.5;color:var(--sub);margin-top:3px}
+.cadrow .wbtn{flex:none;align-self:center;max-width:104px}
+.sheet-cta.ghost svg{width:17px;height:17px;margin-right:7px;vertical-align:-3px}
 </style>
 </head>
 <body>
@@ -965,7 +990,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 
 <script>
 "use strict";
-var VERSION="v7.9";
+var VERSION="v7.10";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3859,38 +3884,115 @@ function setMode(m,b){if(S.profile.mode!==m){S.profile.mode=m;if(m==="db"){var e
 function setBwFactor(d){var v=Math.max(20,Math.min(100,Math.round(bwFactor()*100)+d));S.profile.bwFactor=v;var el=document.getElementById("bwf-set");if(el)el.textContent=v+"%";save();}
 function setGoal(d){S.profile.goalLb=Math.max(120,Math.min(400,(S.profile.goalLb||180)+d));var el=document.getElementById("goal-set");if(el)el.textContent=S.profile.goalLb;save();}
 function startEaseIn(){S.profile.programStart=TODAY;if(S.wk[TODAY]&&!S.wk[TODAY].start&&S.wk[TODAY].letter!=="Gen")delete S.wk[TODAY];save();closeSheet();toast("2-week ease-in started. Lighter volume, then full.",null);renderToday();}
+/* ============ SETTINGS, v7.10 ============
+   Visual and functional, per Matthew. v7.2 only regrouped it.
+   The visual defect was one line of CSS wearing a disguise: `.seg button.sel` used `var(--surface)`,
+   which in DARK mode is DARKER than the `--surface-2` track, so the selected option read as a hole
+   punched in the control rather than a raised chip. Every segmented control in the app looked
+   broken, and the fix is a dedicated `--seg-chip` that is genuinely lighter than its track in dark
+   and white in light. The second visual defect was arithmetic: every control carried its own
+   hand-set max-width (210, 150, 120, 190, 160), so nothing lined up down the right edge. One width.
+   Functionally it gained the four things it could not do: force a sync and see the real outcome,
+   restore from a backup file (export existed, import was written but never exposed here), set the
+   stretch goal that has been in the profile all along with no UI, and see the weigh-in cadence,
+   which this session proved is the single thing gating the whole weight card. */
+var CTLW="176px";
+function srow(label,cap,ctl){
+  return '<div class="logrow"><label>'+label+(cap?'<div class="skc" style="font-weight:500">'+cap+'</div>':'')+'</label>'+
+    '<div class="ctlw">'+ctl+'</div></div>';
+}
+function segCtl(opts){
+  return '<div class="seg">'+opts.map(function(o){
+    return '<button class="'+(o[2]?"sel":"")+'" onclick="'+o[1]+'">'+o[0]+'</button>';}).join("")+'</div>';
+}
+function stepCtl(minus,plus,val,unit,id){
+  return '<div class="stp"><button onclick="'+minus+'" aria-label="lower">&minus;</button>'+
+    '<span class="num"'+(id?' id="'+id+'"':'')+'>'+val+'</span>'+(unit?'<span class="u">'+unit+'</span>':'')+
+    '<button onclick="'+plus+'" aria-label="raise">+</button></div>';
+}
+/* Cadence is reported, never nagged. The card refuses to measure a rate for a stated reason, so
+   Settings states the same reason in the same words rather than inventing a second vocabulary. */
+function cadenceLine(){
+  var st=weightStats();
+  if(!st)return {rag:"none",t:"No weigh-ins yet",s:"One number switches on the protein target, the volume maths and the whole Track tab."};
+  var spans=[];for(var i=0;i<S.weigh.length;i++)if(daysBetween(S.weigh[i].date,TODAY)<=28)spans.push(S.weigh[i].date);
+  var span=spans.length>1?daysBetween(spans[0],spans[spans.length-1]):0;
+  if(spans.length<3)return {rag:"red",t:spans.length+" weigh-in"+(spans.length===1?"":"s")+" in 28 days",s:"Three is the minimum. Below that there is nothing to fit a line to."};
+  if(span<14)return {rag:"amber",t:spans.length+" weigh-ins, but only "+span+" days apart",s:"Three readings inside two weeks cannot separate a real trend from scale noise. Spread them out and the card starts measuring."};
+  return {rag:"good",t:spans.length+" weigh-ins across "+span+" days",s:"Enough to fit a rate. Keep it up and the window tightens."};
+}
+function syncNow(btn){
+  if(btn){btn.disabled=true;btn.textContent="Syncing...";}
+  var done=function(msg){if(btn){btn.disabled=false;btn.textContent="Sync now";}toast(msg,null);closeSheet();settingsSheet();};
+  if(!window.TrainSyncAuto||!TrainSyncAuto.now){done("Sync is not loaded on this device.");return;}
+  TrainSyncAuto.now().then(function(r){
+    done(r&&r.ok?"Synced.":("Sync failed"+(r&&r.reason?": "+r.reason:".")));
+  });
+}
 function settingsSheet(){
   var p=S.profile,gstep=(U()==="kg"?1:5);
   var m='<div class="grab"></div><h3>Settings</h3>';
+
   m+='<div class="sectlbl" style="margin:4px 2px 8px">Training style</div>';
-  m+='<div class="logrow"><label>Plan uses<div class="skc" style="font-weight:500">bodyweight now, add dumbbells anytime</div></label><div class="seg" style="max-width:210px"><button class="'+(trainMode()==="bw"?"sel":"")+'" onclick="setMode(\'bw\',this)">Bodyweight</button><button class="'+(trainMode()==="db"?"sel":"")+'" onclick="setMode(\'db\',this)">Dumbbells</button></div></div>';
-  m+='<div class="logrow"><label>Adjustable dumbbells?<div class="skc" style="font-weight:500">adds weight instead of reps</div></label><div class="seg" style="max-width:120px"><button class="'+(p.adjustable?"sel":"")+'" onclick="setAdj(true,this)">Yes</button><button class="'+(p.adjustable?"":"sel")+'" onclick="setAdj(false,this)">No</button></div></div>';
-  m+='<div class="sectlbl" style="margin:14px 2px 8px">Goal &amp; ease-in</div>';
-  m+='<div class="logrow"><label>Bodyweight counts as<div class="skc" style="font-weight:500">share of your weight per rep, for volume</div></label><div class="stp" style="max-width:160px"><button onclick="setBwFactor(-5)" aria-label="lower">&minus;</button><span class="num" id="bwf-set" style="min-width:46px;text-align:center;font-weight:700">'+Math.round(bwFactor()*100)+'%</span><button onclick="setBwFactor(5)" aria-label="raise">+</button></div></div>';
-  m+='<div class="logrow"><label>Goal weight</label><div class="stp" style="max-width:160px"><button onclick="setGoal(-'+gstep+')" aria-label="lower goal">&minus;</button><span class="num" id="goal-set" style="min-width:46px;text-align:center;font-weight:700">'+p.goalLb+'</span><span class="u">'+wLbl()+'</span><button onclick="setGoal('+gstep+')" aria-label="raise goal">+</button></div></div>';
-  m+='<div class="logrow"><label>2-week ease-in<div class="skc" style="font-weight:500">'+(easingIn()?"active - lighter volume":"lighter volume for two weeks")+'</div></label><button class="wbtn" style="max-width:130px" onclick="startEaseIn()">'+(easingIn()?"Restart":"Start today")+'</button></div>';
-  m+='<div class="sectlbl" style="margin:14px 2px 8px">Preferences</div>';
-  m+='<div class="logrow"><label>Units</label><div class="seg" style="max-width:150px"><button class="'+(U()==="lb"?"sel":"")+'" onclick="setUnits(\'lb\',this)">lb</button><button class="'+(U()==="kg"?"sel":"")+'" onclick="setUnits(\'kg\',this)">kg</button></div></div>';
-  /* The home-base toggle used to pick your equipment. Equipment is a property of the session now,
-     set from Lift, so this control no longer decides anything and has been removed. */
-  m+='<div class="logrow"><label>Rest timer</label><div class="stp" style="max-width:160px"><button onclick="setRest(-15,this)" aria-label="less rest">&minus;</button><span class="num" id="rest-set" style="min-width:46px;text-align:center;font-weight:700">'+(p.rest||90)+'</span><span class="u">s</span><button onclick="setRest(15,this)" aria-label="more rest">+</button></div></div>';
-  m+='<div class="logrow"><label>Theme</label><div class="seg" style="max-width:190px"><button class="'+((!p.theme||p.theme==="system")?"sel":"")+'" onclick="setTheme(\'system\',this)">Auto</button><button class="'+(p.theme==="light"?"sel":"")+'" onclick="setTheme(\'light\',this)">Light</button><button class="'+(p.theme==="dark"?"sel":"")+'" onclick="setTheme(\'dark\',this)">Dark</button></div></div>';
-  var _tok=(localStorage.getItem("train.syncToken")||"").trim();
-  m+='<div class="sectlbl" style="margin:14px 2px 8px">Sync</div>';
-  m+='<div class="logrow"><label><span class="syncdot'+(_tok?" on":"")+'"></span>Cross-device sync<div class="skc" style="font-weight:500">'+(_tok?"paired on this device":"not paired yet, this device is on its own")+'</div></label><button class="wbtn" style="max-width:150px" onclick="closeSheet();syncPassSheet()">'+(_tok?"Change":"Set up")+'</button></div>';
-  m+='<div class="sectlbl" style="margin:14px 2px 8px">Your data</div>';
+  m+=srow('Plan uses','bodyweight now, add dumbbells anytime',
+      segCtl([["Bodyweight","setMode('bw',this)",trainMode()==="bw"],["Dumbbells","setMode('db',this)",trainMode()==="db"]]));
+  m+=srow('Adjustable dumbbells?','adds weight instead of reps',
+      segCtl([["Yes","setAdj(true,this)",!!p.adjustable],["No","setAdj(false,this)",!p.adjustable]]));
+  m+=srow('Bodyweight counts as','share of your weight per rep, for volume',
+      stepCtl("setBwFactor(-5)","setBwFactor(5)",Math.round(bwFactor()*100)+'%',"","bwf-set"));
+  m+=srow('2-week ease-in',(easingIn()?"running now, lighter volume":"lighter volume for two weeks"),
+      '<button class="wbtn" style="width:100%" onclick="startEaseIn()">'+(easingIn()?"Restart":"Start today")+'</button>');
+
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Goal</div>';
+  m+=srow('Goal weight','',stepCtl("setGoal(-"+gstep+")","setGoal("+gstep+")",p.goalLb,wLbl(),"goal-set"));
+  /* stretchLb has been in the profile since the first build with no way to set it. It is NOT a
+     milestone and never goes on the chart; it is a second, further target, which is exactly why it
+     belongs here and nowhere else. */
+  m+=srow('Stretch goal','a second target past the first, never drawn on the chart',
+      stepCtl("setStretch(-"+gstep+")","setStretch("+gstep+")",(p.stretchLb||p.goalLb-5),wLbl(),"stretch-set"));
+  var cad=cadenceLine();
+  m+='<div class="cadrow" data-rag="'+cad.rag+'"><span class="caddot"></span><div><div class="cadt">'+esc(cad.t)+'</div>'+
+     '<div class="cads">'+esc(cad.s)+'</div></div><button class="wbtn" onclick="closeSheet();weighSheet()">Weigh in</button></div>';
+
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Preferences</div>';
+  m+=srow('Units','',segCtl([["lb","setUnits('lb',this)",U()==="lb"],["kg","setUnits('kg',this)",U()==="kg"]]));
+  m+=srow('Rest timer','',stepCtl("setRest(-15,this)","setRest(15,this)",(p.rest||90),"s","rest-set"));
+  m+=srow('Theme','',segCtl([["Auto","setTheme('system',this)",(!p.theme||p.theme==="system")],
+      ["Light","setTheme('light',this)",p.theme==="light"],["Dark","setTheme('dark',this)",p.theme==="dark"]]));
+
+  /* Sync used to say "paired on this device" and stop, which is a statement about configuration and
+     not about whether anything is actually getting through. It now reports the real exchange record
+     and offers to force one. */
+  var sh=syncHealth();
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Sync</div>';
+  m+='<div class="cadrow" data-rag="'+sh.rag+'"><span class="caddot"></span><div><div class="cadt">'+
+     (sh.rag==="none"?"Not paired":"Last exchange "+esc(sh.txt))+'</div>'+
+     '<div class="cads">'+esc(sh.hint)+'</div></div>'+
+     (sh.rag==="none"?'<button class="wbtn" onclick="closeSheet();syncPassSheet()">Set up</button>'
+                     :'<button class="wbtn" onclick="syncNow(this)">Sync now</button>')+'</div>';
+  if(sh.rag!=="none")
+    m+='<button class="sheet-cta ghost" onclick="closeSheet();syncPassSheet()">Change the passphrase</button>';
+
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Your data</div>';
   var _bk=backupAgeDays();
   m+='<div class="setnote">'+S.sessions.length+' sessions, '+S.weigh.length+' weigh-ins &middot; '+
      (_bk==null?'never backed up':(_bk===0?'backed up today':'last backup '+_bk+' day'+(_bk===1?'':'s')+' ago'))+'</div>';
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">Back up to a file</button>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">'+I.download+' Back up to a file</button>';
+  /* importSheet has existed since the first build and was never reachable from Settings, so a
+     backup was a file you could write and never read. */
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();importSheet()">'+I.copy+' Restore from a file</button>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
   m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
-  /* Reset lives below Done, behind a rule, on its own. It was sitting in the same stack as Import
-     and Back up, which is how a mis-tap erases a year. */
   m+='<div class="danger"><div class="sectlbl" style="margin:0 2px 8px">Danger</div>'+
      '<button class="sheet-cta ghost dang" onclick="confirmReset()">Reset all data</button></div>';
   m+='<div class="foot">Train '+VERSION+' - stored on this device, synced to your own private store</div>';
   openSheet(m);
+}
+function setStretch(d){
+  var p=S.profile,cur=(p.stretchLb||p.goalLb-5);
+  var v=Math.max(80,Math.min(p.goalLb-1,cur+d));
+  p.stretchLb=v;save();
+  var e=document.getElementById("stretch-set");if(e)e.textContent=v;
 }
 function syncPassSheet(){var cur=(localStorage.getItem("train.syncToken")||"").trim();
   var m='<div class="grab"></div><h3>Sync passphrase</h3><div class="ssub">Enter it once on this device. Your workouts and weigh-ins then sync across every device.</div>';
