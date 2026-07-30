@@ -1160,6 +1160,24 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .pzr[data-z="steady"] .pzb i{background:var(--amber)}
 .pzr[data-z="tempo"] .pzb i,.pzr[data-z="faster"] .pzb i{background:var(--accent)}
 .pzr .pzc{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 22px;text-align:right}
+
+/* v7.24 */
+.prcard{padding:14px 16px 15px}
+.prcard .prct{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+.prcard .prbar{margin:0}
+.lvhist{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.lvht{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
+.lvhs{width:100%;height:64px;display:block}
+.lvhr{display:flex;align-items:baseline;gap:10px;font-size:11.5px;color:var(--faint);margin-top:5px}
+.lvhr span:nth-child(2){flex:1;text-align:center;color:var(--sub);line-height:1.45}
+.lvhr b{color:var(--ink);font-weight:750}
+.yrow{display:flex;align-items:center;gap:9px;padding:7px 0}
+.yrow+.yrow{border-top:1px solid var(--line)}
+.yrow .yy{font-size:13px;font-weight:750;color:var(--ink);flex:0 0 38px}
+.yrow .yb{flex:1;height:7px;border-radius:4px;background:var(--surface-2);overflow:hidden;min-width:24px}
+.yrow .yb i{display:block;height:100%;background:var(--accent);border-radius:4px;opacity:.8}
+.yrow .ym{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 58px;text-align:right;font-variant-numeric:tabular-nums}
+.yrow .yn{font-size:11.5px;color:var(--faint);flex:0 0 52px;text-align:right}
 </style>
 </head>
 <body>
@@ -1205,7 +1223,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.23";
+var VERSION="v7.24";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2570,7 +2588,7 @@ function liftLevelDetailHTML(){
     '<div class="lstats" style="display:none"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
     '<div class="foot" style="margin-top:10px">Load is effort multiplied by minutes, the standard measure for lifting, scaled to sit on the same axis as your cardio level. '+
     (rated<total?('The '+(total-rated)+' session'+(total-rated===1?'':'s')+' you did not rate are priced at effort 7. Rate them and this gets truer.'):'Every session is rated, so this is measured rather than assumed.')+'</div>';
-  return collapsible("Where the lift level comes from","Level "+L.lvl,inner,false,I.dumbbell,st.k==="base"?"warn":"");
+  return collapsible("Where the lift level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,st.k==="base"?"warn":"");
 }
 function liftDeltaHTML(L){
   var ser=L.series||[];if(ser.length<8)return "";
@@ -5491,7 +5509,15 @@ function scrollToWarm(){var e=document.getElementById("warmblock");if(e)e.scroll
    in the same fortnight was not measuring the athlete. Falling slowly also means a short lift is
    never punished for being smaller than the running average. */
 var REF_MET=9.40,IF_CAP=1.30,DAY_CAP=300;
-var RISE_SLOW=42,FALL_SLOW=120,RISE_FAST=7,FALL_FAST=20;
+/* v7.24. Matthew: "How am I level 14? I haven't run really since two summers ago."
+   He is right, and FALL_SLOW was the reason. At 120 days the half-life of accumulated work is 83
+   days, so a March block was still worth most of its value in July and thirteen days off had cost
+   him about a tenth. That is not what detraining does; meaningful decline shows up in two to four
+   weeks. The fall constant goes to 56 (half-life 39 days), which is still kinder than the
+   symmetric 42 that training-load models normally use, but no longer pretends old work keeps.
+   Measured on his real record, today: score 7.40 -> 5.17, level 14 -> 12, and it keeps falling
+   while he does not run. Rise stays 42, so coming back is as quick as it ever was. */
+var RISE_SLOW=42,FALL_SLOW=56,RISE_FAST=7,FALL_FAST=20;
 var LIFT_MET={6:3.5,7:4.2,8:5.0,9:5.5,10:6.0};
 var EFFORT_MET={easy:3.5,moderate:5.0,hard:7.5};
 function runMET(mph){return 1.4396*mph+0.7615;}
@@ -5557,6 +5583,30 @@ function levelTier(n){
   if(n>=45)return {k:"strong",w:"Strong"};
   if(n>=20)return {k:"built",w:"Built"};
   return {k:"base",w:"Base"};
+}
+/* The level as a line over a year, so "where has this been and where is it now" is answerable.
+   Drawn from the same series the number comes from, so the two cannot disagree. */
+function levelHistoryHTML(kind){
+  var s=(kind==="lift")?liftSeries(365):fitnessSeries(365);
+  if(s.length<30)return "";
+  var lv=s.map(function(x){return levelFor(x.slow);});
+  var mx=Math.max.apply(null,lv),mn=Math.min.apply(null,lv);
+  if(mx<=0)return "";
+  var W=320,H=64,span=Math.max(mx-mn,1);
+  var pts=lv.map(function(v,i){
+    var x=(i/(lv.length-1))*W, y=H-2-((v-mn)/span)*(H-8);
+    return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
+  }).join(" ");
+  var now=lv[lv.length-1], peak=mx, peakI=lv.indexOf(mx);
+  var peakDate=s[peakI]?s[peakI].date:null;
+  var since=peakDate?daysBetween(peakDate,TODAY):0;
+  var verdict=(now>=peak)?("This is the highest it has been in a year."):
+    ("Peaked at <b>"+peak+"</b> "+(since<40?(since+" days ago"):(Math.round(since/30)+" months ago"))+", down "+(peak-now)+" since.");
+  return '<div class="lvhist"><div class="lvht">Level over the last year</div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="lvhs" role="img" aria-label="Level history">'+
+      '<path d="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'+
+    '</svg>'+
+    '<div class="lvhr"><span>'+mn+'</span><span>'+verdict+'</span><span>'+mx+'</span></div></div>';
 }
 function cardioLevel(){
   var s=fitnessSeries(180);
@@ -5738,7 +5788,7 @@ function levelDetailHTML(){
     '<div class="lstats"><span><b class="num">'+runs.length+'</b> runs</span><span><b class="num">'+mi.toFixed(0)+'</b> mi</span><span><b class="num">'+Math.round(L.score)+'</b> load</span></div>'+
     (ep?'<div class="anote" style="margin-top:12px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, about '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago, at self-reported easy effort. That is the fitness part, which the level cannot show.</div>':'')+
     '<div class="foot" style="margin-top:10px">This is a training-load level, not a fitness test. It rises on a six-week average and falls on a seventeen-week one, so a quiet fortnight bends it rather than docking you.</div>';
-  return collapsible("Where the level comes from","Level "+L.lvl,inner,false,I.spark,st.k==="base"?"warn":"");
+  return collapsible("Where the level comes from","Level "+L.lvl,inner+levelHistoryHTML("cardio"),false,I.spark,st.k==="base"?"warn":"");
 }
 /* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
 
@@ -5797,7 +5847,19 @@ function odoCardHTML(){
   var hist=weeklyMiHistory();
   var chart=(hist.length>1)?('<div class="odosplit"></div><div class="odoct">Last '+hist.length+' weeks</div>'+
       barBody(hist,function(v){return v.toFixed(1);},"mi")):"";
-  var foot='<div class="odofoot">'+total.toFixed(1)+' mi all time across '+allRuns().length+' runs.</div>';
+  /* v7.24. "All time" hid the shape of it. Matthew ran a lot two summers ago and little since,
+     and a single total says none of that. Years, with the biggest as the scale. */
+  var yr={};allRuns().forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
+  var ys=Object.keys(yr).sort(),ymax=Math.max.apply(null,ys.map(function(y){return yr[y];}))||1;
+  var yrows=ys.reverse().map(function(y){
+    var n=allRuns().filter(function(x){return x.date.slice(0,4)===y;}).length;
+    return '<div class="yrow"><span class="yy">'+y+'</span>'+
+      '<span class="yb"><i style="width:'+Math.max(2,Math.round(yr[y]/ymax*100))+'%"></i></span>'+
+      '<span class="ym num">'+yr[y].toFixed(0)+'<small> mi</small></span>'+
+      '<span class="yn">'+n+' run'+(n===1?'':'s')+'</span></div>';
+  }).join("");
+  var foot='<div class="odosplit"></div><div class="odoct">By year</div>'+yrows+
+    '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+allRuns().length+' runs.</div>';
   return collapsible("Miles",wkMi.toFixed(1)+" mi this week",body+chart+foot,false,I.gauge,"");
 }
 
@@ -5832,10 +5894,11 @@ function renderCardio(){
     '<button class="big-start" onclick="primeSheet(\'run\',function(){runSheet('+tgt.mi+')})">'+I.run+' Start a run</button>'+
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
     '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
-  /* v7.23. The four records were buried at the top of a collapsed badges drawer at the very
-     bottom of the tab. They are the most looked-at numbers here, so they sit above Miles. */
+  /* v7.24. The records were a bare strip under a section label, which read as loose furniture
+     between the hero and the Miles card. They are a card of their own now, sitting directly under
+     the log buttons where they read as the hero's own footer. */
   badgeList();
-  h+='<div class="sectlbl" style="margin:2px 2px 8px">Records</div>'+(window.__prBar||"");
+  h+='<div class="card prcard"><div class="prct">Records</div>'+(window.__prBar||"")+'</div>';
   h+=odoCardHTML();
   h+=levelDetailHTML();
   /* Warm-up sits high on the page, directly after the call to action, because it only works as
