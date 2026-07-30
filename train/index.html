@@ -1110,6 +1110,56 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .libtile .ltc{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-top:8px}
 .libtile .ltc.gd{color:var(--good)}
 .libpane{margin-top:6px}
+
+/* v7.23 */
+.altcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface-2);border:1px dashed var(--line-2);border-radius:13px;padding:12px 13px;margin-top:10px}
+.altcard .aci{width:20px;height:20px;color:var(--sub);flex:none;display:inline-flex}
+.altcard .aci svg{width:20px;height:20px}
+.altcard .acm{flex:1;min-width:0}
+.altcard .acn{display:block;font-size:14px;font-weight:750;color:var(--ink)}
+.altcard .acd{display:block;font-size:12px;color:var(--faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.altcard .aca{width:18px;height:18px;color:var(--faint);flex:none;display:inline-flex}
+.altcard .aca svg{width:18px;height:18px}
+.lstat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.ls3{background:var(--surface-2);border-radius:11px;padding:11px 12px}
+.ls3 b{display:block;font-size:19px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ls3 span{display:block;font-size:11px;font-weight:600;color:var(--faint);margin-top:2px}
+.dlbar{height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:7px}
+.dlbar i{display:block;height:100%;background:var(--amber);border-radius:3px}
+.odosplit{height:1px;background:var(--line);margin:16px 0 12px}
+.odoct{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:6px}
+.odofoot{font-size:12px;color:var(--faint);margin-top:10px}
+.rrow .rdate{flex:0 0 92px}
+.badges{grid-template-columns:repeat(3,1fr)!important}
+.badge .bdot{width:52px!important;height:52px!important}
+.badge .bdot svg{width:23px;height:23px}
+.badge .bn{font-size:13px}
+
+/* v7.23 pace zones: a verdict, a distribution, then the ranges */
+.pzhead{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin-bottom:6px}
+.pzhead[data-tone="red"]{color:var(--accent)}
+.pzhead[data-tone="good"]{color:var(--good)}
+.pzline{font-size:13.5px;line-height:1.6;color:var(--sub)}
+.pzline b{color:var(--ink);font-weight:700}
+.pzbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--surface-2);margin:14px 0 12px}
+.pzbar .pz{height:100%}
+.pz[data-z="faster"],.pzr[data-z="faster"] .pzd{background:#C2410C}
+.pz[data-z="tempo"],.pzr[data-z="tempo"] .pzd{background:var(--accent)}
+.pz[data-z="steady"],.pzr[data-z="steady"] .pzd{background:var(--amber)}
+.pz[data-z="easy"],.pzr[data-z="easy"] .pzd{background:var(--good)}
+.pz[data-z="long"],.pzr[data-z="long"] .pzd{background:var(--good);opacity:.55}
+.pzr{display:flex;align-items:center;gap:9px;padding:8px 0}
+.pzr+.pzr{border-top:1px solid var(--line)}
+.pzr .pzd{width:9px;height:9px;border-radius:3px;flex:none}
+.pzr .pzn{font-size:13.5px;font-weight:700;color:var(--ink);flex:0 0 54px}
+.pzr .pzp{font-size:12.5px;font-weight:600;color:var(--sub);flex:0 0 92px}
+.pzr .pzb{flex:1;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;min-width:20px}
+.pzr .pzb i{display:block;height:100%;background:var(--faint);border-radius:3px}
+.pzr[data-z="easy"] .pzb i{background:var(--good)}
+.pzr[data-z="long"] .pzb i{background:var(--good);opacity:.55}
+.pzr[data-z="steady"] .pzb i{background:var(--amber)}
+.pzr[data-z="tempo"] .pzb i,.pzr[data-z="faster"] .pzb i{background:var(--accent)}
+.pzr .pzc{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 22px;text-align:right}
 </style>
 </head>
 <body>
@@ -1155,7 +1205,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.22";
+var VERSION="v7.23";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1567,6 +1617,13 @@ function aimText(o){
 }
 function wLbl(){return U()==="kg"?"kg":"lb";}
 function shortDate(k){var p=k.split("-");return DFULL[new Date(+p[0],+p[1]-1,+p[2]).getDay()]+" "+(+p[2]);}
+/* v7.23. "Fri 17" told Matthew nothing about WHICH Fri 17, and his runs span two years. Month
+   always; year only when it is not this one, so the common case stays short. */
+function runDate(k){
+  var p=k.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
+  var mo=d.toLocaleDateString(undefined,{month:"short"});
+  return DFULL[d.getDay()]+" "+(+p[2])+" "+mo+(p[0]!==TODAY.slice(0,4)?(" "+p[0]):"");
+}
 
 /* PR / e1rm */
 function e1rm(w,r){return w*(1+r/30);}
@@ -2455,7 +2512,16 @@ function dayRailHTML(cur){
 function replaceVids(L){return VID.filter(function(v){return v.c==="wk"&&v.day===L;});}
 function liftGuidedBtnHTML(L){
   if(!replaceVids(L).length)return "";
-  return '<button class="altlink" onclick="replaceSheet(\''+L+'\')">'+I.play+' Follow a video instead of Day '+L+'</button>';
+  /* v7.23. Was a thin text link that read as a footnote. It is a real alternative to the session
+     above it, so it looks like one: its own bordered card, the swap icon rather than a play
+     triangle, and copy that says what you get. Deliberately NOT the three-tile shape Today uses for
+     mobility, stretch and pilates, because this replaces the day rather than adding to it. */
+  var alt=pickForSlot("session",0);
+  return '<button class="altcard" onclick="replaceSheet(\''+L+'\')">'+
+    '<span class="aci">'+I.swap+'</span>'+
+    '<span class="acm"><span class="acn">Follow a video instead</span>'+
+    '<span class="acd">'+(alt?esc(alt.t.slice(0,46)):"A guided session in place of Day "+L)+'</span></span>'+
+    '<span class="aca">'+I.arrow+'</span></button>';
 }
 function replaceSheet(L){
   var vs=replaceVids(L);if(!vs.length)return;
@@ -2493,10 +2559,15 @@ function liftLevelDetailHTML(){
       '<div class="crail">'+rail+'</div>'+
       '<div class="cd">'+c.d+'</div>'+
       '<div class="cexit">'+I.arrow+'<span>'+coachExit(c)+'</span></div>'+
+      /* A number out of four told him nothing about where he was in the block. It is a bar now. */
       '<div class="cblock"><span>Deload block</span><span class="cbv num">'+dl.weeks+' of 4 weeks</span></div>'+
+      '<div class="dlbar"><i style="width:'+Math.round(Math.min(1,(dl.weeks||0)/4)*100)+'%"></i></div>'+
     '</div>'+
     (dl.due?'<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>':'')+
-    '<div class="lstats" style="margin-top:12px"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
+    '<div class="lstat3"><div class="ls3"><b class="num">'+total+'</b><span>sessions</span></div>'+
+    '<div class="ls3"><b class="num">'+Math.round(L.score)+'</b><span>load carried</span></div>'+
+    '<div class="ls3"><b class="num">'+rated+'</b><span>rated</span></div></div>'+
+    '<div class="lstats" style="display:none"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
     '<div class="foot" style="margin-top:10px">Load is effort multiplied by minutes, the standard measure for lifting, scaled to sit on the same axis as your cardio level. '+
     (rated<total?('The '+(total-rated)+' session'+(total-rated===1?'':'s')+' you did not rate are priced at effort 7. Rate them and this gets truer.'):'Every session is rated, so this is measured rather than assumed.')+'</div>';
   return collapsible("Where the lift level comes from","Level "+L.lvl,inner,false,I.dumbbell,st.k==="base"?"warn":"");
@@ -5227,31 +5298,78 @@ var ZONES=[
    every zone on ONE ruler, because the whole point of a zone is where it sits relative to the others.
    One axis now, fast on the left to slow on the right, the four bands laid along it end to end, his
    actual recent paces plotted on the same ruler, and the rows below reduced to a key. */
+/* ============ PACE ZONES, v7.23 ============
+   Matthew: "a MESS... no real data easily able to be understood or visualized, currently no real
+   value." He was right, and the earlier single-ruler version fixed the geometry while leaving the
+   card with nothing to say. A zone chart is only worth its space if it answers a question, and for
+   someone rebuilding a base there is exactly one worth asking: ARE THE EASY RUNS ACTUALLY EASY?
+   Almost everyone runs their easy days too hard, which is what stalls a base and what makes the
+   legs unavailable for lifting. So the card leads with the answer, shows the distribution of his
+   OWN runs across the zones as the evidence, and only then lists the ranges. */
 function paceZonesHTML(){
   var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
-  var mn=zs[0].lo-25,mx=zs[zs.length-1].hi+25;
-  function px(v){return Math.max(0,Math.min(100,((v-mn)/(mx-mn))*100));}
-  var bands=zs.map(function(z){
-    return '<i class="zb" data-z="'+z.k+'" style="left:'+px(z.lo).toFixed(1)+'%;width:'+(px(z.hi)-px(z.lo)).toFixed(1)+'%" title="'+z.n+'"></i>';
+  var runs=allRuns().filter(function(r){return r.paceSecPerMi>0;});
+  function zoneOf(p){
+    for(var i=0;i<zs.length;i++)if(p<=zs[i].hi)return zs[i].k;
+    return "long";
+  }
+  var counts={},n=runs.length;
+  zs.forEach(function(z){counts[z.k]=0;});
+  var faster=0;
+  runs.forEach(function(r){
+    if(r.paceSecPerMi<zs[0].lo){faster++;return;}
+    counts[zoneOf(r.paceSecPerMi)]++;
+  });
+  var easyish=(counts.easy||0)+(counts.long||0);
+  var hard=(counts.tempo||0)+(counts.steady||0)+faster;
+  var head,tone,line;
+  if(!n){
+    head="No runs to read yet.";tone="none";
+    line="Once a few runs are logged this shows how many of them actually landed in the easy band.";
+  }else if(hard>easyish){
+    head="Your easy runs are not easy.";tone="red";
+    line="<b>"+hard+"</b> of your "+n+" runs came in at steady pace or faster. That is the usual reason a base stalls, and it is why your legs turn up tired to a lift day. The fix is dull and it works: run the easy ones slower than feels right.";
+  }else if(hard===0){
+    head="Every run has been easy.";tone="good";
+    line="All "+n+" runs sat in the easy or long band. That is exactly how a base gets built. Speed comes later and it comes cheaply once this holds.";
+  }else{
+    head="Mostly easy, which is right.";tone="good";
+    line="<b>"+easyish+"</b> of "+n+" runs landed easy or long, <b>"+hard+"</b> did not. Keep that ratio and the base keeps building.";
+  }
+  /* The distribution, as one stacked bar. Proportions, not positions, because the question is how
+     his running is DIVIDED, not where any single run sat. */
+  var bar="",legend="";
+  var order=[{k:"tempo",n:"Tempo"},{k:"steady",n:"Steady"},{k:"easy",n:"Easy"},{k:"long",n:"Long"}];
+  if(n){
+    if(faster){
+      bar+='<i class="pz" data-z="faster" style="width:'+(faster/n*100).toFixed(1)+'%" title="Faster than tempo"></i>';
+    }
+    order.forEach(function(o){
+      var c=counts[o.k]||0;if(!c)return;
+      bar+='<i class="pz" data-z="'+o.k+'" style="width:'+(c/n*100).toFixed(1)+'%" title="'+o.n+': '+c+'"></i>';
+    });
+  }
+  var rows=order.map(function(o){
+    var z=null;zs.forEach(function(x){if(x.k===o.k)z=x;});
+    if(!z)return "";
+    var c=counts[o.k]||0,pct=n?Math.round(c/n*100):0;
+    return '<div class="pzr" data-z="'+o.k+'"><span class="pzd"></span>'+
+      '<span class="pzn">'+o.n+'</span>'+
+      '<span class="pzp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span>'+
+      '<span class="pzb"><i style="width:'+pct+'%"></i></span>'+
+      '<span class="pzc num">'+c+'</span></div>';
   }).join("");
-  /* His own runs on the same ruler. A zone chart with no personal data on it is a table wearing a
-     chart's clothes. */
-  var runs=allRuns().filter(function(r){return r.paceSecPerMi;}).slice(-12);
-  var dots=runs.map(function(r,i){
-    var last=(i===runs.length-1);
-    return '<i class="zdot'+(last?" last":"")+'" style="left:'+px(r.paceSecPerMi).toFixed(1)+'%" title="'+shortDate(r.date)+' at '+mmss(r.paceSecPerMi)+'/mi"></i>';
-  }).join("");
-  var key=zs.map(function(z){
-    return '<div class="zk" data-z="'+z.k+'"><span class="zkd"></span><span class="zkn">'+z.n+'</span>'+
-      '<span class="zkp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span><span class="zkc">'+z.note+'</span></div>';
-  }).join("");
-  var note=runs.length?('Your last '+runs.length+' run'+(runs.length===1?'':'s')+' are the dots; the filled one is the most recent.')
-                      :'Log a run and it lands on this ruler.';
-  return collapsible("Pace zones","per mile",
-    '<div class="ksub">One ruler, fastest on the left. '+note+'</div>'+
-    '<div class="zaxis"><div class="zbands">'+bands+'</div><div class="zdots">'+dots+'</div></div>'+
-    '<div class="zends"><span class="num">'+mmss(mn)+'</span><span class="num">'+mmss(mx)+'</span></div>'+
-    '<div class="zkey">'+key+'</div>',false,I.bolt,"");
+  var extra=faster?('<div class="pzr" data-z="faster"><span class="pzd"></span><span class="pzn">Faster</span>'+
+      '<span class="pzp num">under '+mmss(zs[0].lo)+'</span>'+
+      '<span class="pzb"><i style="width:'+Math.round(faster/n*100)+'%"></i></span>'+
+      '<span class="pzc num">'+faster+'</span></div>'):"";
+  return collapsible("Pace zones",(n?(easyish+" of "+n+" easy"):"per mile"),
+    '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
+    '<div class="pzline">'+line+'</div>'+
+    (n?'<div class="pzbar">'+bar+'</div>':'')+
+    '<div class="pzrows">'+extra+rows+'</div>'+
+    '<div class="ksub" style="margin:10px 0 0">Ranges come from your own recent times, so they move as you do.</div>',
+    false,I.bolt,tone==="red"?"warn":"");
 }
 /* ============ RECORDS AND BADGES, v7.11 ============
    Two problems, both structural. Every one of the thirty-five badges drew the SAME trophy glyph, so
@@ -5333,14 +5451,15 @@ function badgeList(){
          '<div class="badges">'+gg.map(cell).join("")+'</div>';
   });
   var bestWeek=bestWk;
-  var prBar='<div class="prbar">'+
+  window.__prBar='<div class="prbar">'+
     '<div class="prcell"><b class="num">'+(best?mmss(best):"--")+'</b><span>best pace</span></div>'+
     '<div class="prcell"><b class="num">'+(longest?longest.toFixed(1):"--")+'</b><span>longest run</span></div>'+
     '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span></div>'+
     '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span></div></div>';
+  var prBar=window.__prBar;
   var pct=Math.round(got.length/defs.length*100);
   return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
-    '<div class="libpad">'+prBar+
+    '<div class="libpad">'+
     '<div class="bprog"><i style="width:'+pct+'%"></i></div>'+
     '<div class="ksub" style="margin:8px 0 2px">'+got.length+' earned, '+(defs.length-got.length)+' to go. The outlined tile in each group is the next one to fall.</div>'+
     all+'</div></details>';
@@ -5670,8 +5789,16 @@ function odoCardHTML(){
       '<div><b>'+(pace?mmss(pace):"--")+'</b><span>Avg. Pace</span></div>'+
       '<div><b>'+(secs?hms(secs):"--")+'</b><span>Time</span></div>'+
     '</div></div>';
+  /* v7.23. The chip showed the ALL-TIME total, which never changes week to week and so said
+     nothing about now. It shows this week. The weekly-miles chart used to be its own drawer saying
+     the same thing again; it lives in here, under the numbers it belongs to. */
+  var wkMi=odoPeriod("w").runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
   var total=allRuns().reduce(function(a,x){return a+(x.distanceMi||0);},0);
-  return collapsible("Miles",total.toFixed(1)+" mi all time",body,false,I.gauge,"");
+  var hist=weeklyMiHistory();
+  var chart=(hist.length>1)?('<div class="odosplit"></div><div class="odoct">Last '+hist.length+' weeks</div>'+
+      barBody(hist,function(v){return v.toFixed(1);},"mi")):"";
+  var foot='<div class="odofoot">'+total.toFixed(1)+' mi all time across '+allRuns().length+' runs.</div>';
+  return collapsible("Miles",wkMi.toFixed(1)+" mi this week",body+chart+foot,false,I.gauge,"");
 }
 
 function renderCardio(){
@@ -5705,6 +5832,10 @@ function renderCardio(){
     '<button class="big-start" onclick="primeSheet(\'run\',function(){runSheet('+tgt.mi+')})">'+I.run+' Start a run</button>'+
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
     '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
+  /* v7.23. The four records were buried at the top of a collapsed badges drawer at the very
+     bottom of the tab. They are the most looked-at numbers here, so they sit above Miles. */
+  badgeList();
+  h+='<div class="sectlbl" style="margin:2px 2px 8px">Records</div>'+(window.__prBar||"");
   h+=odoCardHTML();
   h+=levelDetailHTML();
   /* Warm-up sits high on the page, directly after the call to action, because it only works as
@@ -5717,16 +5848,14 @@ function renderCardio(){
       var isBest=(pace&&r.paceSecPerMi===best);
       var mi=r.distanceMi||0,w=Math.max(6,Math.min(100,(mi/5)*100));
       return '<button class="rrow" onclick="sessionSheet(\''+r.id+'\')">'+
-        '<span class="rdate">'+shortDate(r.date)+'</span>'+
+        '<span class="rdate">'+runDate(r.date)+'</span>'+
         '<span class="rbar"><i style="width:'+w.toFixed(0)+'%"></i></span>'+
         '<span class="rmi num">'+mi.toFixed(1)+'<small> mi</small></span>'+
         '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
     }).join("");
     h+=collapsible("Recent runs",(best?("best "+mmss(best)+"/mi"):("last "+Math.min(6,runs.length))),rec,false,I.run,"");}
 
-  var hist=weeklyMiHistory();
-  h+=collapsible("Weekly miles",(hist.length?hist[hist.length-1].toFixed(1)+" mi this week":"no runs yet"),
-      barBody(hist,function(v){return v.toFixed(1);},"mi"),false,I.chart,"");
+  /* Weekly miles folded into the Miles card in v7.23; it was the same series in a second drawer. */
   /* The standalone Walk card is gone. "Log a walk" already sits in the hero at the top of this
      tab, beside "Log a run", which is where a logging action belongs. Two entry points for the
      same action on one screen was the duplication flagged twice. */
