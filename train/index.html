@@ -945,6 +945,47 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .cadrow .cads{font-size:12.5px;line-height:1.5;color:var(--sub);margin-top:3px}
 .cadrow .wbtn{flex:none;align-self:center;max-width:104px}
 .sheet-cta.ghost svg{width:17px;height:17px;margin-right:7px;vertical-align:-3px}
+
+/* v7.11 pace zones: one ruler, not four */
+.zaxis{position:relative;height:34px;margin:14px 0 4px}
+.zbands{position:absolute;inset:0 0 16px 0;border-radius:7px;overflow:hidden;background:var(--surface-2)}
+.zbands .zb{position:absolute;top:0;bottom:0;border-radius:0}
+.zbands .zb[data-z="tempo"]{background:var(--accent);opacity:.85}
+.zbands .zb[data-z="steady"]{background:var(--amber);opacity:.85}
+.zbands .zb[data-z="easy"]{background:var(--good);opacity:.85}
+.zbands .zb[data-z="long"]{background:var(--good);opacity:.5}
+.zdots{position:absolute;left:0;right:0;bottom:0;height:14px}
+.zdots .zdot{position:absolute;top:3px;width:7px;height:7px;margin-left:-3.5px;border-radius:50%;background:var(--faint);opacity:.65}
+.zdots .zdot.last{background:var(--ink);opacity:1;width:9px;height:9px;top:2px;margin-left:-4.5px;box-shadow:0 0 0 2px var(--surface)}
+.zends{display:flex;justify-content:space-between;font-size:10.5px;font-weight:700;color:var(--faint)}
+.zkey{margin-top:12px}
+.zk{display:flex;align-items:center;gap:9px;padding:8px 0}
+.zk+.zk{border-top:1px solid var(--line)}
+.zk .zkd{width:9px;height:9px;border-radius:3px;flex:none;background:var(--faint)}
+.zk[data-z="tempo"] .zkd{background:var(--accent)}
+.zk[data-z="steady"] .zkd{background:var(--amber)}
+.zk[data-z="easy"] .zkd{background:var(--good)}
+.zk[data-z="long"] .zkd{background:var(--good);opacity:.5}
+.zk .zkn{font-size:13.5px;font-weight:700;color:var(--ink);flex:0 0 62px}
+.zk .zkp{font-size:13px;font-weight:700;color:var(--sub);flex:0 0 96px}
+.zk .zkc{font-size:12.5px;color:var(--faint);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* v7.11 badges: category glyphs, one grouped list, progress on the next tile */
+.bprog{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:14px}
+.bprog i{display:block;height:100%;background:var(--good);border-radius:3px}
+.bghd{display:flex;align-items:center;gap:8px;margin:18px 2px 9px}
+.bghd .bgi{width:16px;height:16px;color:var(--faint);display:inline-flex}
+.bghd .bgi svg{width:16px;height:16px}
+.bghd .bgn{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ink)}
+.bghd .bgl{flex:1;height:1px;background:var(--line)}
+.bghd .bgc{font-size:11px;font-weight:700;color:var(--faint)}
+.badge .bdot svg{width:19px;height:19px}
+.badge.next .bdot{border:1px dashed var(--accent);color:var(--accent);background:transparent}
+.badge.next .bn{color:var(--ink)}
+.bpr{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin:6px auto 0;width:70%}
+.bpr i{display:block;height:100%;background:var(--accent);border-radius:2px;opacity:.75}
+/* month labels positioned where the month actually starts */
+.hmonths{position:relative;height:14px}
+.hmonths span{position:absolute;top:0;font-size:10px;font-weight:700;color:var(--faint)}
 </style>
 </head>
 <body>
@@ -990,7 +1031,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.10";
+var VERSION="v7.11";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3284,8 +3325,22 @@ function heatmapHTML(mode){
     }
     cols+='<div class="hcol">'+col+'</div>';
   }
-  var months="",mcur=new Date(start),nm=(weeks<=2)?0:(weeks<=26)?6:12;
-  for(var m=0;m<nm;m++){months+='<span>'+mcur.toLocaleDateString(undefined,{month:"short"})+'</span>';mcur.setMonth(mcur.getMonth()+1);}
+  /* v7.11. The month row printed six evenly spaced labels regardless of where the months actually
+     fell, so every label sat over the wrong column. Labels are now placed at the percentage of the
+     grid where each month genuinely begins, and a month too narrow to hold its own label is
+     skipped rather than overlapping its neighbour. */
+  var months="",mseen={},mcur2=new Date(start),lastPct=-99;
+  if(weeks>2){
+    for(var w2=0;w2<weeks;w2++){
+      var key=mcur2.getFullYear()+"-"+mcur2.getMonth();
+      var pct=(w2/weeks)*100;
+      if(!mseen[key]&&pct-lastPct>=9){
+        mseen[key]=1;lastPct=pct;
+        months+='<span style="left:'+pct.toFixed(1)+'%">'+mcur2.toLocaleDateString(undefined,{month:"short"})+'</span>';
+      }else if(!mseen[key]){mseen[key]=1;}
+      mcur2.setDate(mcur2.getDate()+7);
+    }
+  }
   var pct=Math.round(any/(weeks*7)*100);
   if(weeks<=2){
     /* Two weeks is a strip, not a grid. Rendered as 14 equal columns that flex to the card width,
@@ -4429,21 +4484,133 @@ var ZONES=[
  {n:"Steady",lo:585,hi:600,note:"only if it feels easy",k:"steady"},
  {n:"Tempo",lo:545,hi:560,note:"once the base is back",k:"tempo"}
 ];
+/* ============ PACE ZONES, v7.11 ============
+   The old card drew four rows, each with its OWN track, so four bands sat on four independent axes
+   and none of them could be compared with any other. The copy said "slower is to the right" while
+   the rows ran slowest at the top and fastest at the bottom, so the card carried two contradictory
+   orderings at once. Every pace-zone display worth copying (Garmin, Strava, any HR-zone chart) puts
+   every zone on ONE ruler, because the whole point of a zone is where it sits relative to the others.
+   One axis now, fast on the left to slow on the right, the four bands laid along it end to end, his
+   actual recent paces plotted on the same ruler, and the rows below reduced to a key. */
 function paceZonesHTML(){
-  var all=ZONES.reduce(function(a,z){return a.concat([z.lo,z.hi]);},[]);
-  var mn=Math.min.apply(null,all)-20,mx=Math.max.apply(null,all)+20;
-  function px(v){return ((v-mn)/(mx-mn))*100;}
-  var rows=ZONES.slice().sort(function(a,b){return b.lo-a.lo;}).map(function(z){
-    /* lo is the faster (smaller) pace, so it is the LEFT edge; width runs lo->hi. Reading these
-       the other way round made every band collapse to the 4% minimum. */
-    var x=px(z.lo),w=Math.max(px(z.hi)-px(z.lo),6);
-    return '<div class="zrow" data-z="'+z.k+'"><div class="zhead"><span class="zn">'+z.n+'</span><span class="zp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span></div>'+
-      '<div class="ztrack"><i style="left:'+x.toFixed(1)+'%;width:'+w.toFixed(1)+'%"></i></div>'+
-      '<div class="znote">'+z.note+'</div></div>';
+  var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
+  var mn=zs[0].lo-25,mx=zs[zs.length-1].hi+25;
+  function px(v){return Math.max(0,Math.min(100,((v-mn)/(mx-mn))*100));}
+  var bands=zs.map(function(z){
+    return '<i class="zb" data-z="'+z.k+'" style="left:'+px(z.lo).toFixed(1)+'%;width:'+(px(z.hi)-px(z.lo)).toFixed(1)+'%" title="'+z.n+'"></i>';
   }).join("");
+  /* His own runs on the same ruler. A zone chart with no personal data on it is a table wearing a
+     chart's clothes. */
+  var runs=allRuns().filter(function(r){return r.paceSecPerMi;}).slice(-12);
+  var dots=runs.map(function(r,i){
+    var last=(i===runs.length-1);
+    return '<i class="zdot'+(last?" last":"")+'" style="left:'+px(r.paceSecPerMi).toFixed(1)+'%" title="'+shortDate(r.date)+' at '+mmss(r.paceSecPerMi)+'/mi"></i>';
+  }).join("");
+  var key=zs.map(function(z){
+    return '<div class="zk" data-z="'+z.k+'"><span class="zkd"></span><span class="zkn">'+z.n+'</span>'+
+      '<span class="zkp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span><span class="zkc">'+z.note+'</span></div>';
+  }).join("");
+  var note=runs.length?('Your last '+runs.length+' run'+(runs.length===1?'':'s')+' are the dots; the filled one is the most recent.')
+                      :'Log a run and it lands on this ruler.';
   return collapsible("Pace zones","per mile",
-    '<div class="ksub">Slower is to the right. You run hot, so nearly everything should sit in the two bands at the top.</div>'+rows,false,I.bolt,"");
+    '<div class="ksub">One ruler, fastest on the left. '+note+'</div>'+
+    '<div class="zaxis"><div class="zbands">'+bands+'</div><div class="zdots">'+dots+'</div></div>'+
+    '<div class="zends"><span class="num">'+mmss(mn)+'</span><span class="num">'+mmss(mx)+'</span></div>'+
+    '<div class="zkey">'+key+'</div>',false,I.bolt,"");
 }
+/* ============ RECORDS AND BADGES, v7.11 ============
+   Two problems, both structural. Every one of the thirty-five badges drew the SAME trophy glyph, so
+   the icon carried no information at all and a speed badge was indistinguishable from a streak
+   badge; the glyph now comes from the category. And every earned badge was printed twice, once
+   under "Earned" and again under "Everything", which is the same duplication this app has been
+   removing from every other surface all day. One grouped list, earned and locked as states within
+   it, and the next one to fall marked rather than given its own duplicate section. */
+var BADGE_ICON={Distance:"gauge","One run":"run",Speed:"bolt",Consistency:"cal",Volume:"chart",Level:"spark",Grit:"flame"};
+function badgeList(){
+  var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
+  var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
+  var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+  var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length;
+  /* Was Object.keys(S.done).length, the same stale proxy that made All time read 1 active day
+     across 747. Days moved is derived. */
+  var moved=activeDayKeys().length,streak=computeStreak();
+  var wk=weeklyMiHistory(),bestWk=wk.length?Math.max.apply(null,wk):0;
+  function firstAt(pred){for(var i=0;i<runs.length;i++)if(pred(runs[i],i))return runs[i].date;return null;}
+  var defs=[
+    {g:"Distance",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null,p:Math.min(1,runs.length)},
+    {g:"Distance",n:"25 miles",d:"25 miles banked",got:total>=25,p:total/25},
+    {g:"Distance",n:"50 miles",d:"50 miles banked",got:total>=50,p:total/50},
+    {g:"Distance",n:"100 miles",d:"100 miles banked",got:total>=100,p:total/100},
+    {g:"Distance",n:"250 miles",d:"250 miles banked",got:total>=250,p:total/250},
+    {g:"Distance",n:"500 miles",d:"500 miles banked",got:total>=500,p:total/500},
+    {g:"One run",n:"5K",d:"3.1 in one go",got:longest>=3.1,when:firstAt(function(r){return (r.distanceMi||0)>=3.1;}),p:longest/3.1},
+    {g:"One run",n:"Five miles",d:"5.0 in one go",got:longest>=5,p:longest/5},
+    {g:"One run",n:"10K",d:"6.2 in one go",got:longest>=6.2,p:longest/6.2},
+    {g:"One run",n:"Ten miles",d:"10.0 in one go",got:longest>=10,p:longest/10},
+    {g:"One run",n:"Half",d:"13.1 in one go",got:longest>=13.1,p:longest/13.1},
+    {g:"Speed",n:"Sub 11",d:"A mile under 11:00",got:best>0&&best<660,p:best?660/best:0},
+    {g:"Speed",n:"Sub 10",d:"A mile under 10:00",got:best>0&&best<600,p:best?600/best:0},
+    {g:"Speed",n:"Sub 9",d:"A mile under 9:00",got:best>0&&best<540,p:best?540/best:0},
+    {g:"Speed",n:"Sub 8",d:"A mile under 8:00",got:best>0&&best<480,p:best?480/best:0},
+    {g:"Consistency",n:"Three in a row",d:"3 days moved",got:streak>=3||moved>=3,p:moved/3},
+    {g:"Consistency",n:"A full week",d:"7 day streak",got:streak>=7,p:streak/7},
+    {g:"Consistency",n:"Two weeks",d:"14 day streak",got:streak>=14,p:streak/14},
+    {g:"Consistency",n:"A month",d:"30 day streak",got:streak>=30,p:streak/30},
+    {g:"Consistency",n:"Hundred days",d:"100 days moved",got:moved>=100,p:moved/100},
+    {g:"Volume",n:"Ten runs",d:"10 runs banked",got:runs.length>=10,p:runs.length/10},
+    {g:"Volume",n:"Fifty runs",d:"50 runs banked",got:runs.length>=50,p:runs.length/50},
+    {g:"Volume",n:"Ten lifts",d:"10 sessions",got:lifts>=10,p:lifts/10},
+    {g:"Volume",n:"Fifty lifts",d:"50 sessions",got:lifts>=50,p:lifts/50},
+    {g:"Volume",n:"Big week",d:"10 miles in a week",got:bestWk>=10,p:bestWk/10},
+    {g:"Volume",n:"Bigger week",d:"20 miles in a week",got:bestWk>=20,p:bestWk/20},
+    {g:"Level",n:"Level 3",d:"Reach level 3",got:L.lvl>=3,p:L.lvl/3},
+    {g:"Level",n:"Level 5",d:"Reach level 5",got:L.lvl>=5,p:L.lvl/5},
+    {g:"Level",n:"Level 10",d:"Reach level 10",got:L.lvl>=10,p:L.lvl/10},
+    {g:"Level",n:"Level 15",d:"Reach level 15",got:L.lvl>=15,p:L.lvl/15},
+    {g:"Level",n:"Level 20",d:"Reach level 20",got:L.lvl>=20,p:L.lvl/20},
+    {g:"Grit",n:"Back at it",d:"Return after 14 days off",got:runs.length>=2&&(function(){for(var i=1;i<runs.length;i++)if(daysBetween(runs[i-1].date,runs[i].date)>=14)return true;return false;})(),p:0},
+    {g:"Grit",n:"Never zero",d:"Log a 5-minute minimum day",got:S.sessions.some(function(x){return x.notes==="never-zero";}),p:0},
+    {g:"Grit",n:"Weigh-in habit",d:"10 weigh-ins logged",got:S.weigh.length>=10,p:S.weigh.length/10},
+    {g:"Grit",n:"On the record",d:"25 weigh-ins logged",got:S.weigh.length>=25,p:S.weigh.length/25}
+  ];
+  var got=defs.filter(function(x){return x.got;});
+  /* The nearest unearned badge in each group, so "next" is a state on the tile rather than a second
+     copy of the tile somewhere else. */
+  var nextSet={};
+  var groups={};defs.forEach(function(x){(groups[x.g]=groups[x.g]||[]).push(x);});
+  Object.keys(groups).forEach(function(g){
+    var pend=groups[g].filter(function(x){return !x.got;}).sort(function(a,b){return (b.p||0)-(a.p||0);});
+    if(pend.length)nextSet[g+"|"+pend[0].n]=true;
+  });
+  function cell(x){
+    var isNext=nextSet[x.g+"|"+x.n],ic=I[BADGE_ICON[x.g]]||I.trophy;
+    var pct=Math.round(Math.max(0,Math.min(1,x.p||0))*100);
+    return '<div class="badge'+(x.got?" got":"")+(isNext?" next":"")+'">'+
+      '<div class="bdot">'+ic+'</div><div class="bn">'+x.n+'</div>'+
+      '<div class="bd">'+(x.got&&x.when?shortDate(x.when):x.d)+'</div>'+
+      (!x.got&&isNext&&pct>4&&pct<100?'<div class="bpr"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
+  }
+  var all="";
+  Object.keys(groups).forEach(function(g){
+    var gg=groups[g],gGot=gg.filter(function(x){return x.got;}).length;
+    all+='<div class="bghd"><span class="bgi">'+(I[BADGE_ICON[g]]||I.trophy)+'</span><span class="bgn">'+g+'</span>'+
+         '<span class="bgl"></span><span class="bgc">'+gGot+' of '+gg.length+'</span></div>'+
+         '<div class="badges">'+gg.map(cell).join("")+'</div>';
+  });
+  var bestWeek=bestWk;
+  var prBar='<div class="prbar">'+
+    '<div class="prcell"><b class="num">'+(best?mmss(best):"--")+'</b><span>best pace</span></div>'+
+    '<div class="prcell"><b class="num">'+(longest?longest.toFixed(1):"--")+'</b><span>longest run</span></div>'+
+    '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span></div>'+
+    '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span></div></div>';
+  var pct=Math.round(got.length/defs.length*100);
+  return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
+    '<div class="libpad">'+prBar+
+    '<div class="bprog"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="ksub" style="margin:8px 0 2px">'+got.length+' earned, '+(defs.length-got.length)+' to go. The outlined tile in each group is the next one to fall.</div>'+
+    all+'</div></details>';
+}
+
 function scrollToWarm(){var e=document.getElementById("warmblock");if(e)e.scrollIntoView({behavior:"smooth",block:"start"});}
 /* ============ CARDIO LEVEL SYSTEM (Round C) ============
    Levels come from an exponentially weighted average of daily cardio load, the way TrainingPeaks
@@ -4720,75 +4887,6 @@ function levelDetailHTML(){
   return collapsible("Where the level comes from","Level "+L.lvl,inner,false,I.spark,st.k==="base"?"warn":"");
 }
 /* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
-function badgeList(){
-  var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
-  var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
-  var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
-  var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length;
-  var moved=Object.keys(S.done||{}).length,streak=computeStreak();
-  var earlyRuns=runs.filter(function(r){return /T0[0-7]/.test(r.date+"T06");}).length;
-  var wk=weeklyMiHistory(),bestWk=wk.length?Math.max.apply(null,wk):0;
-  function firstAt(pred){for(var i=0;i<runs.length;i++)if(pred(runs[i],i))return runs[i].date;return null;}
-  var defs=[
-    {g:"Distance",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null},
-    {g:"Distance",n:"25 miles",d:"25 miles banked",got:total>=25},
-    {g:"Distance",n:"50 miles",d:"50 miles banked",got:total>=50},
-    {g:"Distance",n:"100 miles",d:"100 miles banked",got:total>=100},
-    {g:"Distance",n:"250 miles",d:"250 miles banked",got:total>=250},
-    {g:"Distance",n:"500 miles",d:"500 miles banked",got:total>=500},
-    {g:"One run",n:"5K",d:"3.1 in one go",got:longest>=3.1,when:firstAt(function(r){return (r.distanceMi||0)>=3.1;})},
-    {g:"One run",n:"Five miles",d:"5.0 in one go",got:longest>=5},
-    {g:"One run",n:"10K",d:"6.2 in one go",got:longest>=6.2},
-    {g:"One run",n:"Ten miles",d:"10.0 in one go",got:longest>=10},
-    {g:"One run",n:"Half",d:"13.1 in one go",got:longest>=13.1},
-    {g:"Speed",n:"Sub 11",d:"A mile under 11:00",got:best>0&&best<660},
-    {g:"Speed",n:"Sub 10",d:"A mile under 10:00",got:best>0&&best<600},
-    {g:"Speed",n:"Sub 9",d:"A mile under 9:00",got:best>0&&best<540},
-    {g:"Speed",n:"Sub 8",d:"A mile under 8:00",got:best>0&&best<480},
-    {g:"Consistency",n:"Three in a row",d:"3 days moved",got:streak>=3||moved>=3},
-    {g:"Consistency",n:"A full week",d:"7 days moved",got:streak>=7},
-    {g:"Consistency",n:"Two weeks",d:"14 day streak",got:streak>=14},
-    {g:"Consistency",n:"A month",d:"30 day streak",got:streak>=30},
-    {g:"Consistency",n:"Hundred days",d:"100 days moved",got:moved>=100},
-    {g:"Volume",n:"Ten runs",d:"10 runs banked",got:runs.length>=10},
-    {g:"Volume",n:"Fifty runs",d:"50 runs banked",got:runs.length>=50},
-    {g:"Volume",n:"Ten lifts",d:"10 sessions",got:lifts>=10},
-    {g:"Volume",n:"Fifty lifts",d:"50 sessions",got:lifts>=50},
-    {g:"Volume",n:"Big week",d:"10 miles in a week",got:bestWk>=10},
-    {g:"Volume",n:"Bigger week",d:"20 miles in a week",got:bestWk>=20},
-    {g:"Level",n:"Level 3",d:"Reach level 3",got:L.lvl>=3},
-    {g:"Level",n:"Level 5",d:"Reach level 5",got:L.lvl>=5},
-    {g:"Level",n:"Level 10",d:"Reach level 10",got:L.lvl>=10},
-    {g:"Level",n:"Level 15",d:"Reach level 15",got:L.lvl>=15},
-    {g:"Level",n:"Level 20",d:"Reach level 20",got:L.lvl>=20},
-    {g:"Grit",n:"Back at it",d:"Return after 14 days off",got:runs.length>=2&&(function(){for(var i=1;i<runs.length;i++)if(daysBetween(runs[i-1].date,runs[i].date)>=14)return true;return false;})()},
-    {g:"Grit",n:"Never zero",d:"Log a 5-minute minimum day",got:S.sessions.some(function(x){return x.notes==="never-zero";})},
-    {g:"Grit",n:"Weigh-in habit",d:"10 weigh-ins logged",got:S.weigh.length>=10},
-    {g:"Grit",n:"On the record",d:"25 weigh-ins logged",got:S.weigh.length>=25}
-  ];
-  var got=defs.filter(function(x){return x.got;}),left=defs.filter(function(x){return !x.got;});
-  function cell(x){return '<div class="badge'+(x.got?" got":"")+'"><div class="bdot">'+(x.got?I.trophy:I.rest)+'</div><div class="bn">'+x.n+'</div><div class="bd">'+(x.got&&x.when?shortDate(x.when):x.d)+'</div></div>';}
-  /* Earned first and in order, then the locked ones as visible goals rather than hidden ones. */
-  var next=left.slice(0,4).map(cell).join("");
-  var all="";
-  var groups={};defs.forEach(function(x){(groups[x.g]=groups[x.g]||[]).push(x);});
-  Object.keys(groups).forEach(function(g){
-    all+='<div class="sectlbl" style="margin:14px 2px 8px">'+g+'</div><div class="badges">'+groups[g].map(cell).join("")+'</div>';
-  });
-  var prRuns=allRuns();
-  var bestPace=prRuns.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
-  var longestRun=prRuns.reduce(function(a,r){return Math.max(a,r.distanceMi||0);},0);
-  var bestWeek=(function(){var w=weeklyMiHistory();return w.length?Math.max.apply(null,w):0;})();
-  var prBar='<div class="prbar">'+
-    '<div class="prcell"><b class="num">'+(bestPace?mmss(bestPace):"--")+'</b><span>best pace</span></div>'+
-    '<div class="prcell"><b class="num">'+(longestRun?longestRun.toFixed(1):"--")+'</b><span>longest run</span></div>'+
-    '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span></div>'+
-    '<div class="prcell"><b class="num">'+computeStreak()+'</b><span>streak</span></div></div>';
-  return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
-    '<div class="libpad">'+prBar+(got.length?'<div class="sectlbl" style="margin:16px 2px 8px">Earned</div><div class="badges">'+got.map(cell).join("")+'</div>':'')+
-    (next?'<div class="sectlbl" style="margin:16px 2px 8px">Next up</div><div class="badges">'+next+'</div>':'')+
-    '<div class="sectlbl" style="margin:18px 2px 8px">Everything</div>'+all+'</div></details>';
-}
 
 /* ============ THE ODOMETER (v7.6) ============
    Matthew asked for a total-miles counter "same as within Nike Run Club". The geometry below was
