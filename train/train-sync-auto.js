@@ -200,14 +200,31 @@
     var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, pf: p.profile, cu: p.cursor });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
-      .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { mark(false, "push " + r.status); } })
+      .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { onUnauthorized(r.status); mark(false, "push " + r.status); } })
       .catch(function (e) { mark(false, "push " + (e && e.message)); });
+  }
+
+  /* 2026-07-30. The passphrase prompt only ever fired when NO token was stored, so rotating
+     SYNC_TOKEN on the Worker left every already-paired device holding a dead passphrase and
+     401ing forever, silently, with no way back short of clearing site data. A stale credential
+     has to invalidate itself: on a 401 the stored token is dropped and the pairing overlay is
+     shown again, which turns "sync quietly stopped weeks ago" into one visible question. */
+  var reprompting = false;
+  function onUnauthorized(status) {
+    if (status !== 401 || reprompting) return;
+    reprompting = true;
+    try { localStorage.removeItem(TOKEN_KEY); } catch (e) {}
+    lastSnap = null;
+    promptToken(function () {
+      reprompting = false;
+      pullAndMerge().then(function () { push(); });
+    });
   }
 
   function pullAndMerge() {
     var t = getToken(); if (!t) return Promise.resolve();
     return fetch(EP + "/pull", { headers: { "Authorization": "Bearer " + t } })
-      .then(function (r) { if (r.ok) { mark(true); } else { mark(false, "pull " + r.status); } return r.ok ? r.json() : null; })
+      .then(function (r) { if (r.ok) { mark(true); } else { onUnauthorized(r.status); mark(false, "pull " + r.status); } return r.ok ? r.json() : null; })
       .then(function (srv) {
         if (!srv) return;
         var S = loadState();
