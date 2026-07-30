@@ -1031,6 +1031,47 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vratio{position:relative;width:100%;padding-top:56.25%;display:block;overflow:hidden;border-radius:var(--r-card) var(--r-card) 0 0}
 .vratio>.vface{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;flex-direction:column;gap:8px}
 .vfl{font-size:12px;font-weight:750;letter-spacing:.02em;color:var(--sub)}
+
+/* ============ v7.18 CONTROLS, built to the exemplar pass ============ */
+/* Switch. Material Design 3 geometry verbatim: track 52x32, full radius, 2px outline; handle 16
+   unselected growing to 24 selected. The growth is deliberate, because the HIG forbids relying on
+   colour alone and thumb travel plus size gives two channels that do not need colour vision. */
+.sw{width:52px;height:32px;flex:none;border-radius:999px;background:var(--surface-2);
+    border:2px solid var(--line-2);position:relative;padding:0;transition:background .18s ease,border-color .18s ease}
+.sw .swt{position:absolute;top:50%;left:5px;width:16px;height:16px;border-radius:999px;background:var(--faint);
+    transform:translateY(-50%);transition:left .18s cubic-bezier(.2,.7,.3,1),width .18s ease,height .18s ease,background .18s ease}
+.sw.on{background:var(--accent);border-color:var(--accent)}
+.sw.on .swt{left:22px;width:24px;height:24px;background:var(--white)}
+.sw:active .swt{width:28px;height:28px}
+/* Grouped inset list, the iOS Settings structure. Label above, rows in a rounded card with the
+   divider inset to the text column, explanation in a footnote UNDER the group rather than inside
+   the row, which is what lets every row stay one line. */
+.sgt{font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:20px 4px 8px}
+.sgc{background:var(--surface);border:1px solid var(--line);border-radius:15px;overflow:hidden}
+.sgf{font-size:12.5px;line-height:1.55;color:var(--faint);margin:8px 6px 0}
+.sgf b{color:var(--sub);font-weight:700}
+.srow{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:9px 14px;background:none;border:0;text-align:left}
+.srow+.srow{border-top:1px solid var(--line);margin-left:14px;padding-left:0}
+.srow+.srow>.srl{padding-left:0}
+.srow .srl{flex:1;min-width:0;font-size:15px;font-weight:600;color:var(--ink)}
+.srow .src{flex:none;display:flex;align-items:center;gap:8px;padding-right:0}
+.srow+.srow .src{padding-right:14px}
+.srow.wide{flex-direction:column;align-items:stretch;gap:9px}
+.srow.wide .src{width:100%}
+.srow.wide .seg{width:100%}
+.snav{cursor:pointer}
+.snav .snv{font-size:14px;color:var(--sub);font-weight:600}
+.snav .snc{display:inline-flex;color:var(--faint);transform:rotate(-90deg)}
+.snav .snc svg{width:18px;height:18px}
+.snav.dang .srl{color:var(--accent)}
+.srow .stp{max-width:none}
+.srow .seg{max-width:none}
+.scad .caddot{width:9px;height:9px;border-radius:50%;flex:none;background:var(--faint)}
+.scad[data-rag="good"] .caddot{background:var(--good)}
+.scad[data-rag="amber"] .caddot{background:var(--amber)}
+.scad[data-rag="red"] .caddot{background:var(--accent)}
+.scad[data-rag="none"] .caddot{background:var(--line-2)}
+.minibtn{height:34px;padding:0 13px;border-radius:10px;background:var(--surface-2);color:var(--ink);font-size:13.5px;font-weight:700;border:0}
 </style>
 </head>
 <body>
@@ -1076,7 +1117,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.17";
+var VERSION="v7.18";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -4070,11 +4111,115 @@ function isiOS(){
    VPN off -> embeds inline, which is the better experience and now the default. */
 function vpnOn(){return !!(S.profile||{}).vpn;}
 function vidRoute(){return vpnOn()?"app":"inline";}
+/* ============ SETTINGS AND CONTROLS, v7.18 ============
+   Rebuilt from `research/CONTROLS-EXEMPLAR-2026-07-30.md`, which is a real exemplar pass rather
+   than another round of my own taste. The finding that reframed it, verbatim from Apple's HIG:
+   "Use the switch toggle style ONLY IN A LIST ROW. You don't need to supply a label in this
+   situation because the content in the row provides the context."
+   Train had no switches at all. Every boolean was a two-button segment, which needs ~176px to say
+   what a 52px switch says, and that is most of why the sheet read as cramped: every row was
+   fighting for horizontal space it never needed to spend.
+   Geometry is Material Design 3's published switch spec, copied not invented: track 52x32, full
+   radius, handle 16 unselected growing to 24 selected. That growth is the point, because the HIG
+   also says "avoid relying solely on different colors to communicate state" and the thumb travel
+   plus the size change give two non-colour channels.
+   Structurally the flat stack becomes grouped inset cards, which is what iOS Settings actually
+   does: a small label above the group, the rows inside a rounded card with dividers inset to the
+   text column, and the explanation moved OUT of the row into a footnote under the group. That last
+   move is what lets every row be one line. */
+
+/* ---- primitives ---- */
+function swCtl(on,fn){
+  return '<button class="sw'+(on?" on":"")+'" role="switch" aria-checked="'+(on?"true":"false")+'" onclick="'+fn+'"><span class="swt"></span></button>';
+}
+function segCtl(opts){
+  return '<div class="seg">'+opts.map(function(o){
+    return '<button class="'+(o[2]?"sel":"")+'" onclick="'+o[1]+'">'+o[0]+'</button>';}).join("")+'</div>';
+}
+function stepCtl(minus,plus,val,unit,id){
+  return '<div class="stp"><button onclick="'+minus+'" aria-label="lower">&minus;</button>'+
+    '<span class="num"'+(id?' id="'+id+'"':'')+'>'+val+'</span>'+(unit?'<span class="u">'+unit+'</span>':'')+
+    '<button onclick="'+plus+'" aria-label="raise">+</button></div>';
+}
+/* A row is one line of text and one control. Anything that needs explaining goes in the group's
+   footnote, never in the row. */
+function srow(label,ctl,cls){
+  return '<div class="srow'+(cls?" "+cls:"")+'"><span class="srl">'+label+'</span><span class="src">'+ctl+'</span></div>';
+}
+/* A drill-in: a row that opens something. Chevron, not a full-width button. */
+function snav(label,value,fn,tone){
+  return '<button class="srow snav'+(tone?" "+tone:"")+'" onclick="'+fn+'"><span class="srl">'+label+'</span>'+
+    '<span class="src">'+(value?'<span class="snv">'+value+'</span>':'')+'<span class="snc">'+I.chevD+'</span></span></button>';
+}
+function sgroup(title,rows,foot){
+  return (title?'<div class="sgt">'+title+'</div>':'')+
+    '<div class="sgc">'+rows+'</div>'+
+    (foot?'<div class="sgf">'+foot+'</div>':'');
+}
 function setVpn(on,btn){
   S.profile.vpn=!!on;save();
-  if(btn){var seg=btn.parentNode;seg.querySelectorAll("button").forEach(function(b){b.classList.remove("sel");});btn.classList.add("sel");}
+  if(btn){btn.classList.toggle("on",!!on);btn.setAttribute("aria-checked",on?"true":"false");}
+  var n=document.getElementById("vpn-note");
+  if(n)n.innerHTML='Videos currently '+(on?'<b>open in the YouTube app</b>':'<b>play inline</b>')+' on this device.';
   toast(on?"Videos will open in the YouTube app.":"Videos will play inline again.",null);
 }
+function setAdjSw(btn){
+  S.profile.adjustable=!S.profile.adjustable;save();
+  if(btn){btn.classList.toggle("on",!!S.profile.adjustable);btn.setAttribute("aria-checked",S.profile.adjustable?"true":"false");}
+}
+function settingsSheet(){
+  var p=S.profile,gstep=(U()==="kg"?1:5);
+  var m='<div class="grab"></div><h3>Settings</h3>';
+
+  m+=sgroup("Training",
+    srow('Plan uses',segCtl([["Bodyweight","setMode('bw',this)",trainMode()==="bw"],["Dumbbells","setMode('db',this)",trainMode()==="db"]]),"wide")+
+    srow('Adjustable dumbbells',swCtl(!!p.adjustable,"setAdjSw(this)"))+
+    srow('Bodyweight counts as',stepCtl("setBwFactor(-5)","setBwFactor(5)",Math.round(bwFactor()*100)+'%',"","bwf-set"))+
+    snav('2-week ease-in',(easingIn()?"running":"not started"),"startEaseIn()"),
+    "Dumbbell mode swaps the movements, not the plan. The bodyweight share is what a rep counts as when working out volume. Ease-in runs lighter for a fortnight.");
+
+  var cad=cadenceLine();
+  m+=sgroup("Goal",
+    srow('Goal weight',stepCtl("setGoal(-"+gstep+")","setGoal("+gstep+")",p.goalLb,wLbl(),"goal-set"))+
+    srow('Stretch goal',stepCtl("setStretch(-"+gstep+")","setStretch("+gstep+")",(p.stretchLb||p.goalLb-5),wLbl(),"stretch-set"))+
+    '<div class="srow scad" data-rag="'+cad.rag+'"><span class="caddot"></span><span class="srl">'+esc(cad.t)+'</span>'+
+      '<span class="src"><button class="minibtn" onclick="closeSheet();weighSheet()">Weigh in</button></span></div>',
+    esc(cad.s)+' The stretch goal is a second target past the first and is never drawn on the chart.');
+
+  m+=sgroup("Preferences",
+    srow('Units',segCtl([["lb","setUnits('lb',this)",U()==="lb"],["kg","setUnits('kg',this)",U()==="kg"]]))+
+    srow('Rest timer',stepCtl("setRest(-15,this)","setRest(15,this)",(p.rest||90),"s","rest-set"))+
+    srow('Theme',segCtl([["Auto","setTheme('system',this)",(!p.theme||p.theme==="system")],
+      ["Light","setTheme('light',this)",p.theme==="light"],["Dark","setTheme('dark',this)",p.theme==="dark"]]),"wide"));
+
+  m+=sgroup("Video",
+    srow('VPN or Private Relay',swCtl(vpnOn(),"setVpn(!vpnOn(),this)"))+
+    snav('Video check',"","closeSheet();videoDiagSheet()"),
+    '<span id="vpn-note">Videos currently '+(vpnOn()?'<b>open in the YouTube app</b>':'<b>play inline</b>')+' on this device.</span> YouTube refuses embedded playback through a VPN, so turn this on and videos open in the YouTube app instead.');
+
+  var sh=syncHealth();
+  m+=sgroup("Sync",
+    '<div class="srow scad" data-rag="'+sh.rag+'"><span class="caddot"></span><span class="srl">'+(sh.rag==="none"?"Not paired":"Last exchange "+esc(sh.txt))+'</span>'+
+      '<span class="src">'+(sh.rag==="none"?'<button class="minibtn" onclick="closeSheet();syncPassSheet()">Set up</button>':'<button class="minibtn" onclick="syncNow(this)">Sync now</button>')+'</span></div>'+
+    (sh.rag!=="none"?snav('Change the passphrase',"","closeSheet();syncPassSheet()"):""),
+    esc(sh.hint)+'.');
+
+  var _bk=backupAgeDays();
+  m+=sgroup("Your data",
+    snav('Back up to a file',"","closeSheet();exportSheet()")+
+    snav('Restore from a file',"","closeSheet();importSheet()")+
+    snav('Import from Apple Health',"","closeSheet();healthSheet()"),
+    S.sessions.length+' sessions, '+S.weigh.length+' weigh-ins &middot; '+
+    (_bk==null?'never backed up':(_bk===0?'backed up today':'last backup '+_bk+' day'+(_bk===1?'':'s')+' ago'))+'.');
+
+  m+=sgroup("",snav('Reset all data',"","confirmReset()","dang"),
+    'This clears every session, weigh-in and setting on this device. It cannot be undone.');
+
+  m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
+  m+='<div class="foot">Train '+VERSION+' - stored on this device, synced to your own private store</div>';
+  openSheet(m);
+}
+
 function openVid(id){
   var v=vidById(id);
   if(v&&!vDone(id)){/* opening is not doing it; the tick stays his */}
@@ -4311,19 +4456,6 @@ function startEaseIn(){S.profile.programStart=TODAY;if(S.wk[TODAY]&&!S.wk[TODAY]
    stretch goal that has been in the profile all along with no UI, and see the weigh-in cadence,
    which this session proved is the single thing gating the whole weight card. */
 var CTLW="176px";
-function srow(label,cap,ctl){
-  return '<div class="logrow"><label>'+label+(cap?'<div class="skc" style="font-weight:500">'+cap+'</div>':'')+'</label>'+
-    '<div class="ctlw">'+ctl+'</div></div>';
-}
-function segCtl(opts){
-  return '<div class="seg">'+opts.map(function(o){
-    return '<button class="'+(o[2]?"sel":"")+'" onclick="'+o[1]+'">'+o[0]+'</button>';}).join("")+'</div>';
-}
-function stepCtl(minus,plus,val,unit,id){
-  return '<div class="stp"><button onclick="'+minus+'" aria-label="lower">&minus;</button>'+
-    '<span class="num"'+(id?' id="'+id+'"':'')+'>'+val+'</span>'+(unit?'<span class="u">'+unit+'</span>':'')+
-    '<button onclick="'+plus+'" aria-label="raise">+</button></div>';
-}
 /* Cadence is reported, never nagged. The card refuses to measure a rate for a stated reason, so
    Settings states the same reason in the same words rather than inventing a second vocabulary. */
 function cadenceLine(){
@@ -4342,71 +4474,6 @@ function syncNow(btn){
   TrainSyncAuto.now().then(function(r){
     done(r&&r.ok?"Synced.":("Sync failed"+(r&&r.reason?": "+r.reason:".")));
   });
-}
-function settingsSheet(){
-  var p=S.profile,gstep=(U()==="kg"?1:5);
-  var m='<div class="grab"></div><h3>Settings</h3>';
-
-  m+='<div class="sectlbl" style="margin:4px 2px 8px">Training style</div>';
-  m+=srow('Plan uses','bodyweight now, add dumbbells anytime',
-      segCtl([["Bodyweight","setMode('bw',this)",trainMode()==="bw"],["Dumbbells","setMode('db',this)",trainMode()==="db"]]));
-  m+=srow('Adjustable dumbbells?','adds weight instead of reps',
-      segCtl([["Yes","setAdj(true,this)",!!p.adjustable],["No","setAdj(false,this)",!p.adjustable]]));
-  m+=srow('Bodyweight counts as','share of your weight per rep, for volume',
-      stepCtl("setBwFactor(-5)","setBwFactor(5)",Math.round(bwFactor()*100)+'%',"","bwf-set"));
-  m+=srow('2-week ease-in',(easingIn()?"running now, lighter volume":"lighter volume for two weeks"),
-      '<button class="wbtn" style="width:100%" onclick="startEaseIn()">'+(easingIn()?"Restart":"Start today")+'</button>');
-
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Goal</div>';
-  m+=srow('Goal weight','',stepCtl("setGoal(-"+gstep+")","setGoal("+gstep+")",p.goalLb,wLbl(),"goal-set"));
-  /* stretchLb has been in the profile since the first build with no way to set it. It is NOT a
-     milestone and never goes on the chart; it is a second, further target, which is exactly why it
-     belongs here and nowhere else. */
-  m+=srow('Stretch goal','a second target past the first, never drawn on the chart',
-      stepCtl("setStretch(-"+gstep+")","setStretch("+gstep+")",(p.stretchLb||p.goalLb-5),wLbl(),"stretch-set"));
-  var cad=cadenceLine();
-  m+='<div class="cadrow" data-rag="'+cad.rag+'"><span class="caddot"></span><div><div class="cadt">'+esc(cad.t)+'</div>'+
-     '<div class="cads">'+esc(cad.s)+'</div></div><button class="wbtn" onclick="closeSheet();weighSheet()">Weigh in</button></div>';
-
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Preferences</div>';
-  m+=srow('Units','',segCtl([["lb","setUnits('lb',this)",U()==="lb"],["kg","setUnits('kg',this)",U()==="kg"]]));
-  m+=srow('Rest timer','',stepCtl("setRest(-15,this)","setRest(15,this)",(p.rest||90),"s","rest-set"));
-  m+=srow('Theme','',segCtl([["Auto","setTheme('system',this)",(!p.theme||p.theme==="system")],
-      ["Light","setTheme('light',this)",p.theme==="light"],["Dark","setTheme('dark',this)",p.theme==="dark"]]));
-
-  /* Sync used to say "paired on this device" and stop, which is a statement about configuration and
-     not about whether anything is actually getting through. It now reports the real exchange record
-     and offers to force one. */
-  var sh=syncHealth();
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Sync</div>';
-  m+='<div class="cadrow" data-rag="'+sh.rag+'"><span class="caddot"></span><div><div class="cadt">'+
-     (sh.rag==="none"?"Not paired":"Last exchange "+esc(sh.txt))+'</div>'+
-     '<div class="cads">'+esc(sh.hint)+'</div></div>'+
-     (sh.rag==="none"?'<button class="wbtn" onclick="closeSheet();syncPassSheet()">Set up</button>'
-                     :'<button class="wbtn" onclick="syncNow(this)">Sync now</button>')+'</div>';
-  if(sh.rag!=="none")
-    m+='<button class="sheet-cta ghost" onclick="closeSheet();syncPassSheet()">Change the passphrase</button>';
-
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Your data</div>';
-  var _bk=backupAgeDays();
-  m+='<div class="setnote">'+S.sessions.length+' sessions, '+S.weigh.length+' weigh-ins &middot; '+
-     (_bk==null?'never backed up':(_bk===0?'backed up today':'last backup '+_bk+' day'+(_bk===1?'':'s')+' ago'))+'</div>';
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();exportSheet()">'+I.download+' Back up to a file</button>';
-  /* importSheet has existed since the first build and was never reachable from Settings, so a
-     backup was a file you could write and never read. */
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();importSheet()">'+I.copy+' Restore from a file</button>';
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Video</div>';
-  m+=srow('VPN or Private Relay','YouTube blocks embedded playback through a VPN, so videos open in the YouTube app instead',
-      segCtl([["Off","setVpn(false,this)",!vpnOn()],["On","setVpn(true,this)",vpnOn()]]));
-  m+='<div class="setnote">Videos currently '+(vpnOn()?'<b>open in the YouTube app</b>':'<b>play inline</b>')+' on this device.</div>';
-  m+='<div class="sectlbl" style="margin:16px 2px 8px">Diagnostics</div>';
-  m+='<button class="sheet-cta ghost" onclick="closeSheet();videoDiagSheet()">Video check</button>';
-  m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
-  m+='<div class="danger"><div class="sectlbl" style="margin:0 2px 8px">Danger</div>'+
-     '<button class="sheet-cta ghost dang" onclick="confirmReset()">Reset all data</button></div>';
-  m+='<div class="foot">Train '+VERSION+' - stored on this device, synced to your own private store</div>';
-  openSheet(m);
 }
 function setStretch(d){
   var p=S.profile,cur=(p.stretchLb||p.goalLb-5);
