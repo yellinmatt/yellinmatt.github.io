@@ -1090,6 +1090,26 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vvb{flex:1;height:34px;border-radius:9px;background:var(--surface-2);color:var(--sub);font-size:12.5px;font-weight:700;border:0}
 .vvb.good{background:var(--good-tint);color:var(--good)}
 .vvb.bad{background:var(--accent-tint);color:var(--accent)}
+
+/* v7.22 movements as a two-column grid */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px}
+.mcard{position:relative;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:13px;padding:12px 12px 11px;display:block}
+.mcard.untrained{opacity:.72}
+.mcard .mcn{display:block;font-size:13.5px;font-weight:750;color:var(--ink);line-height:1.25;margin-bottom:6px;padding-right:22px}
+.mcard .mcw{display:block;font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
+.mcard .mcl{display:block;font-size:11.5px;color:var(--faint);margin-top:3px;line-height:1.35}
+.mcard .mcp{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;color:var(--good);background:var(--good-tint);border-radius:5px;padding:2px 6px;margin-top:6px}
+.mcard .mcplay{position:absolute;top:10px;right:10px;width:18px;height:18px;color:var(--faint);display:inline-flex}
+.mcard .mcplay svg{width:18px;height:18px}
+/* v7.22 library as a grid of category cards */
+.libgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 0 10px}
+.libtile{text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:13px;padding:13px 13px 12px}
+.libtile.on{border-color:var(--accent);background:var(--accent-tint)}
+.libtile .ltn{display:block;font-size:14px;font-weight:750;color:var(--ink)}
+.libtile .ltd{display:block;font-size:11.5px;color:var(--faint);margin-top:2px}
+.libtile .ltc{display:block;font-size:11px;font-weight:700;color:var(--sub);margin-top:8px}
+.libtile .ltc.gd{color:var(--good)}
+.libpane{margin-top:6px}
 </style>
 </head>
 <body>
@@ -1135,7 +1155,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.21";
+var VERSION="v7.22";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1311,9 +1331,14 @@ function equipSheet(){
   openSheet('<div class="grab"></div><h3>What have you got today?</h3>'+
     '<div class="ssub">Pick where you are. This changes today\'s session only, never the plan.</div>'+
     scenes+
-    '<div class="sectlbl" style="margin:16px 2px 8px">Or set it piece by piece</div>'+
-    '<div class="eqchips" style="margin:0 0 4px">'+chips+'</div>'+
-    '<div class="logrow" style="margin-top:10px"><label>Can you add weight?<div class="skc" style="font-weight:500">adjustable dumbbells let the plan load up</div></label><div class="seg" style="max-width:120px"><button class="'+(S.profile.adjustable?"sel":"")+'" onclick="frAdjSess(true,this)">Yes</button><button class="'+(S.profile.adjustable?"":"sel")+'" onclick="frAdjSess(false,this)">No</button></div></div>'+
+    /* v7.22. The chips are not a second way of doing the same thing, they are what a preset SETS,
+       so they are labelled as such instead of reading as a duplicate list. And "Can you add weight"
+       was a two-button segment for a plain yes/no, which is the control the exemplar pass retired. */
+    '<div class="sectlbl" style="margin:16px 2px 6px">What that gives you</div>'+
+    '<div class="ssub" style="margin:0 0 8px">A preset just ticks these. Change any of them and the preset above unselects itself.</div>'+
+    '<div class="eqchips" id="eqchips" style="margin:0 0 4px">'+chips+'</div>'+
+    sgroup("", srow('Adjustable dumbbells',swCtl(!!S.profile.adjustable,"frAdjSw(this)")),
+      "With adjustable dumbbells the plan adds weight; without them it adds reps.")+
     '<button class="sheet-cta" onclick="applySessEquip()">Rebuild today</button>'+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
   EQ_PICK=cur;
@@ -2862,10 +2887,15 @@ function movementRowHTML(id){
   if(le)le.e.sets.forEach(function(x){if(!x.completed)return;var w=x.weightLb||0,r=x.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
   var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
   var lastTxt=le&&best?(shortDate(le.date)+" &middot; "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"not trained yet";
-  return '<button class="mrow" onclick="movementSheet(\''+id+'\')">'+
-    '<span class="mvthumb">'+I.play+'</span>'+
-    '<span class="mm"><span class="mn">'+esc(e.name)+'</span><span class="md">'+lastTxt+'</span></span>'+
-    '<span class="mv"><span class="mw num">'+now+'</span>'+(pr?'<span class="mp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+'</span></button>';
+  /* v7.22. This was a wide row cramming a thumb, a name, a date, a prescription and a PR onto one
+     line, which is what Matthew called smashed. It is a card now, two to a row, with the
+     prescription as the headline (it is the number you act on) and the history underneath. */
+  return '<button class="mcard'+(le?"":" untrained")+'" onclick="movementSheet(\''+id+'\')">'+
+    '<span class="mcn">'+esc(e.name)+'</span>'+
+    '<span class="mcw num">'+now+'</span>'+
+    '<span class="mcl">'+lastTxt+'</span>'+
+    (pr?'<span class="mcp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+
+    '<span class="mcplay">'+I.play+'</span></button>';
 }
 function movementRows(){
   var g=movementDayGroups(),L=letterFor(),inner="",total=0,prs=0;
@@ -2877,13 +2907,13 @@ function movementRows(){
     inner+='<details class="libsub"'+(k===L?' open':'')+'><summary>'+
       '<span>Day '+k+' &middot; '+esc(DAYS[k]?DAYS[k].name:"")+'</span>'+
       '<span class="lcount'+(trained===g[k].length?" gd":"")+'">'+g[k].length+' movements</span></summary>'+
-      '<div class="mgroup">'+g[k].map(movementRowHTML).join("")+'</div></details>';
+      '<div class="mgrid">'+g[k].map(movementRowHTML).join("")+'</div></details>';
   });
   if(g.other.length){
     total+=g.other.length;
     inner+='<details class="libsub"><summary><span>Outside the rotation</span>'+
       '<span class="lcount">'+g.other.length+'</span></summary>'+
-      '<div class="mgroup">'+g.other.map(movementRowHTML).join("")+'</div></details>';
+      '<div class="mgrid">'+g.other.map(movementRowHTML).join("")+'</div></details>';
   }
   if(!inner)return "";
   return collapsible("Your movements",total+" movements"+(prs?(", "+prs+" with a record"):""),
@@ -2936,7 +2966,12 @@ function renderLift(){
     '<div class="chero"><div class="cheroL">'+levelRingHTML(LL)+'</div>'+
     '<div class="cheroR" data-tier="'+levelTier(LL.lvl).k+'"><div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+levelTier(LL.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
-    '<div class="lvlp">'+(LLS.k==="base"?(LL.sessions+' of 4 sessions logged'):('<b class="num">'+LL.pips+'</b> of 10 to Level '+(LL.lvl+1)))+'</div>'+
+    /* v7.22. "2 of 4 sessions logged" stated a number without saying what it was FOR. Four is the
+       gate at which the level stops guessing, so the line now says that. */
+    '<div class="lvlp">'+(LLS.k==="base"
+      ?((4-LL.sessions)>0?('<b class="num">'+(4-LL.sessions)+'</b> more session'+((4-LL.sessions)===1?'':'s')+' and your level starts moving')
+                         :'Level is reading your real training now')
+      :('<b class="num">'+LL.pips+'</b> of 10 to Level '+(LL.lvl+1)))+'</div>'+
     '</div></div><div class="chsplit"></div>'+
     dayRailHTML(L)+
     '<h2>'+(scheduled?nm:("Day "+L+" &middot; "+nm))+'</h2>'+
@@ -4586,6 +4621,21 @@ function guidedHTML(cat,label,note,offset){
    six with the block he is currently in opened by default, so reaching the next session is a tap
    instead of a scroll past everything he has already done. Counts turn green as blocks complete,
    which is the same done-language as the rest of the app. (Matthew, 2026-07-29) */
+/* Opens one category pane and closes the others, so the library is a grid you drill into rather
+   than a wall you scroll past. */
+function openLibCat(cat,btn){
+  var pane=document.getElementById("libpane-"+cat);if(!pane)return;
+  var open=!pane.hidden;
+  document.querySelectorAll(".libpane").forEach(function(p){p.hidden=true;});
+  document.querySelectorAll(".libtile").forEach(function(b){b.classList.remove("on");});
+  if(!open){pane.hidden=false;if(btn)btn.classList.add("on");
+    var d=pane.querySelector("details.top");if(d)d.open=true;
+    setTimeout(function(){pane.scrollIntoView({behavior:"smooth",block:"nearest"});},30);}
+}
+function frAdjSw(btn){
+  S.profile.adjustable=!S.profile.adjustable;save();
+  if(btn){btn.classList.toggle("on",!!S.profile.adjustable);btn.setAttribute("aria-checked",S.profile.adjustable?"true":"false");}
+}
 function libSection(cat,label){
   var vs=vidsBy(cat);if(!vs.length)return "";
   var lad=ladderList(cat),inner="",note="";
@@ -4629,12 +4679,28 @@ function libraryHTML(cat){
   /* Eighty facades stacked open turn a focused tab into a scroll. The guided card already puts
      the right video in front of you where it matters, so the full shelf lives behind a disclosure
      and the tab stays about training rather than about browsing. */
+  /* v7.22. Was one long stack of open sections called "Follow-along videos". It is the Library
+     now, and it opens on a two-column grid of CATEGORY cards; tapping one opens just that
+     category. Names say what the thing is for rather than what it is filed under. */
   var groups=(cat==="lift")
-    ? [["warmup","Warm up for lifting"],["strength","Follow along, strength"],["pilates","Pilates course"],["mobility","Mobility course"],["core","Core finishers"],["yoga","Yoga"]]
-    : [["runwarm","Before a run"],["mobility","Mobility course"],["recovery","Stretch and stability"],["pilates","Pilates course"],["meditation","Wind down"]];
-  var inner="",n=0;
-  groups.forEach(function(g){inner+=libSection(g[0],g[1]);n+=vidsBy(g[0]).length;});
-  var h='<details class="libdrop"><summary><span>Follow-along videos</span><span class="lcount">'+n+'</span></summary><div class="libpad nested">'+inner+'</div></details>';
+    ? [["warmup","Warm up","before you lift"],["strength","Full sessions","stand in for a lift day"],
+       ["pilates","Pilates","a numbered course"],["mobility","Mobility","a numbered course"],
+       ["core","Core finishers","ten minutes at the end"],["yoga","Yoga","longer, slower"]]
+    : [["runwarm","Warm up","before you run"],["mobility","Mobility","a numbered course"],
+       ["recovery","Stretch and recover","after a run"],["pilates","Pilates","a numbered course"],
+       ["meditation","Wind down","evening, low effort"]];
+  var n=0,tiles="",panes="";
+  groups.forEach(function(g){
+    var vs=vidsBy(g[0]);if(!vs.length)return;
+    n+=vs.length;
+    var done=0;vs.forEach(function(v){if(vDone(v.id))done++;});
+    tiles+='<button class="libtile" onclick="openLibCat(\''+g[0]+'\',this)">'+
+      '<span class="ltn">'+g[1]+'</span><span class="ltd">'+g[2]+'</span>'+
+      '<span class="ltc'+(done?" gd":"")+'">'+(done?done+' of '+vs.length+' done':vs.length+' clips')+'</span></button>';
+    panes+='<div class="libpane" id="libpane-'+g[0]+'" hidden>'+libSection(g[0],g[1])+'</div>';
+  });
+  var h='<details class="libdrop"><summary><span>Library</span><span class="lcount">'+n+'</span></summary>'+
+    '<div class="libpad nested"><div class="libgrid">'+tiles+'</div>'+panes+'</div></details>';
   /* The lift tab used to append a second "Look up a movement" drawer here holding all forty
      exercises with their form videos. Retired 2026-07-29: Your Movements now carries every
      movement grouped by day, with the video on each row, so this was the same shelf twice. */
