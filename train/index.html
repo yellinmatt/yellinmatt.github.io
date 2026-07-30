@@ -1025,6 +1025,12 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vesc.loud{display:block;background:var(--accent);color:var(--white);font-weight:750;text-align:center;padding:12px;border-radius:11px;margin-top:8px;text-decoration:none}
 
 .dfield{width:100%;height:42px;border-radius:11px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);padding:0 12px;font-size:14.5px;font-weight:650;font-family:inherit}
+
+/* v7.17. Ratio box on a plain div, because Safari does not reliably honour aspect-ratio on a
+   <button> and the preview collapsed to nothing on iOS. */
+.vratio{position:relative;width:100%;padding-top:56.25%;display:block;overflow:hidden;border-radius:var(--r-card) var(--r-card) 0 0}
+.vratio>.vface{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;flex-direction:column;gap:8px}
+.vfl{font-size:12px;font-weight:750;letter-spacing:.02em;color:var(--sub)}
 </style>
 </head>
 <body>
@@ -1070,7 +1076,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.16";
+var VERSION="v7.17";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2628,16 +2634,19 @@ function weighSheet(dateK){
   var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
   var existing=null;S.weigh.forEach(function(x){if(x.date===d)existing=x;});
   if(existing)start=existing.w;
+  /* One weight per day, Matthew's rule as of 30 July, so re-saving a date simply updates it. The
+     toast still names what it replaced and offers an undo, because overwriting is fine and
+     overwriting SILENTLY is what made this look broken. */
   var sub=existing
-    ? ('<b>'+fullDate(d)+'</b> already has <b>'+existing.w.toFixed(1)+' '+wLbl()+'</b>. Saving replaces it.')
-    : (lw!=null?('Last was <b>'+lw.toFixed(1)+' '+wLbl()+'</b>. Morning scale, one number.'):'Morning scale. One number.');
+    ? ('<b>'+fullDate(d)+'</b> is logged at <b>'+existing.w.toFixed(1)+' '+wLbl()+'</b>. Saving updates it.')
+    : (lw!=null?('Last was <b>'+lw.toFixed(1)+' '+wLbl()+'</b>. Morning scale, one number a day.'):'Morning scale. One number a day.');
   openSheet('<div class="grab"></div><h3>'+(existing?'Update weigh-in':'Log a weigh-in')+'</h3><div class="ssub">'+sub+'</div>'+
     '<div class="logrow"><label>Date</label><div class="ctlw"><input class="dfield" type="date" id="w-date" value="'+d+'" max="'+TODAY+'" onchange="weighSheet(this.value)"></div></div>'+
     '<div class="wdial"><button class="wdb" onclick="nudgeW(-1)" aria-label="lower">&minus;</button>'+
     '<input class="wbig num" id="w-val" inputmode="decimal" value="'+start.toFixed(1)+'" aria-label="weight" oninput="wDelta()">'+
     '<button class="wdb" onclick="nudgeW(1)" aria-label="higher">+</button></div>'+
     '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
-    '<button class="sheet-cta" onclick="saveWeigh()">'+(existing?'Replace it':'Add to the log')+'</button>'+
+    '<button class="sheet-cta" onclick="saveWeigh()">'+(existing?'Update this day':'Add to the log')+'</button>'+
     (S.weigh.length?'<button class="sheet-cta ghost" onclick="weighLogSheet()">'+I.edit+' History, edit or delete</button>':'')+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
   wDelta();
@@ -2675,7 +2684,7 @@ function writeWeigh(v,dateK){
   /* Say which day was written and, if something was replaced, what it was, with an undo. A silent
      overwrite is what made this look broken. */
   if(had!=null&&Math.abs(had-v)>0.001){
-    toast("Replaced "+had.toFixed(1)+" with "+v.toFixed(1)+" on "+fullDate(d),function(){
+    toast("Updated "+fullDate(d)+" from "+had.toFixed(1)+" to "+v.toFixed(1),function(){
       S.weigh=S.weigh.filter(function(x){return x.date!==d;});
       S.weigh.push({date:d,w:had});S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
       save();refreshCurrent();});
@@ -3957,8 +3966,13 @@ function vidCardHTML(v,wide){
   var slot="vp-"+(++vseq);
   var on=vDone(v.id);
   return '<div class="vcard'+(wide?" wide":"")+(on?" vdone":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
-    '<button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
-      '<span class="vplay">'+I.play+'</span></button>'+
+    /* v7.17. The facade was a <button> carrying aspect-ratio:16/9. Safari does not reliably apply
+       aspect-ratio to form elements, so on iOS the button collapsed and there was no preview at all,
+       which is exactly what Matthew reported for the morning anchor card. The ratio now lives on a
+       plain wrapper using the padding trick, which every browser has honoured for a decade, and the
+       button is absolutely positioned inside it. */
+    '<div class="vratio"><button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
+      '<span class="vplay">'+I.play+'</span><span class="vfl">'+(vpnOn()?"Opens in YouTube":"Tap to play")+'</span></button></div>'+
     '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
     '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m:'')+' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a></div></div>'+
     '<button class="vtick'+(on?" on":"")+'" aria-pressed="'+(on?"true":"false")+'" onclick="toggleVDone(\''+v.id+'\',this)">'+
@@ -3992,10 +4006,8 @@ function videoDiagSheet(){
     frame("c","C &middot; with origin","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&enablejsapi=1&origin="+encodeURIComponent(location.origin),"what v7.13 wrongly shipped")+
     '<a class="sheet-cta ghost" href="'+ytWatch(id)+'" target="_blank" rel="noopener">D &middot; Open in the YouTube app</a>'+
     '<div class="anote" style="margin-top:10px">Running in: <b>'+std+'</b>. Videos currently open <b>'+(vidRoute()==="app"?"in the YouTube app":"inline")+'</b> on this device.</div>'+
-    '<div class="anote" style="margin-top:8px">If a tile previews but fails on play, YouTube is refusing the playback, not the embed. In order of likelihood: <b>iCloud Private Relay or a VPN</b> (Settings, your name, iCloud, Private Relay), a <b>content blocker</b>, or Safari&rsquo;s tracking prevention. Signing in to YouTube in Safari also often clears it.</div>'+
-    '<div class="sectlbl" style="margin:14px 2px 8px">How videos open here</div>'+
-    '<button class="sheet-cta'+(vidRoute()==="app"?"":" ghost")+'" onclick="setVidRoute(\'app\')">Open in the YouTube app</button>'+
-    '<button class="sheet-cta'+(vidRoute()==="inline"?"":" ghost")+'" onclick="setVidRoute(\'inline\')">Play inline in the app</button>'+
+    '<div class="anote" style="margin-top:8px">A tile that previews and then fails on play means YouTube is refusing the <b>playback</b>, not the embed. A VPN or iCloud Private Relay is the usual reason; a content blocker or Safari tracking prevention are the others.</div>'+
+    '<div class="anote" style="margin-top:8px"><b>A VPN is the known cause here.</b> Turn it off and the tiles below should play; the switch for it is in Settings under Video.</div>'+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
   ["a","b","c"].forEach(function(tag){
     var got=false;
@@ -4050,12 +4062,19 @@ function isiOS(){
          (navigator.maxTouchPoints>1 && /Mac/.test(navigator.platform||"")) ||
          /iPhone|iPad|iPod/.test(navigator.userAgent||"");
 }
-function vidRoute(){
-  var pref=(S.profile||{}).vidRoute;
-  if(pref==="inline"||pref==="app")return pref;
-  return isiOS()?"app":"inline";
+/* v7.17. Matthew confirmed a VPN is running, which is exactly what the "sign in to prove you're not
+   a bot" message pointed at: YouTube challenges playback from shared VPN egress IPs, so the embed
+   loads and then refuses to play. That is not a thing the app can authorise, but it IS a thing the
+   app can know about, so it asks once instead of guessing from the user agent.
+   VPN on  -> embeds cannot play, so open in the YouTube app.
+   VPN off -> embeds inline, which is the better experience and now the default. */
+function vpnOn(){return !!(S.profile||{}).vpn;}
+function vidRoute(){return vpnOn()?"app":"inline";}
+function setVpn(on,btn){
+  S.profile.vpn=!!on;save();
+  if(btn){var seg=btn.parentNode;seg.querySelectorAll("button").forEach(function(b){b.classList.remove("sel");});btn.classList.add("sel");}
+  toast(on?"Videos will open in the YouTube app.":"Videos will play inline again.",null);
 }
-function setVidRoute(r){S.profile.vidRoute=r;save();closeSheet();toast(r==="app"?"Videos will open in YouTube.":"Videos will try to play inline.",null);refreshCurrent();}
 function openVid(id){
   var v=vidById(id);
   if(v&&!vDone(id)){/* opening is not doing it; the tick stays his */}
@@ -4067,7 +4086,7 @@ function playVid(id,slot){
 }
 function playVidInline(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
-  var face=host.querySelector(".vface");if(!face)return;
+  var face=host.querySelector(".vratio")||host.querySelector(".vface");if(!face)return;
   var f=document.createElement("iframe");
   f.className="vframe";
   f.setAttribute("allow","accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen");
@@ -4377,6 +4396,10 @@ function settingsSheet(){
      backup was a file you could write and never read. */
   m+='<button class="sheet-cta ghost" onclick="closeSheet();importSheet()">'+I.copy+' Restore from a file</button>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Video</div>';
+  m+=srow('VPN or Private Relay','YouTube blocks embedded playback through a VPN, so videos open in the YouTube app instead',
+      segCtl([["Off","setVpn(false,this)",!vpnOn()],["On","setVpn(true,this)",vpnOn()]]));
+  m+='<div class="setnote">Videos currently '+(vpnOn()?'<b>open in the YouTube app</b>':'<b>play inline</b>')+' on this device.</div>';
   m+='<div class="sectlbl" style="margin:16px 2px 8px">Diagnostics</div>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();videoDiagSheet()">Video check</button>';
   m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
