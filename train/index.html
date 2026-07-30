@@ -1004,9 +1004,6 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 /* v7.13 */
 .rerr{font-size:13px;line-height:1.45;color:var(--accent);font-weight:600;background:var(--accent-tint);border-radius:10px;padding:9px 11px;margin:8px 0 2px}
-.wl.part{opacity:1}
-.wl.part .ic{color:var(--amber)}
-.wl.part .wt{color:var(--amber)}
 
 /* v7.13 video diagnostic */
 .vdiag{margin:12px 0 4px}
@@ -1015,9 +1012,18 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vdiag iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
 
 /* v7.14: a partially-met day is amber, never a green tick */
-.dot.part .di{color:var(--amber)}
-.dot.part .dl{color:var(--amber)}
 .wlsub b{color:var(--ink);font-weight:700}
+
+/* v7.15: the circle is the plan's movement, the pip is the morning anchor */
+.dot{position:relative}
+.dot .dan{display:block;width:6px;height:6px;border-radius:50%;margin:5px auto 0;background:var(--line-2)}
+.dot .dan.on{background:var(--good)}
+.wl .wanch{font-size:10.5px;font-weight:700;color:var(--good);min-height:13px;margin-top:2px}
+
+.vdst{font-size:11px;font-weight:800;letter-spacing:.03em;padding:2px 6px;border-radius:5px;background:var(--surface-2);color:var(--faint);margin-left:6px}
+.vdst.good{background:var(--good-tint);color:var(--good)}
+.vdst.bad{background:var(--accent-tint);color:var(--accent)}
+.vesc.loud{display:block;background:var(--accent);color:var(--white);font-weight:750;text-align:center;padding:12px;border-radius:11px;margin-top:8px;text-decoration:none}
 </style>
 </head>
 <body>
@@ -1063,7 +1069,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.14";
+var VERSION="v7.15";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1611,7 +1617,7 @@ function weightStats(){
      "logged today", which is how 189.8 appeared on screen as 189.1 in a SECOND place after the
      Track card was fixed. The alias is gone, so no caller can render the trend as a scale reading
      by accident again. Anything wanting the number he typed asks for `raw`. */
-  return {trend:T,raw:latest.w,rawDate:latest.date,goal:goal,to:T-goal,
+  return {trend:T,raw:latest.w,rawDate:latest.date,goal:goal,to:T-goal,toRaw:latest.w-goal,
     ageDays:ageDays,recent:rec,n:S.weigh.length,
     rate:chosen?chosen.fit.rate:null,se:use?use.fit.se:null,win:use?use.win:null,
     fitN:use?use.fit.n:0,gate:use?use.gate:null,called:!!chosen,
@@ -1827,8 +1833,12 @@ function weightCardHTML(){
   return '<div class="card">'+head+
     /* v7.13. The hero was the trend with only a quiet line underneath to say so, and Matthew read
        the number he had just typed as having been recorded wrongly. It says what it is now. */
-    '<div class="wtop"><div><div class="wlab">Trend</div><div class="wbig num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wwhen">You logged <b>'+st.raw.toFixed(1)+'</b> '+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
+    /* v7.15, Matthew's call. The scale reading leads and the smoothed average sits under it. The
+       trend is still the number every RATE is computed from, because a rate off raw readings is
+       mostly noise, but it is no longer the thing shown biggest. He wants to see what he weighed. */
+    '<div class="wtop"><div><div class="wlab">'+(st.ageDays===0?"Today":st.ageDays===1?"Yesterday":st.ageDays+" days ago")+'</div>'+
+    '<div class="wbig num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wwhen">Smoothed average <b>'+st.trend.toFixed(1)+'</b>, which is the one the rate is read from</div></div>'+
     '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
     trendChart()+
     '<div class="wstate" data-s="'+tone+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
@@ -1922,12 +1932,17 @@ function renderToday(){
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
     /* A past day with no record is genuinely unknown, so it gets a dash rather than a label that
        implies a plan existed. Only future days are projected. */
+    /* v7.15, Matthew's spec. The CIRCLE means one thing only: the day's prescribed movement was
+       done. The morning anchor gets its own small pip underneath, because it is a separate promise
+       and conflating the two is what made a stretching day read as a completed lift. Both react
+       live: the pip repaints on every anchor tap, the circle on every logged or deleted session. */
     var lab=pl?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):(dn?"Done":"\u2014");
-    if(ds.partial)lab="Moved";
+    var anch=anchorComplete(k);
     var past=(k<TODAY);
-    dots+='<button class="dot'+(ds.metPlan?" done":"")+(ds.partial?" part":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+'" onclick="dayDetail(\''+k+'\')">'+
+    dots+='<button class="dot'+(ds.metPlan?" done":"")+(isT?" today":"")+(!ds.metPlan&&!isT?(past?" missed":" ahead"):"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')">'+
       '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(ds.metPlan?I.check:ic)+'</div>'+
-      '<span class="dl">'+lab+'</span></button>';}
+      '<span class="dl">'+lab+'</span>'+
+      '<span class="dan'+(anch?" on":"")+'" aria-label="morning anchor"></span></button>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
@@ -1970,6 +1985,12 @@ function toggleAnchor(i,btn){
     var done=card.querySelector(".adone");
     if(done)done.style.display=(ac>=n)?"":"none";
   }
+  /* v7.15. The strip used to be repainted only on a full re-render, so ticking the anchor left
+     today's pip stale until the tab was changed. Repaint it in place, both surfaces. */
+  var full=(ac>=n);
+  document.querySelectorAll('.dot[data-k="'+TODAY+'"] .dan').forEach(function(el){el.classList.toggle("on",full);});
+  document.querySelectorAll('.wl[data-k="'+TODAY+'"] .wanch').forEach(function(el){
+    el.classList.toggle("on",full);el.textContent=full?"anchor done":"";});
 }
 /* ============ WEIGHT TREND CARD (Round B) ============
    Replaces "Plan: ~1.3 lb/wk -> ~7 wk to 180", which showed a prescription in the position of a
@@ -1987,8 +2008,8 @@ function weightLogCardHTML(){
   if(!st)return '<div class="card"><h3><span>Weight</span></h3><div class="anote" style="margin-top:2px">No weigh-in yet. One number switches on the whole Track tab.</div><button class="big-start" style="margin-top:12px" onclick="weighSheet()">Log your first weigh-in</button></div>';
   var stale=st.ageDays>=7;
   return '<div class="card"><h3><span>Weight</span><span class="t">'+(st.ageDays===0?"logged today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</span></h3>'+
-    '<div class="wlrow"><div><div class="wlab">Trend</div><div class="wlnum num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wlsub">You logged <b>'+st.raw.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
+    '<div class="wlrow"><div><div class="wlnum num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wlsub">avg <b>'+st.trend.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
     '<button class="wbtn accent" onclick="weighSheet()">'+(st.ageDays===0?"Update":"Log today")+'</button></div>'+
     (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
     '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
@@ -2683,7 +2704,11 @@ function weekHTML(withRing){
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
-    list+='<button class="wl'+(metPlan?" done":"")+(partial?" part":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+(partial?"moved, not this":tt)+'</div></button>';}
+    /* Same rule as the Today strip: the tick is the prescribed movement, the anchor is its own
+       small note, and neither pretends to be the other. */
+    var anch2=anchorComplete(k);
+    list+='<button class="wl'+(metPlan?" done":"")+(isT?" today":"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div>'+
+      '<div class="wanch'+(anch2?" on":"")+'">'+(anch2?"anchor done":"")+'</div></button>';}
   var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
@@ -3929,20 +3954,60 @@ function vidCardHTML(v,wide){
 function videoDiagSheet(){
   var v=(VID&&VID.length)?VID[0]:null;
   var id=v?v.id:"aqz-KE-bpKQ";
-  var org=(location.protocol==="https:")?("&origin="+encodeURIComponent(location.origin)):"";
-  function frame(lbl,src,note){
-    return '<div class="vdiag"><div class="vdl">'+lbl+'</div>'+
-      '<iframe class="vframe" src="'+src+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="'+lbl+'"></iframe>'+
+  /* v7.15. The first diagnostic asked Matthew to judge four pictures, which told me only that all
+     four looked broken. This one asks the PLAYER whether it initialised, over postMessage, which
+     needs no gesture and no judgement. onReady means the embed is fine and the problem is playback;
+     silence means the frame is blocked outright on this device. */
+  function frame(tag,lbl,src,note){
+    return '<div class="vdiag"><div class="vdl">'+lbl+' <span class="vdst" id="vst-'+tag+'">testing...</span></div>'+
+      '<iframe id="vf-'+tag+'" class="vframe" src="'+src+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="'+lbl+'"></iframe>'+
       '<div class="vdn">'+note+'</div></div>';
   }
+  var std=((window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone)?"installed app":"Safari";
   openSheet('<div class="grab"></div><h3>Video check</h3>'+
-    '<div class="ssub">Four ways of embedding the same clip. Tap the play button inside each. Tell me which ones play and which stay black, and the cause stops being a guess.</div>'+
-    frame("A &middot; youtube.com, no autoplay","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org,"what v7.13 now ships")+
-    frame("B &middot; nocookie, no autoplay","https://www.youtube-nocookie.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org,"stricter privacy host")+
-    frame("C &middot; autoplay","https://www.youtube.com/embed/"+id+"?autoplay=1&rel=0&playsinline=1"+org,"what shipped before, expected to fail on iOS")+
+    '<div class="ssub">Each tile now reports what the YouTube player itself says on this device. Wait about eight seconds, then read the status next to each label and tell me all three.</div>'+
+    frame("a","A &middot; standard","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1&enablejsapi=1","what v7.15 ships, minus the probe")+
+    frame("b","B &middot; nocookie","https://www.youtube-nocookie.com/embed/"+id+"?rel=0&playsinline=1&enablejsapi=1","blocked by some trackers and content blockers")+
+    frame("c","C &middot; with origin","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&enablejsapi=1&origin="+encodeURIComponent(location.origin),"what v7.13 wrongly shipped")+
     '<a class="sheet-cta ghost" href="'+ytWatch(id)+'" target="_blank" rel="noopener">D &middot; Open in the YouTube app</a>'+
-    '<div class="anote" style="margin-top:10px">Running as an installed app: <b>'+((window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone?"yes, standalone":"no, in the browser")+'</b>. That difference matters, so check it both ways if you can.</div>'+
+    '<div class="anote" style="margin-top:10px">Running in: <b>'+std+'</b>. Also check Settings, Battery: <b>Low Power Mode breaks inline video on iOS</b>, and any content blocker you have installed.</div>'+
     '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
+  ["a","b","c"].forEach(function(tag){
+    var got=false;
+    function onMsg(e){
+      if(String(e.origin).indexOf("youtube.com")<0)return;
+      var d;try{d=typeof e.data==="string"?JSON.parse(e.data):e.data;}catch(x){return;}
+      if(!d||!d.event)return;
+      var el=document.getElementById("vst-"+tag);if(!el)return;
+      if(d.event==="onError"){got=true;el.textContent="ERROR "+d.info;el.className="vdst bad";}
+      else if(!got&&(d.event==="onReady"||d.event==="infoDelivery")){got=true;el.textContent="player ready";el.className="vdst good";}
+    }
+    window.addEventListener("message",onMsg);
+    var f=document.getElementById("vf-"+tag);
+    if(f)f.onload=function(){try{f.contentWindow.postMessage(JSON.stringify({event:"listening",id:1,channel:"widget"}),"*");}catch(x){}};
+    setTimeout(function(){
+      window.removeEventListener("message",onMsg);
+      var el=document.getElementById("vst-"+tag);
+      if(el&&!got){el.textContent="NO RESPONSE, blocked";el.className="vdst bad";}
+    },9000);
+  });
+}
+/* Listens for the player's own onReady over postMessage, which needs no user gesture and works
+   cross-origin. If it never arrives, the embed is blocked on this device. */
+function vidWatchdog(host,id){
+  var ok=false;
+  function onMsg(e){
+    if(String(e.origin).indexOf("youtube.com")<0)return;
+    var d;try{d=typeof e.data==="string"?JSON.parse(e.data):e.data;}catch(x){return;}
+    if(d&&(d.event==="onReady"||d.event==="infoDelivery"))ok=true;
+  }
+  window.addEventListener("message",onMsg);
+  setTimeout(function(){
+    window.removeEventListener("message",onMsg);
+    if(ok)return;
+    var esc=host.querySelector(".vesc");
+    if(esc){esc.classList.add("loud");esc.textContent="This clip will not play in the app. Open it in YouTube";}
+  },6000);
 }
 function playVid(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
@@ -3962,8 +4027,16 @@ function playVid(id,slot){
      No autoplay. The frame loads YouTube's own poster and play button, and the tap on THAT is a
      real in-frame gesture that iOS honours. One extra tap, and it actually plays.
      `origin` is sent because an embed without it is the usual source of a 153. */
-  var org=(location.protocol==="https:")?("&origin="+encodeURIComponent(location.origin)):"";
-  f.src="https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org;
+  /* v7.15. `origin` is REMOVED. It is only meaningful alongside enablejsapi=1, and v7.13 added it
+     on a wrong assumption about error 153. Matthew's report that embeds worked in an earlier build
+     is consistent with that: the param arrived in v7.13 and nothing about it ever helped.
+     Verified on desktop against his real library: this URL renders the poster, the title and the
+     play button correctly. */
+  f.src="https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1";
+  /* If the player never reports ready, the frame is being blocked on this device rather than being
+     slow, and a grey rectangle is the worst possible answer mid warm-up. Six seconds, then the
+     escape hatch is promoted from a quiet link to the main action. */
+  vidWatchdog(host,id);
   face.replaceWith(f);
   /* An embed can still refuse to start, and a black rectangle with no way out is the worst
      possible answer in the middle of a warm-up. Every played frame therefore carries a visible
