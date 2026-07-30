@@ -1018,12 +1018,13 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .dot{position:relative}
 .dot .dan{display:block;width:6px;height:6px;border-radius:50%;margin:5px auto 0;background:var(--line-2)}
 .dot .dan.on{background:var(--good)}
-.wl .wanch{font-size:10.5px;font-weight:700;color:var(--good);min-height:13px;margin-top:2px}
 
 .vdst{font-size:11px;font-weight:800;letter-spacing:.03em;padding:2px 6px;border-radius:5px;background:var(--surface-2);color:var(--faint);margin-left:6px}
 .vdst.good{background:var(--good-tint);color:var(--good)}
 .vdst.bad{background:var(--accent-tint);color:var(--accent)}
 .vesc.loud{display:block;background:var(--accent);color:var(--white);font-weight:750;text-align:center;padding:12px;border-radius:11px;margin-top:8px;text-decoration:none}
+
+.dfield{width:100%;height:42px;border-radius:11px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);padding:0 12px;font-size:14.5px;font-weight:650;font-family:inherit}
 </style>
 </head>
 <body>
@@ -1069,7 +1070,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.15";
+var VERSION="v7.16";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1989,8 +1990,6 @@ function toggleAnchor(i,btn){
      today's pip stale until the tab was changed. Repaint it in place, both surfaces. */
   var full=(ac>=n);
   document.querySelectorAll('.dot[data-k="'+TODAY+'"] .dan').forEach(function(el){el.classList.toggle("on",full);});
-  document.querySelectorAll('.wl[data-k="'+TODAY+'"] .wanch').forEach(function(el){
-    el.classList.toggle("on",full);el.textContent=full?"anchor done":"";});
 }
 /* ============ WEIGHT TREND CARD (Round B) ============
    Replaces "Plan: ~1.3 lb/wk -> ~7 wk to 180", which showed a prescription in the position of a
@@ -2550,6 +2549,7 @@ function lastW(){return S.weigh.length?S.weigh[S.weigh.length-1].w:null;}
    cannot correct is a log you stop trusting the moment it is wrong once. */
 function weighLogSheet(){
   if(!S.weigh.length){openSheet('<div class="grab"></div><h3>Weigh-in history</h3><div class="ssub">Nothing logged yet.</div><button class="sheet-cta" onclick="closeSheet();weighSheet()">Log one</button>');return;}
+  /* fullDate is defined below this in source order but hoisted, so the list can use it. */
   var tr=trendSeries();
   var rows=S.weigh.slice().reverse().map(function(w,i){
     var idx=S.weigh.length-1-i,t=tr[idx];
@@ -2567,7 +2567,7 @@ function weighLogSheet(){
   openSheet('<div class="grab"></div><h3>Weigh-in history</h3>'+
     '<div class="ssub">'+S.weigh.length+' reading'+(S.weigh.length===1?'':'s')+'. The scale number is what you typed; the trend beside it is what the card leads with.</div>'+
     '<div class="wllist">'+rows+'</div>'+
-    '<button class="sheet-cta ghost" onclick="closeSheet();weighSheet()">Log a new one</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet();weighSheet()">Add a reading</button>'+
     '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
 }
 function fullDate(k){var p=k.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);
@@ -2616,18 +2616,30 @@ function validWeight(raw){
   if(v<lo||v>hi)return null;
   return Math.round(v*10)/10;
 }
-function weighSheet(){
+function weighSheet(dateK){
+  /* v7.16. This always wrote to TODAY and silently replaced whatever was already there, so logging
+     a second reading destroyed the first and there was no way to add a missed day at all. The sheet
+     now carries a DATE, defaulting to today, and if that date already holds a reading it says so
+     and makes replacing an explicit choice rather than a side effect.
+     One reading per date is deliberate and stays: the smoother steps per elapsed day and the OLS
+     fit treats each date as one observation, so two values on one date would have to be silently
+     averaged somewhere. Editing and deleting live in the history, which is the right place. */
+  var d=dateK||TODAY;
   var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
-  var age=lw!=null?daysBetween(S.weigh[S.weigh.length-1].date,TODAY):null;
-  var sub=(lw!=null)?('Last was <b>'+lw.toFixed(1)+' '+wLbl()+'</b>'+(age===0?' earlier today':age===1?' yesterday':age!=null?', '+age+' days ago':'')+'. Nudge and save.'):'Morning scale. One number.';
-  openSheet('<div class="grab"></div><h3>Weigh-in</h3><div class="ssub">'+sub+'</div>'+
+  var existing=null;S.weigh.forEach(function(x){if(x.date===d)existing=x;});
+  if(existing)start=existing.w;
+  var sub=existing
+    ? ('<b>'+fullDate(d)+'</b> already has <b>'+existing.w.toFixed(1)+' '+wLbl()+'</b>. Saving replaces it.')
+    : (lw!=null?('Last was <b>'+lw.toFixed(1)+' '+wLbl()+'</b>. Morning scale, one number.'):'Morning scale. One number.');
+  openSheet('<div class="grab"></div><h3>'+(existing?'Update weigh-in':'Log a weigh-in')+'</h3><div class="ssub">'+sub+'</div>'+
+    '<div class="logrow"><label>Date</label><div class="ctlw"><input class="dfield" type="date" id="w-date" value="'+d+'" max="'+TODAY+'" onchange="weighSheet(this.value)"></div></div>'+
     '<div class="wdial"><button class="wdb" onclick="nudgeW(-1)" aria-label="lower">&minus;</button>'+
     '<input class="wbig num" id="w-val" inputmode="decimal" value="'+start.toFixed(1)+'" aria-label="weight" oninput="wDelta()">'+
     '<button class="wdb" onclick="nudgeW(1)" aria-label="higher">+</button></div>'+
     '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
-    (lw!=null?'<button class="sheet-cta ghost" onclick="quickWeigh('+lw+')">Same as last &middot; '+lw.toFixed(1)+'</button>':'')+
-    '<button class="sheet-cta" onclick="saveWeigh()">Save</button>'+
-    (S.weigh.length?'<button class="sheet-cta ghost" onclick="weighLogSheet()">'+I.edit+' History, edit or delete</button>':''));
+    '<button class="sheet-cta" onclick="saveWeigh()">'+(existing?'Replace it':'Add to the log')+'</button>'+
+    (S.weigh.length?'<button class="sheet-cta ghost" onclick="weighLogSheet()">'+I.edit+' History, edit or delete</button>':'')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
   wDelta();
 }
 function nudgeW(d){var el=document.getElementById("w-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);wDelta();}
@@ -2648,17 +2660,28 @@ function removeTodayWeigh(){
 function saveWeigh(){
   var v=validWeight((document.getElementById("w-val")||{}).value);
   if(v==null){toast("Enter a weight between 50 and 700 "+wLbl()+".",null);return;}
-  writeWeigh(v);
+  var d=((document.getElementById("w-date")||{}).value)||TODAY;
+  if(d>TODAY)d=TODAY;
+  writeWeigh(v,d);
 }
-function writeWeigh(v){
-  if(v>0){
-    S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});
-    S.weigh.push({date:TODAY,w:v});
-    S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
-    save();
+function writeWeigh(v,dateK){
+  var d=dateK||TODAY;
+  if(!(v>0)){closeSheet();return;}
+  var had=null;S.weigh.forEach(function(x){if(x.date===d)had=x.w;});
+  S.weigh=S.weigh.filter(function(x){return x.date!==d;});
+  S.weigh.push({date:d,w:v});
+  S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+  save();closeSheet();refreshCurrent();
+  /* Say which day was written and, if something was replaced, what it was, with an undo. A silent
+     overwrite is what made this look broken. */
+  if(had!=null&&Math.abs(had-v)>0.001){
+    toast("Replaced "+had.toFixed(1)+" with "+v.toFixed(1)+" on "+fullDate(d),function(){
+      S.weigh=S.weigh.filter(function(x){return x.date!==d;});
+      S.weigh.push({date:d,w:had});S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
+      save();refreshCurrent();});
+  }else{
+    toast("Logged "+v.toFixed(1)+" "+wLbl()+" on "+fullDate(d),null);
   }
-  closeSheet();refreshCurrent();
-  if(v>0)toast("Logged "+v.toFixed(1)+" "+wLbl()+".",null);
 }
 /* B4/B5 - protein consistency is a yes/no you tap, never a macro you re-enter.
    Cal AI owns the counting; this only records whether you hit the target. */
@@ -2704,11 +2727,9 @@ function weekHTML(withRing){
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
-    /* Same rule as the Today strip: the tick is the prescribed movement, the anchor is its own
-       small note, and neither pretends to be the other. */
-    var anch2=anchorComplete(k);
-    list+='<button class="wl'+(metPlan?" done":"")+(isT?" today":"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div>'+
-      '<div class="wanch'+(anch2?" on":"")+'">'+(anch2?"anchor done":"")+'</div></button>';}
+    /* The tick is the prescribed movement, and on Lift that is the whole story. The morning anchor
+       belongs to Today and is deliberately NOT shown here (Matthew, 30 July): Lift is the lift plan. */
+    list+='<button class="wl'+(metPlan?" done":"")+(isT?" today":"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
   var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
@@ -3970,8 +3991,12 @@ function videoDiagSheet(){
     frame("b","B &middot; nocookie","https://www.youtube-nocookie.com/embed/"+id+"?rel=0&playsinline=1&enablejsapi=1","blocked by some trackers and content blockers")+
     frame("c","C &middot; with origin","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&enablejsapi=1&origin="+encodeURIComponent(location.origin),"what v7.13 wrongly shipped")+
     '<a class="sheet-cta ghost" href="'+ytWatch(id)+'" target="_blank" rel="noopener">D &middot; Open in the YouTube app</a>'+
-    '<div class="anote" style="margin-top:10px">Running in: <b>'+std+'</b>. Also check Settings, Battery: <b>Low Power Mode breaks inline video on iOS</b>, and any content blocker you have installed.</div>'+
-    '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
+    '<div class="anote" style="margin-top:10px">Running in: <b>'+std+'</b>. Videos currently open <b>'+(vidRoute()==="app"?"in the YouTube app":"inline")+'</b> on this device.</div>'+
+    '<div class="anote" style="margin-top:8px">If a tile previews but fails on play, YouTube is refusing the playback, not the embed. In order of likelihood: <b>iCloud Private Relay or a VPN</b> (Settings, your name, iCloud, Private Relay), a <b>content blocker</b>, or Safari&rsquo;s tracking prevention. Signing in to YouTube in Safari also often clears it.</div>'+
+    '<div class="sectlbl" style="margin:14px 2px 8px">How videos open here</div>'+
+    '<button class="sheet-cta'+(vidRoute()==="app"?"":" ghost")+'" onclick="setVidRoute(\'app\')">Open in the YouTube app</button>'+
+    '<button class="sheet-cta'+(vidRoute()==="inline"?"":" ghost")+'" onclick="setVidRoute(\'inline\')">Play inline in the app</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
   ["a","b","c"].forEach(function(tag){
     var got=false;
     function onMsg(e){
@@ -4009,7 +4034,38 @@ function vidWatchdog(host,id){
     if(esc){esc.classList.add("loud");esc.textContent="This clip will not play in the app. Open it in YouTube";}
   },6000);
 }
+/* ============ THE VIDEO ROUTE, v7.16 ============
+   Evidence from Matthew's iPhone, 30 July: all three embed variants render their POSTER, and all
+   three fail ON PLAY. A and C say "Video unavailable, this content isn't available"; B, the
+   nocookie host, says "sign in to prove you're not a bot". That last string is the whole diagnosis.
+   The embed is permitted and the player initialises; YouTube is refusing the PLAYBACK REQUEST as
+   untrusted. Nothing in this file can authorise it. The usual causes on an iPhone are iCloud
+   Private Relay or a VPN (shared egress IP, routinely challenged), a content blocker, or Safari's
+   tracking prevention withholding the cookies playback auth needs.
+   So the app stops depending on the embed. Opening in the YouTube app works reliably for him, so on
+   iOS that becomes the PRIMARY route, with inline offered as a second choice for anyone it works
+   for. This is a worse experience than inline and a far better one than a dead play button. */
+function isiOS(){
+  return /iP(hone|od|ad)/.test(navigator.platform||"") ||
+         (navigator.maxTouchPoints>1 && /Mac/.test(navigator.platform||"")) ||
+         /iPhone|iPad|iPod/.test(navigator.userAgent||"");
+}
+function vidRoute(){
+  var pref=(S.profile||{}).vidRoute;
+  if(pref==="inline"||pref==="app")return pref;
+  return isiOS()?"app":"inline";
+}
+function setVidRoute(r){S.profile.vidRoute=r;save();closeSheet();toast(r==="app"?"Videos will open in YouTube.":"Videos will try to play inline.",null);refreshCurrent();}
+function openVid(id){
+  var v=vidById(id);
+  if(v&&!vDone(id)){/* opening is not doing it; the tick stays his */}
+  try{window.open(ytWatch(id),"_blank","noopener");}catch(e){location.href=ytWatch(id);}
+}
 function playVid(id,slot){
+  if(vidRoute()==="app"){openVid(id);return;}
+  playVidInline(id,slot);
+}
+function playVidInline(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
   var face=host.querySelector(".vface");if(!face)return;
   var f=document.createElement("iframe");
