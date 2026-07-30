@@ -1031,7 +1031,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.11";
+var VERSION="v7.12";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -4310,10 +4310,19 @@ function doHealthXml(){
     if(!dt2)continue;
     var mins=parseFloat(w.getAttribute("duration"))||0;
     var ty2=(w.getAttribute("workoutActivityType")||"").replace("HKWorkoutActivityType","");
+    /* v7.12 BUG. totalDistance is expressed in whatever totalDistanceUnit says, which is km for a
+       metric export and mi for an imperial one, and this read the number raw. A km export therefore
+       recorded every run 1.609x short, silently, and every derived pace with it. Convert. */
     var dist=parseFloat(w.getAttribute("totalDistance"))||0;
-    var id=dt2+"-h"+j;
-    if(seen[id])continue;
+    var du=(w.getAttribute("totalDistanceUnit")||"mi").toLowerCase();
+    if(du.indexOf("km")>=0)dist=dist*0.621371;
+    else if(du==="m"||du.indexOf("meter")>=0)dist=dist*0.000621371;
     var isRun=/Running/i.test(ty2);
+    /* Was dt2 + the loop index, which changes whenever Apple reorders the file, so the same workout
+       could import repeatedly under different ids. Content-keyed, matching the Shortcut path. */
+    var id=dt2+"-h"+(isRun?"run":(ty2||"act").toLowerCase())+"-"+Math.round(mins*60)+"-"+Math.round(dist*100);
+    if(seen[id])continue;
+    seen[id]=true;
     var rec={id:id,date:dt2,type:isRun?"run":"activity",durationSec:Math.round(mins*60),notes:"Apple Health"};
     if(isRun){rec.distanceMi=Math.round(dist*10)/10;if(rec.distanceMi>0&&rec.durationSec)rec.paceSecPerMi=Math.round(rec.durationSec/rec.distanceMi);}
     else rec.activity=ty2||"Workout";
@@ -4334,10 +4343,22 @@ function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON
   if(o.steps)o.steps.forEach(function(x){if(x.date&&x.count!=null){S.steps[x.date]=+x.count;n++;}});
   if(o.weighins)o.weighins.forEach(function(w){if(w.date&&w.weightLb){S.weigh=S.weigh.filter(function(x){return x.date!==w.date;});S.weigh.push({date:w.date,w:w.weightLb});n++;}});
   S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
-  if(o.activities)o.activities.forEach(function(a){if(!a.date)return;n++;
-    if(a.type==="run"||a.distanceMi){S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health"});}
-    else{S.sessions.push({id:a.date+"-h"+n,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});}
+  /* v7.12 BUG. APPLE-HEALTH-SHORTCUT.md promises that "a day already present is overwritten rather
+     than duplicated, so re-importing an overlapping range is safe and is in fact the expected
+     behaviour". That was true of weigh-ins and false of workouts: the id was date + a running
+     counter, so importing the same week twice created a second copy of every session, inflating
+     mileage, volume and the cardio level. The id is now derived from the CONTENT, so the same
+     workout imported twice is the same record twice and the second one is skipped. */
+  if(o.activities)o.activities.forEach(function(a){
+    if(!a.date)return;
+    var isRun=(a.type==="run"||!!a.distanceMi);
+    var key=a.date+"-h"+(isRun?"run":String(a.type||"act").toLowerCase())+"-"+Math.round(a.durationSec||0)+"-"+Math.round((a.distanceMi||0)*100);
+    if(S.sessions.some(function(x){return x.id===key;}))return;
+    n++;
+    if(isRun)S.sessions.push({id:key,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health"});
+    else S.sessions.push({id:key,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});
     S.done[a.date]=true;});
+  S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   save();closeSheet();toast("Imported "+n+" items from Health.",null);show("track");}
 
 
