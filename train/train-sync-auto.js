@@ -286,5 +286,16 @@
   if (document.readyState === "complete" || document.readyState === "interactive") setTimeout(start, 500);
   else global.addEventListener("load", function () { setTimeout(start, 500); });
 
-  global.TrainSyncAuto = { start: start, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
+  /* v7.10. Settings needs a way to force an exchange and report what happened, rather than making
+     Matthew wait out the poll interval and guess. `now()` runs a real pull then a real push and
+     resolves with the health record, so the caller can show the actual outcome instead of a
+     hopeful toast. */
+  function now() {
+    if (!getToken()) return Promise.resolve({ ok: false, reason: "not paired" });
+    return pullAndMerge().then(function () { push(); }).then(function () {
+      var h = {}; try { h = JSON.parse(localStorage.getItem(HEALTH_KEY)) || {}; } catch (e) {}
+      return { ok: !!h.lastOk && !h.fails, health: h };
+    }).catch(function (e) { return { ok: false, reason: String(e && e.message) }; });
+  }
+  global.TrainSyncAuto = { start: start, now: now, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
 })(typeof window !== "undefined" ? window : this);
