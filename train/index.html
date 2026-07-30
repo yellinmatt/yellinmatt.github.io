@@ -1013,6 +1013,11 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vdiag .vdl{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--ink);margin-bottom:6px}
 .vdiag .vdn{font-size:12px;color:var(--faint);margin-top:5px}
 .vdiag iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
+
+/* v7.14: a partially-met day is amber, never a green tick */
+.dot.part .di{color:var(--amber)}
+.dot.part .dl{color:var(--amber)}
+.wlsub b{color:var(--ink);font-weight:700}
 </style>
 </head>
 <body>
@@ -1058,7 +1063,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.13a";
+var VERSION="v7.14";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1394,6 +1399,21 @@ function sessionDayIndex(){
   for(var r in (S.runs||{}))if(S.runs[r])SDIX[r]=true;
   return SDIX;
 }
+/* v7.14. THE ROOT CAUSE of this being fixed twice and still wrong. There are TWO week strips, the
+   compact dots on Today and Lift and the detailed list under "This week", and each answered "did he
+   do it" independently. v7.13 fixed the list and left the dots ticking a lift day he had only
+   stretched on. One function now, used by both, so a future third strip cannot drift either.
+     moved   - anything at all happened, the anchor counts
+     metPlan - the thing the plan ASKED for happened
+     partial - moved, but not the prescribed thing */
+function dayStatus(k){
+  var pl=planFor(k)||{type:"none"};
+  var didLift=S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
+  var didRun=S.sessions.some(function(x){return x.date===k&&(x.type==="run"||x.distanceMi);});
+  var moved=isDone(k);
+  var metPlan=(pl.type==="lift")?didLift:(pl.type==="run")?didRun:moved;
+  return {plan:pl,moved:moved,didLift:didLift,didRun:didRun,metPlan:metPlan,partial:(moved&&!metPlan)};
+}
 function isDone(k){
   if(S.done[k])return true;
   if(sessionDayIndex()[k])return true;
@@ -1587,7 +1607,11 @@ function weightStats(){
   }
   var use=chosen||fallback;
   var band=(U()==="kg")?1.134:2.5;
-  return {trend:T,raw:latest.w,rawDate:latest.date,cur:T,goal:goal,to:T-goal,
+  /* v7.14. `cur` was an alias for the trend, and Today's card printed it as the number he had
+     "logged today", which is how 189.8 appeared on screen as 189.1 in a SECOND place after the
+     Track card was fixed. The alias is gone, so no caller can render the trend as a scale reading
+     by accident again. Anything wanting the number he typed asks for `raw`. */
+  return {trend:T,raw:latest.w,rawDate:latest.date,goal:goal,to:T-goal,
     ageDays:ageDays,recent:rec,n:S.weigh.length,
     rate:chosen?chosen.fit.rate:null,se:use?use.fit.se:null,win:use?use.win:null,
     fitN:use?use.fit.n:0,gate:use?use.gate:null,called:!!chosen,
@@ -1893,14 +1917,16 @@ function renderToday(){
   }
   // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k),dn=isDone(k),isT=(k===TODAY);
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay();
+    var ds=dayStatus(k),pl=planFor(k),dn=ds.moved,isT=(k===TODAY);
     var ic=pl?(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest):I.rest;
     /* A past day with no record is genuinely unknown, so it gets a dash rather than a label that
        implies a plan existed. Only future days are projected. */
     var lab=pl?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):(dn?"Done":"\u2014");
+    if(ds.partial)lab="Moved";
     var past=(k<TODAY);
-    dots+='<button class="dot'+(dn?" done":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+'" onclick="dayDetail(\''+k+'\')">'+
-      '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(dn?I.check:ic)+'</div>'+
+    dots+='<button class="dot'+(ds.metPlan?" done":"")+(ds.partial?" part":"")+(isT?" today":"")+(!dn&&!isT?(past?" missed":" ahead"):"")+'" onclick="dayDetail(\''+k+'\')">'+
+      '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(ds.metPlan?I.check:ic)+'</div>'+
       '<span class="dl">'+lab+'</span></button>';}
   // anchor
   var a=S.anchor[TODAY]||{},rows="",ac=0;
@@ -1961,8 +1987,8 @@ function weightLogCardHTML(){
   if(!st)return '<div class="card"><h3><span>Weight</span></h3><div class="anote" style="margin-top:2px">No weigh-in yet. One number switches on the whole Track tab.</div><button class="big-start" style="margin-top:12px" onclick="weighSheet()">Log your first weigh-in</button></div>';
   var stale=st.ageDays>=7;
   return '<div class="card"><h3><span>Weight</span><span class="t">'+(st.ageDays===0?"logged today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</span></h3>'+
-    '<div class="wlrow"><div><div class="wlnum num">'+st.cur.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wlsub">'+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
+    '<div class="wlrow"><div><div class="wlab">Trend</div><div class="wlnum num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wlsub">You logged <b>'+st.raw.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
     '<button class="wbtn accent" onclick="weighSheet()">'+(st.ageDays===0?"Update":"Log today")+'</button></div>'+
     (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
     '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
@@ -2653,9 +2679,7 @@ function weekHTML(withRing){
        all", which the morning anchor alone satisfies. So a lift day Matthew had only stretched on
        showed a tick and read as "workout done". Three states now: the prescribed thing was done,
        something else was done, or nothing. */
-    var didRun=S.sessions.some(function(x){return x.date===k&&(x.type==="run"||x.distanceMi);});
-    var metPlan=(pl.type==="lift")?didLift:(pl.type==="run")?didRun:dn;
-    var partial=(dn&&!metPlan);
+    var _ds=dayStatus(k),metPlan=_ds.metPlan,partial=_ds.partial;
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
