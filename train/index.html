@@ -1129,7 +1129,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.19a";
+var VERSION="v7.20";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3985,6 +3985,133 @@ VID=VID.concat([
  {id:"r78WzW27-UI",t:"15 Min COMPOUND LEG WORKOUT with Dumbbells at Home + Cool Down",a:"TIFF x DAN",c:"wk",m:"15m",day:"C"},
 ]);
 VCAT.wk="Replace the lift";VCAT.pilates="Pilates";VCAT.warmup="Warm up";VCAT.runwarm="Before a run";VCAT.core="Core finishers";VCAT.form="How to";
+/* ============ THE VIDEO SYSTEM, v7.20 ============
+   Matthew's brief: tag every clip so the app knows which are appropriate where when it cycles,
+   track which are live and which are broken, and carry a vetting system for good versus bad.
+   THE DEFECT THIS FIXES. `pickVid(cat)` chose on CATEGORY ALONE, and `m` was a display string
+   ("30m"), not a number, so nothing in the app could filter on length. That is precisely how a
+   thirty-minute routine ended up linked from a morning anchor that is supposed to take under ten
+   minutes: nothing was stopping it, because nothing knew.
+   Three layers, kept separate on purpose:
+     TAGS    - facts about the clip. Derived once from what we already know, overridable per id.
+     HEALTH  - facts about whether it still works. Lives in S, syncs, changes over time.
+     VERDICT - what Matthew thinks of it. His, never inferred from a play.
+   Only the intersection of all three is eligible to be served. */
+
+/* ---- SLOTS: where a clip may be used, and the hard cap that defines each one ---- */
+var SLOTS={
+  anchor  :{n:"Morning anchor", max:12, cats:["mobility","yoga","pilates"],            note:"under ten minutes, joint-friendly, before anything else"},
+  warmup  :{n:"Lift warm-up",   max:12, cats:["warmup","mobility"],                    note:"short, raises temperature, no fatigue"},
+  runwarm :{n:"Run warm-up",    max:12, cats:["runwarm","warmup","mobility"],          note:"dynamic, legs, short"},
+  cooldown:{n:"Cool-down",      max:20, cats:["recovery","yoga","mobility"],           note:"after a session, slow"},
+  session :{n:"Replaces a session", min:15, max:60, cats:["wk","strength","core","pilates"], note:"stands in for the day's workout"},
+  study   :{n:"Form reference", max:60, cats:["form"],                                 note:"how a movement should look"},
+  calm    :{n:"Wind-down",      max:60, cats:["meditation","yoga","recovery"],         note:"evening, low effort"}
+};
+/* ---- TAGS ---- */
+function vidMins(v){var n=parseInt(String(v.m||"").replace(/[^0-9]/g,""),10);return isFinite(n)&&n>0?n:null;}
+/* Intensity is read from the category and the title, because those are the only honest signals in
+   the data we have. Anything unrecognised stays "moderate" rather than guessing high or low. */
+function vidIntensity(v){
+  var t=(v.t||"").toLowerCase();
+  if(/meditation|breath|sleep|wind.?down|calm|restorative/.test(t)||v.c==="meditation")return "low";
+  if(/recovery|stretch|mobility|flexibility|yin/.test(t)||v.c==="recovery"||v.c==="mobility")return "low";
+  if(/hiit|intense|burn|killer|advanced|power|explosive/.test(t))return "high";
+  if(v.c==="strength"||v.c==="wk"||v.c==="core")return "moderate";
+  return "moderate";
+}
+function vidEquip(v){
+  var t=(v.t||"").toLowerCase();
+  if(/dumbbell|kettlebell|weights?\b/.test(t))return "dumbbell";
+  if(/band/.test(t))return "band";
+  if(/no equipment|bodyweight/.test(t))return "none";
+  return "none";
+}
+/* Which slots a clip is eligible for. Derived, then overridden by anything Matthew has pinned. */
+function vidSlots(v){
+  var ov=((S.vidTags||{})[v.id]||{}).slots;
+  if(ov)return ov;
+  var mins=vidMins(v),out=[];
+  Object.keys(SLOTS).forEach(function(k){
+    var s=SLOTS[k];
+    if(s.cats.indexOf(v.c)<0)return;
+    if(mins!=null){
+      if(s.max!=null&&mins>s.max)return;
+      if(s.min!=null&&mins<s.min)return;
+    }else if(s.max!=null&&s.max<=12){
+      /* An untimed clip is not allowed into a slot whose whole point is being short. */
+      return;
+    }
+    out.push(k);
+  });
+  return out;
+}
+function vidTag(v){
+  var ov=(S.vidTags||{})[v.id]||{};
+  return {mins:vidMins(v),intensity:ov.intensity||vidIntensity(v),equip:ov.equip||vidEquip(v),slots:vidSlots(v)};
+}
+/* ---- HEALTH ---- */
+function vidHealth(id){
+  var h=((S.vidHealth||{})[id])||{};
+  return {status:h.status||"unknown",checked:h.checked||null,note:h.note||"",fails:h.fails||0};
+}
+function setVidHealth(id,status,note){
+  S.vidHealth=S.vidHealth||{};
+  var h=S.vidHealth[id]||{};
+  h.status=status;h.checked=TODAY;if(note!=null)h.note=note;
+  if(status==="broken")h.fails=(h.fails||0)+1; else h.fails=0;
+  S.vidHealth[id]=h;save();
+}
+/* ---- VERDICT: his opinion, never inferred ---- */
+function vidVerdict(id){return ((S.vidVerdict||{})[id])||null;}
+function setVidVerdict(id,val){
+  S.vidVerdict=S.vidVerdict||{};
+  if(val)S.vidVerdict[id]=val;else delete S.vidVerdict[id];
+  save();
+}
+/* ---- ELIGIBILITY: the intersection of all three layers ---- */
+function vidEligible(v,slot){
+  if(vidHealth(v.id).status==="broken")return false;
+  if(vidVerdict(v.id)==="bad")return false;
+  if(!slot)return true;
+  return vidSlots(v).indexOf(slot)>=0;
+}
+function vidsForSlot(slot){return VID.filter(function(v){return vidEligible(v,slot);});}
+/* ---- THE PICKER ----
+   Rotates by date as before, but only across clips that are eligible, and prefers ones he has
+   marked good and ones he has seen least recently. Falls back loudly rather than silently: if a
+   slot has nothing eligible it returns null and the caller shows an empty state, instead of
+   quietly serving something the wrong length. */
+function pickForSlot(slot,offset){
+  var vs=vidsForSlot(slot);
+  if(!vs.length)return null;
+  var good=vs.filter(function(v){return vidVerdict(v.id)==="good";});
+  var pool=good.length>=3?good:vs;
+  pool=pool.slice().sort(function(a,b){
+    var la=((S.vidSeen||{})[a.id])||"",lb=((S.vidSeen||{})[b.id])||"";
+    return la<lb?-1:la>lb?1:0;
+  });
+  var p=TODAY.split("-"),n=Math.floor(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)+(offset||0);
+  return pool[((n%pool.length)+pool.length)%pool.length];
+}
+function markVidSeen(id){S.vidSeen=S.vidSeen||{};S.vidSeen[id]=TODAY;save();}
+/* ---- THE REGISTRY: one object the daily audit can read and act on ---- */
+function videoRegistry(){
+  var out={total:VID.length,bySlot:{},broken:[],unrated:0,good:0,bad:0,untimed:0,orphans:[]};
+  Object.keys(SLOTS).forEach(function(k){out.bySlot[k]=vidsForSlot(k).length;});
+  VID.forEach(function(v){
+    var h=vidHealth(v.id),verd=vidVerdict(v.id);
+    if(h.status==="broken")out.broken.push({id:v.id,t:v.t,fails:h.fails});
+    if(verd==="good")out.good++; else if(verd==="bad")out.bad++; else out.unrated++;
+    if(vidMins(v)==null)out.untimed++;
+    if(!vidSlots(v).length)out.orphans.push({id:v.id,t:v.t,c:v.c,m:v.m});
+  });
+  /* A slot with nothing in it is the failure that matters, because it is the one that makes the
+     app serve the wrong thing or nothing at all. */
+  out.emptySlots=Object.keys(out.bySlot).filter(function(k){return out.bySlot[k]===0;});
+  out.ok=(out.broken.length===0&&out.emptySlots.length===0);
+  return out;
+}
 function vidsBy(c){return VID.filter(function(v){return v.c===c;});}
 function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i];return null;}
 /* Press-play. The card is a local facade until tapped; tapping swaps in a nocookie iframe
