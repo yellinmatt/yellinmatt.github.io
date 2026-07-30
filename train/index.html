@@ -986,6 +986,33 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 /* month labels positioned where the month actually starts */
 .hmonths{position:relative;height:14px}
 .hmonths span{position:absolute;top:0;font-size:10px;font-weight:700;color:var(--faint)}
+
+/* v7.13 weigh-in history */
+.wlab{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:3px}
+.wwhen b{color:var(--ink);font-weight:700}
+.wllist{max-height:46vh;overflow:auto;margin:4px 0 12px;-webkit-overflow-scrolling:touch}
+.wlrow2{display:flex;align-items:center;gap:10px;padding:11px 2px}
+.wlrow2+.wlrow2{border-top:1px solid var(--line)}
+.wlrow2 .wld{flex:1;min-width:0;font-size:14px;font-weight:650;color:var(--ink)}
+.wlrow2 .wlsub2{display:block;font-size:12px;font-weight:500;color:var(--faint);margin-top:2px}
+.wlrow2 .wtag{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-tint);border-radius:4px;padding:2px 5px;margin-left:4px}
+.wlrow2 .wlv{font-size:17px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;flex:none;min-width:56px;text-align:right}
+.wlrow2 .wlb{flex:none;width:36px;height:36px;border-radius:10px;background:var(--surface-2);color:var(--sub);display:inline-flex;align-items:center;justify-content:center;border:0}
+.wlrow2 .wlb svg{width:17px;height:17px}
+.wlrow2 .wlb.dang{color:var(--accent)}
+.wbtn.accent{background:var(--accent);color:var(--white)}
+
+/* v7.13 */
+.rerr{font-size:13px;line-height:1.45;color:var(--accent);font-weight:600;background:var(--accent-tint);border-radius:10px;padding:9px 11px;margin:8px 0 2px}
+.wl.part{opacity:1}
+.wl.part .ic{color:var(--amber)}
+.wl.part .wt{color:var(--amber)}
+
+/* v7.13 video diagnostic */
+.vdiag{margin:12px 0 4px}
+.vdiag .vdl{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--ink);margin-bottom:6px}
+.vdiag .vdn{font-size:12px;color:var(--faint);margin-top:5px}
+.vdiag iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
 </style>
 </head>
 <body>
@@ -1031,7 +1058,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.12";
+var VERSION="v7.13";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1750,7 +1777,7 @@ function trendChart(){
    rate with no stated basis is noise wearing a decimal point. */
 function weightCardHTML(){
   var st=weightStats();
-  var head='<h3><span>Weight</span><span class="t">'+(st?(st.raw.toFixed(1)+' '+wLbl()+' on the scale'):'not logged yet')+'</span><button class="wbtn" onclick="weighSheet()" style="height:32px">Log weight</button></h3>';
+  var head='<h3><span>Weight</span><span class="t">'+(st?(st.raw.toFixed(1)+' '+wLbl()+' on the scale'):'not logged yet')+'</span><button class="wbtn" onclick="weighLogSheet()" style="height:32px">History</button><button class="wbtn accent" onclick="weighSheet()" style="height:32px;margin-left:6px">Log</button></h3>';
   if(!st)return '<div class="card">'+head+'<div class="anote" style="margin-top:2px">Log a weigh-in to start tracking toward '+S.profile.goalLb+'.</div></div>';
   var t=trendState();
   var title,tone;
@@ -1774,8 +1801,10 @@ function weightCardHTML(){
   if(st.ageDays>=4&&st.ageDays<=10&&(t.state==="down"||t.state==="up"||t.state==="flat"))
     sub+=' As of '+shortDate(st.rawDate)+'.';
   return '<div class="card">'+head+
-    '<div class="wtop"><div><div class="wbig num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wwhen">'+st.raw.toFixed(1)+' on the scale, '+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
+    /* v7.13. The hero was the trend with only a quiet line underneath to say so, and Matthew read
+       the number he had just typed as having been recorded wrongly. It says what it is now. */
+    '<div class="wtop"><div><div class="wlab">Trend</div><div class="wbig num">'+st.trend.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
+    '<div class="wwhen">You logged <b>'+st.raw.toFixed(1)+'</b> '+(st.ageDays===0?"today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</div></div>'+
     '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
     trendChart()+
     '<div class="wstate" data-s="'+tone+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
@@ -2407,27 +2436,132 @@ function runSheet(dist){rpeRun="";
     '<div class="logrow"><label>Distance</label><div class="inp"><input id="r-dist" inputmode="decimal" value="'+dist+'" oninput="calcPace()" aria-label="distance"><span class="u">mi</span></div></div>'+
     '<div class="logrow"><label>Time <span style="color:var(--faint);font-weight:500">mm:ss</span></label><div class="inp"><input id="r-time" inputmode="numeric" placeholder="22:40" oninput="calcPace()" aria-label="time" style="width:92px"></div></div>'+
     '<div class="paceout">pace<b id="r-pace">--:--</b></div>'+
+    '<div class="rerr" id="r-err" style="display:none"></div>'+
     '<div class="rpe"><button onclick="pickRpe(this,\'Easy\')">Easy</button><button onclick="pickRpe(this,\'OK\')">OK</button><button onclick="pickRpe(this,\'Hard\')">Hard</button></div>'+
     '<button class="sheet-cta" onclick="saveRun()">Save run</button>');
 }
 function parseTime(t){t=(""+(t||"")).trim();if(!t)return null;if(t.indexOf(":")>=0){var p=t.split(":");var m=parseInt(p[0])||0,s=parseInt(p[1])||0;if(s>59)s=59;return m*60+s;}var n=parseFloat(t);if(isNaN(n))return null;return Math.round(n*60);}
 function calcPace(){var d=parseFloat((document.getElementById("r-dist")||{}).value),sec=parseTime((document.getElementById("r-time")||{}).value),el=document.getElementById("r-pace");if(!el)return;el.textContent=(d>0&&sec>0)?mmss(Math.round(sec/d)):"--:--";}
 function pickRpe(b,v){rpeRun=v;document.querySelectorAll(".rpe button").forEach(function(x){x.classList.remove("sel")});b.classList.add("sel");}
-function saveRun(){var d=parseFloat((document.getElementById("r-dist")||{}).value),sec=parseTime((document.getElementById("r-time")||{}).value);if(!(d>0)){closeSheet();return;}
-  var pace=sec>0?mmss(Math.round(sec/d)):"--:--",tstr=(document.getElementById("r-time")||{}).value||"--";
-  S.runs[TODAY]={dist:d,time:tstr,pace:pace,rpe:rpeRun};
-  S.sessions=S.sessions.filter(function(s){return !(s.id===TODAY&&s.type==="run");});
-  S.sessions.push({id:TODAY,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
+/* v7.13. This accepted anything parseFloat would swallow and SILENTLY closed on anything it would
+   not, so a typo lost the run with no message and "12abc" logged as 12 miles. Both inputs are
+   validated against a stated range now, the sheet says what is wrong instead of vanishing, and the
+   session id is content-keyed rather than the bare date, which is the same id/date collision that
+   produced the deleteDay orphan: two runs on one day used to overwrite each other. */
+function runError(msg){
+  var el=document.getElementById("r-err");
+  if(el){el.textContent=msg;el.style.display=msg?"block":"none";}
+  else if(msg)toast(msg,null);
+}
+function validDist(raw){
+  var v=parseFloat(String(raw==null?"":raw).replace(/[^0-9.]/g,""));
+  if(!isFinite(v)||v<=0)return null;
+  if(v>200)return null;
+  return Math.round(v*100)/100;
+}
+function saveRun(){
+  var d=validDist((document.getElementById("r-dist")||{}).value);
+  if(d==null){runError("Enter a distance between 0.1 and 200 "+(U()==="kg"?"km":"mi")+".");return;}
+  var tRaw=((document.getElementById("r-time")||{}).value||"").trim();
+  var sec=tRaw?parseTime(tRaw):0;
+  if(tRaw&&(sec==null||!(sec>0))){runError("Time should look like 22:40.");return;}
+  if(sec>86400){runError("That is over 24 hours. Check the time.");return;}
+  if(sec>0){
+    var pace=sec/d;
+    /* A 2:00/mi pace or a 45:00/mi pace is a typo, not a run. Refuse rather than poison the pace
+       zones, the level and every average with one bad row. */
+    if(pace<150){runError("That works out at "+mmss(Math.round(pace))+" a mile. Check the distance and time.");return;}
+    if(pace>3600){runError("That works out at "+mmss(Math.round(pace))+" a mile. Check the distance and time.");return;}
+  }
+  runError("");
+  var paceStr=sec>0?mmss(Math.round(sec/d)):"--:--";
+  S.runs[TODAY]={dist:d,time:tRaw||"--",pace:paceStr,rpe:rpeRun};
+  var id=TODAY+"-run-"+Math.round(sec)+"-"+Math.round(d*100);
+  S.sessions=S.sessions.filter(function(x){return !(x.date===TODAY&&x.type==="run");});
+  S.sessions.push({id:id,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
+  S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   S.done[TODAY]=true;advanceCycle();save();closeSheet();
   setTimeout(function(){coolSheet("run");},900);
-  var hot=(rpeRun==="Hard");
-  if(hot)toast("Logged. Keep easy runs easy - that protects your lifting.",null);
+  if(rpeRun==="Hard")toast("Logged. Keep easy runs easy - that protects your lifting.",null);
+  else toast("Logged "+d.toFixed(2).replace(/\.?0+$/,"")+" mi"+(sec>0?" at "+paceStr+"/mi":"")+".",null);
   renderRun();
 }
 /* B2 - frictionless weigh-in. Opens pre-filled with your last number, so the common
    case (a pound either side of yesterday) is two taps and Save, never typing. */
 function wStep(){return 0.1;} /* was 0.2 in lb, which could not match the scale exactly */
 function lastW(){return S.weigh.length?S.weigh[S.weigh.length-1].w:null;}
+/* ============ WEIGH-IN HISTORY, v7.13 ============
+   Matthew entered 189.8 and the card showed 189.1, so he concluded the app had recorded the wrong
+   number and went looking for a way to correct it. Two separate failures behind that.
+   ONE, a labelling failure that is mine. v7.8 made the hero the TREND, which is the right number to
+   lead with, but it was labelled only by a small line underneath. A number you just typed, shown
+   back to you smaller than a different number you did not type, reads as a bug however correct the
+   maths is. The hero now says TREND on it, and the scale reading says exactly what it is.
+   TWO, a genuine gap: there was no way to edit or delete any weigh-in except today's. A log you
+   cannot correct is a log you stop trusting the moment it is wrong once. */
+function weighLogSheet(){
+  if(!S.weigh.length){openSheet('<div class="grab"></div><h3>Weigh-in history</h3><div class="ssub">Nothing logged yet.</div><button class="sheet-cta" onclick="closeSheet();weighSheet()">Log one</button>');return;}
+  var tr=trendSeries();
+  var rows=S.weigh.slice().reverse().map(function(w,i){
+    var idx=S.weigh.length-1-i,t=tr[idx];
+    var prev=idx>0?S.weigh[idx-1]:null;
+    var d=prev?(w.w-prev.w):null;
+    var gap=prev?daysBetween(prev.date,w.date):null;
+    return '<div class="wlrow2">'+
+      '<div class="wld">'+fullDate(w.date)+(w.date===TODAY?' <span class="wtag">today</span>':'')+
+        '<span class="wlsub2">trend '+t.v.toFixed(1)+(d!=null?' &middot; '+(d>0?'+':'')+d.toFixed(1)+' vs '+(gap===1?'the day before':gap+' days earlier'):' &middot; first reading')+'</span></div>'+
+      '<div class="wlv num">'+w.w.toFixed(1)+'</div>'+
+      '<button class="wlb" onclick="editWeigh(\''+w.date+'\')" aria-label="Edit">'+I.edit+'</button>'+
+      '<button class="wlb dang" onclick="delWeigh(\''+w.date+'\')" aria-label="Delete">'+I.trash+'</button>'+
+    '</div>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>Weigh-in history</h3>'+
+    '<div class="ssub">'+S.weigh.length+' reading'+(S.weigh.length===1?'':'s')+'. The scale number is what you typed; the trend beside it is what the card leads with.</div>'+
+    '<div class="wllist">'+rows+'</div>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet();weighSheet()">Log a new one</button>'+
+    '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
+}
+function fullDate(k){var p=k.split("-");var d=new Date(+p[0],+p[1]-1,+p[2]);
+  return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short",year:(String(d.getFullYear())!==TODAY.slice(0,4))?"numeric":undefined});}
+function editWeigh(date){
+  var rec=null;S.weigh.forEach(function(x){if(x.date===date)rec=x;});
+  if(!rec)return;
+  openSheet('<div class="grab"></div><h3>Edit weigh-in</h3><div class="ssub">'+fullDate(date)+'. Correcting a reading re-smooths every trend value after it.</div>'+
+    '<div class="wdial"><button class="wdb" onclick="nudgeE(-1)" aria-label="lower">&minus;</button>'+
+    '<input class="wbig num" id="we-val" inputmode="decimal" value="'+rec.w.toFixed(1)+'" aria-label="weight"></div>'+
+    '<div class="wunit">'+wLbl()+'</div>'+
+    '<button class="sheet-cta" onclick="saveEditWeigh(\''+date+'\')">Save</button>'+
+    '<button class="sheet-cta ghost" onclick="weighLogSheet()">Back</button>');
+}
+function nudgeE(d){var el=document.getElementById("we-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);}
+function saveEditWeigh(date){
+  var v=validWeight((document.getElementById("we-val")||{}).value);
+  if(v==null){toast("Enter a weight between 50 and 700 "+wLbl()+".",null);return;}
+  S.weigh.forEach(function(x){if(x.date===date)x.w=v;});
+  save();weighLogSheet();toast("Updated to "+v.toFixed(1)+" "+wLbl()+".",null);
+  refreshCurrent();
+}
+function delWeigh(date){
+  var rec=null;S.weigh.forEach(function(x){if(x.date===date)rec=x;});
+  if(!rec)return;
+  var keep=S.weigh.filter(function(x){return x.date!==date;});
+  S.weigh=keep;save();refreshCurrent();
+  /* Undo rather than a confirm dialog: one tap to remove, one tap to put it back, and the toast
+     carries the number so it is obvious which reading just went. */
+  toast("Removed "+rec.w.toFixed(1)+" "+wLbl(),function(){
+    S.weigh.push(rec);S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});save();weighLogSheet();refreshCurrent();
+  });
+  weighLogSheet();
+}
+/* One validator for every weight field, so a stray letter, an empty box or a fat-fingered 1898
+   cannot enter the record. Returns null when the value is not a usable weight. */
+function validWeight(raw){
+  var v=parseFloat(String(raw==null?"":raw).replace(/[^0-9.\-]/g,""));
+  if(!isFinite(v))return null;
+  var lo=(U()==="kg")?23:50, hi=(U()==="kg")?317:700;
+  if(v<lo||v>hi)return null;
+  return Math.round(v*10)/10;
+}
 function weighSheet(){
   var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
   var age=lw!=null?daysBetween(S.weigh[S.weigh.length-1].date,TODAY):null;
@@ -2439,7 +2573,7 @@ function weighSheet(){
     '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
     (lw!=null?'<button class="sheet-cta ghost" onclick="quickWeigh('+lw+')">Same as last &middot; '+lw.toFixed(1)+'</button>':'')+
     '<button class="sheet-cta" onclick="saveWeigh()">Save</button>'+
-    (S.weigh.some(function(x){return x.date===TODAY;})?'<button class="sheet-cta ghost" onclick="removeTodayWeigh()">Remove today\'s weigh-in</button>':''));
+    (S.weigh.length?'<button class="sheet-cta ghost" onclick="weighLogSheet()">'+I.edit+' History, edit or delete</button>':''));
   wDelta();
 }
 function nudgeW(d){var el=document.getElementById("w-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);wDelta();}
@@ -2457,7 +2591,11 @@ function removeTodayWeigh(){
   S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});
   save();closeSheet();refreshCurrent();toast("Today's weigh-in removed.",null);
 }
-function saveWeigh(){writeWeigh(parseFloat((document.getElementById("w-val")||{}).value));}
+function saveWeigh(){
+  var v=validWeight((document.getElementById("w-val")||{}).value);
+  if(v==null){toast("Enter a weight between 50 and 700 "+wLbl()+".",null);return;}
+  writeWeigh(v);
+}
 function writeWeigh(v){
   if(v>0){
     S.weigh=S.weigh.filter(function(x){return x.date!==TODAY;});
@@ -2504,10 +2642,17 @@ function weekHTML(withRing){
     if(pl.type==="lift"){totLifts++;if(didLift)doneLifts++;}
     if(pl.type==="run"){totMi+=(pl.dist||0);
       S.sessions.forEach(function(x){if(x.date===k&&(x.type==="run"||x.distanceMi))miDone+=(x.distanceMi||0);});}
+    /* v7.13. The chip drew a green tick whenever isDone(k) was true, and isDone means "moved at
+       all", which the morning anchor alone satisfies. So a lift day Matthew had only stretched on
+       showed a tick and read as "workout done". Three states now: the prescribed thing was done,
+       something else was done, or nothing. */
+    var didRun=S.sessions.some(function(x){return x.date===k&&(x.type==="run"||x.distanceMi);});
+    var metPlan=(pl.type==="lift")?didLift:(pl.type==="run")?didRun:dn;
+    var partial=(dn&&!metPlan);
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
-    list+='<button class="wl'+(dn?" done":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(dn?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
+    list+='<button class="wl'+(metPlan?" done":"")+(partial?" part":"")+(isT?" today":"")+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+(partial?"moved, not this":tt)+'</div></button>';}
   var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
@@ -3743,6 +3888,31 @@ function vidCardHTML(v,wide){
       '<span class="vtb">'+I.check+'</span><span class="vdt">'+(on?"Done":"Mark done")+'</span></button>'+
     '</div>';
 }
+/* ============ VIDEO DIAGNOSTIC, v7.13 ============
+   The iPhone playback failure has now been "fixed" twice without ever being observed, because it
+   cannot be reproduced on a desktop browser. This renders the same video four ways on the actual
+   device so the next report is evidence rather than a symptom: whichever tile plays tells us
+   exactly which layer is refusing, and whichever tile is blank tells us as much again.
+   A = no autoplay, youtube.com. B = no autoplay, nocookie. C = autoplay, what used to ship.
+   D = the plain link out. */
+function videoDiagSheet(){
+  var v=(VID&&VID.length)?VID[0]:null;
+  var id=v?v.id:"aqz-KE-bpKQ";
+  var org=(location.protocol==="https:")?("&origin="+encodeURIComponent(location.origin)):"";
+  function frame(lbl,src,note){
+    return '<div class="vdiag"><div class="vdl">'+lbl+'</div>'+
+      '<iframe class="vframe" src="'+src+'" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="'+lbl+'"></iframe>'+
+      '<div class="vdn">'+note+'</div></div>';
+  }
+  openSheet('<div class="grab"></div><h3>Video check</h3>'+
+    '<div class="ssub">Four ways of embedding the same clip. Tap the play button inside each. Tell me which ones play and which stay black, and the cause stops being a guess.</div>'+
+    frame("A &middot; youtube.com, no autoplay","https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org,"what v7.13 now ships")+
+    frame("B &middot; nocookie, no autoplay","https://www.youtube-nocookie.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org,"stricter privacy host")+
+    frame("C &middot; autoplay","https://www.youtube.com/embed/"+id+"?autoplay=1&rel=0&playsinline=1"+org,"what shipped before, expected to fail on iOS")+
+    '<a class="sheet-cta ghost" href="'+ytWatch(id)+'" target="_blank" rel="noopener">D &middot; Open in the YouTube app</a>'+
+    '<div class="anote" style="margin-top:10px">Running as an installed app: <b>'+((window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone?"yes, standalone":"no, in the browser")+'</b>. That difference matters, so check it both ways if you can.</div>'+
+    '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
+}
 function playVid(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
   var face=host.querySelector(".vface");if(!face)return;
@@ -3752,7 +3922,17 @@ function playVid(id,slot){
   f.setAttribute("allowfullscreen","");
   f.setAttribute("referrerpolicy","strict-origin-when-cross-origin");
   f.setAttribute("title",v.t);
-  f.src="https://www.youtube.com/embed/"+id+"?autoplay=1&rel=0&playsinline=1";
+  /* v7.13. THE iOS FIX, third attempt, and this time the reasoning is written down.
+     iOS will not start a cross-origin video without a user gesture DELIVERED INSIDE THAT FRAME.
+     Tapping our facade is a gesture on OUR page; inserting an iframe that immediately asks for
+     autoplay is a request Safari refuses without ever telling the page, which is precisely the
+     black frame that never initialises. v7.x removed a synthetic click for the same reason but
+     left autoplay=1 in the URL, so the same refusal survived the fix.
+     No autoplay. The frame loads YouTube's own poster and play button, and the tap on THAT is a
+     real in-frame gesture that iOS honours. One extra tap, and it actually plays.
+     `origin` is sent because an embed without it is the usual source of a 153. */
+  var org=(location.protocol==="https:")?("&origin="+encodeURIComponent(location.origin)):"";
+  f.src="https://www.youtube.com/embed/"+id+"?rel=0&playsinline=1&modestbranding=1"+org;
   face.replaceWith(f);
   /* An embed can still refuse to start, and a black rectangle with no way out is the worst
      possible answer in the middle of a warm-up. Every played frame therefore carries a visible
@@ -4037,6 +4217,8 @@ function settingsSheet(){
      backup was a file you could write and never read. */
   m+='<button class="sheet-cta ghost" onclick="closeSheet();importSheet()">'+I.copy+' Restore from a file</button>';
   m+='<button class="sheet-cta ghost" onclick="closeSheet();healthSheet()">Import from Apple Health</button>';
+  m+='<div class="sectlbl" style="margin:16px 2px 8px">Diagnostics</div>';
+  m+='<button class="sheet-cta ghost" onclick="closeSheet();videoDiagSheet()">Video check</button>';
   m+='<button class="sheet-cta" onclick="closeSheet()">Done</button>';
   m+='<div class="danger"><div class="sectlbl" style="margin:0 2px 8px">Danger</div>'+
      '<button class="sheet-cta ghost dang" onclick="confirmReset()">Reset all data</button></div>';
