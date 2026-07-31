@@ -1425,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.42a";
+var VERSION="v7.42b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3209,6 +3209,9 @@ function runCueList(p){
   return out;
 }
 function runActWord(a){return a==="jog"?"Run":a==="walk"?"Walk":a;}
+/* Gerunds are looked up, not built. "Run"+"ing" is "runing"; English doubles the consonant and a
+   string concatenation does not know that. */
+function runActing(a){return a==="jog"?"running":a==="walk"?"walking":a;}
 function renderRun(){
   var s=runSess();
   var logged=S.runs[TODAY];
@@ -3238,7 +3241,7 @@ function renderRun(){
     '<div class="herorow" style="margin-top:14px">'+
       (s.cue>0?'<button class="wbtn" onclick="prevCue()">Back</button>':'')+
       '<button class="wbtn" onclick="nextCue()">'+
-        (s.cue>=s.cues.length-1?"Log the run":("Start "+runActWord(s.cues[s.cue+1].act).toLowerCase()+"ing"))+
+        (s.cue>=s.cues.length-1?"Log the run":("Start "+runActing(s.cues[s.cue+1].act)))+
       '</button>'+
     '</div></div>';
   /* The prescription, and WHY it is this one. A generated session he did not choose has to be
