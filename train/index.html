@@ -586,10 +586,21 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard>summary .dsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
 .dcard>summary .dsi svg{width:14px;height:14px}
 .dcard>summary .dleft{display:flex;align-items:center;min-width:0;flex:1}
-.dcard .acount.gd{color:var(--good);background:var(--good-tint);border-radius:7px;padding:3px 8px}
-.dcard .acount.wn{color:var(--amber);background:var(--amber-tint);border-radius:7px;padding:3px 8px}
-.dcard[data-tone="good"]>summary .dsi{background:var(--good-tint);color:var(--good)}
-.dcard[data-tone="warn"]>summary .dsi{background:var(--amber-tint);color:var(--amber)}
+/* One vocabulary, shared with .kpi[data-rag]. `warn` is kept as an alias for amber so the older
+   call sites that pass it keep working unchanged. */
+.dcard[data-tone="good"]{--rag:var(--good);--rag-tint:var(--good-tint)}
+.dcard[data-tone="amber"],.dcard[data-tone="warn"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
+.dcard[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
+.dcard[data-tone="flat"]{--rag:var(--ink);--rag-tint:var(--surface-2)}
+.dcard .acount.gd,.dcard .acount.wn{color:var(--rag,var(--sub));background:var(--rag-tint,var(--surface-2));border-radius:7px;padding:3px 8px}
+.dcard[data-tone]>summary .dsi{background:var(--rag-tint,var(--surface-2));color:var(--rag,var(--sub))}
+/* The data itself. The current bar and the headline stat carry the status colour; the comparison
+   windows stay neutral, because colouring all three would make the tone meaningless. */
+.dcard[data-tone] .bcol i.on{background:var(--rag,var(--accent))}
+.dcard[data-tone] .bcol .bv.on{color:var(--rag,var(--accent))}
+.ls3.on{background:var(--rag-tint,var(--surface-2))}
+.ls3.on b{color:var(--rag,var(--ink))}
+.ls3.on span{color:var(--rag,var(--faint));opacity:.85}
 .herorow .wbtn{flex:1}
 .altlink{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;margin-top:10px;padding:9px;border:0;background:transparent;color:var(--sub);font:inherit;font-size:13.5px;font-weight:700}
 .altlink svg{width:15px;height:15px}
@@ -1143,8 +1154,20 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 /* v7.23 pace zones: a verdict, a distribution, then the ranges */
 .pzhead{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--ink);margin-bottom:6px}
-.pzhead[data-tone="red"]{color:var(--accent)}
-.pzhead[data-tone="good"]{color:var(--good)}
+/* v7.33 THE ACCENT SYSTEM. Matthew: "the accents on the data should be the colour reflected in the
+   status." Three defects sat behind that.
+   1. The app had TWO tone vocabularies. The scorecard has spoken good/amber/red/none through a
+      `--rag` custom property since v7.5; the drawer cards spoke a separate warn/good, so a card
+      could not express amber at all and a genuinely bad state rendered the same amber as a mild
+      drift. The scorecard's vocabulary wins, because it was already right, and `--rag` now carries
+      the tone down to every accented element in the card.
+   2. Every verdict-bearing call site SWALLOWED its own verdict: `tone==="red"?"warn":""` throws
+      away amber AND good, so sleep holding and steps rising could never be green no matter what
+      the card computed. The verdict is passed through whole now.
+   3. The colour never reached the DATA. Only the headline sentence was tinted; the chip, the
+      current bar and the headline number stayed neutral ink, which is exactly the accent he is
+      asking for. */
+.pzhead[data-tone]{color:var(--rag,var(--ink))}
 .pzline{font-size:13.5px;line-height:1.6;color:var(--sub)}
 .pzline b{color:var(--ink);font-weight:700}
 .pzbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--surface-2);margin:14px 0 12px}
@@ -1248,7 +1271,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.32";
+var VERSION="v7.33";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3381,7 +3404,7 @@ function deepHTML(){
   h+=rhrCardHTML();
   /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
      which put a second open card on a tab whose law allows exactly one. */
-  h+=drawerize(calCardHTML(),I.fork,"")||collapsible("Calories","not connected",
+  h+=drawerize(calCardHTML(),I.fork,calTone())||collapsible("Calories","not connected",
       '<div class="emptyd">Cal AI has never imported. <b>Paste a week</b> and calories, the maintenance gap and the implied rate all switch on together.</div>',false,I.fork,"");
   h+=drawerize(bodyTilesHTML(),I.flame,"");
   h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">4 cards</span></div>';
@@ -3582,10 +3605,23 @@ function drawerize(html,icon,tone,openByDefault){
   var body=html.replace(m[0],extra?('<div class="dxtra">'+extra+'</div>'):"");
   return collapsible(title,note,body,!!openByDefault,icon,tone||"");
 }
+/* v7.33. Tone is normalised HERE, once, instead of at twenty call sites each deciding for itself
+   which of its four verdicts survive. Cards now pass their verdict verbatim. */
+function normTone(t){
+  if(!t)return "";
+  t=String(t).toLowerCase();
+  if(t==="warn")return "amber";                       /* legacy alias, kept so old callers work */
+  if(t==="bad")return "red";
+  return (t==="good"||t==="amber"||t==="red"||t==="flat")?t:"";
+}
 function collapsible(title,note,inner,openByDefault,icon,tone){
+  tone=normTone(tone);
+  /* The chip is a coloured pill for any tone that means something and plain for "flat", because a
+     steady state is information but it is not a flag. */
+  var chip=(tone&&tone!=="flat")?(tone==="good"?" gd":" wn"):"";
   return '<details class="card dcard"'+(openByDefault?' open':'')+(tone?' data-tone="'+tone+'"':'')+'><summary>'+
     '<span class="dleft">'+(icon?'<span class="dsi">'+icon+'</span>':'')+'<span class="dsum">'+title+'</span></span>'+
-    '<span class="aright">'+(note?'<span class="acount'+(tone==="good"?" gd":tone==="warn"?" wn":"")+'">'+note+'</span>':'')+'<span class="chev">'+I.chevD+'</span></span>'+
+    '<span class="aright">'+(note?'<span class="acount'+chip+'">'+note+'</span>':'')+'<span class="chev">'+I.chevD+'</span></span>'+
     '</summary><div class="dbody">'+inner+'</div></details>';
 }
 function scorecardHTML(){
@@ -3608,7 +3644,7 @@ function scorecardHTML(){
   var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
   return collapsible("This week",green+" of "+scored+" green",
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
-    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.check,green>=scored?"good":green<=2?"warn":"");
+    h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.check,green>=scored?"good":green<=2?"red":"amber");
 }
 /* Every measure on this tab is only as good as its last input, so the inputs get their own row
    rather than a footnote. Anything amber or red here explains a number that looks wrong above. */
@@ -3718,6 +3754,22 @@ function proteinMet(k){
    the last 28 days hold TWO nutrition entries, so a fortnight's verdict, a maintenance gap and an
    implied weekly rate were all being computed from two meals. Three or more days, or it says what
    it has instead of what it thinks. */
+/* v7.33. The Calories card computed a real verdict ("about 400 under maintenance") and then went
+   out with no tone at all, so the one card that says whether he is actually in a deficit was the
+   only body card with no status colour. The direction that counts as GOOD here is deficit, because
+   the standing goal is the cut; over maintenance while cutting is the amber case, and a thin
+   record is amber for a different reason and says so. */
+function calTone(){
+  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
+  if(!logged.length)return "";
+  if(logged.length<3)return "amber";
+  var avg=Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length);
+  var maint=maintenanceCals();if(!maint)return "flat";
+  var gap=maint-avg;
+  if(gap>150)return "good";
+  if(gap<-150)return "amber";
+  return "flat";
+}
 function calCardHTML(){
   var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
   if(!logged.length)return "";
@@ -3957,14 +4009,14 @@ function rhrCardHTML(){
     '<div class="odoct" style="margin-top:10px">Median by window</div>'+
     '<div class="lstat3">'+
       '<div class="ls3"><b class="num">'+(w?Math.round(w.med):"--")+'</b><span>7 days</span></div>'+
-      '<div class="ls3"><b class="num">'+Math.round(m.med)+'</b><span>28 days</span></div>'+
+      '<div class="ls3 on"><b class="num">'+Math.round(m.med)+'</b><span>28 days</span></div>'+
       '<div class="ls3"><b class="num">'+Math.round(y.med)+'</b><span>12 months</span></div>'+
     '</div>'+hrvHTML+
     '<div class="foot" style="margin-top:10px">'+all.length.toLocaleString()+' readings, back to '+all[0].d+
     (dropped?('. '+dropped+' outside '+RHR_BAND[0]+'-'+RHR_BAND[1]+' bpm set aside as bad reads rather than deleted'):'')+
     '. The chart plots monthly medians and its axis starts at '+axisFloor+' bpm, not zero, because a resting rate drawn from zero makes a real 14 bpm move look like noise. '+
     'Walking speed, step length, double support and walking asymmetry are recorded and deliberately not rendered: they are gait metrics, not training signals. See Settings, Your data.</div>',
-    false,I.heart,tone==="red"?"warn":tone==="good"?"good":"");
+    false,I.heart,tone);
 }
 function monthName(m){
   var N=["January","February","March","April","May","June","July","August","September","October","November","December"];
@@ -4010,7 +4062,7 @@ function sleepCardHTML(){
     '<div class="odoct" style="margin-top:10px">Average by window</div>'+
     '<div class="lstat3">'+
       '<div class="ls3"><b class="num">'+hrsTxt(w.mean)+'</b><span>7 nights</span></div>'+
-      '<div class="ls3"><b class="num">'+hrsTxt(m.mean)+'</b><span>28 nights</span></div>'+
+      '<div class="ls3 on"><b class="num">'+hrsTxt(m.mean)+'</b><span>28 nights</span></div>'+
       '<div class="ls3"><b class="num">'+(q?hrsTxt(q.mean):"--")+'</b><span>90 nights</span></div>'+
     '</div>'+phaseHTML+
     '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' nights recorded, back to '+
@@ -4018,7 +4070,7 @@ function sleepCardHTML(){
     /* v7.32: was I.spark, which Weight already owns on this tab. Track's own card law says no two
        drawers on a tab share an icon, and it had been broken here since the sleep card shipped.
        Moon was defined and unused. */
-    false,I.moon,tone==="red"?"warn":"");
+    false,I.moon,tone);
 }
 function stepsCardHTML(){
   var k=Object.keys(S.steps||{});if(!k.length)return "";
@@ -4044,13 +4096,13 @@ function stepsCardHTML(){
     barBody(vals,function(v){return (v/1000).toFixed(1)+"k";},"")+
     '<div class="odoct" style="margin-top:10px">Daily average by window</div>'+
     '<div class="lstat3">'+
-      '<div class="ls3"><b class="num">'+(w.avg/1000).toFixed(1)+'k</b><span>7 days</span></div>'+
+      '<div class="ls3 on"><b class="num">'+(w.avg/1000).toFixed(1)+'k</b><span>7 days</span></div>'+
       '<div class="ls3"><b class="num">'+(m?(m.avg/1000).toFixed(1):"--")+'k</b><span>28 days</span></div>'+
       '<div class="ls3"><b class="num">'+(q?(q.avg/1000).toFixed(1):"--")+'k</b><span>90 days</span></div>'+
     '</div>'+
     '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' days recorded, back to '+
     k.slice().sort()[0]+'. Steps are not scored on the weekly card because they are a floor, not a target.</div>',
-    false,I.gauge,tone==="red"?"warn":"");
+    false,I.gauge,tone);
 }
 function stepsTileHTML(){
   var st=stepsAvg(7);
@@ -5973,7 +6025,7 @@ function paceZonesHTML(){
     '<div class="ksub" style="margin:10px 0 0">Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
       (paced.length>runs.length?(', of '+paced.length+' on record'):'')+
       '. The bands are base-building targets, not a percentage of a test result.</div>',
-    false,I.bolt,tone==="red"?"warn":"");
+    false,I.bolt,tone);
 }
 /* ============ RECORDS AND BADGES, v7.11 ============
    Two problems, both structural. Every one of the thirty-five badges drew the SAME trophy glyph, so
