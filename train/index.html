@@ -1035,6 +1035,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .badge .bdot svg{width:19px;height:19px}
 .badge.next .bdot{border:1px dashed var(--accent);color:var(--accent);background:transparent}
 .badge.next .bn{color:var(--ink)}
+.bpr.off{visibility:hidden}
 .bpr{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin:5px auto 0;width:64%}
 .bpr i{display:block;height:100%;background:var(--accent);border-radius:2px;opacity:.75}
 /* month labels positioned where the month actually starts */
@@ -1307,7 +1308,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.35c";
+var VERSION="v7.35d";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -6299,7 +6300,11 @@ function badgeList(returnDefs,kind){
     return '<div class="badge'+(x.got?" got":"")+(isNext||forceBar?" next":"")+'">'+
       '<div class="bdot">'+ic+'</div><div class="bn">'+x.n+'</div>'+
       '<div class="bd">'+(x.got&&x.when?shortDate(x.when):x.d)+'</div>'+
-      (!x.got&&(isNext||forceBar)&&pct>4&&pct<100?'<div class="bpr"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
+      /* v7.35c. The bar used to be omitted when it had nothing to say, which made those tiles 9px
+         shorter and every badge row ragged. It is always in the layout now and merely invisible when
+         it does not apply, so the grid is flush without a magic min-height. */
+      '<div class="bpr'+((!x.got&&(isNext||forceBar)&&pct>4&&pct<100)?'':' off')+'"><i style="width:'+
+        ((!x.got&&(isNext||forceBar)&&pct>4&&pct<100)?pct:0)+'%"></i></div>'+'</div>';
   }
   var all="";
   Object.keys(groups).forEach(function(g){
