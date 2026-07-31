@@ -1425,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.41b";
+var VERSION="v7.42";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2993,6 +2993,104 @@ function drawRest(){var left=Math.round((restEnd-Date.now())/1000);document.getE
 function bumpRest(d){restEnd+=d*1000;restTot=Math.max(restTot,Math.round((restEnd-Date.now())/1000));drawRest();}
 function endRest(){if(restInt){clearInterval(restInt);restInt=null;}var rb=document.getElementById("restbar");if(rb){rb.classList.remove("on");rb.classList.remove("warn");}}
 
+/* ============ THE RUN PRESCRIPTION, ROUND 17c ============
+   Generated from the cardio level on every render. Nothing is stored, there is no calendar and
+   there is no week to fall behind on - the same reason Lift is an A/B/C rotation rather than a
+   schedule. The rotation already exists in CYCLE ({k:"run"} and {k:"run",long:true}); this is only
+   the thing that turns a level plus a slot into an actual session.
+
+   THE LADDER. Bout length is the governed number, not weekly mileage. Aerobic capacity returns in
+   two or three weeks and tissue does not; stress fractures in newly-loaded populations peak at
+   weeks four to eight, which is exactly when breathing stops being the limiter. So the rung moves
+   the length of the unbroken run bout and never more than doubles it.
+   No pace target below the Built tier (20). This is not timidity: Runna assigns no paces at all on
+   beginner plans and load shows up only as longer sessions, and Daniels' plan for a runner who
+   cannot yet run continuously is sixteen weeks of easy running, walking and strides with no
+   threshold, interval or rep work in it. A pace band at level 1 is the thing both systems avoid.
+   WHY RUN/WALK, stated honestly because the usual claim is not supported: there is no trial
+   showing run/walk prevents injury, and the one evaluation of Couch-to-5K found 19% injury
+   incidence over nine weeks. The real justification is load CONTROLLABILITY - prescribe ten
+   minutes of running and you get ten minutes of running, where "run easy for thirty minutes" from
+   a deconditioned runner produces an unknown quantity at an unknown intensity. */
+var RUN_RUNGS=[
+  {jog:60, walk:120, reps:10},
+  {jog:90, walk:90,  reps:8},
+  {jog:120,walk:90,  reps:7},
+  {jog:180,walk:90,  reps:6},
+  {jog:240,walk:90,  reps:5},
+  {jog:360,walk:60,  reps:4},
+  {jog:480,walk:60,  reps:3},
+  {jog:720,walk:60,  reps:2},
+  {jog:1200,walk:0,  reps:1},
+  {jog:1500,walk:0,  reps:1},
+  {jog:1800,walk:0,  reps:1}
+];
+var RUN_WARM=300,RUN_COOL=300;
+/* Two levels per rung through Base, so the ladder spans levels 1-19 and the first continuous run
+   lands as he enters Built - which is also where a pace band starts to mean something. */
+function runRungForLevel(lvl){return Math.max(0,Math.min(RUN_RUNGS.length-1,Math.floor((lvl-1)/2)));}
+function runVolumeOf(r,reps){return r.jog*(reps==null?r.reps:reps);}
+/* The largest single RUNNING volume in the trailing 30 days. The one progression rule with real
+   prospective evidence behind it (Frandsen 2025, 5,205 GPS-monitored runners) is single-session
+   size against the trailing-30-day biggest, so that is the cap - not a percentage of a weekly
+   total, which is the "10% rule" whose only RCT found 20.8% against 20.3% injury, p=0.90. */
+function runRecentPeakSec(){
+  var best=0;
+  allRuns().forEach(function(x){
+    if(daysBetween(x.date,TODAY)>30)return;
+    best=Math.max(best,x.durationSec||0);
+  });
+  return best;
+}
+/* The gates are INPUTS to the generator, never a week he passes or fails. Each one can only ever
+   push the rung DOWN, and each one says why on the card, so a session he did not expect is always
+   explained by a line he can argue with. */
+function runGuards(base){
+  var rung=base,why=[];
+  var peak=runRecentPeakSec();
+  if(!peak){
+    /* Nothing in 30 days. Whatever the level says he has climbed to historically, the tissue has
+       not been loaded in a month, so he starts at the bottom of the ladder. */
+    if(rung>0){rung=0;why.push("nothing run in 30 days, so this starts at the bottom of the ladder");}
+  } else {
+    var cap=peak*1.3;
+    while(rung>0&&runVolumeOf(RUN_RUNGS[rung])>cap)rung--;
+    if(rung<base)why.push("capped at 130% of your biggest run in the last 30 days");
+  }
+  /* Resting HR is currently his only objective progress signal, since there is no pace data worth
+     reading, and it is up 14 bpm year on year. Five over his own recent baseline is a back-off. */
+  var w=vitalWindow("rhr",3),b=vitalWindow("rhr",28);
+  if(w&&b&&w.mean-b.mean>=5&&rung>0){rung--;why.push("resting HR is "+Math.round(w.mean-b.mean)+" bpm over your 28-day baseline");}
+  if(S.runHold&&rung>0){rung--;why.push("you flagged something hurting on your last run");}
+  return {rung:rung,why:why,base:base};
+}
+function runPrescription(isLong){
+  var L=cardioLevel(),tier=levelTier(L.lvl);
+  var g=runGuards(runRungForLevel(L.lvl));
+  var r=RUN_RUNGS[g.rung];
+  /* The long slot is the same INTENSITY with more of it - the only thing separating a long run
+     from an easy run in every system researched is duration. More bouts, never a longer bout,
+     because the bout is the number under injury control. */
+  var reps=isLong?Math.max(r.reps+1,Math.round(r.reps*1.4)):r.reps;
+  var continuous=(r.walk===0);
+  var runSec=runVolumeOf(r,reps);
+  var steps=[{role:"warmup",act:"walk",sec:RUN_WARM,note:"Brisk. Nothing that feels like running yet."}];
+  if(continuous)steps.push({role:"main",act:"jog",sec:r.jog*reps,note:"Conversational the whole way."});
+  else steps.push({role:"main",kind:"repeat",reps:reps,
+    steps:[{act:"jog",sec:r.jog},{act:"walk",sec:r.walk}],
+    note:"The walk is part of the session, not a failure of it."});
+  steps.push({role:"cooldown",act:"walk",sec:RUN_COOL,note:"Part of the session, not the bit after it."});
+  return {
+    lvl:L.lvl,tier:tier,rung:g.rung,rungOf:RUN_RUNGS.length-1,base:g.base,why:g.why,
+    isLong:!!isLong,continuous:continuous,reps:reps,jog:r.jog,walk:r.walk,
+    runSec:runSec,totalSec:runSec+(continuous?0:r.walk*(reps-1))+RUN_WARM+RUN_COOL,
+    bout:r.jog,steps:steps,
+    /* A pace band only once the level means something. Below Built it is an effort word. */
+    target:(L.lvl>=20)?{kind:"pace",txt:PACE_MI}:{kind:"effort",txt:"conversational"},
+    name:(continuous?("Easy "+Math.round(runSec/60)):(reps+" × "+mmss(r.jog)))+(isLong?" · long":"")
+  };
+}
+
 /* ============ RUN SESSION, ROUND 17 ============
    A lift is a sequence of discrete decisions and a run is one continuous effort, so this is the
    workout tool's SHAPE (a clock that owns the screen, a phase that advances, a Finish that hands
@@ -3012,30 +3110,53 @@ function paceBandSec(){
   function s(t){var p=String(t).trim().split(":");return (+p[0]||0)*60+(+p[1]||0);}
   return {fast:s(m[0]),easy:s(m[1]||m[0])};
 }
-var RUN_PHASES=[
-  {k:"warm",n:"Warm up",d:"5 min brisk walk or an easy jog. Nothing that feels like running yet."},
-  {k:"main",n:"The run",d:"At a pace you could hold a conversation. If you cannot speak in full sentences, walk 30 seconds and pick it back up."},
-  {k:"cool",n:"Cool down",d:"5 min walk. This is part of the session, not the bit after it."}
-];
-function startRun(mi){
-  mi=mi||runTargetMi();
-  primeSheet("run",function(){beginRun(mi);});
-}
+/* ROUND 17c. Straight to the screen, no warm-up pop-up. The warm-up is step one OF the session
+   now, exactly as it is on Lift, so there is nothing for a sheet to interrupt. */
+function startRun(mi){beginRun(mi);}
 function beginRun(mi){
-  mi=mi||runTargetMi();
   var s=runSess();
-  if(!s)S.runSess={d:TODAY,tgt:mi,start:Date.now(),accum:0,paused:false,phase:0};
+  if(!s){
+    var p=runPrescription(!!(todayPlan()&&todayPlan().long));
+    S.runSess={d:TODAY,tgt:mi||runTargetMi(),start:Date.now(),accum:0,paused:false,
+               cue:0,cueAt:0,pres:p,cues:runCueList(p)};
+  }
   else if(!s.start&&!s.paused)s.start=Date.now();
   RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track"||CURV==="today")?CURV:"today";
   save();show("run");renderRun();startRunTick();
 }
+/* THE CLOCK IS AN INTERVAL CUE, NOT A LOGGER. He records the run on the watch, which measures
+   distance and pace properly; the app's job is the one thing the watch will not do, which is
+   telling him when to switch between a jog bout and a walk bout. A prescription of
+   "10 x (1:00 jog / 2:00 walk)" is unrunnable without something counting the switches. */
+function runCue(){var s=runSess();if(!s||!s.cues)return null;return s.cues[s.cue]||null;}
+function runCueLeft(){
+  var s=runSess(),c=runCue();if(!s||!c)return 0;
+  return Math.max(0,c.sec-(elapsedRunSec()-(s.cueAt||0)));
+}
+function nextCue(auto){
+  var s=runSess();if(!s)return;
+  if(s.cue>=s.cues.length-1){finishRun();return;}
+  s.cue++;s.cueAt=elapsedRunSec();save();
+  if(auto&&navigator.vibrate)try{navigator.vibrate([40,80,40]);}catch(e){}
+  renderRun();
+}
+function prevCue(){var s=runSess();if(!s||s.cue<=0)return;s.cue--;s.cueAt=elapsedRunSec();save();renderRun();}
+function skipToCue(i){var s=runSess();if(!s)return;s.cue=Math.max(0,Math.min(s.cues.length-1,i));s.cueAt=elapsedRunSec();save();renderRun();}
 function elapsedRunSec(){var s=runSess();if(!s)return 0;return Math.floor((s.accum||0)+((s.start&&!s.paused)?(Date.now()-s.start)/1000:0));}
 function startRunTick(){
   if(runTimer)clearInterval(runTimer);
   function t(){
     var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());
-    var p=document.getElementById("run-pico");var s=runSess();if(p)p.innerHTML=(s&&s.paused)?I.play2:I.pause;
-    var g=document.getElementById("run-prog");if(g)paintRunProgress();
+    var s=runSess();
+    var p=document.getElementById("run-pico");if(p)p.innerHTML=(s&&s.paused)?I.play2:I.pause;
+    var cd=document.getElementById("run-count");
+    if(cd&&s&&!s.paused){
+      var left=runCueLeft();
+      cd.textContent=mmss(left);
+      var bar=document.getElementById("run-cuefill"),c=runCue();
+      if(bar&&c&&c.sec)bar.style.width=Math.max(0,Math.min(100,(1-left/c.sec)*100)).toFixed(1)+"%";
+      if(left<=0)nextCue(true);
+    }
   }
   t();runTimer=setInterval(t,1000);
 }
@@ -3047,52 +3168,47 @@ function toggleRunPause(){
   else{runFreeze();s.paused=true;save();var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());startRunTick();}
   renderRun();
 }
-/* The target time belongs to the RUN LEG, not to the session. The first build ran the progress bar
-   off total elapsed, so a five-minute warm-up walk ate a quarter of the "22:00 mark" before he had
-   run a step - the clock was measuring one thing and labelling it another. Entering the main phase
-   stamps the leg, leaving it closes it, and the bar reads that leg alone. */
-function runPhase(i){
-  var s=runSess();if(!s)return;
-  var was=s.phase;
-  s.phase=Math.max(0,Math.min(RUN_PHASES.length-1,i));
-  var el=elapsedRunSec();
-  if(RUN_PHASES[s.phase].k==="main"&&RUN_PHASES[was].k!=="main"){s.legStart=el;s.legEnd=null;}
-  else if(RUN_PHASES[was].k==="main"&&RUN_PHASES[s.phase].k!=="main"&&s.legStart!=null&&s.legEnd==null){s.legEnd=el;}
-  save();renderRun();
-}
+/* RUNNING TIME, not session time. The cue list already knows which bouts were jogs, so the running
+   total is the completed jog cues plus however far into the current one he is. Prefilling total
+   elapsed would fold the warm-up walk, every walk break and the cool down into the pace, which is
+   how a 10:00 run logs as a 25:00 one and poisons the pace zones, the level and every average that
+   reads them. */
 function runLegSec(){
-  var s=runSess();if(!s||s.legStart==null)return null;
-  return Math.max(0,(s.legEnd!=null?s.legEnd:elapsedRunSec())-s.legStart);
+  var s=runSess();if(!s||!s.cues)return null;
+  var tot=0;
+  for(var i=0;i<s.cue&&i<s.cues.length;i++)if(s.cues[i].act==="jog")tot+=s.cues[i].sec;
+  var c=s.cues[s.cue];
+  if(c&&c.act==="jog")tot+=Math.max(0,Math.min(c.sec,elapsedRunSec()-(s.cueAt||0)));
+  return tot;
 }
 function leaveRun(){runFreeze();show(RETV||"today");}
 function finishRun(){
   var s=runSess();
-  /* The RUN LEG, not the session. Prefilling total elapsed would put the warm-up walk and the cool
-     down into the pace calculation, which is how a 10:00 run becomes a 16:00 one and poisons the
-     pace zones, the level and every average that reads them. Falls back to total only when he
-     never entered the run phase, where total is all there is. */
   var leg=runLegSec(),sec=(leg!=null&&leg>0)?leg:elapsedRunSec();
   runFreeze();
   runSheet(s?s.tgt:runTargetMi(),sec);
 }
 function discardRun(){S.runSess=null;save();stopRunTick();show(RETV||"today");toast("Run discarded. Nothing logged.",null);}
-function paintRunProgress(){
-  var s=runSess();if(!s)return;
-  var band=paceBandSec(),tgtSec=Math.round(band.easy*s.tgt);
-  var leg=runLegSec();
-  var bar=document.getElementById("run-progfill");
-  var lab=document.getElementById("run-proglab");
-  if(leg==null){
-    /* Before the run leg starts the bar has nothing to measure, so it says so rather than filling
-       against a clock that is not counting the thing it names. */
-    if(bar)bar.style.width="0%";
-    if(lab)lab.textContent=s.tgt+" mi at the easy end of the band is about "+mmss(tgtSec)+".";
-    return;
-  }
-  if(bar)bar.style.width=Math.min(100,tgtSec?(leg/tgtSec*100):0).toFixed(1)+"%";
-  if(lab)lab.textContent=(leg>=tgtSec)?(mmss(leg)+" running, past the "+mmss(tgtSec)+" mark"):
-    (mmss(leg)+" running &middot; "+mmss(Math.max(0,tgtSec-leg))+" to "+mmss(tgtSec)).replace("&middot;","·");
+/* Flatten the prescription tree into the ordered cue list the screen walks. A repeat becomes its
+   expanded bouts, because at run time there is no such thing as "rep 3 of 7" in the abstract -
+   there is only the bout you are in. The tree stays the source; this is the runtime view of it. */
+function runCueList(p){
+  var out=[];
+  p.steps.forEach(function(st){
+    if(st.kind==="repeat"){
+      for(var i=0;i<st.reps;i++){
+        st.steps.forEach(function(inner,j){
+          /* The last walk of the last rep is dropped: it would sit between the final jog and the
+             cool-down walk, which is the same activity twice with a boundary invented between. */
+          if(i===st.reps-1&&inner.act==="walk")return;
+          out.push({act:inner.act,sec:inner.sec,role:"main",rep:i+1,of:st.reps,note:j===0?st.note:null});
+        });
+      }
+    } else out.push({act:st.act,sec:st.sec,role:st.role,note:st.note});
+  });
+  return out;
 }
+function runActWord(a){return a==="jog"?"Run":a==="walk"?"Walk":a;}
 function renderRun(){
   var s=runSess();
   var logged=S.runs[TODAY];
@@ -3108,39 +3224,48 @@ function renderRun(){
       '<button class="sheet-cta ghost" style="margin-top:10px" onclick="runSheet('+mi+')">Log a run I already did</button>';
     return;
   }
-  var band=paceBandSec(),tgtSec=Math.round(band.easy*s.tgt);
-  var ph=RUN_PHASES[s.phase]||RUN_PHASES[0];
-  var h='<div class="runhero"><div class="lbl">'+(s.paused?"Paused &middot; ":"")+"Step "+(s.phase+1)+" of "+RUN_PHASES.length+" &middot; "+esc(ph.n)+'</div>'+
-    '<div class="rd num" style="margin-top:8px">'+s.tgt+'<small> mi</small></div>'+
-    '<div class="pace">'+I.run+' Easy &middot; '+PACE_MI+' /mi</div>'+
-    '<div id="run-prog" class="bwrap" style="margin-top:16px;height:auto">'+
-      '<div style="height:4px;border-radius:3px;background:var(--surface-2);overflow:hidden">'+
-        '<i id="run-progfill" style="display:block;height:4px;width:0;background:var(--accent)"></i></div>'+
-      '<div class="ksub" id="run-proglab" style="margin:8px 0 0">&nbsp;</div></div>'+
-    '</div>';
-  /* ONE writer for the phase. The first build announced it three times - in the hero label, as a
-     card title with a "now" chip, and again in the step list - which is the same duplication the
-     Track audit caught with Weight. The hero names where he is, the card carries only the
-     instruction and the action, and the list is the map. */
-  h+='<div class="card">'+
-    '<div class="ksub" style="margin:0">'+esc(ph.d)+'</div>'+
-    '<div class="herorow" style="margin-top:12px">'+
-      (s.phase>0?'<button class="wbtn" onclick="runPhase('+(s.phase-1)+')">Back</button>':'')+
-      (s.phase<RUN_PHASES.length-1
-        ?'<button class="wbtn" onclick="runPhase('+(s.phase+1)+')">'+(RUN_PHASES[s.phase+1].k==="main"?"Start the run":"Start the cool down")+'</button>'
-        :'<button class="wbtn" onclick="finishRun()">Log the run</button>')+
+  /* HERO IS THE CURRENT CUE, the same spine as the Lift tool: one thing to do, big enough to read
+     at arm's length while moving, and the rest of the session collapsed underneath it. */
+  var p=s.pres||runPrescription(false),c=runCue()||{act:"walk",sec:0,role:"warmup"};
+  var roleWord=(c.role==="warmup")?"Warm up":(c.role==="cooldown")?"Cool down":(c.rep?("Bout "+c.rep+" of "+c.of):"The run");
+  var h='<div class="runhero" style="padding:20px 18px">'+
+    '<div class="lbl">'+(s.paused?"Paused &middot; ":"")+esc(roleWord)+'</div>'+
+    '<div class="rd num" style="margin-top:6px;font-size:64px">'+runActWord(c.act)+'</div>'+
+    '<div id="run-count" class="num" style="font-size:34px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums">'+mmss(c.sec)+'</div>'+
+    '<div style="height:4px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:14px">'+
+      '<i id="run-cuefill" style="display:block;height:4px;width:0;background:'+(c.act==="jog"?"var(--accent)":"var(--good)")+'"></i></div>'+
+    '<div class="herorow" style="margin-top:14px">'+
+      (s.cue>0?'<button class="wbtn" onclick="prevCue()">Back</button>':'')+
+      '<button class="wbtn" onclick="nextCue()">'+(s.cue>=s.cues.length-1?"Log the run":"Skip ahead")+'</button>'+
     '</div></div>';
-  h+='<div class="card"><div class="runstruct">'+RUN_PHASES.map(function(p,i){
-      var st=(i<s.phase)?"done":(i===s.phase?"now":"next");
-      return '<div class="rs" onclick="runPhase('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.55":"")+'">'+
+  /* The prescription, and WHY it is this one. A generated session he did not choose has to be
+     arguable, so every guard that pushed the rung down says so in a line he can read. */
+  h+='<div class="card"><h3><span>'+esc(p.name)+'</span><span class="t">level '+p.lvl+' &middot; '+esc(p.tier.w)+'</span></h3>'+
+    '<div class="ksub" style="margin:0">'+
+      (p.continuous?('<b>'+Math.round(p.runSec/60)+' min</b> continuous'):('<b>'+p.reps+' × '+mmss(p.jog)+'</b> running with '+mmss(p.walk)+' walking between'))+
+      ', '+Math.round(p.runSec/60)+' min on your feet running, about '+Math.round(p.totalSec/60)+' min all in. '+
+      (p.target.kind==="effort"
+        ?'No pace target: <b>conversational</b> is the target. If you cannot say a full sentence, you are running too hard.'
+        :'Hold <b>'+esc(p.target.txt)+' /mi</b>.')+
+    '</div>'+
+    (p.why.length?('<div class="ksub" style="margin:10px 0 0;color:var(--faint)">Eased back because '+p.why.join(", and ")+'.</div>'):'')+
+    '</div>';
+  /* The watch measures, the app cues. Split stated on the card so the division of labour is not
+     something he has to infer from the absence of a distance readout. */
+  h+='<div class="card"><h3><span>Recording</span></h3><div class="ksub" style="margin:0">'+
+    'Start an <b>Outdoor Run</b> on your watch. It measures distance and pace and lands here on its own. '+
+    'This screen only counts the bouts, which is the one thing the watch will not do.</div>'+
+    '<div class="herorow" style="margin-top:12px"><button class="wbtn" onclick="finishRun()">Log it by hand now</button></div></div>';
+  h+='<div class="card"><div class="runstruct">'+s.cues.map(function(q,i){
+      var st=(i<s.cue)?"done":(i===s.cue?"now":"next");
+      return '<div class="rs" onclick="skipToCue('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.5":"")+'">'+
         '<span class="n"'+(st==="now"?' style="background:var(--accent);color:#fff"':(st==="done"?' style="background:var(--good);color:#fff"':''))+'>'+(i+1)+'</span>'+
-        '<span>'+esc(p.n)+'</span></div>';
+        '<span style="flex:1">'+runActWord(q.act)+'</span><span style="color:var(--faint);font-size:13px">'+mmss(q.sec)+'</span></div>';
     }).join("")+'</div></div>';
   /* Discard is destructive and rare, so it gets the weight of a footnote rather than the weight of
      a primary control. It read as prominently as Log the run in the first build. */
-  h+='<div style="text-align:center;margin-top:14px"><button class="lnk" onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;cursor:pointer">Discard this run</button></div>';
+  h+='<div style="text-align:center;margin-top:14px"><button onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;cursor:pointer">Discard this run</button></div>';
   body.innerHTML=h;
-  paintRunProgress();
 }
 var rpeRun="";
 function runSheet(dist,prefillSec){rpeRun="";
