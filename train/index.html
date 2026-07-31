@@ -1425,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.41a";
+var VERSION="v7.41b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3151,6 +3151,10 @@ function runSheet(dist,prefillSec){rpeRun="";
     '<div class="rerr" id="r-err" style="display:none"></div>'+
     '<div class="rpe"><button onclick="pickRpe(this,\'Easy\')">Easy</button><button onclick="pickRpe(this,\'OK\')">OK</button><button onclick="pickRpe(this,\'Hard\')">Hard</button></div>'+
     '<button class="sheet-cta" onclick="saveRun()">Save run</button>');
+  /* `calcPace` only ever ran on input, which was fine while both fields opened empty. Now that
+     Finish hands the sheet a real time, the pace has to be computed once on open or the one number
+     he came to see reads "--:--" until he pokes a field he has no reason to poke. */
+  setTimeout(calcPace,0);
 }
 function parseTime(t){t=(""+(t||"")).trim();if(!t)return null;if(t.indexOf(":")>=0){var p=t.split(":");var m=parseInt(p[0])||0,s=parseInt(p[1])||0;if(s>59)s=59;return m*60+s;}var n=parseFloat(t);if(isNaN(n))return null;return Math.round(n*60);}
 function calcPace(){var d=parseFloat((document.getElementById("r-dist")||{}).value),sec=parseTime((document.getElementById("r-time")||{}).value),el=document.getElementById("r-pace");if(!el)return;el.textContent=(d>0&&sec>0)?mmss(Math.round(sec/d)):"--:--";}
