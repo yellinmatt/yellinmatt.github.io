@@ -777,10 +777,11 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .wchart{margin:12px 0 4px}
 .wchart svg{display:block;width:100%;height:auto}
 .wlegend{display:flex;justify-content:space-between;font-size:10.5px;font-weight:600;color:var(--faint);margin-top:5px}
-.wstate{font-size:15px;font-weight:800;margin-top:8px}
-.wstate[data-s="down"]{color:var(--good)}
-.wstate[data-s="up"]{color:var(--accent)}
-.wstate[data-s="flat"],.wstate[data-s="thin"],.wstate[data-s="stale"]{color:var(--sub)}
+/* `.wstate` and `.wsub` DELETED in Round A3. They were the Weight card's private
+   names for the verdict headline and its sentence, which is the job `.pzhead`
+   and `.pzline` already did on every sibling card; the card now speaks the
+   family vocabulary and these had no caller left. Third dead class removed this
+   round, after `.acard` and `weightLogCardHTML`. */
 .wsub{font-size:13px;color:var(--sub);line-height:1.5;margin-top:3px}
 /* B5 body dashboard */
 .bhero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:18px 16px 16px;margin-bottom:12px}
@@ -1350,6 +1351,28 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .hanchor .acount{font-size:12px;font-weight:700;color:var(--sub)}
 .hanchor[open]>summary{border-bottom:1px solid var(--line)}
 .hanchor .abody{padding:4px 20px 16px}
+/* ROUND A3: the anchor video, now one row instead of a player. Built from the
+   same parts as `.pcol` and `.arow` rather than a new visual language. */
+.avidrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin:2px 0 2px}
+.avidrow:active{background:var(--surface-2)}
+.avplay{display:flex;width:30px;height:30px;border-radius:9px;align-items:center;justify-content:center;background:var(--accent-tint);color:var(--accent);flex:none}
+.avplay svg{width:14px;height:14px}
+.avtxt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.avtxt b{font-size:14px;font-weight:700;color:var(--ink)}
+.avtxt span{font-size:12px;font-weight:600;color:var(--faint)}
+.avarr{color:var(--faint);display:flex;flex:none}
+.avarr svg{width:16px;height:16px}
+/* The how-to control on each movement row. Deliberately quiet: it is the escape
+   hatch for a movement he does not know, not a thing to look at every morning
+   once he knows all twelve. */
+.ahow{display:flex;width:22px;height:22px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin-left:-4px}
+.ahow svg{width:16px;height:16px}
+.ahow:active{color:var(--accent)}
+.arow[role="button"]{cursor:pointer}
+/* The cue list inside a how-to sheet. */
+.cuelist{margin:12px 0 0;padding:0 0 0 18px;list-style:disc}
+.cuelist li{font-size:14px;line-height:1.55;color:var(--sub);margin-bottom:7px}
+.cuelist li::marker{color:var(--faint)}
 .hanchor .avid{margin-top:2px}
 .hanchor .adone{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--good-tint);color:var(--good);font-size:13.5px;font-weight:700}
 .hanchor .adone svg{width:16px;height:16px}
@@ -1367,7 +1390,19 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    run screen was corrected for. Hiding only `.dcard>summary` covered the three
    drawer-shaped cards and missed the one plain card, which is why the defect
    was invisible until the tile it belonged to was actually tapped. */
-.msheet>.dcard>summary,.msheet>.card>h3{display:none}
+/* ROUND A3: only the card's TITLE is suppressed, not its whole header. Hiding
+   the h3 outright was right while the one plain card in here was a title and
+   nothing else; `weightCardHTML` keeps its History and Log buttons in that same
+   h3, and hiding it would have hidden the controls the popup exists for. */
+.msheet>.dcard>summary{display:none}
+/* Every card header inside a sheet loses its text and keeps its controls. Not
+   just the direct child: the Calories card nests a second card for its thin
+   record, whose own h3 read "Calories" a second time under the sheet's, and a
+   rule scoped with `>` sailed past it. The chip goes too, because Weight's chip
+   restates the same number its hero prints two lines below. */
+.msheet .card>h3>span{display:none}
+.msheet .card>h3{margin-top:0}
+.msheet .card>h3:empty{display:none}
 .msheet .dbody{padding:0}
 .msheet{margin-top:4px}
 /* ROUND A: three became four when Weight joined the row. Four across at 390px
@@ -1454,7 +1489,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.44a";
+var VERSION="v7.45a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1482,6 +1517,10 @@ run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M13 4m-1 0
   trash:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   edit:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 5l5 5M4 20l1-4L16 5l3 3L8 19l-4 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   arrow:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  /* Round A3: the how-to affordance on each anchor row. A question mark rather
+     than an "i", because the question it answers is "how do I do this", and an
+     info glyph beside a movement reads as a footnote about it instead. */
+  info:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.8-.9 1.4v.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="16.7" r="1" fill="currentColor"/></svg>',
   moon:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 14a8 8 0 1 1-10-10 7 7 0 0 0 10 10Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
   clock:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V12l3 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   heart:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 20s-7-4.35-7-9.5A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.5c0 5.15-7 9.5-7 9.5Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
@@ -1684,12 +1723,66 @@ var WARM="leg swings x10/side, arm circles x10, band pull-apart x15, dead bug x8
 var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
 /* morning anchor: push-ups + squats EVERY day, plus two rotating mobility picks
    weighted to desk-worker needs (neck/shoulder/hips) -- Matthew's headache + sitting lever */
-var ANCHOR_FIXED=[{n:"Push-ups (sub-max)",d:"x8 clean"},{n:"Bodyweight squats",d:"x10"}];
+/* ============ THE ANCHOR MOVEMENTS, REWORKED (Round A3) ============
+   His brief: keep the variety, but only where each movement is CLEAR, VALUABLE
+   and EASY to actually accomplish. Minimum sufficiency.
+
+   Four went, each for a stated reason rather than to make room:
+   - Shoulder rolls. No measurable effect on anything. It was a movement that
+     let a morning be ticked without one having happened.
+   - Neck side-bends. Redundant beside chin tucks, which do the desk-neck job
+     better and are the one of the two with evidence behind them.
+   - Doorway chest press-through. Needs a doorway and a setup, which is friction
+     at six in the morning; wall angels and the world's greatest stretch already
+     cover thoracic and pec length.
+   - Ankle circles. Unloaded and vague. Calf raises load the same joint, are
+     unambiguous, and count.
+   Four arrived: world's greatest stretch (hip flexor, thoracic rotation and
+   hamstring in one movement, which is the highest value per minute in the
+   list), glute bridge and dead bug (posterior chain and deep core, both absent
+   entirely and both trivially easy), and calf raises.
+
+   Every movement now carries `h`, two or three cues in the trainer's own terse
+   register, and `q`, the search terms behind the demo button. The dose is
+   countable on purpose: at six in the morning a thirty-second hold is a
+   movement that quietly does not happen, which is the same finding that turned
+   the timed holds into reps in the first place. */
+var ANCHOR_FIXED=[
+  {n:"Push-ups (sub-max)",d:"x8 clean",q:"push up proper form",
+   h:["Hands under the shoulders, body one line from heel to head.","Stop two reps before it gets ugly. Sub-max means clean.","Knees down is still a push-up."]},
+  {n:"Bodyweight squats",d:"x10",q:"bodyweight squat proper form",
+   h:["Feet about shoulder width, toes turned out slightly.","Sit down between the hips rather than folding forward.","Depth you can control beats depth you fall into."]}
+];
 /* Every rotating item is COUNTED, never held. Matthew's rule, 2026-07-29: at six in the morning
    he will do thirty reps and he will not stand still counting to thirty, so a timed hold is a
    movement that quietly does not happen. The four static stretches that used to sit here are now
    their dynamic equivalents, which train the same tissue and can be counted. */
-var ANCHOR_ROT=[{n:"Chin tucks",d:"x10 (neck)"},{n:"Cat-cow",d:"x8 slow"},{n:"Doorway chest press-through",d:"x8/side"},{n:"Wall angels",d:"x10 (shoulders)"},{n:"Kneeling hip-flexor rocks",d:"x8/side"},{n:"Neck side-bends",d:"x8/side"},{n:"Thoracic rotations",d:"x8/side"},{n:"Standing hamstring reaches",d:"x10"},{n:"Shoulder rolls",d:"x10 back"},{n:"Deep squat rocks",d:"x8"},{n:"Scapular push-ups",d:"x10"},{n:"Ankle circles",d:"x10/side"}];
+var ANCHOR_ROT=[
+  {n:"Cat-cow",d:"x8 slow",q:"cat cow exercise proper form",
+   h:["On hands and knees, move one vertebra at a time.","Breathe out as you round, in as you arch.","Slow is the point. Eight good ones beat twenty fast."]},
+  {n:"World's greatest stretch",d:"x5/side",q:"worlds greatest stretch proper form",
+   h:["Long lunge, back knee off the floor.","Front elbow down toward the instep, then rotate that arm to the ceiling and follow it with your eyes.","Hip flexor, mid-back and hamstring in one movement."]},
+  {n:"Kneeling hip-flexor rock",d:"x8/side",q:"kneeling hip flexor stretch proper form",
+   h:["Half-kneeling, back toe tucked.","Squeeze the back glute, THEN rock forward an inch. The glute is what makes it work.","Ribs down. Do not arch the low back to fake the range."]},
+  {n:"Open-book rotation",d:"x8/side",q:"open book thoracic rotation exercise",
+   h:["Lie on your side, knees bent up, arms stacked out front.","Open the top arm across and let the chest follow. Knees stay down.","Turn from the ribs, not the shoulder."]},
+  {n:"Wall angels",d:"x10",q:"wall angel exercise proper form",
+   h:["Back to the wall, low back flat against it.","Slide the arms up and down keeping wrists and elbows touching.","Small clean range beats a big cheated one."]},
+  {n:"Glute bridge",d:"x12",q:"glute bridge proper form",
+   h:["On your back, heels close to the hips.","Drive through the heels and squeeze at the top for a second.","Feel it in the glutes, not the low back."]},
+  {n:"Dead bug",d:"x8/side",q:"dead bug exercise proper form",
+   h:["On your back, arms up, knees over the hips.","Lower the opposite arm and leg slowly, keeping the low back pressed down.","The moment the back lifts is the end of your range."]},
+  {n:"Standing hamstring reach",d:"x10",q:"standing hamstring stretch proper form",
+   h:["Soft knees, hinge from the hips.","Reach down with a long spine rather than a rounded one.","Come back up under control."]},
+  {n:"Scapular push-ups",d:"x10",q:"scapular push up proper form",
+   h:["Push-up position, arms locked straight the whole time.","Only the shoulder blades move: squeeze together, then push apart.","Tiny range. If the elbows bend it is a push-up."]},
+  {n:"Deep squat rock",d:"x8",q:"deep squat rock mobility drill",
+   h:["Sink into the deepest squat you can hold, heels down.","Rock gently forward and back.","Hold a doorframe if the heels lift."]},
+  {n:"Chin tucks",d:"x10",q:"chin tuck exercise neck posture",
+   h:["Make a double chin, sliding the head straight back.","No tilting up or down. It is a slide, not a nod.","This is the one that undoes a day at a desk."]},
+  {n:"Calf raises",d:"x15",q:"standing calf raise proper form",
+   h:["Stand tall, rise all the way onto the toes.","Pause at the top, lower slowly.","Fingertips on a wall for balance is fine."]}
+];
 function anchorList(){
   var y=TODAY.slice(0,4);var day=Math.floor((new Date(TODAY)-new Date(y+"-01-01"))/86400000);
   var n=ANCHOR_ROT.length,a=ANCHOR_ROT[day%n],b=ANCHOR_ROT[(day+3)%n];if(b.n===a.n)b=ANCHOR_ROT[(day+4)%n];
@@ -2277,10 +2370,40 @@ function weightCardHTML(){
     '<div class="wbig num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
     '<div class="wwhen">Smoothed average <b>'+st.trend.toFixed(1)+'</b>, which is the one the rate is read from</div></div>'+
     '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
+    /* ROUND A3. Matthew: make the four popups look the same, modelled on Sleep
+       and Steps. Weight was the outlier and the cause was structural, not
+       cosmetic. Sleep and Steps both read VERDICT, then the sentence that
+       justifies it, then the chart as evidence, then the windows, then the
+       provenance. Weight put its chart first and its verdict underneath, so the
+       eye met a picture before it was told what the picture meant, and it used
+       `.wstate`/`.wsub` where its siblings used `.pzhead`/`.pzline` for the
+       identical job. The order and the vocabulary are the family's now.
+       This is the shared Track writer, so the fix lands on both surfaces. */
+    '<div class="pzhead" data-tone="'+(tone==="down"?"good":tone==="up"?"amber":"flat")+'">'+title+'</div>'+
+    '<div class="pzline">'+sub+'</div>'+
     trendChart()+
-    '<div class="wstate" data-s="'+tone+'">'+title+'</div><div class="wsub">'+sub+'</div>'+
+    weightWindowRowHTML()+
+    '<div class="foot" style="margin-top:10px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
+      shortDate(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>'+
     milestoneLine(t)+
     ladderHTML()+'</div>';
+}
+/* Average of the readings inside each window, with the count travelling beside
+   it, on the same rule as the Steps and Calories rows: an average over two
+   weigh-ins and one over twenty are not the same claim. */
+function weightAvgOver(days){
+  var t=0,n=0;
+  S.weigh.forEach(function(x){if(daysBetween(x.date,TODAY)<=days-1){t+=x.w;n++;}});
+  return n?{avg:t/n,n:n}:null;
+}
+function weightWindowRowHTML(){
+  var a=weightAvgOver(7),b=weightAvgOver(28),c=weightAvgOver(90);
+  if(!a&&!b&&!c)return "";
+  var cell=function(x,lbl,on){
+    return '<div class="ls3'+(on?" on":"")+'"><b class="num">'+(x?x.avg.toFixed(1):"&mdash;")+'</b>'+
+      '<span>'+lbl+(x?(" &middot; "+x.n):"")+'</span></div>';};
+  return '<div class="odoct" style="margin-top:12px">Average weight by window</div>'+
+    '<div class="lstat3">'+cell(a,"7 days",true)+cell(b,"28 days",false)+cell(c,"90 days",false)+'</div>';
 }
 /* The ladder itself, as a row of marks. Reached is monotone, so this is a record rather than a
    scoreboard that can take a step backwards. */
@@ -2479,7 +2602,16 @@ function metricSheet(kind){
             empty:"No sleep records yet. They arrive with the next Health export."},
     steps: {t:"Steps",    w:stepsCardHTML,      track:true,
             empty:"No step records yet. They arrive with the next Health export."},
-    weight:{t:"Weight",   w:weightLogCardHTML,  track:false,
+    /* ROUND A3, his instruction: make all four popups look the same, modelled
+       on Sleep and Steps. Weight was the odd one, and the cause was that it
+       alone rendered `weightLogCardHTML`, a stripped Today-only card that was a
+       number, a button and nothing else, while the other three rendered the
+       full Track writers with a verdict headline, a chart and a paragraph. It
+       renders `weightCardHTML` now, the same writer Track uses, which carries
+       its own History and Log controls in the header, so the sheet keeps the
+       logging job he asked for and gains the shape he asked for.
+       `weightLogCardHTML` had no other caller and was DELETED. */
+    weight:{t:"Weight",   w:weightCardHTML,     track:true,
             empty:"No weigh-in yet."}
   }[kind];
   if(!M)return;
@@ -2627,30 +2759,10 @@ function toggleAnchor(i,btn){
 
 /* Today gets the ACTION, Track gets the ANALYSIS. Duplicating the full trend card on both tabs
    made Today a second Track and blurred what each tab is for. */
-function weightLogCardHTML(){
-  var st=weightStats();
-  if(!st)return '<div class="card"><h3><span>Weight</span></h3><div class="anote" style="margin-top:2px">No weigh-in yet. One number switches on the whole Track tab.</div><button class="big-start" style="margin-top:12px" onclick="weighSheet()">Log your first weigh-in</button></div>';
-  var stale=st.ageDays>=7;
-  /* ROUND 15, v7.38. Matthew named the Steps card as the reference and this was the card that
-     looked least like it. Two things were wrong and both were styling, not structure. The chip
-     said "yesterday", which is a staleness label: beside "3.4k a day" and "8h 09m a night" it was
-     the one chip answering a different question from its neighbours, so the eye had nothing to
-     compare. And the drawer was passed an empty tone, which is why its icon box stayed grey while
-     Steps carried red through icon, chip and number. The chip is the weight now, with the age
-     demoted into the sentence where it belongs, and the tone comes from weightVerdict(). */
-  return '<div class="card"><h3><span>Weight</span><span class="t">'+st.raw.toFixed(1)+' '+wLbl()+'</span></h3>'+
-    '<div class="wlrow"><div><div class="wlnum num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wlsub">avg <b>'+st.trend.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+' &middot; '+
-    (st.ageDays===0?"logged today":st.ageDays===1?"logged yesterday":"logged "+st.ageDays+" days ago")+'</div></div>'+
-    '<button class="wbtn accent" onclick="weighSheet()">'+(st.ageDays===0?"Update":"Log today")+'</button></div>'+
-    (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
-    '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
-}
-
-
-
-/* the cut, kept light: where you are, how fast it's coming off, one tap to log */
-/* ============ change-today ============ */
+/* `weightLogCardHTML` was DELETED in Round A3. It was the stripped Today-only
+   weight card, and its last caller went away when the Weight popup moved to
+   `weightCardHTML` so all four popups share one shape. Removed rather than left
+   dangling, on the same rule that removed `.acard`. */
 function changeSheet(){
   var o='<div class="grab"></div><h3>Change today</h3><div class="ssub">Life happens. Pick what today actually is.</div>';
   o+=optRow(I.dumbbell,"Lift &mdash; next day ("+letterFor()+")","Full-body strength session","setToday(\'lift\')");
@@ -4802,7 +4914,32 @@ function calCardHTML(){
       (v.lastGap!=null?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>, '+
         (v.lastGap>0?(v.lastGap+' under'):(Math.abs(v.lastGap)+' over'))+'.'):'')+
       (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
+    /* ROUND A3: the daily-average-by-window row, so Calories carries the same
+       three-up Steps and Sleep do and the four popups read as one family. It is
+       also the honest answer to "is this week normal": a single 14-day figure
+       cannot say, and three windows beside each other can. Coverage travels
+       with each number, because an average over two logged days and one over
+       twenty are not the same claim and this card's whole history is about not
+       letting a thin window pass as a verdict. */
+    calWindowRowHTML()+
     '<div class="foot" style="margin-top:10px">'+cover+'</div></div>';
+}
+/* One writer for the window row. Averages only days that carry a record, and
+   says how many that was, which is the distinction 17a was opened over. */
+function calAvgOver(days){
+  var t=0,n=0,d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){var r=(S.nutrition||{})[keyOf(d)];
+    if(r&&r.c>0){t+=r.c;n++;}d.setDate(d.getDate()+1);}
+  return n?{avg:Math.round(t/n),n:n}:null;
+}
+function calWindowRowHTML(){
+  var a=calAvgOver(7),b=calAvgOver(28),c=calAvgOver(90);
+  if(!a&&!b&&!c)return "";
+  var cell=function(x,lbl,on){
+    return '<div class="ls3'+(on?" on":"")+'"><b class="num">'+(x?x.avg.toLocaleString():"&mdash;")+'</b>'+
+      '<span>'+lbl+(x?(" &middot; "+x.n+"d"):"")+'</span></div>';};
+  return '<div class="odoct" style="margin-top:12px">Daily average by window</div>'+
+    '<div class="lstat3">'+cell(a,"7 days",true)+cell(b,"28 days",false)+cell(c,"90 days",false)+'</div>';
 }
 /* B5 - the body hero. Latest ACTUAL weight leads (never the lagging EWMA);
    the smoothed trend sits beside it as context, labelled as what it is. */
@@ -6398,9 +6535,17 @@ function primeRowHTML(){
    SAME classes as before, because only the container changed. */
 function anchorHTML(){
   var a=S.anchor[TODAY]||{},list=anchorList(),rows="",ac=0;
+  /* Two targets per row, and they must not fight. The ROW is the tick, because
+     ticking is what he does every morning and it should stay the whole width.
+     The name is a separate button that opens the how-to, because a movement he
+     has not met before is the one case where the row is not what he wants. A
+     nested <button> is invalid HTML inside a <button>, so the row became a div
+     with a role rather than growing a second nested control. */
   list.forEach(function(m,i){var on=!!a[i];if(on)ac++;
-    rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'">'+
-      '<span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
+    rows+='<div class="arow'+(on?" checked":"")+'" data-i="'+i+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="toggleAnchor('+i+',this)">'+
+      '<span class="an">'+esc(m.n)+'</span>'+
+      '<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>'+
+      '<span class="ad">'+esc(m.d)+'</span><span class="chk">'+I.check+'</span></div>';});
   var C=2*Math.PI*13,off=C*(1-ac/list.length);
   return '<details class="hanchor'+(ac>=list.length?" alldone":"")+'"><summary>'+
     '<span class="asum">Morning anchor</span>'+
@@ -6445,9 +6590,53 @@ function anchorVidHTML(){
     : 'Rotates each day. Tap for a different one in the library below.';
   note+=mins?(' About '+mins+' minutes.')
             :(' <b>Length unknown</b> - no duration is on file for any clip in the library, so the morning slot cannot promise you a ten-minute session. Check the runtime before you start.');
-  return '<div class="avid"><div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
-    '<div class="foot" style="margin:8px 0 14px">'+note+'</div></div>';
+  /* ROUND A3, his instruction: "the video I barely use, so it should be its own
+     click to popup." It was an inline player, and inside the hero that was about
+     five hundred pixels of card standing between him and the four movements he
+     opened the anchor to tick. The player did not earn that: he says he rarely
+     presses it, and a thing rarely used should cost one tap, not the whole
+     first screen of everything used daily.
+     One compact row now, which still says WHICH session is up and how far
+     through the course he is, because that is the part he reads. The player
+     itself opens in `sessionVidSheet`, the sheet that already exists for
+     exactly this. No new component. */
+  return '<button class="avidrow" onclick="sessionVidSheet(\''+v.id+'\')">'+
+    '<span class="avplay">'+I.play+'</span>'+
+    '<span class="avtxt"><b>Follow the routine</b><span>'+(v.lv?('Mobility session '+v.lv+' of '+n):'Mobility session')+
+    (mins?(' &middot; about '+mins+' min'):'')+'</span></span>'+
+    '<span class="avarr">'+I.arrow+'</span></button>'+
+    '<div class="foot" style="margin:8px 0 14px">'+note+'</div>';
 }
+/* ============ HOW TO DO IT (Round A3) ============
+   His instruction: tapping a movement should show him how to do it properly.
+
+   The cues are written here because they are the part that has to be right, and
+   they are short on purpose: this is read standing up at six in the morning, not
+   studied. Trainer register, no pep.
+
+   ON THE DEMO CLIP, and this is a deliberate refusal. Every one of the 173 ids
+   in `VID` was oEmbed-verified before it shipped; inventing a YouTube id for
+   "dead bug" to fill this button would put an unverified id in a library whose
+   whole discipline is that it holds none, and a dead embed teaches him not to
+   trust the button. There are no per-movement demo clips on file, so the button
+   opens a YouTube SEARCH for the exact movement instead. It is honest, it is one
+   tap, and it cannot rot. When a verified per-move clip exists, swap the href
+   for it and nothing else here changes. */
+function moveSheet(i){
+  var m=anchorList()[i];if(!m)return;
+  var a=S.anchor[TODAY]||{},on=!!a[i];
+  var cues=(m.h||[]).map(function(c){return '<li>'+c+'</li>';}).join("");
+  var url="https://www.youtube.com/results?search_query="+encodeURIComponent(m.q||m.n);
+  openSheet('<div class="grab"></div><h3>'+esc(m.n)+'</h3>'+
+    '<div class="ssub">'+esc(m.d)+' &middot; part of the morning anchor</div>'+
+    (cues?'<ul class="cuelist">'+cues+'</ul>':'')+
+    '<a class="setbtn" style="display:block;width:100%;margin-top:12px;text-align:center;text-decoration:none" href="'+url+'" target="_blank" rel="noopener">Watch a demo on YouTube</a>'+
+    '<button class="sheet-cta'+(on?' ghost':'')+'" onclick="toggleAnchorFrom('+i+')">'+(on?'Mark not done':'Mark it done')+'</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+}
+/* Ticking from inside the sheet has to repaint the row behind it, so it routes
+   through the same toggle rather than writing state a second way. */
+function toggleAnchorFrom(i){toggleAnchor(i,null);closeSheet();renderToday();}
 function guidedHTML(cat,label,note,offset){
   var v=pickVid(cat,offset);if(!v)return "";
   return '<div class="card"><h3><span>'+label+'</span><span class="t">plays here</span></h3>'+
