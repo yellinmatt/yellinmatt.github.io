@@ -1322,8 +1322,9 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .d3[data-tone="none"]{--rag:var(--faint);--rag-tint:var(--surface-2)}
 .d3i{display:flex;width:26px;height:26px;border-radius:8px;align-items:center;justify-content:center;background:var(--rag-tint);color:var(--rag);flex:none}
 .d3i svg{width:14px;height:14px}
-.d3v{display:block;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:12px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
-.d3v small{font-size:12px;font-weight:700;margin-left:1px}
+/* 22px put "8h 09m" within three pixels of the tile's right padding and a ten-hour night would
+   have run into it. 20px clears it with room and still reads as the headline of the tile. */
+.d3v{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:12px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .d3l{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:7px}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
@@ -1387,7 +1388,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.38";
+var VERSION="v7.38a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2317,11 +2318,14 @@ function emptyStateHTML(){
    off the `.dcard` summary, so a tile reads as the head of a card with the drawer taken off.
    Per his spec it carries ONLY the key stat, in its status colour. The comparison that used to
    sit under it lives on the full card one tap away, and the colour is the verdict. */
+/* The unit is part of the value string, not a <small>. The first render put "3.4" at 22px with a
+   12px "k" hanging off it, sitting beside "8h 09m" whose own units are full-size inline glyphs, so
+   one row contained two different rules for the same thing. One rule: the stat is one string. */
 function dailyTileHTML(o){
   var has=(o.val!=null&&o.val!=="");
   return '<button class="d3" data-tone="'+(has?(o.tone||"flat"):"none")+'" onclick="'+o.act+'" aria-label="'+o.label+'">'+
     '<span class="d3i">'+o.icon+'</span>'+
-    '<span class="d3v num">'+(has?o.val:"&mdash;")+(has&&o.unit?'<small>'+o.unit+'</small>':'')+'</span>'+
+    '<span class="d3v num">'+(has?o.val:"&mdash;")+'</span>'+
     '<span class="d3l">'+o.label+'</span></button>';
 }
 function todayMetricsHTML(){
@@ -2330,10 +2334,15 @@ function todayMetricsHTML(){
      (it is the one with the logging control); this block owns the three passive streams. */
   var sv=sleepVerdict(),tv=stepsVerdict(),cg=calGlance();
   var s7=sleepStats(7);
+  /* Calories: under three logged days the app refuses to average, and the first render put a bare
+     dash there, which reads as a broken element rather than as an absence. The honest key stat in
+     that state is the COVERAGE, which is exactly what the full card's own chip already says, so
+     the tile says it too instead of saying nothing. */
+  var calVal=(cg.val!=null)?cg.val.toLocaleString():(cg.n?(cg.n+(cg.n===1?" day":" days")):null);
   var tiles=[
-    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),unit:"",tone:sv.tone,act:"show('track')"},
-    {label:"Steps",icon:I.gauge,val:(tv.val!=null?(tv.val/1000).toFixed(1):null),unit:"k",tone:tv.tone,act:"show('track')"},
-    {label:"Calories",icon:I.fork,val:(cg.val!=null?cg.val.toLocaleString():null),unit:"",tone:cg.tone,act:"show('track')"}
+    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),tone:sv.tone,act:"show('track')"},
+    {label:"Steps",icon:I.gauge,val:(tv.val!=null?((tv.val/1000).toFixed(1)+"k"):null),tone:tv.tone,act:"show('track')"},
+    {label:"Calories",icon:I.fork,val:calVal,tone:cg.tone,act:"show('track')"}
   ];
   if(!tiles.some(function(t){return t.val!=null;}))return "";
   return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
