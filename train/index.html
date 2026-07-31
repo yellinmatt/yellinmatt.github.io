@@ -435,19 +435,10 @@ details[open]>summary .chev{transform:rotate(180deg)}
 /* week strip labels */
 .dot .dl{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
 .dot.today .dl{color:var(--accent)}
-.acard .adone{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--good-tint);color:var(--good);font-size:13.5px;font-weight:700}
-.acard .adone svg{width:16px;height:16px}
-.acard.alldone .acount{color:var(--good)}
-.acard .avid{margin-top:2px}
-/* collapsible morning anchor */
-.acard{padding:0}
-.acard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px}
-.acard>summary::-webkit-details-marker{display:none}
-.acard .asum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
-.acard .aright{display:flex;align-items:center;gap:10px}
-.acard .acount{font-size:12px;font-weight:700;color:var(--sub)}
-.acard[open]>summary{border-bottom:1px solid var(--line)}
-.acard .abody{padding:4px 18px 14px}
+/* `.acard`, the standalone morning-anchor card, was DELETED in Round A2 when the
+   anchor moved inside the hero as `.hanchor`. Removed rather than left behind,
+   because `.prcard` and `.libdrop` are already on the open list as dead classes
+   and adding a third is how that list became a list. */
 /* two-week heatmap reads as a strip, not a grid */
 .hcard[data-sm="1"] .hcol i{width:15px;height:15px;border-radius:4px}
 .hcard[data-sm="1"] .hgrid{gap:5px}
@@ -1345,6 +1336,33 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    12px/.05em uppercase title of `.dsum`, the same surface, border, radius and shadow as `.card`.
    The comparison sub-line is gone at his instruction, so the tile is one stat and its verdict
    colour, which is what a glance row is for. The full card one tap away carries the context. */
+/* ROUND A2: the morning anchor, living inside the hero.
+   `.acard` was the standalone card and carried its own surface, border, shadow
+   and 18px gutter; reusing it in here would draw a card inside a card. This is
+   the same content with the card chrome taken off and a hairline above it, so
+   it reads as the hero's last section rather than a box that wandered in. The
+   rows, ring, count and done-state keep their original classes untouched. */
+.hanchor{margin:16px -20px -20px;border-top:1px solid var(--line);background:var(--surface-2)}
+.hanchor>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 20px}
+.hanchor>summary::-webkit-details-marker{display:none}
+.hanchor .asum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.hanchor .aright{display:flex;align-items:center;gap:10px}
+.hanchor .acount{font-size:12px;font-weight:700;color:var(--sub)}
+.hanchor[open]>summary{border-bottom:1px solid var(--line)}
+.hanchor .abody{padding:4px 20px 16px}
+.hanchor .avid{margin-top:2px}
+.hanchor .adone{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--good-tint);color:var(--good);font-size:13.5px;font-weight:700}
+.hanchor .adone svg{width:16px;height:16px}
+.hanchor.alldone .acount{color:var(--good)}
+/* The hero's bottom corners must survive a child that bleeds to its edges. */
+.hero{overflow:hidden}
+/* ROUND A2: a Track card rendered inside a tile's popup. The card chrome comes
+   off because the sheet IS the card now, and the drawer summary is hidden
+   because the sheet's h3 already names the subject. */
+.msheet .card,.msheet .dcard{background:transparent;border:0;box-shadow:none;padding:0;margin:0}
+.msheet .dcard>summary{display:none}
+.msheet .dbody{padding:0}
+.msheet{margin-top:4px}
 /* ROUND A: three became four when Weight joined the row. Four across at 390px
    leaves each tile about 85px, which "8h 09m" and "191.2 lb" both overflow, so
    the quad is 2x2. Same tile, same rules, more room for the value. */
@@ -1429,7 +1447,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.43";
+var VERSION="v7.44";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2406,9 +2424,9 @@ function todayMetricsHTML(){
   var stepsTone=(!s7steps||!st)?"":(s7steps.got<4?"amber":s7steps.avg>=st.t?"good":s7steps.avg>=st.t*0.8?"amber":"red");
 
   var tiles=[
-    {label:"Calories",icon:I.fork,val:calStat(),tone:cg.tone,act:"show('track')"},
-    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),tone:sleepTone,act:"show('track')"},
-    {label:"Steps",icon:I.gauge,val:(s7steps?((s7steps.avg/1000).toFixed(1)+"k"):null),tone:stepsTone,act:"show('track')"},
+    {label:"Calories",icon:I.fork,val:calStat(),tone:cg.tone,act:"metricSheet('cal')"},
+    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),tone:sleepTone,act:"metricSheet('sleep')"},
+    {label:"Steps",icon:I.gauge,val:(s7steps?((s7steps.avg/1000).toFixed(1)+"k"):null),tone:stepsTone,act:"metricSheet('steps')"},
     /* THE RATE, not a weight, and the first draft of this tile got it wrong.
        Printing the trend put 189.0 here and 191.2 in the weigh-in drawer nine
        pixels below it, which is two different weight numbers on one screen and
@@ -2422,10 +2440,57 @@ function todayMetricsHTML(){
        why, rather than inventing a number to fill the tile. */
     {label:"Weight",icon:I.spark,
      val:(wst&&wst.called&&wst.rate!=null)?((wst.rate>0?"+":"")+wst.rate.toFixed(1)+" /wk"):null,
-     tone:wv.tone,act:"show('track')"}
+     tone:wv.tone,act:"metricSheet('weight')"}
   ];
   if(!tiles.some(function(t){return t.val!=null;}))return "";
   return '<div class="d3cap">Last 7 days</div><div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
+}
+/* ============ THE TILE POPUPS (Round A2) ============
+   His instruction: pressing a tile opens a popup, it does not throw you onto
+   Track. Consolidate and streamline.
+
+   The point is that a tile and its detail are the same subject, and jumping
+   tabs made reading one number cost a navigation and a scroll to find the card
+   again. A sheet keeps Today on screen behind it, which is the same reasoning
+   `sessionVidSheet` already uses for the video: choosing to look is not
+   abandoning the day.
+
+   NO NEW CONTENT AND NO NEW COMPONENT. Each sheet renders the SAME writer Track
+   renders, so there is one author per card and a fix in either place lands in
+   both. That was the whole reason Today stopped keeping private copies of these
+   cards in the first place; opening them here must not quietly undo it.
+
+   Weight is the one that gains a job rather than just a route: its sheet IS the
+   weight log, per his instruction, so the card's own "Log today" control is the
+   point of the sheet and it carries no extra footer link because the card
+   already ends with one. */
+function metricSheet(kind){
+  var M={
+    cal:   {t:"Calories", w:calCardHTML,        track:true,
+            empty:"Nothing logged yet. Paste a week from Cal AI and this switches on."},
+    sleep: {t:"Sleep",    w:sleepCardHTML,      track:true,
+            empty:"No sleep records yet. They arrive with the next Health export."},
+    steps: {t:"Steps",    w:stepsCardHTML,      track:true,
+            empty:"No step records yet. They arrive with the next Health export."},
+    weight:{t:"Weight",   w:weightLogCardHTML,  track:false,
+            empty:"No weigh-in yet."}
+  }[kind];
+  if(!M)return;
+  var body="";
+  try{body=M.w()||"";}catch(e){body="";}
+  if(!body)body='<div class="anote">'+M.empty+'</div>';
+  openSheet('<div class="grab"></div><h3>'+M.t+'</h3>'+
+    '<div class="msheet">'+body+'</div>'+
+    (M.track?'<button class="setbtn" style="width:100%;margin-top:12px" onclick="closeSheet();show(\'track\')">See everything on Track</button>':'')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+  /* The card writers return collapsed drawers, which is right on a tab and
+     wrong in a sheet he opened precisely to see inside. Forced open here rather
+     than by threading an `open` flag through four writers, because the flag
+     would exist for one caller and every other call site would have to ignore
+     it. The summary is hidden by CSS, since the sheet's own h3 already names
+     the subject and two titles is the "three writers for one fact" defect. */
+  var sh=document.getElementById("sheet");
+  if(sh)[].forEach.call(sh.querySelectorAll("details"),function(d){d.open=true;});
 }
 function consistencyHTML(){
   var days=28,moved=0,met=0,planned=0,cells="";
@@ -2468,20 +2533,23 @@ function renderToday(){
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+primeRowHTML()+'</div>';
+        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+primeRowHTML()+anchorHTML()+'</div>';
   }else if(plan.type==="run"){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
-      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="startRun()">'+I.play+' Start run</button>')+primeRowHTML()+'</div>';
+      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="startRun()">'+I.play+' Start run</button>')+primeRowHTML()+anchorHTML()+'</div>';
   }else{
     var recDone=S.sessions.some(function(s){return s.date===TODAY&&(s.type==="activity"||s.type==="run");});
     var wk=plan.walk||15;
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
       '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
-      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+primeRowHTML()+
-      (plan.weigh?'<div style="margin-top:14px"><div class="weighrow"><span class="wcur">'+(S.weigh.length?('Last: <b>'+S.weigh[S.weigh.length-1].w+' '+wLbl()+'</b>'):'No weigh-in yet')+'</span><button class="wbtn" onclick="weighSheet()">Log weight</button></div></div>':'')+'</div>';
+      /* The Sunday weigh-in row that used to sit here is GONE. With the Weight
+         tile opening the log on tap, this was a third weigh-in control on one
+         screen, and a control that appears only on Sundays teaches you not to
+         look for it. The Sunday prompt survives in the meta line above. */
+      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+primeRowHTML()+anchorHTML()+'</div>';
   }
   // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
@@ -2501,33 +2569,21 @@ function renderToday(){
       '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(ds.metPlan?I.check:ic)+'</div>'+
       '<span class="dl">'+lab+'</span>'+
       '<span class="dan'+(anch?" on":"")+'" aria-label="morning anchor"></span></button>';}
-  // anchor
-  var a=S.anchor[TODAY]||{},rows="",ac=0;
-  anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
-  var C=2*Math.PI*13,off=C*(1-ac/anchorList().length);
-  /* ROUND 15, v7.38, his instruction: the anchor starts CLOSED and opens on press. It used to
-     render open unless every box was ticked, which put a video player, a paragraph and four rows
-     into the middle of Today before he had scrolled, and pushed the passive streams off the first
-     screen. The ring and the count in the summary already say where the morning stands, so the
-     closed card loses no information. */
-  var anchor='<details class="card acard"><summary><span class="asum">Morning anchor</span>'+
-    '<span class="aright"><span class="acount">'+ac+' of '+anchorList().length+'</span><span class="chev">'+I.chevD+'</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+
-    '<div class="ksub" style="margin:2px 0 12px">Play the routine, then tick the four off. That is the whole morning.</div>'+
-    anchorVidHTML()+rows+
-    '<div class="adone"'+(ac>=anchorList().length?'':' style="display:none"')+'>'+I.check+' Morning done. Everything else today is a bonus.</div>'+
-    '</div></details>';
   /* F - press-play. A recover day is the one day with room for a follow-along, so that is
      where the guided session lives rather than bolted onto a lift day you are timing. */
   var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
   document.getElementById("v-today").innerHTML=h+hero+
     levelRowHTML()+
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
-    /* Hero, the week strip and the morning anchor stay open: those three ARE the morning. The
-       history below them is reference and collapses like everywhere else. The Lift coach is the
-       one other exception, because he asked for it directly under that hero. (2026-07-29) */
-    anchor+guided+
+    /* ROUND A2. The morning anchor moved INTO the hero (see `anchorHTML`), so it
+       is no longer concatenated here. The Weight drawer is gone too: the Weight
+       tile opens the log on tap, and keeping the drawer as well left the word
+       WEIGHT twice within sixty pixels, which is the duplication I flagged when
+       the quad shipped. Today is now hero, levels, week strip, the quad, and
+       the log. */
+    guided+
     todayMetricsHTML()+
-    (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,weightVerdict().tone))+
+    (isFresh()?emptyStateHTML():"")+
     drawerize(todayLogHTML(),I.check,"");
 }
 function toggleAnchor(i,btn){
@@ -6313,6 +6369,44 @@ function primeRowHTML(){
   });
   if(!cols)return "";
   return '<div class="primerow"><div class="primelbl">Or just do one of these</div><div class="pcols">'+cols+'</div></div>';
+}
+/* ============ THE MORNING ANCHOR, NOW INSIDE THE HERO (Round A2) ============
+   His instruction: put the anchor in the hero card, under the three
+   mobility/stretch/pilates buttons. It was a free-standing card directly below
+   the hero, which meant the morning was told in two boxes with a seam between
+   them, and the seam was doing no work: the hero says what today is, the three
+   buttons say what you can do instead, and the anchor says the thing you do
+   every day regardless. One promise, one card.
+
+   The Round 15 rule survives the move and matters more here, not less: the
+   anchor stays CLOSED and opens on press. Rendering it open would put a video
+   player, a paragraph and four rows inside the hero before he has scrolled at
+   all, which is the failure that moved it out of the hero's way in the first
+   place. The count and the ring in the summary already say where the morning
+   stands, so the closed row loses no information.
+
+   Class is `.hanchor`, not `.acard`. `.acard` carries the standalone card's own
+   surface, border, shadow and 18px gutter; reusing it inside the hero would
+   draw a card inside a card. The rows, the ring and the done-state are the
+   SAME classes as before, because only the container changed. */
+function anchorHTML(){
+  var a=S.anchor[TODAY]||{},list=anchorList(),rows="",ac=0;
+  list.forEach(function(m,i){var on=!!a[i];if(on)ac++;
+    rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'">'+
+      '<span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
+  var C=2*Math.PI*13,off=C*(1-ac/list.length);
+  return '<details class="hanchor'+(ac>=list.length?" alldone":"")+'"><summary>'+
+    '<span class="asum">Morning anchor</span>'+
+    '<span class="aright"><span class="acount">'+ac+' of '+list.length+'</span>'+
+    '<span class="chev">'+I.chevD+'</span>'+
+    '<span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34">'+
+    '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
+    '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/>'+
+    '</svg></span></span></summary><div class="abody">'+
+    '<div class="ksub" style="margin:2px 0 12px">Play the routine, then tick the four off. That is the whole morning.</div>'+
+    anchorVidHTML()+rows+
+    '<div class="adone"'+(ac>=list.length?'':' style="display:none"')+'>'+I.check+' Morning done. Everything else today is a bonus.</div>'+
+    '</div></details>';
 }
 /* One video, full width, with its tick right there. Opening a sheet rather than jumping tabs keeps
    the day's plan on screen behind it, so choosing this is not abandoning that. */
