@@ -700,6 +700,29 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .light[data-rag="none"]{--rag:var(--line-2)}
 .light .ldot{width:9px;height:9px;border-radius:50%;background:var(--rag)}
 .light .llab{font-size:8.5px;font-weight:700;color:var(--faint);text-align:center;line-height:1.1}
+/* ROUND 16, v7.39. THE REPORT ROW. A modifier on `.dcard`, not a new card: it inherits the
+   surface, radius, border, shadow, body padding, tone plumbing and open/close behaviour, and
+   changes only the summary's layout, because a two-slot flex cannot hold a graphic column.
+   Two lines in a 4-column grid: title and value on top, sparkline and comparison beneath.
+   Ink first. The only colour in a row is the 6px dot and the last bar of the strip. */
+.dcard.rpt>summary{display:grid;grid-template-columns:1fr auto;grid-template-areas:"l v" "k s";
+  column-gap:12px;row-gap:7px;align-items:center;padding:13px 16px 12px}
+.dcard.rpt>summary .rl{grid-area:l;display:flex;align-items:center;gap:8px;min-width:0}
+.dcard.rpt>summary .rdot{width:6px;height:6px;border-radius:50%;background:var(--rag,var(--line-2));flex:none}
+.dcard.rpt>summary .rt{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dcard.rpt>summary .rv{grid-area:v;font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);
+  line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.dcard.rpt>summary .rv small{font-size:11.5px;font-weight:700;color:var(--sub);margin-left:2px}
+.dcard.rpt>summary .rk{grid-area:k;display:flex;align-items:flex-end;min-width:0;height:20px}
+.dcard.rpt>summary .rs{grid-area:s;font-size:11.5px;font-weight:600;color:var(--sub);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;text-align:right;font-variant-numeric:tabular-nums}
+.dcard.rpt>summary .chev{position:absolute;right:14px;top:14px;opacity:.35}
+.dcard.rpt{position:relative}
+.dcard.rpt>summary .rv{padding-right:16px}
+.spk{display:flex;align-items:flex-end;gap:2px;height:20px;width:100%;max-width:190px}
+.spk i{flex:1;min-width:2px;background:var(--line-2);border-radius:1px;display:block}
+.spk i.on{background:var(--rag,var(--ink))}
 /* generic collapsible card */
 .dcard{padding:0}
 .dcard>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px}
@@ -1392,7 +1415,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.38c";
+var VERSION="v7.39";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2338,11 +2361,9 @@ function todayMetricsHTML(){
      (it is the one with the logging control); this block owns the three passive streams. */
   var sv=sleepVerdict(),tv=stepsVerdict(),cg=calGlance();
   var s7=sleepStats(7);
-  /* Calories: under three logged days the app refuses to average, and the first render put a bare
-     dash there, which reads as a broken element rather than as an absence. The honest key stat in
-     that state is the COVERAGE, which is exactly what the full card's own chip already says, so
-     the tile says it too instead of saying nothing. */
-  var calVal=(cg.val!=null)?cg.val.toLocaleString():(cg.n?(cg.n+(cg.n===1?" day":" days")):null);
+  /* v7.39: the tile says whether he is in a deficit, which is the only thing a calorie glance is
+     for. `calStat()` is the one writer for that string, shared with Track's chip. */
+  var calVal=calStat();
   var tiles=[
     {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),tone:sv.tone,act:"show('track')"},
     {label:"Steps",icon:I.gauge,val:(tv.val!=null?((tv.val/1000).toFixed(1)+"k"):null),tone:tv.tone,act:"show('track')"},
@@ -3579,7 +3600,7 @@ function deleteDay(k){
    can I actually trust. That last band is the one Matthew named specifically, and it earns its
    place: on 29 July the sync had been down long enough that every measure above it was reading
    three-month-old data while looking perfectly confident. */
-var TRACKDEEP=false;
+var TRACKDEEP=true;   /* v7.39: the report is the tab, not a thing you go and find */
 function toggleDeep(){TRACKDEEP=!TRACKDEEP;renderTrack();
   if(TRACKDEEP){var e=document.getElementById("trackdeep");if(e)setTimeout(function(){e.scrollIntoView({behavior:"smooth",block:"start"});},40);}}
 /* The single highest-leverage next action, chosen from the weakest measure rather than a fixed
@@ -3675,14 +3696,11 @@ function trackGlanceHTML(){
   var stv=stepsVerdict(),w=stepsAvgOver(7);
   out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
     (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none");
-  /* The thin-record state renders the same way here as on Today's tile: the coverage IS the stat
-     when there is not enough to average. The first render had this chip grey with a dash while
-     Today's tile said "2 days" in amber, which is one stream speaking twice. */
-  var cg=calGlance(),maint=maintenanceCals();
-  out+=glanceChip("Calories",
-    cg.val!=null?cg.val.toLocaleString():(cg.n?(cg.n+(cg.n===1?" day":" days")):null),
-    (cg.val!=null&&maint)?((maint-cg.val>0?(maint-cg.val)+" under":Math.abs(maint-cg.val)+" over")):"needs 3 days",
-    cg.tone||"none");
+  /* v7.39. The chip leads with the GAP, because the gap is the verdict: "326 under" says deficit
+     without a second line to say it. The average sits underneath as the number it came from. */
+  var cv=calVerdict();
+  out+=glanceChip("Calories",calStat(),
+    cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+"d"):"needs 3 days",cv.tone||"none");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",
     (rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none");
@@ -3737,28 +3755,125 @@ function trackDashHTML(){
    before this pass, with trophy on both This week and All time, spark on both Weight and the
    freshness card, and chart on both Calories and Weekly volume. Nine drawers, nine glyphs now,
    assigned in one place so the next card added has to pick from what is left. (v7.6) */
+/* ============ ROUND 16, v7.39: TRACK IS A REPORT ============
+   Matthew: "twelve drawers I open one at a time is backwards for the tab whose job is looking at
+   data. Charts leading, tighter rows, tabular numbers, less colour and more ink."
+
+   He is right, and the diagnosis is precise. Today, Lift and Cardio are ACT surfaces: a drawer is
+   correct there, because the headline is a decision and the history is optional evidence for it.
+   Track is a STUDY surface, where the data IS the content, and the same drawer that helps on
+   Today actively hides the thing you opened the tab to see. Thirteen cards, thirteen taps, and
+   until you tap you are looking at thirteen labels.
+
+   THE FIX IS THE SUMMARY, NOT THE CARD. Every one of these cards is already good and every one
+   already owns a chart; the chart was just behind the disclosure. So the summary becomes a REPORT
+   ROW that carries the chart, the current number and the comparison inline, and the disclosure
+   keeps the full card for when he wants the workings. Same footprint as the old summary (69px),
+   with actual data in it instead of a label and a pill.
+
+   WHY A VARIANT AND NOT A NEW COMPONENT. `.dcard>summary` is a two-slot flex: icon and title left,
+   chip and chevron right. A report row needs four slots and one of them is a graphic, which that
+   flex cannot express. `.rpt` is a MODIFIER on the same card, sharing its surface, radius, border,
+   body, tone plumbing and open/close behaviour; nothing about the card is duplicated. That is the
+   stated reason the standard could not be composed as-is.
+
+   LESS COLOUR, MORE INK. The value is ink, always, and tabular. The only colour in a row is a 6px
+   status dot and the final bar of the sparkline. Thirteen rows each shouting a status colour is
+   how a status colour stops meaning anything, which is this app's own walk-target lesson. */
+function sparkStrip(vals,tone,floor){
+  if(!vals||vals.length<2)return "";
+  var base=(floor||0),mx=Math.max.apply(null,vals);
+  if(!(mx>base))return "";
+  var last=vals.length-1;
+  return '<span class="spk" data-tone="'+(tone||"flat")+'">'+vals.map(function(v,i){
+    var h=(v>base)?Math.max(2,Math.round((v-base)/(mx-base)*20)):1;
+    return '<i class="'+(i===last?"on":"")+'" style="height:'+h+'px"></i>';
+  }).join("")+'</span>';
+}
+/* Re-wraps an existing collapsible as a report row. The card's BODY is untouched and unread: this
+   only replaces the summary, so no card had to be rewritten to join the report and none can drift
+   from its own drawer version. */
+function reportize(cardHTML,o){
+  if(!cardHTML)return "";
+  var m=cardHTML.match(/<div class="dbody">([\s\S]*)<\/div><\/details>$/);
+  var body=m?m[1]:null;
+  if(body==null)return cardHTML;              /* not a collapsible; leave it exactly as it was */
+  var tone=normTone(o.tone)||"flat";
+  return '<details class="card dcard rpt" data-tone="'+tone+'">'+
+    '<summary><span class="rl"><i class="rdot"></i><span class="rt">'+o.title+'</span></span>'+
+    '<span class="rv num">'+(o.val==null?"&mdash;":o.val)+'</span>'+
+    '<span class="rk">'+sparkStrip(o.series,tone,o.floor)+'</span>'+
+    '<span class="rs">'+(o.sub||"")+'</span>'+
+    '<span class="chev">'+I.chevD+'</span></summary>'+
+    '<div class="dbody">'+body+'</div></details>';
+}
+/* The report rows, in the order a body report reads: what you weigh, what moves it, what it costs
+   you. Each names the series its own card already plots, so the row and the card cannot disagree. */
+function trackReportHTML(){
+  var h="",st=weightStats(),wv=weightVerdict();
+  if(st){
+    var tr=trendSeries().slice(-14).map(function(p){return p.v;});
+    var fl=tr.length?Math.min.apply(null,tr)-1:0;
+    h+=reportize(drawerize(weightCardHTML(),I.spark,wv.tone),{title:"Weight",tone:wv.tone,
+      val:st.raw.toFixed(1)+'<small> '+wLbl()+'</small>',series:tr,floor:fl,
+      sub:(st.to>0.3?(st.to.toFixed(1)+" "+wLbl()+" to "+st.goal):"at goal")+" &middot; "+wv.word});
+  }
+  var tv=stepsVerdict();
+  if(tv.val!=null){
+    h+=reportize(stepsCardHTML(),{title:"Steps",tone:tv.tone,
+      val:(tv.val/1000).toFixed(1)+'<small>k</small>',
+      series:weeklyStepsSeries(12).map(function(x){return x.avg;}),
+      sub:(tv.base?((tv.pct>0?"+":"")+tv.pct+"% vs year"):"7-day average")});
+  }
+  var sv=sleepVerdict(),s7=sleepStats(7),s28=sleepStats(28);
+  if(s7&&s28){
+    var nights=[],d=new Date(NOW);d.setDate(d.getDate()-27);
+    for(var i=0;i<28;i++){var r=(S.sleep||{})[keyOf(d)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
+      nights.push(t>=3?t:0);d.setDate(d.getDate()+1);}
+    h+=reportize(sleepCardHTML(),{title:"Sleep",tone:sv.tone,val:hrsTxt(s7.mean),series:nights,floor:0,
+      sub:s28.short+" of "+s28.n+" under seven hours"});
+  }
+  var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
+  if(rw&&ry){
+    var mon=rhrMonthly(12).map(function(x){return x.med;});
+    var dl=rw.med-ry.med;
+    var rt=(dl>=5)?"red":(dl>=2)?"amber":(dl<=-3)?"good":"flat";
+    h+=reportize(rhrCardHTML(),{title:"Resting HR",tone:rt,
+      val:Math.round(rw.med)+'<small> bpm</small>',series:mon,
+      floor:(mon.length?Math.min.apply(null,mon)-2:0),
+      sub:(dl>0?"+":"")+Math.round(dl)+" bpm vs the year"});
+  }
+  var cv=calVerdict();
+  if(cv.n){
+    h+=reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
+      series:cv.enough?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
+      sub:cv.enough?(cv.avg.toLocaleString()+" a day over "+cv.n+" logged days"):"needs three logged days"});
+  }
+  /* Miles is Cardio's card, shown here too because a body report without the training load in it
+     is half a report. Same function, so the two tabs cannot drift. */
+  var wkMi=weekMetrics(0).miles,miS=weeklyMilesSeries(12).map(function(w){return w.mi;});
+  h+=reportize(odoCardHTML(),{title:"Miles run",tone:kpiRag("miles")||"flat",
+    val:wkMi.toFixed(1)+'<small> mi</small>',series:miS,
+    sub:"target "+plannedMiles().toFixed(1)+" mi this week"});
+  return h;
+}
+/* v7.39. The groups are the report's sections. THE STREAMS come first and read as rows; the
+   WORKINGS below them are cards that have no single series to plot and are genuinely reference,
+   so a drawer is the right shape for those and only those. The old "6 cards" counts are gone: a
+   count of how many things are hidden is a confession, not a label. */
 function deepHTML(){
-  var h='<div class="grouphd"><span class="gn">Execution</span><span class="gl"></span><span class="gc">5 cards</span></div>';
+  var h='<div class="grouphd"><span class="gn">The streams</span><span class="gl"></span><span class="gc">tap a row for the workings</span></div>';
+  h+=trackReportHTML();
+  h+='<div class="grouphd"><span class="gn">This week</span><span class="gl"></span><span class="gc"></span></div>';
   h+=scorecardHTML();
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
   h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
       '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">6 cards</span></div>';
-  h+=drawerize(weightCardHTML(),I.spark,"");
-  h+=stepsCardHTML();
-  h+=sleepCardHTML();
-  /* v7.32. Sits with the other passively-measured streams rather than under Training, because it
-     is a body reading he does not do anything to produce. */
-  h+=rhrCardHTML();
-  /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
-     which put a second open card on a tab whose law allows exactly one. */
-  h+=drawerize(calCardHTML(),I.fork,calTone())||collapsible("Calories","not connected",
-      '<div class="emptyd">Cal AI has never imported. <b>Paste a week</b> and calories, the maintenance gap and the implied rate all switch on together.</div>',false,I.fork,"");
-  h+=drawerize(bodyTilesHTML(),I.flame,"");
-  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">4 cards</span></div>';
+  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc"></span></div>';
   h+=sessionLengthHTML();
   h+=progressHTML();
-  h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc">2 cards</span></div>';
+  h+=drawerize(bodyTilesHTML(),I.flame,"");
+  h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc"></span></div>';
   h+=freshnessHTML();
   h+=backupBlockHTML();
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>';
@@ -3769,10 +3884,13 @@ function renderTrack(){
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+=trackDashHTML();
-  h+='<button class="deeper'+(TRACKDEEP?" on":"")+'" onclick="toggleDeep()" aria-expanded="'+TRACKDEEP+'">'+
-     (TRACKDEEP?"Hide the detail":"Go deeper")+'<span class="dcount">'+(TRACKDEEP?"":"all the data")+'</span>'+
-     '<span class="dchev">'+I.chevD+'</span></button>';
+  /* v7.39. The report is OPEN. Gating the data behind "Go deeper" on the data tab is the same
+     backwards move as hiding each chart behind its own drawer: he came here to look. The control
+     stays, as a way to collapse a long page back to the hero, and it says so. */
   h+='<div id="trackdeep" class="deepwrap'+(TRACKDEEP?" on":"")+'">'+(TRACKDEEP?deepHTML():"")+'</div>';
+  h+='<button class="deeper'+(TRACKDEEP?" on":"")+'" onclick="toggleDeep()" aria-expanded="'+TRACKDEEP+'">'+
+     (TRACKDEEP?"Collapse the report":"Show the report")+'<span class="dcount">'+(TRACKDEEP?"back to the summary":"all the data")+'</span>'+
+     '<span class="dchev">'+I.chevD+'</span></button>';
   document.getElementById("v-track").innerHTML=h;
 }
 /* A single status object at the top of Track, in the spirit of a dashboard: the one line that says
@@ -4117,41 +4235,108 @@ function proteinMet(k){
    only body card with no status colour. The direction that counts as GOOD here is deficit, because
    the standing goal is the cut; over maintenance while cutting is the amber case, and a thin
    record is amber for a different reason and says so. */
-function calTone(){
-  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
-  if(!logged.length)return "";
-  if(logged.length<3)return "amber";
-  var avg=Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length);
-  var maint=maintenanceCals();if(!maint)return "flat";
-  var gap=maint-avg;
-  if(gap>150)return "good";
-  if(gap<-150)return "amber";
-  return "flat";
+/* ============ ROUND 16, v7.39: CALORIES SAYS WHAT IT KNOWS ============
+   Matthew: "fix calories to show what we know about calories - ideally if we are in a deficit,
+   stable, or over limit."
+
+   THE DEFECT, and it was the WINDOW, not the data. Every calorie reader used `calSeries(14)`, a
+   CALENDAR window, and then refused to speak if fewer than three of those fourteen days carried a
+   count. He logs in bursts, so on the live store the last fourteen calendar days hold exactly TWO
+   entries and the card said "2 days logged" and nothing else. Meanwhile the store holds 318 days
+   with a real calorie count going back to May 2024. The app was sitting on the answer and reporting
+   its own sampling gap as if it were the finding.
+
+   The fix is to window by LOGGED DAYS instead of calendar days: take the last seven days that
+   actually carry a count, wherever they fall, and state the calendar span they came from. That
+   turns "2 days logged" into a verdict he can act on.
+
+   THE BIAS THIS INTRODUCES, stated on the card rather than hidden. Averaging only the days he
+   logged is not the same as averaging what he ate, and the direction of the error is predictable:
+   people stop logging on the heavy days. So the card prints the coverage (seven logged days out of
+   the twenty-four they span) and calls the number what it is - what you logged, not what you ate.
+   A deficit computed off a partial record is a floor on the true intake, never a ceiling.
+
+   Direction: the standing goal is the cut, so UNDER maintenance is good, over is amber, and the
+   dead band is +/-150, which is inside the error of any calorie count. */
+var CAL_BAND=150,CAL_WINDOW=7;
+function calVerdict(){
+  var nut=S.nutrition||{};
+  var logged=Object.keys(nut).filter(function(k){return nut[k]&&nut[k].c>0;}).sort();
+  if(!logged.length)return {enough:false,n:0,tone:"",word:"",why:"never imported"};
+  var win=logged.slice(-CAL_WINDOW);
+  var last=win[win.length-1],age=daysBetween(last,TODAY);
+  var lastCal=Math.round(nut[last].c);
+  if(win.length<3)return {enough:false,n:win.length,tone:"amber",word:"",why:"too few days",
+                          last:last,lastCal:lastCal,age:age};
+  var avg=Math.round(win.reduce(function(a,k){return a+nut[k].c;},0)/win.length);
+  var span=daysBetween(win[0],last)+1;
+  var maint=maintenanceCals();
+  var gap=maint?(maint-avg):null;
+  var word,tone;
+  if(gap==null){word="";tone="flat";}
+  else if(gap>=CAL_BAND){word="in a deficit";tone="good";}
+  else if(gap<=-CAL_BAND){word="over maintenance";tone="amber";}
+  else {word="at maintenance";tone="flat";}
+  /* A verdict off a record he stopped keeping three weeks ago is a verdict about three weeks ago.
+     The reading stands, but the card and every chip that quotes it say how old it is. */
+  var stale=(age>=14);
+  return {enough:true,n:win.length,span:span,avg:avg,maint:maint,gap:gap,word:word,
+          tone:stale?"amber":tone,verdictTone:tone,stale:stale,age:age,
+          last:last,lastCal:lastCal,lastGap:maint?(maint-lastCal):null,
+          from:win[0],days:win.slice()};
+}
+/* Kept as the name twenty call sites already use; it is a thin read of the one writer now. */
+function calTone(){return calVerdict().tone;}
+/* The one-line stat every glance surface quotes: the gap, because the gap IS the verdict.
+   "326 under" says deficit without needing a second line to say it. */
+function calStat(){
+  var v=calVerdict();
+  if(!v.enough)return v.n?(v.n+(v.n===1?" day":" days")):null;
+  if(v.gap==null)return v.avg.toLocaleString();
+  if(Math.abs(v.gap)<CAL_BAND)return "at maintenance";
+  return Math.abs(v.gap)+(v.gap>0?" under":" over");
 }
 function calCardHTML(){
-  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
-  if(!logged.length)return "";
-  if(logged.length<3){
-    var lastK=Object.keys(S.nutrition||{}).sort().slice(-1)[0];
-    return collapsible("Calories",logged.length+" day"+(logged.length===1?"":"s")+" logged",
-      '<div class="emptyd">Only <b>'+logged.length+'</b> of the last 14 days carry a calorie count'+
-      (lastK?(', the most recent on '+fullDate(lastK)):'')+
-      '. That is too thin to average, so no maintenance gap and no implied rate are shown. '+
+  var v=calVerdict(),nut=S.nutrition||{};
+  if(!v.n)return "";
+  if(!v.enough){
+    return collapsible("Calories",v.n+" day"+(v.n===1?"":"s")+" on record",
+      '<div class="emptyd">Only <b>'+v.n+'</b> day'+(v.n===1?'':'s')+' in the whole store carry'+(v.n===1?'s':'')+' a calorie count'+
+      (v.last?(', the most recent on '+fullDate(v.last)):'')+
+      '. Three is the floor for an average, so no maintenance gap is shown. '+
       '<b>Paste a week from Cal AI</b> and the whole card switches on.</div>'+
       '<button class="sheet-cta ghost" style="margin-top:10px" onclick="calaiSheet()">Paste a week from Cal AI</button>',
-      false,I.fork,"warn");
+      false,I.fork,"amber");
   }
-  var avg=Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length);
-  var maint=maintenanceCals(),gap=maint?(maint-avg):null;
-  var vals=days.map(function(d){return d.c;});
-  var labels=days.map(function(d,i){return (i===days.length-1)?"now":"";});
-  var head=(gap==null)?"":(gap>150?("About "+gap+" under maintenance, which is roughly "+(Math.round(gap*7/3500*10)/10)+" lb a week."):
-            gap<-150?("About "+Math.abs(gap)+" over maintenance."):"Right around maintenance.");
-  var pAvg=(function(){var ps=days.filter(function(d){return d.p>0;});return ps.length?Math.round(ps.reduce(function(a,d){return a+d.p;},0)/ps.length):0;})();
+  /* The chart plots the logged days themselves, in order, rather than a calendar strip that is
+     mostly empty columns. A bar per day he actually recorded is the honest picture of this record. */
+  var vals=v.days.map(function(k){return Math.round(nut[k].c);});
+  var labels=v.days.map(function(k,i){return (i===v.days.length-1)?"latest":"";});
+  var rate=(v.gap!=null&&v.gap>0)?(Math.round(v.gap*7/3500*10)/10):null;
+  var head=(v.gap==null)?"Averaging "+v.avg.toLocaleString()+" a day.":
+    (v.gap>=CAL_BAND?("You are <b>"+v.word+"</b>, about <b>"+v.gap+"</b> under maintenance"+(rate?(", which is roughly "+rate+" lb a week"):"")+"."):
+     v.gap<=-CAL_BAND?("You are <b>"+v.word+"</b>, about <b>"+Math.abs(v.gap)+"</b> over."):
+     "You are <b>at maintenance</b>, inside the "+CAL_BAND+" calorie band where the counting error lives.");
+  var ps=v.days.filter(function(k){return nut[k].p>0;});
+  var pAvg=ps.length?Math.round(ps.reduce(function(a,k){return a+nut[k].p;},0)/ps.length):0;
   var pt=proteinTarget();
-  return barChart("Calories","last 14 days, "+logged.length+" logged",vals,labels,function(v){return Math.round(v/100)/10+"k";},"")+
-    (head?'<div class="card" style="margin-top:-6px"><div class="ksub" style="margin:0">Averaging <b>'+avg.toLocaleString()+'</b> a day against a maintenance of <b>'+maint.toLocaleString()+'</b>, from '+maintenanceBasis()+'. '+head+
-      (pAvg&&pt?(' Protein is averaging <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div></div>':"");
+  /* The coverage sentence is the point of the card, not a footnote: the average is of what he
+     LOGGED, and the days he did not log are not zeros, they are unknowns that skew high. */
+  var cover='Your last <b>'+v.n+'</b> logged days span <b>'+v.span+'</b> days'+
+    (v.from?(', '+fullDate(v.from)+' to '+fullDate(v.last)):'')+
+    ', so this is what you logged rather than what you ate. Days you skip tend to be the bigger ones, '+
+    'which means a deficit read this way is a floor, not a ceiling.'+
+    (v.stale?(' The most recent entry is <b>'+v.age+' days</b> old.'):'');
+  return barChart("Calories","your last "+v.n+" logged days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"")+
+    '<div class="card" style="margin-top:-6px">'+
+    '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
+      (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+
+    '<div class="ksub" style="margin:6px 0 0">'+head+' Averaging <b>'+v.avg.toLocaleString()+'</b> a day against a maintenance of <b>'+
+      (v.maint?v.maint.toLocaleString():"--")+'</b>, from '+maintenanceBasis()+'.'+
+      (v.lastGap!=null?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>, '+
+        (v.lastGap>0?(v.lastGap+' under'):(Math.abs(v.lastGap)+' over'))+'.'):'')+
+      (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
+    '<div class="foot" style="margin-top:10px">'+cover+'</div></div>';
 }
 /* B5 - the body hero. Latest ACTUAL weight leads (never the lagging EWMA);
    the smoothed trend sits beside it as context, labelled as what it is. */
@@ -4417,13 +4602,10 @@ function stepsVerdict(){
    card beside it. The direction that counts as good here is DOWN, because the standing goal is the
    cut. A reading nobody has taken in a week is amber whatever the rate says, because the card is
    then describing a past he has left. */
-/* Calories already had ONE tone writer (calTone), which is why it is the only stream here that
-   never drifted. This adds the matching value under the same gate: under three logged days the
-   app refuses to average, so the tile shows a dash rather than a number it does not have. */
+/* v7.39: a thin read of calVerdict(), kept only because two call sites already name it. */
 function calGlance(){
-  var logged=calSeries(14).filter(function(d){return d.c>0;});
-  if(logged.length<3)return {val:null,tone:logged.length?"amber":"",n:logged.length};
-  return {val:Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length),tone:calTone(),n:logged.length};
+  var v=calVerdict();
+  return {val:v.enough?v.avg:null,tone:v.tone,n:v.n,stat:calStat()};
 }
 function weightVerdict(){
   var st=weightStats();
