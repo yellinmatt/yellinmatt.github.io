@@ -1388,10 +1388,15 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
     </div>
     <div id="wo-body"></div>
   </section>
+  <!-- ROUND 17. The run screen was a static "how to run it" card with a Log button, reachable only
+       from Today, while Cardio's Start-a-run skipped it entirely and opened a form. A lift got a
+       session and a run got a text box. Same ptop as the workout now: back, a live clock that
+       pauses on tap, and Finish. -->
   <section class="view" id="v-run">
     <div class="ptop">
-      <button class="back" onclick="show('today')" aria-label="Back to today"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Today</button>
-      <div class="mid" style="color:var(--sub);font-weight:600">Run</div><div style="width:44px"></div>
+      <button class="back" onclick="leaveRun()" aria-label="Back to today"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Today</button>
+      <button class="wtime" onclick="toggleRunPause()" aria-label="pause or resume the run clock"><span id="run-pico" aria-hidden="true"></span><span class="num" id="run-elapsed">0:00</span></button>
+      <button class="fin" onclick="finishRun()">Finish</button>
     </div>
     <div id="run-body"></div>
   </section>
@@ -1420,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.40c";
+var VERSION="v7.41";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2423,7 +2428,7 @@ function renderToday(){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
       '<div class="meta">Keep it conversational &middot; <b>'+PACE_MI+' /mi</b></div>'+
-      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="show(\'run\');renderRun();">'+I.play+' Start run</button>')+primeRowHTML()+'</div>';
+      (runDone?'<div class="done-pill">'+I.check+' Run logged</div>':'<button class="big-start" onclick="startRun()">'+I.play+' Start run</button>')+primeRowHTML()+'</div>';
   }else{
     var recDone=S.sessions.some(function(s){return s.date===TODAY&&(s.type==="activity"||s.type==="run");});
     var wk=plan.walk||15;
@@ -2988,26 +2993,125 @@ function drawRest(){var left=Math.round((restEnd-Date.now())/1000);document.getE
 function bumpRest(d){restEnd+=d*1000;restTot=Math.max(restTot,Math.round((restEnd-Date.now())/1000));drawRest();}
 function endRest(){if(restInt){clearInterval(restInt);restInt=null;}var rb=document.getElementById("restbar");if(rb){rb.classList.remove("on");rb.classList.remove("warn");}}
 
-/* ============ RUN ============ */
+/* ============ RUN SESSION, ROUND 17 ============
+   A lift is a sequence of discrete decisions and a run is one continuous effort, so this is the
+   workout tool's SHAPE (a clock that owns the screen, a phase that advances, a Finish that hands
+   off a filled log) with a run's CONTENT. It does not pretend to know distance: no browser can
+   read the watch, so the honest live number is elapsed time against the target time the pace band
+   implies, and the pace check is a prompt rather than a measurement.
+   State lives in `S.runSess` so a locked phone, a backgrounded PWA or an accidental reload cannot
+   lose a run in progress - the same reason the lift session stores start/accum/paused rather than
+   holding them in a closure. */
+var runTimer=null;
+function runSess(){return (S.runSess&&S.runSess.d===TODAY)?S.runSess:null;}
+function runTargetMi(){var p=todayPlan();return (p.type==="run"&&p.dist)?p.dist:2;}
+/* The pace band is a string like "9:50-11:00". The target time uses the EASY end, because the
+   band's job is to keep an easy run easy and quoting the fast end would invert that. */
+function paceBandSec(){
+  var m=String(PACE_MI).split("-");
+  function s(t){var p=String(t).trim().split(":");return (+p[0]||0)*60+(+p[1]||0);}
+  return {fast:s(m[0]),easy:s(m[1]||m[0])};
+}
+var RUN_PHASES=[
+  {k:"warm",n:"Warm up",d:"5 min brisk walk or an easy jog. Nothing that feels like running yet."},
+  {k:"main",n:"The run",d:"At a pace you could hold a conversation. If you cannot speak in full sentences, walk 30 seconds and pick it back up."},
+  {k:"cool",n:"Cool down",d:"5 min walk. This is part of the session, not the bit after it."}
+];
+function startRun(mi){
+  mi=mi||runTargetMi();
+  primeSheet("run",function(){beginRun(mi);});
+}
+function beginRun(mi){
+  mi=mi||runTargetMi();
+  var s=runSess();
+  if(!s)S.runSess={d:TODAY,tgt:mi,start:Date.now(),accum:0,paused:false,phase:0};
+  else if(!s.start&&!s.paused)s.start=Date.now();
+  RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track"||CURV==="today")?CURV:"today";
+  save();show("run");renderRun();startRunTick();
+}
+function elapsedRunSec(){var s=runSess();if(!s)return 0;return Math.floor((s.accum||0)+((s.start&&!s.paused)?(Date.now()-s.start)/1000:0));}
+function startRunTick(){
+  if(runTimer)clearInterval(runTimer);
+  function t(){
+    var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());
+    var p=document.getElementById("run-pico");var s=runSess();if(p)p.innerHTML=(s&&s.paused)?I.play2:I.pause;
+    var g=document.getElementById("run-prog");if(g)paintRunProgress();
+  }
+  t();runTimer=setInterval(t,1000);
+}
+function stopRunTick(){if(runTimer){clearInterval(runTimer);runTimer=null;}}
+function runFreeze(){var s=runSess();if(s&&s.start){s.accum=(s.accum||0)+(Date.now()-s.start)/1000;s.start=null;save();}stopRunTick();}
+function toggleRunPause(){
+  var s=runSess();if(!s)return;
+  if(s.paused){s.paused=false;s.start=Date.now();save();startRunTick();}
+  else{runFreeze();s.paused=true;save();var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());startRunTick();}
+  renderRun();
+}
+function runPhase(i){var s=runSess();if(!s)return;s.phase=Math.max(0,Math.min(RUN_PHASES.length-1,i));save();renderRun();}
+function leaveRun(){runFreeze();show(RETV||"today");}
+function finishRun(){
+  var s=runSess(),sec=elapsedRunSec();
+  runFreeze();
+  /* Straight into the log with the clock already in it. The old path made him type a time he had
+     just watched the app count. */
+  runSheet(s?s.tgt:runTargetMi(),sec);
+}
+function discardRun(){S.runSess=null;save();stopRunTick();show(RETV||"today");toast("Run discarded. Nothing logged.",null);}
+function paintRunProgress(){
+  var s=runSess();if(!s)return;
+  var band=paceBandSec(),tgtSec=Math.round(band.easy*s.tgt);
+  var el=elapsedRunSec();
+  var bar=document.getElementById("run-progfill");
+  if(bar)bar.style.width=Math.min(100,tgtSec?(el/tgtSec*100):0).toFixed(1)+"%";
+  var lab=document.getElementById("run-proglab");
+  if(lab)lab.textContent=(el>=tgtSec)?("past the "+mmss(tgtSec)+" mark"):(mmss(Math.max(0,tgtSec-el))+" to the "+mmss(tgtSec)+" mark");
+}
 function renderRun(){
-  var plan=todayPlan();if(plan.type!=="run")plan={dist:2,label:"Easy"};
+  var s=runSess();
   var logged=S.runs[TODAY];
-  var h='<div class="runhero"><div class="lbl">Today\'s run</div><div class="rd num" style="margin-top:8px">'+plan.dist+'<small> mi</small></div>'+
-    '<div class="pace">'+I.run+' '+esc(plan.label||"Easy")+' &middot; '+PACE_MI+' /mi</div></div>'+
-    '<div class="card"><h3>How to run it</h3><div class="runstruct">'+
-    '<div class="rs"><span class="n">1</span><span>Warm up easy, <b>5 min</b> brisk walk or slow jog</span></div>'+
-    '<div class="rs"><span class="n">2</span><span><b>'+plan.dist+' mi</b> at a pace you can hold a conversation</span></div>'+
-    '<div class="rs"><span class="n">3</span><span>Can\'t talk in sentences? <b>Walk 30s</b>, restart</span></div>'+
-    '<div class="rs"><span class="n">4</span><span>Cool down, <b>5 min</b> walk</span></div></div></div>';
-  if(logged)h+='<div class="card"><h3>Logged today</h3><div class="weighrow" style="margin-top:8px"><span class="wcur"><b>'+logged.dist+' mi</b> in '+esc(logged.time)+' &middot; '+logged.pace+'/mi'+(logged.rpe?' &middot; '+esc(logged.rpe):'')+'</span><button class="wbtn" onclick="runSheet('+plan.dist+')">Edit</button></div></div>';
-  else h+='<button class="big-start" onclick="runSheet('+plan.dist+')">'+I.check+' Log run</button>';
-  document.getElementById("run-body").innerHTML=h;
+  var body=document.getElementById("run-body");if(!body)return;
+  if(!s){
+    /* No session: the screen is the pre-run brief with one button that starts one. Reachable if he
+       lands here from a stale link or after finishing, and it never strands him on a dead screen. */
+    var mi=runTargetMi();
+    body.innerHTML='<div class="runhero"><div class="lbl">Today\'s run</div><div class="rd num" style="margin-top:8px">'+mi+'<small> mi</small></div>'+
+      '<div class="pace">'+I.run+' Easy &middot; '+PACE_MI+' /mi</div></div>'+
+      (logged?('<div class="card"><h3><span>Logged today</span></h3><div class="weighrow" style="margin-top:8px"><span class="wcur"><b>'+logged.dist+' mi</b> in '+esc(logged.time)+' &middot; '+logged.pace+'/mi'+(logged.rpe?' &middot; '+esc(logged.rpe):'')+'</span><button class="wbtn" onclick="runSheet('+mi+')">Edit</button></div></div>'):'')+
+      '<button class="big-start" onclick="beginRun('+mi+')">'+I.run+' Start the clock</button>'+
+      '<button class="sheet-cta ghost" style="margin-top:10px" onclick="runSheet('+mi+')">Log a run I already did</button>';
+    return;
+  }
+  var band=paceBandSec(),tgtSec=Math.round(band.easy*s.tgt);
+  var ph=RUN_PHASES[s.phase]||RUN_PHASES[0];
+  var h='<div class="runhero"><div class="lbl">'+(s.paused?"Paused &middot; ":"")+"Step "+(s.phase+1)+" of "+RUN_PHASES.length+" &middot; "+esc(ph.n)+'</div>'+
+    '<div class="rd num" style="margin-top:8px">'+s.tgt+'<small> mi</small></div>'+
+    '<div class="pace">'+I.run+' Easy &middot; '+PACE_MI+' /mi</div>'+
+    '<div id="run-prog" class="bwrap" style="margin-top:16px;height:auto">'+
+      '<div style="height:4px;border-radius:3px;background:var(--surface-2);overflow:hidden">'+
+        '<i id="run-progfill" style="display:block;height:4px;width:0;background:var(--accent)"></i></div>'+
+      '<div class="ksub" id="run-proglab" style="margin:8px 0 0">&nbsp;</div></div>'+
+    '</div>';
+  h+='<div class="card"><h3><span>'+esc(ph.n)+'</span><span class="t">now</span></h3>'+
+    '<div class="ksub" style="margin:0">'+esc(ph.d)+'</div>'+
+    '<div class="herorow" style="margin-top:12px">'+
+      (s.phase>0?'<button class="wbtn" onclick="runPhase('+(s.phase-1)+')">Back a step</button>':'')+
+      (s.phase<RUN_PHASES.length-1?'<button class="wbtn" onclick="runPhase('+(s.phase+1)+')">'+esc(RUN_PHASES[s.phase+1].n)+'</button>':'<button class="wbtn" onclick="finishRun()">Log it</button>')+
+    '</div></div>';
+  h+='<div class="card"><div class="runstruct">'+RUN_PHASES.map(function(p,i){
+      var st=(i<s.phase)?"done":(i===s.phase?"now":"next");
+      return '<div class="rs" onclick="runPhase('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.55":"")+'">'+
+        '<span class="n"'+(st==="now"?' style="background:var(--accent);color:#fff"':(st==="done"?' style="background:var(--good);color:#fff"':''))+'>'+(i+1)+'</span>'+
+        '<span>'+esc(p.n)+(st==="now"?' <b>&middot; now</b>':'')+'</span></div>';
+    }).join("")+'</div></div>';
+  h+='<button class="sheet-cta ghost" style="margin-top:4px" onclick="discardRun()">Discard this run</button>';
+  body.innerHTML=h;
+  paintRunProgress();
 }
 var rpeRun="";
-function runSheet(dist){rpeRun="";
+function runSheet(dist,prefillSec){rpeRun="";
   openSheet('<div class="grab"></div><h3>Log run</h3><div class="ssub">Nice one. Punch in the numbers.</div>'+
     '<div class="logrow"><label>Distance</label><div class="inp"><input id="r-dist" inputmode="decimal" value="'+dist+'" oninput="calcPace()" aria-label="distance"><span class="u">mi</span></div></div>'+
-    '<div class="logrow"><label>Time <span style="color:var(--faint);font-weight:500">mm:ss</span></label><div class="inp"><input id="r-time" inputmode="numeric" placeholder="22:40" oninput="calcPace()" aria-label="time" style="width:92px"></div></div>'+
+    '<div class="logrow"><label>Time <span style="color:var(--faint);font-weight:500">mm:ss</span></label><div class="inp"><input id="r-time" inputmode="numeric" placeholder="22:40" value="'+(prefillSec>0?mmss(prefillSec):"")+'" oninput="calcPace()" aria-label="time" style="width:92px"></div></div>'+
     '<div class="paceout">pace<b id="r-pace">--:--</b></div>'+
     '<div class="rerr" id="r-err" style="display:none"></div>'+
     '<div class="rpe"><button onclick="pickRpe(this,\'Easy\')">Easy</button><button onclick="pickRpe(this,\'OK\')">OK</button><button onclick="pickRpe(this,\'Hard\')">Hard</button></div>'+
@@ -3056,6 +3160,11 @@ function saveRun(){
   S.sessions.push({id:id,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
   S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   S.done[TODAY]=true;advanceCycle();save();closeSheet();
+  /* ROUND 17. The session is over once it is logged, so the clock is torn down here rather than
+     left running behind the cool-down sheet. That was one of the five real-use bugs on the LIFT
+     side (the workout timer kept running behind the Finish sheet) and there is no reason to ship
+     it a second time on the run side. */
+  S.runSess=null;stopRunTick();save();
   setTimeout(function(){coolSheet("run");},900);
   if(rpeRun==="Hard")toast("Logged. Keep easy runs easy - that protects your lifting.",null);
   else toast("Logged "+d.toFixed(2).replace(/\.?0+$/,"")+" mi"+(sec>0?" at "+paceStr+"/mi":"")+".",null);
@@ -7953,7 +8062,7 @@ function renderCardio(){
     '<div class="lbl">Next run</div>'+
     '<h2 style="padding-right:0">'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
-    '<button class="big-start" onclick="primeSheet(\'run\',function(){runSheet('+tgt.mi+')})">'+I.run+' Start a run</button>'+
+    '<button class="big-start" onclick="startRun('+tgt.mi+')">'+I.run+' Start a run</button>'+
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
     '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
   /* v7.24. The records were a bare strip under a section label, which read as loose furniture
