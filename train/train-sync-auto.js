@@ -64,6 +64,13 @@
       steps: S.steps && typeof S.steps === "object" ? S.steps : {},
       protein: S.protein && typeof S.protein === "object" ? S.protein : {},
       nutrition: S.nutrition && typeof S.nutrition === "object" ? S.nutrition : {},
+      /* ROUND A. The per-day provenance for steps and nutrition. Sent verbatim,
+         never synthesised at push time: a stamp invented on the way out would
+         make whichever device pushed last the winner, which is exactly the
+         clobber trap `stampedAt` exists to avoid for settings. An absent stamp
+         means this device never authored that day, and the Worker treats it as
+         gap-fill-only rather than as an authority. */
+      stamps: (S.stamps && typeof S.stamps === "object") ? S.stamps : { nutrition: {}, steps: {} },
       runs: S.runs && typeof S.runs === "object" ? S.runs : {},
       override: S.override && typeof S.override === "object" ? S.override : {},
       daySlot: S.daySlot && typeof S.daySlot === "object" ? S.daySlot : {},
@@ -112,16 +119,10 @@
     st[name] = { sig: JSON.stringify(value === undefined ? null : value), at: at || Date.now() };
     try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
   }
-  /* Steps take the larger of the two: a day's count only ever grows, and an export taken at noon
-     must not overwrite one taken at midnight. Protein is a boolean hit, so it ORs. Nutrition keeps
-     whatever the device already has and only fills gaps, which is the weigh-in rule and avoids two
-     devices thrashing a value neither of them timestamps. */
-  function mergeSteps(local, srv) {
-    var out = {}, k;
-    for (k in (local || {})) out[k] = local[k];
-    for (k in (srv || {})) if (!(k in out) || srv[k] > out[k]) out[k] = srv[k];
-    return out;
-  }
+  /* `mergeSteps` (take the larger of the two) was deleted in Round A along with
+     mergeAccum. Both encoded "a measurement only ever grows", which is true of a
+     day in progress and false of a day being corrected. `mergeStamped` below
+     replaces both. */
   function mergeFill(local, srv) {
     var out = {}, k;
     for (k in (local || {})) out[k] = local[k];
@@ -147,21 +148,31 @@
      client ever authors one, so there is no local edit to protect and the server copy is simply
      newer. Max-per-field would be actively wrong here: resting HR and HRV are means, and a max
      rule would ratchet them upward forever and never come down. */
-  function mergeAccum(local, srv) {
-    var out = {}, k, f;
+  /* ROUND A, 2026-07-31. mergeAccum (max per field) is RETIRED, on both ends.
+     Max was right about one thing and catastrophically wrong about another. It
+     was right that an hourly export of a day in progress must not lock the day
+     at breakfast. It was wrong that the fix is arithmetic, because "take the
+     bigger number" makes a day incapable of ever travelling DOWN, and a day
+     that can only go up is a day no correction can reach. Matthew's 30 July sat
+     at 2,670 kcal against 2,108 actually eaten, and under max, deleting the
+     duplicated meal upstream would have changed that number never.
+
+     The rule on both ends is now latest-write-wins, arbitrated by a per-day
+     stamp rather than by size, so a smaller later truth beats a larger older
+     one and a stale re-push still loses. `S.stamps` is the client's half of
+     that: a day is stamped when this device authors it (the Cal AI sheet, a
+     manual edit) and adopts the server's stamp when it pulls. A day this
+     device has never authored carries no stamp and therefore cannot clobber. */
+  function mergeStamped(local, srv, localS, srvS) {
+    var out = {}, outS = {}, k;
     for (k in (local || {})) out[k] = local[k];
+    for (k in (localS || {})) outS[k] = localS[k];
     for (k in (srv || {})) {
-      if (!(k in out) || !out[k] || typeof out[k] !== "object") { out[k] = srv[k]; continue; }
-      var a = out[k], b = srv[k], merged = {};
-      for (f in a) merged[f] = a[f];
-      for (f in b) {
-        if (!(f in merged)) merged[f] = b[f];
-        else if (typeof b[f] === "number" && typeof merged[f] === "number") merged[f] = Math.max(merged[f], b[f]);
-        else merged[f] = b[f];
-      }
-      out[k] = merged;
+      var st = (srvS && Object.prototype.hasOwnProperty.call(srvS, k)) ? (Number(srvS[k]) || 0) : 0;
+      var lt = Number(outS[k]) || 0;
+      if (!(k in out) || st > lt) { out[k] = srv[k]; outS[k] = st > lt ? st : lt; }
     }
-    return out;
+    return { map: out, stamps: outS };
   }
   function mergeServer(local, srv) {
     var out = {}, k;
@@ -283,9 +294,38 @@
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
         S.anchor = mergeAnchor(S.anchor, srv.anchor);
         S.done = mergeDone(S.done, srv.done);
-        S.steps = mergeSteps(S.steps, srv.steps);
-        S.protein = mergeDone(S.protein, srv.protein);
-        S.nutrition = mergeAccum(S.nutrition, srv.nutrition);
+        S.stamps = S.stamps || { nutrition: {}, steps: {} };
+        /* DEPLOY-ORDER SAFETY. This file ships to Pages the moment it is pushed;
+           the Worker ships only when someone runs `wrangler deploy`. Between
+           those two moments the client is new and the server is old, and an old
+           server sends no `stamps` at all. Read naively that means every server
+           day carries stamp 0, nothing can beat a local 0, and the merge quietly
+           degrades to gap-fill, which is the EXACT defect 17a was opened to fix:
+           a successful sync that adopts nothing.
+           So an absent stamps object is treated as "this server predates
+           provenance", and its days are taken as authoritative using the store's
+           own updatedAt as their stamp. Once the Worker ships it sends real
+           per-day stamps and this branch stops running. Delete it when the two
+           have been in step for a while. */
+        var srvS = srv.stamps;
+        if (!srvS || typeof srvS !== "object") {
+          var at = Number(srv.updatedAt) || Date.now();
+          srvS = { nutrition: {}, steps: {} };
+          for (var _k in (srv.nutrition || {})) srvS.nutrition[_k] = at;
+          for (var _k2 in (srv.steps || {})) srvS.steps[_k2] = at;
+        }
+        var mSteps = mergeStamped(S.steps, srv.steps, S.stamps.steps, srvS.steps);
+        S.steps = mSteps.map; S.stamps.steps = mSteps.stamps;
+        var mNut = mergeStamped(S.nutrition, srv.nutrition, S.stamps.nutrition, srvS.nutrition);
+        S.nutrition = mNut.map; S.stamps.nutrition = mNut.stamps;
+        /* Protein follows nutrition rather than OR-ing, for the same reason the
+           Worker recomputes it: a flag that can be set but never cleared lies
+           about a day whose grams were corrected downward. The server is the one
+           writer, so a day the server carries takes the server's verdict. */
+        S.protein = S.protein || {};
+        for (var _pk in (srv.nutrition || {})) {
+          if ((srv.protein || {})[_pk]) S.protein[_pk] = true; else delete S.protein[_pk];
+        }
         /* Body composition, vitals and sleep are PULL ONLY, deliberately (2026-07-30).
            Health Auto Export writes them straight into the Worker; no client ever authors one, so
            there is nothing to push and pushing would be actively dangerous. This client sends the
@@ -338,6 +378,10 @@
       steps: (srv.steps && typeof srv.steps === "object") ? srv.steps : {},
       protein: (srv.protein && typeof srv.protein === "object") ? srv.protein : {},
       nutrition: (srv.nutrition && typeof srv.nutrition === "object") ? srv.nutrition : {},
+      // A fresh device adopts the server's provenance wholesale. Starting it
+      // empty would let this browser's first push look like an authority on
+      // days it has never seen.
+      stamps: (srv.stamps && typeof srv.stamps === "object") ? srv.stamps : { nutrition: {}, steps: {} },
       body: (srv.body && typeof srv.body === "object") ? srv.body : {},
       vitals: (srv.vitals && typeof srv.vitals === "object") ? srv.vitals : {},
       sleep: (srv.sleep && typeof srv.sleep === "object") ? srv.sleep : {},
