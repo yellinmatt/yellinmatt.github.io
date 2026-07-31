@@ -1420,7 +1420,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.40";
+var VERSION="v7.40a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3858,7 +3858,7 @@ function trackReportHTML(){
   var cv=calVerdict();
   if(cv.total){
     h+=reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
-      series:cv.enough?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
+      series:(cv.enough&&cv.n>=CAL_MIN_CONF)?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
       sub:cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of the last "+cv.windowDays+" days logged"):("nothing logged in the last "+CAL_DAYS+" days")});
   }
   /* Miles is Cardio's card, shown here too because a body report without the training load in it
@@ -4365,7 +4365,32 @@ function calCardHTML(){
     'which means a deficit read this way is a floor, not a ceiling.'+
     (v.conf?'':' <b>Under '+CAL_MIN_CONF+' days is a provisional read</b>, which is why it is amber whatever the gap says.')+
     (v.stale?(' The most recent entry is <b>'+v.age+' days</b> old.'):'');
-  return barChart("Calories",v.n+" of the last "+v.windowDays+" days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"")+
+  /* ROUND 17. Two bars is not a chart. Narrowing the window to 14 days made a thin record common,
+     and at n=2 barChart drew one grey column, one amber column, a dashed mean line that collided
+     with the value label, and half a card of empty plot area - a picture that said less than the
+     two numbers it was drawing. Below CAL_MIN_CONF the days are listed instead, one row each with
+     its gap against maintenance, which is the whole of what a two-day record can honestly show. */
+  var picture;
+  if(v.n>=CAL_MIN_CONF){
+    picture=barChart("Calories",v.n+" of the last "+v.windowDays+" days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"");
+  } else {
+    picture='<div class="card"><div class="odoct">'+v.n+' of the last '+v.windowDays+' days</div>'+
+      v.days.map(function(k){
+        var c=Math.round(nut[k].c),g=v.maint?(v.maint-c):null;
+        var tn=(g==null)?"flat":(g>=CAL_BAND?"good":g<=-CAL_BAND?"amber":"flat");
+        /* No new chip class and no new CSS. `.acount` is the app's chip, `.gd`/`.wn` are its
+           coloured states, and both read `--rag`/`--rag-tint` - which is exactly what a custom
+           property is for, so the row sets them inline and carries its own tone instead of
+           inheriting the drawer's. Composed from the existing vocabulary, not added to it. */
+        var rag=(tn==="good")?"var(--good)":(tn==="amber")?"var(--amber)":"var(--sub)";
+        var tint=(tn==="good")?"var(--good-tint)":(tn==="amber")?"var(--amber-tint)":"var(--surface-2)";
+        return '<div class="weighrow" style="margin-top:8px">'+
+          '<span class="wcur">'+shortDate(k)+' &middot; <b>'+c.toLocaleString()+'</b></span>'+
+          '<span class="acount'+(tn==="good"?" gd":tn==="amber"?" wn":"")+'" style="--rag:'+rag+';--rag-tint:'+tint+'">'+
+          (g==null?"&mdash;":(Math.abs(g)+(g>0?" under":" over")))+'</span></div>';
+      }).join("")+'</div>';
+  }
+  return picture+
     '<div class="card" style="margin-top:-6px">'+
     '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
       (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+
