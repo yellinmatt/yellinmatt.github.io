@@ -1245,7 +1245,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.27a";
+var VERSION="v7.28";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3255,7 +3255,8 @@ function nextMove(){
   if(!red.length)return {t:"Log today",a:"show('today')",why:"everything measurable is on pace"};
   var k=red[0].k;
   if(k==="lifts")return {t:"Start a lift",a:"show('lift')",why:"it is the weakest measure this week"};
-  if(k==="miles")return {t:"Start a run",a:"show('cardio')",why:"you are short of the week's miles"};
+  if(k==="miles")return {t:"Start a run",a:"show('cardio')",why:"you are short of the week's run miles"};
+  if(k==="walkMi")return {t:"Log a walk",a:"actSheet('walk')",why:"walking miles are the cheapest ones to bank"};
   if(k==="protein")return {t:"Tick protein",a:"toggleProtein()",why:"one tap closes the day"};
   return {t:"Open Today",a:"show('today')",why:"the morning anchor is the cheapest day to close"};
 }
@@ -3286,7 +3287,7 @@ function measureRowsHTML(){
     return '<button class="mrow" data-rag="'+r.rag+'" onclick="'+r.act+'" style="width:100%;background:none;border:0;border-top:1px solid var(--line)">'+
       '<span class="md"></span><span class="mn">'+esc(r.label)+'</span>'+
       '<span class="mtr"><i style="width:'+pct.toFixed(0)+'%"></i></span>'+
-      '<span class="mv">'+v+'<small> / '+(r.k==="miles"?r.target.toFixed(1):r.target)+'</small></span></button>';
+      '<span class="mv">'+v+'<small> / '+((r.k==="miles"||r.k==="walkMi")?r.target.toFixed(1):r.target)+'</small></span></button>';
   }).join("");
 }
 function levelPairHTML(){
@@ -3431,8 +3432,21 @@ function weekDays(back){var s=weekStartKey(back),p=s.split("-"),out=[];var d=new
   for(var i=0;i<7;i++){out.push(keyOf(d));d.setDate(d.getDate()+1);}return out;}
 function plannedMiles(){var mi=0;weekDays(0).forEach(function(k){var pl=planFor(k);if(pl&&pl.type==="run")mi+=(pl.dist||0);});return mi||5;}
 /* One week's raw numbers. back=0 is this week. */
+/* ============ RUN MILES vs WALK MILES, v7.28 ============
+   Built to `Health/Daily-Tool/SPEC-miles-split.md`, which was written on 30 July and deliberately
+   not implemented because Round 4 was rewriting this function at the time.
+   `m.miles` summed `(s.type==="run"||s.distanceMi)`, so every walking mile landed in the row
+   labelled "Miles run". On the live store that is 95.4 walking miles reported as running. They are
+   different disciplines to Matthew — run miles are the cardio load that drives the recomp, walking
+   miles are the weight-loss lever that does not spike appetite — and both are weekly. Two
+   accumulators, two rows.
+   Targets, re-derived against the LIVE store rather than the spec's numbers (which came from the
+   pre-backfill mirror): over the last 26 weeks he walked in 12 of them, median 8.7 mi in the weeks
+   he walked, best 14.6. Ten a week is above his working median and below his best, so it is a
+   stretch he has already beaten rather than a number invented to motivate. */
+var WALK_TARGET=10;
 function weekMetrics(back){
-  var days=weekDays(back),today=TODAY,m={lifts:0,protein:0,moved:0,miles:0,anchor:0,days:0};
+  var days=weekDays(back),today=TODAY,m={lifts:0,protein:0,moved:0,miles:0,walkMi:0,anchor:0,days:0};
   days.forEach(function(k){
     if(k>today)return;
     m.days++;
@@ -3440,7 +3454,11 @@ function weekMetrics(back){
     if(S.protein[k])m.protein++;
     if(isDone(k))m.moved++;
     if(anchorComplete(k))m.anchor++;
-    S.sessions.forEach(function(s){if(s.date===k&&(s.type==="run"||s.distanceMi))m.miles+=(s.distanceMi||0);});
+    S.sessions.forEach(function(s){
+      if(s.date!==k)return;
+      if(isRealRun(s))m.miles+=s.distanceMi;
+      else if(s.type!=="run"&&s.type!=="lift"&&(s.distanceMi||0)>0)m.walkMi+=s.distanceMi;
+    });
   });
   return m;
 }
@@ -3462,6 +3480,8 @@ function kpiRows(){
      tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('track')"},
     {k:"miles",label:"Miles run",val:Math.round(m.miles*10)/10,target:miTarget,unit:"mi",fmt:function(v){return v.toFixed(1);},
      tag:{good:"On track",amber:"Short",red:"Behind"},act:"show('cardio')"},
+    {k:"walkMi",label:"Miles walked",val:Math.round(m.walkMi*10)/10,target:WALK_TARGET,unit:"mi",fmt:function(v){return v.toFixed(1);},
+     tag:{good:"On track",amber:"Short",red:"Behind"},act:"actSheet('walk')"},
     {k:"anchor",label:"Morning anchor",val:m.anchor,target:6,unit:"/ 7",fmt:function(v){return v;},
      tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('today')"}
   ];
@@ -3508,7 +3528,8 @@ function kpiStrip(k){
     var m=weekMetrics(i),v,t;
     if(k==="lifts"){v=m.lifts;t=3;} else if(k==="moved"){v=m.moved;t=6;}
     else if(k==="protein"){v=m.protein;t=6;} else if(k==="anchor"){v=m.anchor;t=6;}
-    else if(k==="miles"){v=m.miles;t=plannedMiles();} else {v=0;t=1;}
+    else if(k==="miles"){v=m.miles;t=plannedMiles();}
+    else if(k==="walkMi"){v=m.walkMi;t=WALK_TARGET;} else {v=0;t=1;}
     var r=t>0?v/t:0,lvl=(m.days===0)?0:(r>=1?4:r>=0.7?3:r>=0.4?2:r>0?1:0);
     blocks+='<i data-l="'+lvl+'"></i>';
   }
@@ -3552,7 +3573,7 @@ function scorecardHTML(){
        '<span class="krow"><span class="kl">'+r.label+'</span>'+right+'</span>'+
        (r.outcome?'':bulletSVG(r.val,r.target,r.pace))+
        '<span class="kfoot"><span class="ktag">'+r.status+'</span>'+
-       (r.outcome?'<span class="khint">measured, not projected</span>':'<span class="khint">'+(r.val>=r.target?'week target met':'target '+(r.k==="miles"?r.target.toFixed(1)+' mi':r.target)+' by Sunday')+'</span>')+'</span>'+
+       (r.outcome?'<span class="khint">measured, not projected</span>':'<span class="khint">'+(r.val>=r.target?'week target met':'target '+((r.k==="miles"||r.k==="walkMi")?r.target.toFixed(1)+' mi':r.target)+' by Sunday')+'</span>')+'</span>'+
        (r.outcome?'':kpiStrip(r.k))+'</button>';
   });
   var m=weekMetrics(0),green=rows.filter(function(r){return r.rag==="good";}).length;
