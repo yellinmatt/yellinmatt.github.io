@@ -1425,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.41";
+var VERSION="v7.41a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3047,24 +3047,51 @@ function toggleRunPause(){
   else{runFreeze();s.paused=true;save();var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());startRunTick();}
   renderRun();
 }
-function runPhase(i){var s=runSess();if(!s)return;s.phase=Math.max(0,Math.min(RUN_PHASES.length-1,i));save();renderRun();}
+/* The target time belongs to the RUN LEG, not to the session. The first build ran the progress bar
+   off total elapsed, so a five-minute warm-up walk ate a quarter of the "22:00 mark" before he had
+   run a step - the clock was measuring one thing and labelling it another. Entering the main phase
+   stamps the leg, leaving it closes it, and the bar reads that leg alone. */
+function runPhase(i){
+  var s=runSess();if(!s)return;
+  var was=s.phase;
+  s.phase=Math.max(0,Math.min(RUN_PHASES.length-1,i));
+  var el=elapsedRunSec();
+  if(RUN_PHASES[s.phase].k==="main"&&RUN_PHASES[was].k!=="main"){s.legStart=el;s.legEnd=null;}
+  else if(RUN_PHASES[was].k==="main"&&RUN_PHASES[s.phase].k!=="main"&&s.legStart!=null&&s.legEnd==null){s.legEnd=el;}
+  save();renderRun();
+}
+function runLegSec(){
+  var s=runSess();if(!s||s.legStart==null)return null;
+  return Math.max(0,(s.legEnd!=null?s.legEnd:elapsedRunSec())-s.legStart);
+}
 function leaveRun(){runFreeze();show(RETV||"today");}
 function finishRun(){
-  var s=runSess(),sec=elapsedRunSec();
+  var s=runSess();
+  /* The RUN LEG, not the session. Prefilling total elapsed would put the warm-up walk and the cool
+     down into the pace calculation, which is how a 10:00 run becomes a 16:00 one and poisons the
+     pace zones, the level and every average that reads them. Falls back to total only when he
+     never entered the run phase, where total is all there is. */
+  var leg=runLegSec(),sec=(leg!=null&&leg>0)?leg:elapsedRunSec();
   runFreeze();
-  /* Straight into the log with the clock already in it. The old path made him type a time he had
-     just watched the app count. */
   runSheet(s?s.tgt:runTargetMi(),sec);
 }
 function discardRun(){S.runSess=null;save();stopRunTick();show(RETV||"today");toast("Run discarded. Nothing logged.",null);}
 function paintRunProgress(){
   var s=runSess();if(!s)return;
   var band=paceBandSec(),tgtSec=Math.round(band.easy*s.tgt);
-  var el=elapsedRunSec();
+  var leg=runLegSec();
   var bar=document.getElementById("run-progfill");
-  if(bar)bar.style.width=Math.min(100,tgtSec?(el/tgtSec*100):0).toFixed(1)+"%";
   var lab=document.getElementById("run-proglab");
-  if(lab)lab.textContent=(el>=tgtSec)?("past the "+mmss(tgtSec)+" mark"):(mmss(Math.max(0,tgtSec-el))+" to the "+mmss(tgtSec)+" mark");
+  if(leg==null){
+    /* Before the run leg starts the bar has nothing to measure, so it says so rather than filling
+       against a clock that is not counting the thing it names. */
+    if(bar)bar.style.width="0%";
+    if(lab)lab.textContent=s.tgt+" mi at the easy end of the band is about "+mmss(tgtSec)+".";
+    return;
+  }
+  if(bar)bar.style.width=Math.min(100,tgtSec?(leg/tgtSec*100):0).toFixed(1)+"%";
+  if(lab)lab.textContent=(leg>=tgtSec)?(mmss(leg)+" running, past the "+mmss(tgtSec)+" mark"):
+    (mmss(leg)+" running &middot; "+mmss(Math.max(0,tgtSec-leg))+" to "+mmss(tgtSec)).replace("&middot;","·");
 }
 function renderRun(){
   var s=runSess();
@@ -3091,19 +3118,27 @@ function renderRun(){
         '<i id="run-progfill" style="display:block;height:4px;width:0;background:var(--accent)"></i></div>'+
       '<div class="ksub" id="run-proglab" style="margin:8px 0 0">&nbsp;</div></div>'+
     '</div>';
-  h+='<div class="card"><h3><span>'+esc(ph.n)+'</span><span class="t">now</span></h3>'+
+  /* ONE writer for the phase. The first build announced it three times - in the hero label, as a
+     card title with a "now" chip, and again in the step list - which is the same duplication the
+     Track audit caught with Weight. The hero names where he is, the card carries only the
+     instruction and the action, and the list is the map. */
+  h+='<div class="card">'+
     '<div class="ksub" style="margin:0">'+esc(ph.d)+'</div>'+
     '<div class="herorow" style="margin-top:12px">'+
-      (s.phase>0?'<button class="wbtn" onclick="runPhase('+(s.phase-1)+')">Back a step</button>':'')+
-      (s.phase<RUN_PHASES.length-1?'<button class="wbtn" onclick="runPhase('+(s.phase+1)+')">'+esc(RUN_PHASES[s.phase+1].n)+'</button>':'<button class="wbtn" onclick="finishRun()">Log it</button>')+
+      (s.phase>0?'<button class="wbtn" onclick="runPhase('+(s.phase-1)+')">Back</button>':'')+
+      (s.phase<RUN_PHASES.length-1
+        ?'<button class="wbtn" onclick="runPhase('+(s.phase+1)+')">'+(RUN_PHASES[s.phase+1].k==="main"?"Start the run":"Start the cool down")+'</button>'
+        :'<button class="wbtn" onclick="finishRun()">Log the run</button>')+
     '</div></div>';
   h+='<div class="card"><div class="runstruct">'+RUN_PHASES.map(function(p,i){
       var st=(i<s.phase)?"done":(i===s.phase?"now":"next");
       return '<div class="rs" onclick="runPhase('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.55":"")+'">'+
         '<span class="n"'+(st==="now"?' style="background:var(--accent);color:#fff"':(st==="done"?' style="background:var(--good);color:#fff"':''))+'>'+(i+1)+'</span>'+
-        '<span>'+esc(p.n)+(st==="now"?' <b>&middot; now</b>':'')+'</span></div>';
+        '<span>'+esc(p.n)+'</span></div>';
     }).join("")+'</div></div>';
-  h+='<button class="sheet-cta ghost" style="margin-top:4px" onclick="discardRun()">Discard this run</button>';
+  /* Discard is destructive and rare, so it gets the weight of a footnote rather than the weight of
+     a primary control. It read as prominently as Log the run in the first build. */
+  h+='<div style="text-align:center;margin-top:14px"><button class="lnk" onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;cursor:pointer">Discard this run</button></div>';
   body.innerHTML=h;
   paintRunProgress();
 }
