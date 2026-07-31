@@ -1420,7 +1420,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.40a";
+var VERSION="v7.40b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -4374,7 +4374,12 @@ function calCardHTML(){
   if(v.n>=CAL_MIN_CONF){
     picture=barChart("Calories",v.n+" of the last "+v.windowDays+" days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"");
   } else {
-    picture='<div class="card"><div class="odoct">'+v.n+' of the last '+v.windowDays+' days</div>'+
+    /* The header shape is barChart's contract, not decoration: `drawerize()` finds the drawer's
+       title and note by matching `<h3><span>..</span><span class="t">..</span></h3>` and returns
+       the html UNTOUCHED when it cannot, which is exactly what happened on the first attempt -
+       the Calories drawer silently disappeared off Track because the replacement picture emitted
+       a bare card. Anything standing in for a chart has to emit the same head. */
+    picture='<div class="card"><h3><span>Calories</span><span class="t">'+v.n+' of the last '+v.windowDays+' days</span></h3>'+
       v.days.map(function(k){
         var c=Math.round(nut[k].c),g=v.maint?(v.maint-c):null;
         var tn=(g==null)?"flat":(g>=CAL_BAND?"good":g<=-CAL_BAND?"amber":"flat");
