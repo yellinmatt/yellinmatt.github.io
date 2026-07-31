@@ -611,7 +611,14 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard[data-tone="amber"],.dcard[data-tone="warn"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
 .dcard[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
 .dcard[data-tone="flat"]{--rag:var(--ink);--rag-tint:var(--surface-2)}
-.dcard .acount.gd,.dcard .acount.wn{color:var(--rag,var(--sub));background:var(--rag-tint,var(--surface-2));border-radius:7px;padding:3px 8px}
+/* ROUND 15, v7.38. Matthew has now twice named the Steps card as the standard the others should
+   look like, and the difference was never structural: Steps rendered its chip as a coloured PILL
+   and every card without a verdict rendered its chip as bare grey text, so a column of cards read
+   as two different components stacked. The pill is the chip's base shape now and the verdict only
+   changes its COLOUR. A card with nothing to grade gets a neutral pill rather than an invented
+   status, which keeps the accent system meaning what it says. */
+.dcard .acount{font-size:13.5px;font-weight:700;line-height:1.35;background:var(--surface-2);color:var(--sub);border-radius:7px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.dcard .acount.gd,.dcard .acount.wn{color:var(--rag,var(--sub));background:var(--rag-tint,var(--surface-2))}
 .dcard[data-tone]>summary .dsi{background:var(--rag-tint,var(--surface-2));color:var(--rag,var(--sub))}
 /* The data itself. The current bar and the headline stat carry the status colour; the comparison
    windows stay neutral, because colouring all three would make the tone meaningless. */
@@ -1300,21 +1307,24 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .yrow .yn{font-size:11.5px;color:var(--faint);flex:0 0 52px;text-align:right}
 
 /* v7.25 consistency */
-/* v7.36 the daily three. Tiles, not cards: one tap target each, a value, what it is, and how it
-   compares, with the status colour the accent system already speaks. */
-.d3wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0 2px}
-.d3{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:12px 11px 11px;min-height:112px}
+/* ROUND 15, v7.38. The daily three, RESTYLED not rebuilt. His design, his row; what changed is
+   only how it looks. The tile now borrows the card summary's own vocabulary so it sits in the
+   same family as everything under it: the 26px tinted icon box of `.dcard>summary .dsi`, the
+   12px/.05em uppercase title of `.dsum`, the same surface, border, radius and shadow as `.card`.
+   The comparison sub-line is gone at his instruction, so the tile is one stat and its verdict
+   colour, which is what a glance row is for. The full card one tap away carries the context. */
+.d3wrap{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+.d3{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:14px 13px 13px}
 .d3[data-tone="good"]{--rag:var(--good);--rag-tint:var(--good-tint)}
 .d3[data-tone="amber"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
 .d3[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
 .d3[data-tone="flat"]{--rag:var(--ink);--rag-tint:var(--surface-2)}
 .d3[data-tone="none"]{--rag:var(--faint);--rag-tint:var(--surface-2)}
-.d3i{display:flex;width:24px;height:24px;border-radius:7px;align-items:center;justify-content:center;background:var(--rag-tint);color:var(--rag)}
-.d3i svg{width:13px;height:13px}
-.d3v{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:9px;line-height:1;font-variant-numeric:tabular-nums}
-.d3v small{font-size:11px;font-weight:700;margin-left:2px}
-.d3l{display:block;font-size:11.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);margin-top:6px}
-.d3s{display:block;font-size:10.5px;font-weight:600;color:var(--sub);margin-top:4px;line-height:1.3}
+.d3i{display:flex;width:26px;height:26px;border-radius:8px;align-items:center;justify-content:center;background:var(--rag-tint);color:var(--rag);flex:none}
+.d3i svg{width:14px;height:14px}
+.d3v{display:block;font-size:22px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:12px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.d3v small{font-size:12px;font-weight:700;margin-left:1px}
+.d3l{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:7px}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1377,7 +1387,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.37a";
+var VERSION="v7.38";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2294,13 +2304,39 @@ function emptyStateHTML(){
    So Today no longer has its own Sleep/Steps/Calories tiles. It renders the SAME FUNCTIONS Track
    renders, which means one writer per card, one look, and a fix in either place lands in both. */
 /* Today's body metrics ARE Track's body metrics. Same functions, same card, no second copy. */
+/* ============ ROUND 15, v7.38: THE THREE-UP COMES BACK ============
+   Matthew: the Sleep/Steps/Calories three-up "was my design, it was right, and it got deleted
+   instead of restyled." v7.37 read "these do not fit the house card style" as an instruction to
+   change WHAT Today shows. It was an instruction to change HOW IT LOOKS. Three full-width
+   collapsibles spent about 330px of the first screen saying three numbers he wanted at a glance.
+   So the row is back, and the fix this time is CSS.
+
+   No new component. `.d3` is his own tile class, still in the stylesheet with no caller since
+   v7.37; it is revived and restyled into the card vocabulary rather than replaced: the 26px
+   tinted icon box, the 12px uppercase title in --faint and the --rag tint are lifted straight
+   off the `.dcard` summary, so a tile reads as the head of a card with the drawer taken off.
+   Per his spec it carries ONLY the key stat, in its status colour. The comparison that used to
+   sit under it lives on the full card one tap away, and the colour is the verdict. */
+function dailyTileHTML(o){
+  var has=(o.val!=null&&o.val!=="");
+  return '<button class="d3" data-tone="'+(has?(o.tone||"flat"):"none")+'" onclick="'+o.act+'" aria-label="'+o.label+'">'+
+    '<span class="d3i">'+o.icon+'</span>'+
+    '<span class="d3v num">'+(has?o.val:"&mdash;")+(has&&o.unit?'<small>'+o.unit+'</small>':'')+'</span>'+
+    '<span class="d3l">'+o.label+'</span></button>';
+}
 function todayMetricsHTML(){
   /* v7.37a. The audit caught Weight rendering TWICE on Today: this block added the Track weight
      card while Today already carried its own weight-log drawer directly above. Today keeps its own
      (it is the one with the logging control); this block owns the three passive streams. */
-  return stepsCardHTML()+
-         sleepCardHTML()+
-         (drawerize(calCardHTML(),I.fork,calTone())||"");
+  var sv=sleepVerdict(),tv=stepsVerdict(),cg=calGlance();
+  var s7=sleepStats(7);
+  var tiles=[
+    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),unit:"",tone:sv.tone,act:"show('track')"},
+    {label:"Steps",icon:I.gauge,val:(tv.val!=null?(tv.val/1000).toFixed(1):null),unit:"k",tone:tv.tone,act:"show('track')"},
+    {label:"Calories",icon:I.fork,val:(cg.val!=null?cg.val.toLocaleString():null),unit:"",tone:cg.tone,act:"show('track')"}
+  ];
+  if(!tiles.some(function(t){return t.val!=null;}))return "";
+  return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
 }
 function consistencyHTML(){
   var days=28,moved=0,met=0,planned=0,cells="";
@@ -2380,7 +2416,12 @@ function renderToday(){
   var a=S.anchor[TODAY]||{},rows="",ac=0;
   anchorList().forEach(function(m,i){var on=!!a[i];if(on)ac++;rows+='<button class="arow'+(on?" checked":"")+'" data-i="'+i+'" onclick="toggleAnchor('+i+',this)" aria-pressed="'+on+'"><span class="an">'+m.n+'</span><span class="ad">'+m.d+'</span><span class="chk">'+I.check+'</span></button>';});
   var C=2*Math.PI*13,off=C*(1-ac/anchorList().length);
-  var anchor='<details class="card acard"'+(ac>=anchorList().length?'':' open')+'><summary><span class="asum">Morning anchor</span>'+
+  /* ROUND 15, v7.38, his instruction: the anchor starts CLOSED and opens on press. It used to
+     render open unless every box was ticked, which put a video player, a paragraph and four rows
+     into the middle of Today before he had scrolled, and pushed the passive streams off the first
+     screen. The ring and the count in the summary already say where the morning stands, so the
+     closed card loses no information. */
+  var anchor='<details class="card acard"><summary><span class="asum">Morning anchor</span>'+
     '<span class="aright"><span class="acount">'+ac+' of '+anchorList().length+'</span><span class="chev">'+I.chevD+'</span><span class="miniring"><svg width="30" height="30" viewBox="0 0 34 34"><circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/><circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/></svg></span></span></summary><div class="abody">'+
     '<div class="ksub" style="margin:2px 0 12px">Play the routine, then tick the four off. That is the whole morning.</div>'+
     anchorVidHTML()+rows+
@@ -2397,7 +2438,7 @@ function renderToday(){
        one other exception, because he asked for it directly under that hero. (2026-07-29) */
     anchor+guided+
     todayMetricsHTML()+
-    (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,""))+
+    (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,weightVerdict().tone))+
     drawerize(todayLogHTML(),I.check,"");
 }
 function toggleAnchor(i,btn){
@@ -2438,9 +2479,17 @@ function weightLogCardHTML(){
   var st=weightStats();
   if(!st)return '<div class="card"><h3><span>Weight</span></h3><div class="anote" style="margin-top:2px">No weigh-in yet. One number switches on the whole Track tab.</div><button class="big-start" style="margin-top:12px" onclick="weighSheet()">Log your first weigh-in</button></div>';
   var stale=st.ageDays>=7;
-  return '<div class="card"><h3><span>Weight</span><span class="t">'+(st.ageDays===0?"logged today":st.ageDays===1?"yesterday":st.ageDays+" days ago")+'</span></h3>'+
+  /* ROUND 15, v7.38. Matthew named the Steps card as the reference and this was the card that
+     looked least like it. Two things were wrong and both were styling, not structure. The chip
+     said "yesterday", which is a staleness label: beside "3.4k a day" and "8h 09m a night" it was
+     the one chip answering a different question from its neighbours, so the eye had nothing to
+     compare. And the drawer was passed an empty tone, which is why its icon box stayed grey while
+     Steps carried red through icon, chip and number. The chip is the weight now, with the age
+     demoted into the sentence where it belongs, and the tone comes from weightVerdict(). */
+  return '<div class="card"><h3><span>Weight</span><span class="t">'+st.raw.toFixed(1)+' '+wLbl()+'</span></h3>'+
     '<div class="wlrow"><div><div class="wlnum num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wlsub">avg <b>'+st.trend.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+'</div></div>'+
+    '<div class="wlsub">avg <b>'+st.trend.toFixed(1)+'</b> &middot; '+(st.to>0.3?st.to.toFixed(1)+' '+wLbl()+' to '+st.goal:'at goal')+' &middot; '+
+    (st.ageDays===0?"logged today":st.ageDays===1?"logged yesterday":"logged "+st.ageDays+" days ago")+'</div></div>'+
     '<button class="wbtn accent" onclick="weighSheet()">'+(st.ageDays===0?"Update":"Log today")+'</button></div>'+
     (stale?'<div class="anote" style="margin-top:10px;color:var(--accent);font-weight:600">Nothing logged for '+st.ageDays+' days, so Track is running on old numbers.</div>':'')+
     '<button class="setbtn" style="width:100%;margin-top:10px" onclick="show(\'track\')">See the full trend on Track</button></div>';
@@ -3182,7 +3231,7 @@ function weekHTML(withRing){
   var wnote=totLifts?(doneLifts+' of '+totLifts+' lifts'):'nothing scheduled';
   return (withRing===false?'':ring)+
     collapsible("This week",wnote,'<div class="ksub">Tap a day to view or edit it.</div><div class="weeklist">'+list+'</div>',
-      false,I.cal,(totLifts&&doneLifts>=totLifts)?"good":"");
+      false,I.cal,(totLifts&&doneLifts>=totLifts)?"good":kpiRag("lifts"));
 }
 /* ============ LIFT (strength hub: today + plan + build + library) ============ */
 /* ============ LIFT: THE PROGRAM AND THE MOVEMENTS (Round D) ============
@@ -3602,17 +3651,21 @@ function glanceChip(label,val,sub,tone){
 }
 function trackGlanceHTML(){
   var out="";
+  /* ROUND 15, v7.38. These three chips used to compute their own tones inline, so Track's hero
+     could disagree with Track's own Sleep card about the same nights: the chip judged on the
+     7-night MEAN, the card on the 28-night SHORTFALL COUNT. They agreed on the live store by
+     luck. All three now read the shared verdict writers, so the hero indexes the cards below it
+     instead of grading them a second time. */
   var sl=(typeof sleepStats==="function")?sleepStats(7):null, sl28=(typeof sleepStats==="function")?sleepStats(28):null;
-  out+=glanceChip("Sleep",sl?hrsTxt(sl.mean):null,sl28?("28n "+hrsTxt(sl28.mean)):"7 nights",
-    sl?(sl.mean>=7?"good":sl.mean>=6?"amber":"red"):"none");
-  var w=stepsAvgOver(7),y=stepsAvgOver(365);
-  var pct=(w&&y&&y.avg)?Math.round((w.avg-y.avg)/y.avg*100):null;
-  out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,(pct==null?"7 days":((pct>0?"+":"")+pct+"% vs year")),
-    pct==null?"none":(pct<=-30?"red":pct<=-12?"amber":pct>=12?"good":"flat"));
-  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
-  var avg=logged.length>=3?Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length):null;
-  var maint=maintenanceCals();
-  out+=glanceChip("Calories",avg?avg.toLocaleString():null,(avg&&maint)?((maint-avg>0?(maint-avg)+" under":Math.abs(maint-avg)+" over")):"needs 3 days",calTone()||"none");
+  var slv=sleepVerdict();
+  out+=glanceChip("Sleep",sl?hrsTxt(sl.mean):null,sl28?("28n "+hrsTxt(sl28.mean)):"7 nights",slv.tone||"none");
+  var stv=stepsVerdict(),w=stepsAvgOver(7);
+  out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
+    (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none");
+  var cg=calGlance(),maint=maintenanceCals();
+  out+=glanceChip("Calories",cg.val==null?null:cg.val.toLocaleString(),
+    (cg.val!=null&&maint)?((maint-cg.val>0?(maint-cg.val)+" under":Math.abs(maint-cg.val)+" over")):"needs 3 days",
+    cg.tone||"none");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",
     (rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none");
@@ -3645,7 +3698,7 @@ function trackDashHTML(){
   var wl=lastW(),goal=S.profile.goalLb;
   var body=wl?('<div class="bodyb"><div><div class="bn">'+wl.toFixed(1)+'</div><div class="bu">'+wLbl()+', '+(st&&st.ageDays===0?"today":"latest")+'</div></div>'+
     '<div class="br">'+(goal?('<b>'+Math.abs(wl-goal).toFixed(1)+' '+wLbl()+'</b> to '+goal+'<br>'):'')+
-    (st&&st.rate!=null?((st.rate<=-0.25?"coming off":st.rate<0.15?"holding":"climbing")+', '+st.recent+' weigh-ins in 28 days'):'not enough weigh-ins to read a rate')+'</div></div>')
+    (st&&st.rate!=null?(weightVerdict().word+', '+st.recent+' weigh-ins in 28 days'):'not enough weigh-ins to read a rate')+'</div></div>')
     :'<div class="emptyd">No weight logged. <b>Log a weigh-in</b> and the body band, the protein target and the weight measure all switch on.</div>';
   return '<div class="dash" data-tone="'+tone+'">'+
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
@@ -3798,6 +3851,15 @@ function rag(val,target,tol){
   if(val>=target-0.001)return "good";
   if(val>=target*(1-(tol==null?0.3:tol)))return "amber";
   return "red";
+}
+/* ROUND 15, v7.38. The weekly scorecard already grades miles, lifts, walking and the anchor
+   against a pro-rated target. Cardio's own Miles card and Lift's own This week card were grading
+   nothing and going out grey, so the same week read red on Track and neutral on the tab that owns
+   it. One reader, one verdict: this hands back the scorecard's rag for a key rather than letting
+   each card invent a second rule. */
+function kpiRag(k){
+  var r=kpiRows().filter(function(x){return x.k===k;})[0];
+  return (r&&r.rag&&r.rag!=="none")?r.rag:"";
 }
 function kpiRows(){
   var m=weekMetrics(0),miTarget=plannedMiles(),st=weightStats();
@@ -4304,15 +4366,66 @@ function monthName(m){
 /* The bar axis label is a 20px column with white-space:nowrap, so "August 2025" bleeds across its
    neighbours. Short form only there. */
 function monthShort(m){var p=m.split("-");return monthName(m).slice(0,3)+" '"+p[0].slice(2);}
-function sleepCardHTML(){
-  var k=Object.keys(S.sleep||{});if(!k.length)return "";
-  var w=sleepStats(7),m=sleepStats(28),q=sleepStats(90);
-  if(!w||!m)return "";
+/* ROUND 15, v7.38. THE VERDICT WRITERS.
+   The three-up tiles on Today and the full cards on Track have to agree about whether a stream is
+   good, amber or red. The previous three-up computed its own tone inline, which is the two-writers
+   defect this build keeps producing: the card and the tile could disagree about the same night's
+   sleep and nothing would catch it. So the verdict for each stream is computed ONCE here and both
+   readers call it. Adding a reader is now free; forking a verdict is impossible. */
+function sleepVerdict(){
+  var m=sleepStats(28),w=sleepStats(7);
+  if(!m||!w)return {tone:"",head:"",val:null};
   var head,tone;
   if(m.short>=Math.ceil(m.n*0.6)){head="You are short on sleep most nights.";tone="red";}
   else if(m.short>=Math.ceil(m.n*0.3)){head="Sleep is uneven.";tone="amber";}
   else if(m.mean>=7){head="Sleep is holding.";tone="good";}
   else {head="Sitting just under seven hours.";tone="amber";}
+  return {tone:tone,head:head,val:w.mean};
+}
+function stepsVerdict(){
+  var w=stepsAvgOver(7);
+  if(!w)return {tone:"",head:"",val:null,pct:0,base:null};
+  var base=(stepsAvgOver(365)||stepsAvgOver(90)||stepsAvgOver(28));
+  var pct=base&&base.avg?Math.round((w.avg-base.avg)/base.avg*100):0;
+  var head,tone;
+  if(pct<=-30){head="Your steps have fallen off.";tone="red";}
+  else if(pct<=-12){head="Walking less than usual.";tone="amber";}
+  else if(pct>=12){head="Walking more than usual.";tone="good";}
+  else {head="Holding your usual walking.";tone="flat";}
+  return {tone:tone,head:head,val:w.avg,pct:pct,base:base};
+}
+/* Weight had NO verdict writer at all. Track's hero printed "coming off / holding / climbing" from
+   an inline expression and Today's weight drawer printed nothing, which is why it was the one card
+   on Today with a grey icon and a chip that answered a different question ("yesterday") from every
+   card beside it. The direction that counts as good here is DOWN, because the standing goal is the
+   cut. A reading nobody has taken in a week is amber whatever the rate says, because the card is
+   then describing a past he has left. */
+/* Calories already had ONE tone writer (calTone), which is why it is the only stream here that
+   never drifted. This adds the matching value under the same gate: under three logged days the
+   app refuses to average, so the tile shows a dash rather than a number it does not have. */
+function calGlance(){
+  var logged=calSeries(14).filter(function(d){return d.c>0;});
+  if(logged.length<3)return {val:null,tone:logged.length?"amber":"",n:logged.length};
+  return {val:Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length),tone:calTone(),n:logged.length};
+}
+function weightVerdict(){
+  var st=weightStats();
+  if(!st)return {tone:"",word:"",val:null};
+  var word=(st.rate==null)?"too few weigh-ins":(st.rate<=-0.25?"coming off":st.rate<0.15?"holding":"climbing");
+  var tone;
+  if(st.ageDays>=14)tone="red";
+  else if(st.ageDays>=7)tone="amber";
+  else if(st.rate==null)tone="flat";
+  else if(st.rate<=-0.25)tone="good";
+  else if(st.rate<0.15)tone="flat";
+  else tone="amber";
+  return {tone:tone,word:word,val:st.raw,st:st};
+}
+function sleepCardHTML(){
+  var k=Object.keys(S.sleep||{});if(!k.length)return "";
+  var w=sleepStats(7),m=sleepStats(28),q=sleepStats(90);
+  if(!w||!m)return "";
+  var sv=sleepVerdict(),head=sv.head,tone=sv.tone;
   var line='<b>'+m.short+'</b> of the last '+m.n+' night'+(m.n===1?'':'s')+' came in under seven hours, averaging <b>'+
     hrsTxt(m.mean)+'</b>'+(q?(' against '+hrsTxt(q.mean)+' over ninety days'):'')+'. '+
     (m.sd>1.4?('The spread is the bigger problem: '+hrsTxt(m.min)+' to '+hrsTxt(m.max)+' inside four weeks, and an irregular schedule costs you separately from a short one.')
@@ -4355,13 +4468,7 @@ function stepsCardHTML(){
   var k=Object.keys(S.steps||{});if(!k.length)return "";
   var w=stepsAvgOver(7),m=stepsAvgOver(28),q=stepsAvgOver(90),y=stepsAvgOver(365);
   if(!w)return "";
-  var base=(y||q||m);
-  var pct=base&&base.avg?Math.round((w.avg-base.avg)/base.avg*100):0;
-  var head,tone;
-  if(pct<=-30){head="Your steps have fallen off.";tone="red";}
-  else if(pct<=-12){head="Walking less than usual.";tone="amber";}
-  else if(pct>=12){head="Walking more than usual.";tone="good";}
-  else {head="Holding your usual walking.";tone="flat";}
+  var sv=stepsVerdict(),base=sv.base||(y||q||m),pct=sv.pct,head=sv.head,tone=sv.tone;
   var line='<b>'+w.avg.toLocaleString()+'</b> a day over the last week, against <b>'+base.avg.toLocaleString()+
     '</b> across the last twelve months. '+
     (pct<0?('That is '+Math.abs(pct)+' percent down, and steps are the cheapest movement you own.')
@@ -7543,7 +7650,7 @@ function odoCardHTML(){
   }).join("");
   var foot='<div class="odosplit"></div><div class="odoct">By year</div>'+yrows+
     '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+allRuns().length+' runs.</div>';
-  return collapsible("Miles run",wkMi.toFixed(1)+" mi this week",body+chart+foot,false,I.gauge,"");
+  return collapsible("Miles run",wkMi.toFixed(1)+" mi this week",body+chart+foot,false,I.gauge,kpiRag("miles"));
 }
 
 function renderCardio(){
