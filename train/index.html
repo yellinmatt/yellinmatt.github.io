@@ -1425,7 +1425,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.42";
+var VERSION="v7.42a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3234,16 +3234,20 @@ function renderRun(){
     '<div id="run-count" class="num" style="font-size:34px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums">'+mmss(c.sec)+'</div>'+
     '<div style="height:4px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:14px">'+
       '<i id="run-cuefill" style="display:block;height:4px;width:0;background:'+(c.act==="jog"?"var(--accent)":"var(--good)")+'"></i></div>'+
+    /* Name what the button goes TO. "Skip ahead" could mean skip this bout or skip the session. */
     '<div class="herorow" style="margin-top:14px">'+
       (s.cue>0?'<button class="wbtn" onclick="prevCue()">Back</button>':'')+
-      '<button class="wbtn" onclick="nextCue()">'+(s.cue>=s.cues.length-1?"Log the run":"Skip ahead")+'</button>'+
+      '<button class="wbtn" onclick="nextCue()">'+
+        (s.cue>=s.cues.length-1?"Log the run":("Start "+runActWord(s.cues[s.cue+1].act).toLowerCase()+"ing"))+
+      '</button>'+
     '</div></div>';
   /* The prescription, and WHY it is this one. A generated session he did not choose has to be
      arguable, so every guard that pushed the rung down says so in a line he can read. */
+  /* The title IS the prescription, so the body must not open by restating it. */
   h+='<div class="card"><h3><span>'+esc(p.name)+'</span><span class="t">level '+p.lvl+' &middot; '+esc(p.tier.w)+'</span></h3>'+
     '<div class="ksub" style="margin:0">'+
-      (p.continuous?('<b>'+Math.round(p.runSec/60)+' min</b> continuous'):('<b>'+p.reps+' × '+mmss(p.jog)+'</b> running with '+mmss(p.walk)+' walking between'))+
-      ', '+Math.round(p.runSec/60)+' min on your feet running, about '+Math.round(p.totalSec/60)+' min all in. '+
+      (p.continuous?'Run it unbroken. ':('<b>'+mmss(p.walk)+'</b> walking between each. '))+
+      '<b>'+Math.round(p.runSec/60)+' min</b> on your feet running, about '+Math.round(p.totalSec/60)+' min all in. '+
       (p.target.kind==="effort"
         ?'No pace target: <b>conversational</b> is the target. If you cannot say a full sentence, you are running too hard.'
         :'Hold <b>'+esc(p.target.txt)+' /mi</b>.')+
@@ -3256,12 +3260,17 @@ function renderRun(){
     'Start an <b>Outdoor Run</b> on your watch. It measures distance and pace and lands here on its own. '+
     'This screen only counts the bouts, which is the one thing the watch will not do.</div>'+
     '<div class="herorow" style="margin-top:12px"><button class="wbtn" onclick="finishRun()">Log it by hand now</button></div></div>';
-  h+='<div class="card"><div class="runstruct">'+s.cues.map(function(q,i){
+  /* COLLAPSED, per card law and per his brief: the hero is the only thing open, the full session
+     is a drawer under it. At level 1 this list is twenty-one rows and it buried every other card
+     on the screen when it rendered open. The summary carries the position so he never has to open
+     it to know where he is. */
+  h+=collapsible("The session",(s.cue+1)+" of "+s.cues.length,
+    '<div class="runstruct">'+s.cues.map(function(q,i){
       var st=(i<s.cue)?"done":(i===s.cue?"now":"next");
       return '<div class="rs" onclick="skipToCue('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.5":"")+'">'+
         '<span class="n"'+(st==="now"?' style="background:var(--accent);color:#fff"':(st==="done"?' style="background:var(--good);color:#fff"':''))+'>'+(i+1)+'</span>'+
         '<span style="flex:1">'+runActWord(q.act)+'</span><span style="color:var(--faint);font-size:13px">'+mmss(q.sec)+'</span></div>';
-    }).join("")+'</div></div>';
+    }).join("")+'</div>',false,I.run,"");
   /* Discard is destructive and rare, so it gets the weight of a footnote rather than the weight of
      a primary control. It read as prominently as Log the run in the first build. */
   h+='<div style="text-align:center;margin-top:14px"><button onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;cursor:pointer">Discard this run</button></div>';
