@@ -1178,6 +1178,25 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .yrow .yb i{display:block;height:100%;background:var(--accent);border-radius:4px;opacity:.8}
 .yrow .ym{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 58px;text-align:right;font-variant-numeric:tabular-nums}
 .yrow .yn{font-size:11.5px;color:var(--faint);flex:0 0 52px;text-align:right}
+
+/* v7.25 consistency */
+.conscard{padding:15px 16px 14px}
+.consh{display:flex;align-items:baseline;margin-bottom:10px}
+.consh .const{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.consh .consv{margin-left:auto;font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.consh .consv small{font-size:12px;color:var(--sub);font-weight:700}
+.consgrid{display:grid;grid-template-columns:repeat(28,1fr);gap:3px}
+.consgrid i{display:block;aspect-ratio:1;border-radius:2px;background:var(--surface-2)}
+.consgrid i[data-l="1"]{background:var(--amber);opacity:.75}
+.consgrid i[data-l="2"]{background:var(--good)}
+.consl{font-size:13.5px;line-height:1.55;color:var(--sub);margin-top:11px}
+.consl b{color:var(--ink);font-weight:700}
+.consk{display:flex;align-items:center;gap:14px;margin-top:10px;font-size:11px;font-weight:600;color:var(--faint)}
+.consk span{display:inline-flex;align-items:center;gap:5px}
+.consk i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.consk i[data-l="1"]{background:var(--amber);opacity:.75}
+.consk i[data-l="2"]{background:var(--good)}
+.consk .conss{margin-left:auto;color:var(--accent);font-weight:750}
 </style>
 </head>
 <body>
@@ -1223,7 +1242,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.24a";
+var VERSION="v7.25";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2060,6 +2079,42 @@ function emptyStateHTML(){
     '<div class="foot" style="margin-top:12px">Everything adapts to what you log. Nothing here needs setting up first.</div></div>';
 }
 /* ============ TODAY ============ */
+/* ============ CONSISTENCY, v7.25 (Round 5) ============
+   Matthew on the old "last two weeks" strip: "Seems kinda boring, not sure its earning its value
+   placement." It wasn't. Today already carries a week strip directly above, with the plan icon and
+   the anchor pip per day, so a second fourteen-day grid of the same dots was the same information
+   at lower resolution.
+   What Today genuinely lacked is a horizon LONGER than a week: whether the habit is holding. So the
+   space now answers that in one line and one bar, over 28 days, and it separates the two promises
+   the app actually makes, because they are different habits and conflating them is what made the
+   week strip ambiguous in the first place:
+     MOVED    - did anything at all happen
+     ON PLAN  - did the day's prescribed session happen */
+function consistencyHTML(){
+  var days=28,moved=0,met=0,planned=0,cells="";
+  var d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){
+    var k=keyOf(d),ds=dayStatus(k),isPlan=(ds.plan.type==="lift"||ds.plan.type==="run");
+    if(ds.moved)moved++;
+    if(isPlan){planned++;if(ds.metPlan)met++;}
+    var lvl=ds.metPlan?"2":(ds.moved?"1":"0");
+    cells+='<i data-l="'+lvl+'" title="'+k+'"></i>';
+    d.setDate(d.getDate()+1);
+  }
+  var pct=Math.round(moved/days*100);
+  var streak=computeStreak();
+  var line;
+  if(moved===0)line="Nothing logged in the last four weeks. One day starts it.";
+  else if(pct>=75)line="You have moved on <b>"+moved+"</b> of the last 28 days. That is a habit, not a streak.";
+  else if(pct>=40)line="Moved on <b>"+moved+"</b> of the last 28 days"+(planned?(", and did the prescribed session on <b>"+met+"</b> of "+planned):"")+".";
+  else line="Moved on <b>"+moved+"</b> of the last 28 days. The gap is the thing to close, not the intensity.";
+  return '<div class="card conscard"><div class="consh"><span class="const">Last four weeks</span>'+
+    '<span class="consv num">'+pct+'<small>%</small></span></div>'+
+    '<div class="consgrid">'+cells+'</div>'+
+    '<div class="consl">'+line+'</div>'+
+    '<div class="consk"><span><i data-l="2"></i> did the plan</span><span><i data-l="1"></i> moved</span>'+
+    (streak?'<span class="conss">'+streak+'-day streak</span>':'')+'</div></div>';
+}
 function renderToday(){
   refreshDate();
   var plan=todayPlan(),done=isDone(TODAY),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),runDone=!!S.runs[TODAY]||S.sessions.some(function(s){return s.date===TODAY&&s.type==="run";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
@@ -2129,7 +2184,7 @@ function renderToday(){
        history below them is reference and collapses like everywhere else. The Lift coach is the
        one other exception, because he asked for it directly under that hero. (2026-07-29) */
     anchor+guided+
-    drawerize(heatmapHTML("2w"),I.cal,"")+
+    consistencyHTML()+
     (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,""))+
     drawerize(todayLogHTML(),I.check,"");
 }
