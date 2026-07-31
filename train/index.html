@@ -327,14 +327,20 @@ input,select{border:0;background:none}
 .libdrop[open]>summary{border-bottom:1px solid var(--line)}
 .libdrop .libsearch{margin:12px 18px 4px;width:calc(100% - 36px)}
 .libdrop .sectlbl,.libdrop .libgrid{margin-left:18px;margin-right:18px}
-.libpad{padding:12px 18px 16px}
+.libpad{padding:12px 0 16px}
+.libpad>.ksub{padding:0 18px}
 .libpad.nested{padding:0}
-.libsub{border-top:1px solid var(--line)}
-.libsub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;font-size:13.5px;font-weight:700}
+/* v7.37. The sub-drawers were flush rows sharing one hairline, so an open one bled into the next
+   and the whole shelf read as undifferentiated. Each is a surface now, inset from the card wall the
+   same 18px everything else uses. */
+.libsub{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin:0 18px 9px;overflow:hidden}
+.libsub[open]{background:transparent}
+.libsub[open]>summary{border-bottom:1px solid var(--line)}
+.libsub>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;font-size:13.5px;font-weight:700}
 .libsub>summary::-webkit-details-marker{display:none}
 .libsub .lcount{font-size:11px;font-weight:700;color:var(--faint);background:var(--surface-2);border-radius:7px;padding:3px 8px;flex:none}
 .libsub .lcount.gd{color:var(--good);background:var(--good-tint)}
-.libsub .vrow{padding:0 18px 14px;margin-bottom:0}
+.libsub .vrow{padding:12px 14px;margin-bottom:0}
 .libsub .libsub>summary{padding-left:28px;font-size:12.5px;font-weight:600;color:var(--sub)}
 .libsub .libsub .vrow{padding-left:28px}
 .libnote{padding:2px 14px 10px;font-size:12px;line-height:1.45;color:var(--sub)}
@@ -1013,6 +1019,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .lmr{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:11px 13px;border-bottom:1px solid var(--line)}
 .lmr:last-child{border-bottom:0}
 .lmr.tot{background:var(--surface-2)}
+.lmr.next .lmk,.lmr.next .lmv{color:var(--rag,var(--accent))}
 .lmk{font-size:12.5px;font-weight:600;color:var(--sub)}
 .lmv{font-size:16px;font-weight:800;letter-spacing:-.01em;white-space:nowrap}
 .lmv small{font-size:11px;font-weight:700;color:var(--faint);margin-left:4px}
@@ -1190,6 +1197,17 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .mprop .mpt b{color:var(--good)}
 .mprop[data-d="down"] .mpt b{color:var(--amber)}
 .mprop .mps{font-size:12.5px;color:var(--sub);margin:4px 0 10px;line-height:1.45}
+/* v7.37 Track glance */
+.glance{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
+.gch{background:var(--surface-2);border-radius:12px;padding:10px 11px}
+.gch[data-tone="good"]{--rag:var(--good)}
+.gch[data-tone="amber"]{--rag:var(--amber)}
+.gch[data-tone="red"]{--rag:var(--accent)}
+.gch[data-tone="flat"]{--rag:var(--ink)}
+.gch[data-tone="none"]{--rag:var(--faint)}
+.gcv{display:block;font-size:18px;font-weight:800;letter-spacing:-.03em;color:var(--rag);line-height:1;font-variant-numeric:tabular-nums}
+.gcl{display:block;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:6px}
+.gcs{display:block;font-size:10px;font-weight:600;color:var(--sub);margin-top:3px;line-height:1.3}
 .owalk{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
 .owl{font-size:12.5px;font-weight:600;color:var(--sub)}
 .owv{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums}
@@ -1222,19 +1240,16 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .pzline b{color:var(--ink);font-weight:700}
 /* v7.36 pace-zone rows: a band is a purpose, a pace range and a treadmill speed, so it gets a row
    with room rather than five cells fighting on one line. */
-.pzr2{padding:12px 0;border-top:1px solid var(--line)}
+.pzr2{display:grid;grid-template-columns:11px 1fr auto auto 30px;align-items:center;gap:9px;padding:11px 0;border-top:1px solid var(--line)}
 .pzr2:first-child{border-top:0}
-.pzr2h{display:flex;align-items:baseline;gap:8px}
-.pzr2h .pzd{width:9px;height:9px;border-radius:50%;flex:none;align-self:center}
-.pzr2h .pzn{font-size:14px;font-weight:800;flex:none}
-.pzr2h .pzp{margin-left:auto;font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
-.pzr2h .pzmph{font-size:13.5px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:82px;text-align:right}
-.pzr2h .pzp small,.pzr2h .pzmph small{font-size:10px;font-weight:700;color:var(--faint);margin-left:2px}
-.pzwhy{font-size:12px;line-height:1.45;color:var(--sub);margin:5px 0 0;padding-left:17px}
-.pzr2b{display:flex;align-items:center;gap:10px;margin-top:7px;padding-left:17px}
-.pzr2b .pzb{flex:1;height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden}
-.pzr2b .pzb i{display:block;height:100%;border-radius:3px}
-.pzr2b .pzc{font-size:11px;font-weight:700;color:var(--faint);white-space:nowrap}
+.pzr2.hd{border-top:0;padding:0 0 7px;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
+.pzr2.hd .pzn,.pzr2.hd .pzp,.pzr2.hd .pzmph,.pzr2.hd .pzc{font-size:10px;font-weight:800;color:var(--faint)}
+.pzr2 .pzd{width:9px;height:9px;border-radius:50%}
+.pzr2 .pzn{font-size:13.5px;font-weight:700}
+.pzr2 .pzp{font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.pzr2 .pzmph{font-size:13px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap;min-width:74px;text-align:right}
+.pzr2 .pzmph small{font-size:9.5px;font-weight:700;color:var(--faint);margin-left:3px}
+.pzr2 .pzc{font-size:12px;font-weight:700;color:var(--faint);text-align:right;font-variant-numeric:tabular-nums}
 .pznow{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:baseline;background:var(--surface-2);border-radius:12px;padding:12px 13px;margin:14px 0 4px}
 .pznl{font-size:12px;font-weight:600;color:var(--sub)}
 .pznv{font-size:13.5px;font-weight:800;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
@@ -1362,7 +1377,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.36a";
+var VERSION="v7.37";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2262,62 +2277,28 @@ function emptyStateHTML(){
    week strip ambiguous in the first place:
      MOVED    - did anything at all happen
      ON PLAN  - did the day's prescribed session happen */
-/* ============ ROUND 13, v7.36: THE DAILY THREE ============
-   Matthew proposed replacing the four-week consistency card with a three-up of Sleep, Steps and
-   Calories. I argued with it before building it and came down on his side, with one change.
+/* ============ ROUND 14, v7.37: ONE CARD, ONE WRITER ============
+   Matthew, on the Sleep/Steps/Calories tiles: "they do not match or fit or visually work with the
+   standard cards we usually use." He is right, and the honest answer to his bigger question -
+   why do cards keep coming out wrong - is in the codebase, not in taste.
 
-   FOR: the four-week card answers "is the habit holding", which the week strip directly above it
-   already answers at higher resolution, and it answers it about TRAINING only. Sleep, steps and
-   food are the three things that decide whether the training works, they are the three streams
-   with the best daily coverage in the store (steps 1,831 days, sleep 1,693 nights, nutrition 394),
-   and none of them appeared anywhere on Today. A daily surface should carry what you can still
-   change today.
-   THE CHANGE: each tile shows TODAY against the reader's own recent normal, not a bare number. A
-   step count in isolation means nothing, which is the finding the Steps card was built on; the
-   same is true of a night's sleep and a day's calories. So every tile is a value, a comparison and
-   a status colour, and a tile with no reading says so rather than printing a zero.
-   Tapping any tile goes to Track, where the full card for that stream lives. */
-function dailyTileHTML(o){
-  var has=(o.val!=null);
-  return '<button class="d3" data-tone="'+(has?o.tone:"none")+'" onclick="'+o.act+'">'+
-    '<span class="d3i">'+o.icon+'</span>'+
-    '<span class="d3v num">'+(has?o.val:"&mdash;")+(o.unit?'<small>'+o.unit+'</small>':'')+'</span>'+
-    '<span class="d3l">'+o.label+'</span>'+
-    '<span class="d3s">'+(has?o.sub:o.empty)+'</span></button>';
-}
-function dailyThreeHTML(){
-  var tiles=[];
-  /* SLEEP. Last night, against the seven-hour adult floor. Under three hours is a partial record
-     rather than a bad night, the same rule the sleep card uses; one writer for that judgement. */
-  var sr=(S.sleep||{})[TODAY]||(S.sleep||{})[keyOf(new Date(NOW.getTime()-864e5))];
-  var hrs=sr?(sr.total!=null?sr.total:(sr.asleep!=null?sr.asleep:sr.inBed)):null;
-  if(hrs!=null&&hrs<3)hrs=null;
-  var m28=(typeof sleepStats==="function")?sleepStats(28):null;
-  tiles.push({icon:I.moon,label:"Sleep",unit:"",act:"show('track')",
-    val:hrs!=null?hrsTxt(hrs):null,
-    tone:hrs==null?"none":(hrs>=7?"good":hrs>=6?"amber":"red"),
-    sub:(m28?("28-night average "+hrsTxt(m28.mean)):"last night"),
-    empty:"no reading yet"});
-  /* STEPS. Today against his own 28-day average, because a step count in isolation says nothing. */
-  var st=(S.steps||{})[TODAY],base=(typeof stepsAvgOver==="function")?stepsAvgOver(28):null;
-  var ratio=(st&&base&&base.avg)?st/base.avg:null;
-  tiles.push({icon:I.gauge,label:"Steps",unit:"",act:"show('track')",
-    val:st?((st/1000).toFixed(1)+"k"):null,
-    tone:ratio==null?"none":(ratio>=1.1?"good":ratio>=0.7?"flat":"amber"),
-    sub:(base?("usual "+(base.avg/1000).toFixed(1)+"k a day"):"today"),
-    empty:"nothing recorded today"});
-  /* CALORIES. Today against maintenance, which is the only comparison that means anything while
-     he is cutting. Maintenance is Mifflin-St Jeor with an activity factor derived from his own
-     step record, not a rule of thumb. */
-  var nu=(S.nutrition||{})[TODAY],cal=(nu&&nu.c>0)?Math.round(nu.c):null;
-  var maint=(typeof maintenanceCals==="function")?maintenanceCals():null;
-  var gap=(cal!=null&&maint)?(maint-cal):null;
-  tiles.push({icon:I.fork,label:"Calories",unit:"",act:"calaiSheet()",
-    val:cal!=null?cal.toLocaleString():null,
-    tone:gap==null?"none":(gap>150?"good":gap<-150?"amber":"flat"),
-    sub:(maint?(gap!=null?(gap>0?(gap+" under maintenance"):(Math.abs(gap)+" over maintenance")):("maintenance "+maint.toLocaleString())):"today"),
-    empty:"not logged today"});
-  return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
+   THE CAUSE. There is ONE card standard, `collapsible()`, which renders the `.dcard` he keeps
+   pointing at: icon in a tinted box, uppercase title, coloured chip, disclosure. Every time a new
+   surface was needed I wrote a NEW component instead of composing that one. The count when he asked
+   was twenty-eight bespoke classes (`.d3`, `.prbar`, `.pzr2`, `.lmech`, `.conscard`, `.owalk` and
+   the rest) against a single standard used by twenty-four cards. Each one looked fine beside the
+   card it was copied from and wrong beside everything else, which is exactly the symptom he keeps
+   reporting. The rule from here: a new visual component needs a reason the existing card cannot be
+   composed to do the job, stated in a comment. Otherwise compose.
+
+   So Today no longer has its own Sleep/Steps/Calories tiles. It renders the SAME FUNCTIONS Track
+   renders, which means one writer per card, one look, and a fix in either place lands in both. */
+/* Today's body metrics ARE Track's body metrics. Same functions, same card, no second copy. */
+function todayMetricsHTML(){
+  return drawerize(weightCardHTML(),I.spark,"")+
+         stepsCardHTML()+
+         sleepCardHTML()+
+         (drawerize(calCardHTML(),I.fork,calTone())||"");
 }
 function consistencyHTML(){
   var days=28,moved=0,met=0,planned=0,cells="";
@@ -2413,7 +2394,7 @@ function renderToday(){
        history below them is reference and collapses like everywhere else. The Lift coach is the
        one other exception, because he asked for it directly under that hero. (2026-07-29) */
     anchor+guided+
-    dailyThreeHTML()+
+    todayMetricsHTML()+
     (isFresh()?emptyStateHTML():drawerize(weightLogCardHTML(),I.spark,""))+
     drawerize(todayLogHTML(),I.check,"");
 }
@@ -2850,30 +2831,13 @@ function coachExit(c){
    things only it knows - the exit condition, the deload block, what to do THIS session - live in
    the drawer under the ring, matching how Cardio puts its reading behind the number. */
 function liftLevelDetailHTML(){
-  var L=liftLevel(),st=liftLevelStatus(L),c=coachState(),dl=deloadState();
+  var L=liftLevel(),st=liftLevelStatus(L),dl2=deloadState();
   var rated=S.sessions.filter(function(x){return x.type==="lift"&&typeof x.rpe==="number";}).length;
-  var total=S.sessions.filter(function(x){return x.type==="lift";}).length;
-  var steps=[["red","Back off"],["amber","Hold"],["green","Push"]],rail="";
-  steps.forEach(function(x){var on=(c.k===x[0])||(c.k==="layoff"&&x[0]==="red");
-    rail+='<span class="cstep'+(on?" on":"")+'">'+x[1]+'</span>';});
   var dl=liftDelta(L);
   var inner=liftDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("lift",L)+
-    '<div class="coach" data-k="'+c.k+'" style="padding:0;background:none;border:0;box-shadow:none">'+
-      '<div class="crail">'+rail+'</div>'+
-      '<div class="cd">'+c.d+'</div>'+
-      '<div class="cexit">'+I.arrow+'<span>'+coachExit(c)+'</span></div>'+
-      /* A number out of four told him nothing about where he was in the block. It is a bar now. */
-      '<div class="cblock"><span>Deload block</span><span class="cbv num">'+dl.weeks+' of 4 weeks</span></div>'+
-      '<div class="dlbar"><i style="width:'+Math.round(Math.min(1,(dl.weeks||0)/4)*100)+'%"></i></div>'+
-    '</div>'+
-    (dl.due?'<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>':'')+
-    '<div class="foot" style="margin-top:10px">Weekly tonnage, every completed set counted as weight times reps, on the same curve and the same axis as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does. '+
-    (function(){var lf=S.sessions.filter(function(x){return x.type==="lift";});
-      var meas=lf.filter(function(x){return liftTonnage(x)>0;}).length;
-      if(!lf.length)return "Nothing logged yet.";
-      if(meas===lf.length)return "All "+meas+" session"+(meas===1?" is":"s are")+" measured from real sets rather than assumed from the clock.";
-      return meas+" of "+lf.length+" measured from real sets; the rest fall back to effort times minutes, which is a guess when the effort was never rated.";})()+'</div>';
+    (dl2.due?'<button class="wbtn" style="width:100%;margin-top:11px" onclick="startDeload()">Take a deload week</button>':'')+
+    '<div class="foot" style="margin-top:11px">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>';
   return collapsible("Where the lift level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,levelToneOf(L,dl));
 }
 /* v7.35. Split so the card can ask for the VALUE without parsing its own HTML. The tone and the
@@ -3488,7 +3452,6 @@ function renderLift(){
      the plan the level is about, and had no records or badges at all. */
   h+=cycleHTML();
   h+=liftLevelDetailHTML();
-  h+=sessionLengthHTML();
   h+=movementRows();
   h+=weekHTML(false);
   /* v7.35, his call: badges sit directly above the Library rather than under the hero. They are a
@@ -3628,6 +3591,35 @@ function dataHealthHTML(){
     '<span class="dhn">Sync</span><span class="dhh">'+esc(s.hint)+'</span><span class="dht">'+s.txt+'</span></button>');
   return rows.join("");
 }
+/* v7.37. The Track hero at a glance: sleep, steps, calories, BMI, weekly volume and pace, each a
+   value with its status colour, each a jump to the card that owns it. Built from the SAME readers
+   those cards use, so a number here can never disagree with the number below. */
+function glanceChip(label,val,sub,tone){
+  return '<div class="gch" data-tone="'+(val==null?"none":tone)+'"><span class="gcv num">'+(val==null?"&mdash;":val)+'</span>'+
+    '<span class="gcl">'+label+'</span><span class="gcs">'+(val==null?"no data":sub)+'</span></div>';
+}
+function trackGlanceHTML(){
+  var out="";
+  var sl=(typeof sleepStats==="function")?sleepStats(7):null, sl28=(typeof sleepStats==="function")?sleepStats(28):null;
+  out+=glanceChip("Sleep",sl?hrsTxt(sl.mean):null,sl28?("28n "+hrsTxt(sl28.mean)):"7 nights",
+    sl?(sl.mean>=7?"good":sl.mean>=6?"amber":"red"):"none");
+  var w=stepsAvgOver(7),y=stepsAvgOver(365);
+  var pct=(w&&y&&y.avg)?Math.round((w.avg-y.avg)/y.avg*100):null;
+  out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,(pct==null?"7 days":((pct>0?"+":"")+pct+"% vs year")),
+    pct==null?"none":(pct<=-30?"red":pct<=-12?"amber":pct>=12?"good":"flat"));
+  var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
+  var avg=logged.length>=3?Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length):null;
+  var maint=maintenanceCals();
+  out+=glanceChip("Calories",avg?avg.toLocaleString():null,(avg&&maint)?((maint-avg>0?(maint-avg)+" under":Math.abs(maint-avg)+" over")):"needs 3 days",calTone()||"none");
+  var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
+  out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",
+    (rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none");
+  var bm=bmi();
+  out+=glanceChip("BMI",bm?bm.toFixed(1):null,bm?bmiBand(bm).w:"needs a weigh-in","flat");
+  var m=weekMetrics(0);
+  out+=glanceChip("Miles run",m?m.miles.toFixed(1):null,"this week",(m&&m.miles>0)?"good":"flat");
+  return '<div class="glance">'+out+'</div>';
+}
 function trackDashHTML(){
   var rows=kpiRows(),green=rows.filter(function(r){return r.rag==="good";}).length;
   var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
@@ -3655,8 +3647,12 @@ function trackDashHTML(){
     :'<div class="emptyd">No weight logged. <b>Log a weigh-in</b> and the body band, the protein target and the weight measure all switch on.</div>';
   return '<div class="dash" data-tone="'+tone+'">'+
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
-      '<div class="dact"><button onclick="'+mv.a+'">'+mv.t+'</button>'+
-      '<button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
+      /* v7.37, his call: "start a lift / log a weigh-in" are Today's job. This is the data tab, so
+         the hero carries the day's numbers at a glance instead of two actions that belong elsewhere.
+         Each chip jumps to the card that owns it, so the hero indexes the tab rather than duplicating
+         it. Weigh-in survives as the one WRITE action, because Track is the only place it lives. */
+      trackGlanceHTML()+
+      '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
     '<div class="dband"><div class="bandlbl">This week<span class="bx">'+green+' of '+scored+' green</span></div>'+measureRowsHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Levels</div>'+levelPairHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
@@ -3688,6 +3684,7 @@ function deepHTML(){
       '<div class="emptyd">Cal AI has never imported. <b>Paste a week</b> and calories, the maintenance gap and the implied rate all switch on together.</div>',false,I.fork,"");
   h+=drawerize(bodyTilesHTML(),I.flame,"");
   h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc">4 cards</span></div>';
+  h+=sessionLengthHTML();
   h+=progressHTML();
   h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc">2 cards</span></div>';
   h+=freshnessHTML();
@@ -6315,21 +6312,20 @@ function paceZonesHTML(){
     var c=counts[o.k]||0,pct=n?Math.round(c/n*100):0;
     /* v7.36: the row grew a purpose line and the treadmill speed. Speeds run high-to-low against
        the pace range because a SLOWER pace is a LOWER speed: 11:00/mi is 5.5 mph, 10:30 is 5.7. */
+    /* v7.37. Each band was a heading row, a prose sentence and a bar row: three stacked blocks per
+       zone, four zones, and the card read as a wall. One row, aligned columns, purpose as a short
+       tail rather than its own paragraph. */
     return '<div class="pzr2" data-z="'+o.k+'">'+
-      '<div class="pzr2h"><span class="pzd"></span><span class="pzn">'+o.n+'</span>'+
-      '<span class="pzp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'<small> /mi</small></span>'+
-      '<span class="pzmph num">'+mphTxt(z.hi)+'&ndash;'+mphTxt(z.lo)+'<small> mph</small></span></div>'+
-      '<div class="pzwhy">'+z.why+'</div>'+
-      '<div class="pzr2b"><span class="pzb"><i style="width:'+pct+'%"></i></span>'+
-      '<span class="pzc num">'+c+' run'+(c===1?'':'s')+'</span></div></div>';
+      '<span class="pzd"></span>'+
+      '<span class="pzn">'+o.n+'</span>'+
+      '<span class="pzp num">'+mmss(z.lo)+'&ndash;'+mmss(z.hi)+'</span>'+
+      '<span class="pzmph num">'+mphTxt(z.hi)+'&ndash;'+mphTxt(z.lo)+'<small>mph</small></span>'+
+      '<span class="pzc num">'+c+'</span></div>';
   }).join("");
-  var extra=faster?('<div class="pzr2" data-z="faster">'+
-      '<div class="pzr2h"><span class="pzd"></span><span class="pzn">Faster</span>'+
-      '<span class="pzp num">under '+mmss(zs[0].lo)+'<small> /mi</small></span>'+
-      '<span class="pzmph num">over '+mphTxt(zs[0].lo)+'<small> mph</small></span></div>'+
-      '<div class="pzwhy">Faster than any band here. Fine as a finish, expensive as a habit.</div>'+
-      '<div class="pzr2b"><span class="pzb"><i style="width:'+Math.round(faster/n*100)+'%"></i></span>'+
-      '<span class="pzc num">'+faster+' run'+(faster===1?'':'s')+'</span></div></div>'):"";
+  var extra=faster?('<div class="pzr2" data-z="faster"><span class="pzd"></span><span class="pzn">Faster</span>'+
+      '<span class="pzp num">&lt;'+mmss(zs[0].lo)+'</span>'+
+      '<span class="pzmph num">&gt;'+mphTxt(zs[0].lo)+'<small>mph</small></span>'+
+      '<span class="pzc num">'+faster+'</span></div>'):"";
   return collapsible("Pace zones",(n?(easyish+" of "+n+" easy"):"per mile"),
     '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
     '<div class="pzline">'+line+'</div>'+
@@ -6345,6 +6341,8 @@ function paceZonesHTML(){
         return '<span class="pznl">Where it should sit for base building</span>'+
         '<span class="pznv num">'+mmss(ez.lo)+'&ndash;'+mmss(ez.hi)+' /mi &middot; '+mphTxt(ez.hi)+'&ndash;'+mphTxt(ez.lo)+' mph</span>';})()+
       '</div>'):'')+
+    '<div class="pzr2 hd"><span class="pzd" style="visibility:hidden"></span><span class="pzn">Band</span>'+
+      '<span class="pzp">pace /mi</span><span class="pzmph">treadmill</span><span class="pzc">runs</span></div>'+
     '<div class="pzrows">'+extra+rows+'</div>'+
     '<div class="ksub" style="margin:10px 0 0">Set the treadmill to the mph beside each band. Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
       (paced.length>runs.length?(', of '+paced.length+' on record'):'')+
@@ -6563,7 +6561,6 @@ function badgeList(returnDefs,kind){
      you did it". Best pace, longest run and best week are Track's job. This card is badges only,
      which is the one thing here that is genuinely about achievement rather than measurement. */
   var pct=Math.round(got.length/defs.length*100);
-  var near=defs.filter(function(x){return !x.got;}).sort(function(a,b){return (b.p||0)-(a.p||0);}).slice(0,6);
   /* v7.35. This was a `.libdrop`, a component whose summary is a 14.5px sentence-case title with a
      grey pill and no icon, sitting in a column of `.dcard`s whose summaries are 12px uppercase with
      an icon in a tinted box and a coloured tag. That single structural difference is the whole of
@@ -6573,7 +6570,8 @@ function badgeList(returnDefs,kind){
   return collapsible("Badges",got.length+" of "+defs.length,
     '<div class="bprog"><i style="width:'+pct+'%"></i></div>'+
     '<div class="ksub" style="margin:9px 0 0">'+got.length+' earned, '+(defs.length-got.length)+' to go. The outlined tile in each group is the next one to fall.</div>'+
-    (near.length?('<div class="odoct" style="margin-top:16px">Next to fall</div><div class="badges">'+near.map(function(x){return cell(x,true);}).join("")+'</div>'):"")+
+    /* v7.37, his call: the "Next to fall" strip went. Every group already outlines its own nearest
+       tile, so the strip was the same six badges printed twice on one card. */
     all,
     false,I.trophy,tone);
 }
@@ -7365,33 +7363,23 @@ function levelDeltaHTML(L){
    level card should always say and never did: WHAT THE NEXT LEVEL NEEDS, in the unit he trains in.
    Both tabs share this engine so they can never drift apart again. */
 function levelMechanicsHTML(kind,L){
+  /* v7.37. This card was three paragraphs, a ledger, a callout and a footnote. Matthew: "way too
+     much word, super messy." The mechanism is three numbers and one target, so that is all it is
+     now. Every sentence that survived earns its place by saying something the numbers cannot. */
   var isLift=(kind==="lift");
-  var unit=isLift?"lb a week":"miles a week";
-  var raw=isLift?(L.cwt||0)*1000:(L.cwm||0);      /* lift model carries thousands of lb */
-  var rhythm=L.rhythm||0;
-  var scored=raw*rhythm;
+  var unit=isLift?"lb":"mi";
+  var raw=isLift?(L.cwt||0)*1000:(L.cwm||0);
+  var rhythm=L.rhythm||0, scored=raw*rhythm;
   function fmt(v){return isLift?(v>=1000?(Math.round(v/100)/10)+"k":Math.round(v)+""):(Math.round(v*10)/10)+"";}
-  /* What the next level needs, expressed BACKWARDS through the rhythm multiplier so the number is
-     the one he would have to train, not an internal score he cannot act on. */
-  var needScore=L.hi,needRaw=rhythm>0?(needScore/rhythm)*(isLift?1000:1):null;
-  var gap=(needRaw!=null)?(needRaw-raw):null;
-  var weeksMissed=Math.max(0,Math.round((1-rhythm)*8));
+  var need=rhythm>0?(L.hi/rhythm)*(isLift?1000:1):null;
+  var missed=Math.max(0,Math.round((1-rhythm)*8));
   return '<div class="lmech">'+
-    '<div class="lmr"><span class="lmk">Your weekly '+(isLift?"tonnage":"mileage")+'</span>'+
-      '<span class="lmv num">'+fmt(raw)+'<small> '+unit+'</small></span></div>'+
-    '<div class="lmr"><span class="lmk">Rhythm, last 8 weeks</span>'+
-      '<span class="lmv num">&times;'+rhythm.toFixed(2)+
-      '<small> '+(weeksMissed?(weeksMissed+" week"+(weeksMissed===1?"":"s")+" missed"):"every week")+'</small></span></div>'+
-    '<div class="lmr tot"><span class="lmk">Scores as</span>'+
-      '<span class="lmv num">'+fmt(scored)+'<small> &rarr; Level '+L.lvl+'</small></span></div>'+
+    '<div class="lmr"><span class="lmk">Weekly '+(isLift?"tonnage":"mileage")+'</span><span class="lmv num">'+fmt(raw)+'<small> '+unit+'</small></span></div>'+
+    '<div class="lmr"><span class="lmk">Rhythm</span><span class="lmv num">&times;'+rhythm.toFixed(2)+'<small> '+(missed?(missed+" of 8 wks missed"):"every week")+'</small></span></div>'+
+    '<div class="lmr tot"><span class="lmk">Level '+L.lvl+'</span><span class="lmv num">'+fmt(scored)+'<small> scored</small></span></div>'+
+    (need!=null?('<div class="lmr next"><span class="lmk">Level '+(L.lvl+1)+' needs</span><span class="lmv num">'+fmt(need)+'<small> '+unit+' a week</small></span></div>'):'')+
     '</div>'+
-    (needRaw!=null?('<div class="lnext"><b>Level '+(L.lvl+1)+'</b> needs about <b>'+fmt(needRaw)+' '+unit+
-      '</b> held steady'+(gap>0?(', which is '+fmt(gap)+' more than now'):', which you are already past on volume')+'. '+
-      (rhythm<0.95?('Training every week instead of '+(8-weeksMissed)+' of 8 would get you most of the way there without adding a single '+(isLift?"pound":"mile")+'.'):'')+
-      '</div>'):'')+
-    '<div class="ksub" style="margin-top:10px">Rhythm is how many of the last eight weeks you trained at all, because '+
-    (isLift?'one huge week and then nothing':'fifteen miles in a week and then a month off')+
-    ' is the build-then-abandon pattern, and it has to be worth less than steady work.</div>';
+    (missed?('<div class="ksub" style="margin-top:9px">Training all 8 weeks instead of '+(8-missed)+' closes most of that gap without adding a single '+(isLift?'pound':'mile')+'.</div>'):'');
 }
 /* The tone every level card uses. One writer. */
 function levelToneOf(L,dl){
@@ -7404,9 +7392,8 @@ function levelDetailHTML(){
   var dl=levelDelta(L);
   var inner=levelDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("cardio",L)+
-    (ep?'<div class="anote" style="margin-top:12px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, about '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago, at self-reported easy effort. That is the fitness part, which the level cannot show.</div>':'')+
-    '<div class="foot" style="margin-top:10px">Weekly mileage on an exponentially weighted average that rises over about three weeks and falls over six, so a quiet fortnight bends the level rather than docking you. '+
-    runs.length+' runs, '+mi.toFixed(0)+' miles on record.</div>';
+    (ep?'<div class="ksub" style="margin-top:9px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago. That is fitness, which the level cannot show.</div>':'')+
+    '<div class="foot" style="margin-top:11px">Weekly mileage, rising over about three weeks and falling over six, so a quiet fortnight bends the level rather than docking you. '+runs.length+' runs, '+mi.toFixed(0)+' mi on record.</div>';
   return collapsible("Where the level comes from","Level "+L.lvl,inner+levelHistoryHTML("cardio"),false,I.spark,levelToneOf(L,dl));
 }
 /* Badges are dated records, shown in the order earned; locked ones stay visible as goals. */
@@ -7428,6 +7415,8 @@ var ODOP="m";
    the run total is filtered by the identical test rather than by a second copy of the same date
    arithmetic. Two windows that are meant to be the same window must be one function. */
 function odoWindow(p){
+  if(p==="d"){var dd=new Date(NOW);dd.setDate(dd.getDate()-13);var kk=keyOf(dd);
+    return {test:function(x){return x.date>=kk;},ctx:"Last 14 days"};}
   if(p==="w"){var d=new Date(NOW);d.setDate(d.getDate()-((d.getDay()+6)%7));var k=keyOf(d);
     return {test:function(x){return x.date>=k;},ctx:"This week"};}
   if(p==="m")return {test:function(x){return x.date.slice(0,7)===TODAY.slice(0,7);},ctx:"This month"};
@@ -7466,13 +7455,47 @@ function odoWalkMiles(period){
   });
   return {mi:t,n:n};
 }
+/* v7.37. One series builder for the Miles chart, keyed to the same toggle that drives the numbers
+   above it. */
+function odoSeries(p){
+  var runs=allRuns();
+  function sum(from,to){var t=0;runs.forEach(function(x){if(x.date>=from&&x.date<=to)t+=(x.distanceMi||0);});return t;}
+  var vals=[],i,d;
+  if(p==="d"){
+    d=new Date(NOW);d.setDate(d.getDate()-13);
+    for(i=0;i<14;i++){var k=keyOf(d);vals.push(sum(k,k));d.setDate(d.getDate()+1);}
+    return {vals:vals,label:"Last 14 days",first:"14d ago"};
+  }
+  if(p==="m"){
+    d=new Date(NOW.getFullYear(),NOW.getMonth()-11,1);
+    var lbl=null;
+    for(i=0;i<12;i++){
+      var y=d.getFullYear(),mo=("0"+(d.getMonth()+1)).slice(-2);
+      if(i===0)lbl=monthShort(y+"-"+mo);
+      vals.push(sum(y+"-"+mo+"-01",y+"-"+mo+"-31"));
+      d.setMonth(d.getMonth()+1);
+    }
+    return {vals:vals,label:"Last 12 months",first:lbl};
+  }
+  if(p==="y"||p==="all"){
+    var yr={};runs.forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
+    var ys=Object.keys(yr).sort();
+    if(ys.length<2)return null;
+    return {vals:ys.map(function(y){return yr[y];}),label:"By year",first:ys[0]};
+  }
+  var h=weeklyMiHistory();
+  return {vals:h,label:"Last "+h.length+" weeks",first:h.length+"w ago"};
+}
 function odoCardHTML(){
   var d=odoPeriod(ODOP),rs=d.runs;
   if(!allRuns().length)return "";
   var mi=rs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
   var secs=rs.reduce(function(a,x){return a+(x.durationSec||0);},0);
   var pace=(mi>0&&secs>0)?Math.round(secs/mi):0;
-  var seg=["w","m","y","all"].map(function(k){
+  /* v7.37, his call: a D range, and the chart below now follows the toggle instead of always
+     drawing 12 weeks regardless of what the numbers above it were showing. Two controls that look
+     linked and are not is the same two-writers defect in interaction form. */
+  var seg=["d","w","m","y","all"].map(function(k){
     return '<button class="'+(k===ODOP?"on":"")+'" onclick="setOdo(\''+k+'\')">'+(k==="all"?"All":k.toUpperCase())+'</button>';}).join("");
   /* Matthew's call after seeing it live: a drawer like every other card on this tab, not a
      standing card. That also retires the card-law exception it would otherwise have needed. The
@@ -7497,9 +7520,11 @@ function odoCardHTML(){
      the same thing again; it lives in here, under the numbers it belongs to. */
   var wkMi=odoPeriod("w").runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
   var total=allRuns().reduce(function(a,x){return a+(x.distanceMi||0);},0);
-  var hist=weeklyMiHistory();
-  var chart=(hist.length>1)?('<div class="odosplit"></div><div class="odoct">Last '+hist.length+' weeks</div>'+
-      barBody(hist,function(v){return v.toFixed(1);},"mi")):"";
+  /* The series matches the selected range: D draws 14 days, W draws 12 weeks, M draws 12 months,
+     Y and All draw years. One control, one chart. */
+  var ch=odoSeries(ODOP);
+  var chart=(ch&&ch.vals.length>1)?('<div class="odosplit"></div><div class="odoct">'+ch.label+'</div>'+
+      barBody(ch.vals,function(v){return v.toFixed(1);},"mi",ch.first)):"";
   /* v7.24. "All time" hid the shape of it. Matthew ran a lot two summers ago and little since,
      and a single total says none of that. Years, with the biggest as the scale. */
   var yr={};allRuns().forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
@@ -7580,7 +7605,6 @@ function renderCardio(){
   /* v7.35: this line used to sit BETWEEN the last card and the Library, which is what he meant by
      "why is the tag above library". A footnote belongs at the foot. */
   h+=libraryHTML("cardio");
-  h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   document.getElementById("v-cardio").innerHTML=h;
 }
 
