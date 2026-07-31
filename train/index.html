@@ -1245,7 +1245,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.27";
+var VERSION="v7.27a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2082,14 +2082,17 @@ function ladderHTML(){
     if(done&&above)return '<span class="mpip done back'+(isNext?" next":"")+'" title="'+m+' '+wLbl()+', reached earlier in this run"></span>';
     return '<span class="mpip'+(done?" done":"")+(isNext?" next":"")+'" title="'+m+' '+wLbl()+'"></span>';
   }).join("");
-  var got=lad.filter(function(m){return st.minTrend<=m+0.001;}).length;
-  /* v7.27. The pips say what he has reached in this effort; the footnote says where he is now and
-     when the best of it happened, so a mark earned last year cannot read as this morning. */
+  /* v7.27. The count is what he HOLDS today, not what he has ever touched. Reached-ever was the
+     headline until this pass and it read "5 of 7" at 188.8 lb, which counts two marks he is
+     currently above. Held is the headline; reached is the evidence, and it moves to the footnote
+     with its date so a mark earned in 2024 cannot read as this morning. */
+  var got=lad.filter(function(m){return st.trend<=m+0.001;}).length;
+  var ever=lad.filter(function(m){return st.minTrend<=m+0.001;}).length;
   var foot=lad[lad.length-1]+' '+wLbl()+' goal, in steps of '+(Math.round((lad[0]-lad[1])*10)/10);
-  if(st.minTrendDate&&st.minTrend!=null&&st.trend-st.minTrend>0.6){
+  if(ever>got&&st.minTrendDate){
     var ago=daysBetween(st.minTrendDate,TODAY);
-    var whenW=(ago<45)?(Math.round(ago/7)+" weeks ago"):(ago<330)?(Math.round(ago/30)+" months ago"):("in "+st.minTrendDate.slice(0,4));
-    foot+='. Best this run was '+st.minTrend.toFixed(1)+' '+whenW+', so the near marks are re-earned.';
+    var whenW=(ago<45)?(Math.round(ago/7)+" weeks ago"):(ago<330)?(Math.round(ago/30)+" months ago"):("back in "+st.minTrendDate.slice(0,4));
+    foot+='. You had '+ever+' at your best, '+st.minTrend.toFixed(1)+' '+whenW+', so '+(ever-got)+' '+(ever-got===1?'is':'are')+' to re-earn.';
   }
   return '<div class="mlad"><div class="mladt">Milestones<span>'+got+' of '+lad.length+'</span></div>'+
     '<div class="mladr">'+pips+'</div>'+
