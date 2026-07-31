@@ -1369,6 +1369,10 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .ahow svg{width:16px;height:16px}
 .ahow:active{color:var(--accent)}
 .arow[role="button"]{cursor:pointer}
+/* The dose column is fixed-width so the how-to icons form a straight column.
+   Without it the dose sets its own width, so "x8 clean" pushed one icon 25px
+   left of the three above it and the column read as a mistake. */
+.arow .ad{min-width:62px;text-align:right}
 /* The cue list inside a how-to sheet. */
 .cuelist{margin:12px 0 0;padding:0 0 0 18px;list-style:disc}
 .cuelist li{font-size:14px;line-height:1.55;color:var(--sub);margin-bottom:7px}
@@ -1401,7 +1405,11 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    rule scoped with `>` sailed past it. The chip goes too, because Weight's chip
    restates the same number its hero prints two lines below. */
 .msheet .card>h3>span{display:none}
-.msheet .card>h3{margin-top:0}
+/* With the text hidden, the header's `space-between` threw History to the far
+   left and Log to the far right with a void between them, which reads as two
+   unrelated controls rather than one pair. They group right, where a card's
+   actions belong. */
+.msheet .card>h3{margin-top:0;justify-content:flex-end;gap:6px}
 .msheet .card>h3:empty{display:none}
 .msheet .dbody{padding:0}
 .msheet{margin-top:4px}
@@ -1489,7 +1497,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.45a";
+var VERSION="v7.45b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2383,14 +2391,27 @@ function weightCardHTML(){
     '<div class="pzline">'+sub+'</div>'+
     trendChart()+
     weightWindowRowHTML()+
+    /* `shortDate` drops the year, so an 82-reading history reaching back to 2022
+       rendered as "back to Sat 14", which is a weekday and a number and no
+       information at all. Caught by LOOKING at the shipped sheet. A span of
+       years wants month and year; the weekday was never the useful part. */
     '<div class="foot" style="margin-top:10px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
-      shortDate(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>'+
+      monthYear(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>'+
     milestoneLine(t)+
     ladderHTML()+'</div>';
 }
 /* Average of the readings inside each window, with the count travelling beside
    it, on the same rule as the Steps and Calories rows: an average over two
    weigh-ins and one over twenty are not the same claim. */
+/* "May 2022". The granularity a multi-year span actually wants, and the one
+   format the app lacked: `shortDate` gives a weekday and a day-of-month,
+   `fullDate` gives a day, and neither carries a year. */
+function monthYear(k){
+  var p=String(k||"").split("-");
+  if(p.length<2)return String(k||"");
+  var M=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  return (M[(+p[1])-1]||p[1])+" "+p[0];
+}
 function weightAvgOver(days){
   var t=0,n=0;
   S.weigh.forEach(function(x){if(daysBetween(x.date,TODAY)<=days-1){t+=x.w;n++;}});
