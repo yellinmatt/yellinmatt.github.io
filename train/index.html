@@ -1392,7 +1392,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.38b";
+var VERSION="v7.38c";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3675,8 +3675,12 @@ function trackGlanceHTML(){
   var stv=stepsVerdict(),w=stepsAvgOver(7);
   out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
     (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none");
+  /* The thin-record state renders the same way here as on Today's tile: the coverage IS the stat
+     when there is not enough to average. The first render had this chip grey with a dash while
+     Today's tile said "2 days" in amber, which is one stream speaking twice. */
   var cg=calGlance(),maint=maintenanceCals();
-  out+=glanceChip("Calories",cg.val==null?null:cg.val.toLocaleString(),
+  out+=glanceChip("Calories",
+    cg.val!=null?cg.val.toLocaleString():(cg.n?(cg.n+(cg.n===1?" day":" days")):null),
     (cg.val!=null&&maint)?((maint-cg.val>0?(maint-cg.val)+" under":Math.abs(maint-cg.val)+" over")):"needs 3 days",
     cg.tone||"none");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
