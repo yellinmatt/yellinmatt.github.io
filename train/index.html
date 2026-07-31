@@ -1411,6 +1411,13 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    off because the sheet IS the card now, and the drawer summary is hidden
    because the sheet's h3 already names the subject. */
 .msheet .card,.msheet .dcard{background:transparent;border:0;box-shadow:none;padding:0;margin:0}
+/* Stripping the card padding took the gap between two STACKED cards with it, and
+   Calories is two: the day list, then the verdict. On the shipped sheet "Fri 31
+   · 1,530" sat directly on top of "Holding at maintenance." with no air. This is
+   the third time that seam has broken, and each time the cause was the same
+   shape: a spacing value that belonged to one element being paid for by the
+   one underneath it. The gap belongs between the siblings, so it lives here. */
+.msheet .card+.card{margin-top:14px}
 /* The card's own title is suppressed, drawer or plain card, because the sheet's
    h3 already names the subject. Caught by LOOKING: the Weight popup shipped its
    first draft reading "Weight" in the sheet header and "WEIGHT 191.2 lb" again
@@ -1521,7 +1528,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.46";
+var VERSION="v7.46a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
