@@ -1271,7 +1271,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.33";
+var VERSION="v7.34";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3210,8 +3210,15 @@ function renderLift(){
     liftGuidedBtnHTML(L)+
     '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div>'+
     '</div>';
-  h+=liftLevelDetailHTML();
+  /* ROUND 8, v7.34. Both tabs run the same five sections in the same order, so the shape reads as
+     deliberate rather than as whatever each tab accreted:
+        hero -> records and badges -> plan -> why this level -> detail -> library
+     Lift's plan is the rotation, Cardio's is the pace zones; Lift's detail is the movements,
+     Cardio's is the recent runs. Lift previously opened with "why this level" before it had shown
+     the plan the level is about, and had no records or badges at all. */
+  h+=badgeList(false,"lift");
   h+=cycleHTML();
+  h+=liftLevelDetailHTML();
   h+=movementRows();
   h+=weekHTML(false);
   h+=libraryHTML("lift");
@@ -6034,8 +6041,55 @@ function paceZonesHTML(){
    under "Earned" and again under "Everything", which is the same duplication this app has been
    removing from every other surface all day. One grouped list, earned and locked as states within
    it, and the next one to fall marked rather than given its own duplicate section. */
-var BADGE_ICON={Distance:"gauge","One run":"run",Speed:"bolt",Consistency:"cal",Volume:"chart",Level:"spark",Grit:"flame"};
-function badgeList(){
+var BADGE_ICON={Distance:"gauge","One run":"run",Speed:"bolt",Consistency:"cal",Volume:"chart",Level:"spark",Grit:"flame",Lifting:"dumbbell",Tonnage:"chart",Strength:"bolt"};
+/* v7.34. The lift equivalent of the cardio records, computed once and read by both the badge
+   ladder and the records bar so the two can never disagree. Tonnage is on the SAME basis as
+   `volumeByWeek` (bodyweight reps at an assumed load), which is what feeds the lift level. */
+function liftRecords(){
+  var lifts=S.sessions.filter(function(s){return s.type==="lift";});
+  var bwLb=bwLoadLb(),bestSess=0,bestSessDate=null,bestSet=null;
+  lifts.forEach(function(s){
+    var v=0;
+    (s.entries||[]).forEach(function(en){
+      if(en.unit==="s")return;
+      (en.sets||[]).forEach(function(st){
+        if(!st.completed)return;
+        v+=(en.bw?bwLb:(st.weightLb||0))*(st.reps||0);
+        var ex=LIB[en.exerciseId];
+        if(ex&&!ex.bw&&st.weightLb>0){
+          var e=e1rm(st.weightLb,st.reps||0);
+          if(!bestSet||e>bestSet.e)bestSet={e:e,w:st.weightLb,r:st.reps||0,name:ex.name,date:s.id};
+        }
+      });
+    });
+    if(v>bestSess){bestSess=v;bestSessDate=s.id;}
+  });
+  var wk=volumeByWeek(),bestWk=0,bestWkKey=null;
+  Object.keys(wk).forEach(function(k){if(wk[k]>bestWk){bestWk=wk[k];bestWkKey=k;}});
+  var prIds=Object.keys(LIB).filter(function(id){return prFor(id);});
+  var pats={};prIds.forEach(function(id){if(LIB[id])pats[LIB[id].pattern]=1;});
+  return {count:lifts.length,firstDate:lifts.length?lifts[0].id:null,
+          bestSess:Math.round(bestSess),bestSessDate:bestSessDate,
+          bestWk:Math.round(bestWk),bestWkKey:bestWkKey,
+          bestSet:bestSet,prCount:prIds.length,patCount:Object.keys(pats).length};
+}
+/* ============ RECORDS AND BADGES, v7.34 (Round 8) ============
+   Matthew: the two tabs should have the same shape, and Lift should have the records and badges
+   that only Cardio had.
+
+   What reading his store first changed about the design. He has THREE lift sessions. A four-cell
+   records bar on three sessions is four different ways of writing "the one time you did it", and
+   this app has already shipped that mistake once: the milestone ladder switched itself on before
+   there was anything to show. So the Lift records bar is built from the one thing that IS a real
+   record at n=3 - the per-movement bests, 8 of them, every one a genuine ceiling he has actually
+   touched - and the card SAYS how thin the session record is instead of dressing it up.
+
+   Badges now carry a discipline. Twenty-eight of the thirty-four were running badges sitting on a
+   list that Lift was going to inherit wholesale, which would have given the Lift tab a wall of
+   things it cannot earn. `d:"run"` shows on Cardio, `d:"lift"` on Lift, `d:"both"` on each. The
+   lift ladder is calibrated to his real numbers: his best week is 4,310 lb of tonnage, so the
+   rungs start at 5k rather than at a round number picked in the abstract. */
+function badgeList(returnDefs,kind){
   var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
   var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
   var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
@@ -6047,49 +6101,69 @@ function badgeList(){
     if(best&&r.paceSecPerMi===best&&!bestRun)bestRun=r;
     if(longest&&(r.distanceMi||0)===longest&&!longRun)longRun=r;
   });
-  var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length;
+  var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length,LR=liftRecords();
   /* Was Object.keys(S.done).length, the same stale proxy that made All time read 1 active day
      across 747. Days moved is derived. */
   var moved=activeDayKeys().length,streak=computeStreak();
   var bw=bestWeekEver(),bestWk=bw.mi;
   function firstAt(pred){for(var i=0;i<runs.length;i++)if(pred(runs[i],i))return runs[i].date;return null;}
   var defs=[
-    {g:"Distance",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null,p:Math.min(1,runs.length)},
-    {g:"Distance",n:"25 miles",d:"25 miles banked",got:total>=25,p:total/25},
-    {g:"Distance",n:"50 miles",d:"50 miles banked",got:total>=50,p:total/50},
-    {g:"Distance",n:"100 miles",d:"100 miles banked",got:total>=100,p:total/100},
-    {g:"Distance",n:"250 miles",d:"250 miles banked",got:total>=250,p:total/250},
-    {g:"Distance",n:"500 miles",d:"500 miles banked",got:total>=500,p:total/500},
-    {g:"One run",n:"5K",d:"3.1 in one go",got:longest>=3.1,when:firstAt(function(r){return (r.distanceMi||0)>=3.1;}),p:longest/3.1},
-    {g:"One run",n:"Five miles",d:"5.0 in one go",got:longest>=5,p:longest/5},
-    {g:"One run",n:"10K",d:"6.2 in one go",got:longest>=6.2,p:longest/6.2},
-    {g:"One run",n:"Ten miles",d:"10.0 in one go",got:longest>=10,p:longest/10},
-    {g:"One run",n:"Half",d:"13.1 in one go",got:longest>=13.1,p:longest/13.1},
-    {g:"Speed",n:"Sub 11",d:"A mile under 11:00",got:best>0&&best<660,p:best?660/best:0},
-    {g:"Speed",n:"Sub 10",d:"A mile under 10:00",got:best>0&&best<600,p:best?600/best:0},
-    {g:"Speed",n:"Sub 9",d:"A mile under 9:00",got:best>0&&best<540,p:best?540/best:0},
-    {g:"Speed",n:"Sub 8",d:"A mile under 8:00",got:best>0&&best<480,p:best?480/best:0},
-    {g:"Consistency",n:"Three in a row",d:"3 days moved",got:streak>=3||moved>=3,p:moved/3},
-    {g:"Consistency",n:"A full week",d:"7 day streak",got:streak>=7,p:streak/7},
-    {g:"Consistency",n:"Two weeks",d:"14 day streak",got:streak>=14,p:streak/14},
-    {g:"Consistency",n:"A month",d:"30 day streak",got:streak>=30,p:streak/30},
-    {g:"Consistency",n:"Hundred days",d:"100 days moved",got:moved>=100,p:moved/100},
-    {g:"Volume",n:"Ten runs",d:"10 runs banked",got:runs.length>=10,p:runs.length/10},
-    {g:"Volume",n:"Fifty runs",d:"50 runs banked",got:runs.length>=50,p:runs.length/50},
-    {g:"Volume",n:"Ten lifts",d:"10 sessions",got:lifts>=10,p:lifts/10},
-    {g:"Volume",n:"Fifty lifts",d:"50 sessions",got:lifts>=50,p:lifts/50},
-    {g:"Volume",n:"Big week",d:"10 miles in a week",got:bestWk>=10,p:bestWk/10},
-    {g:"Volume",n:"Bigger week",d:"20 miles in a week",got:bestWk>=20,p:bestWk/20},
-    {g:"Level",n:"Level 3",d:"Reach level 3",got:L.lvl>=3,p:L.lvl/3},
-    {g:"Level",n:"Level 5",d:"Reach level 5",got:L.lvl>=5,p:L.lvl/5},
-    {g:"Level",n:"Level 10",d:"Reach level 10",got:L.lvl>=10,p:L.lvl/10},
-    {g:"Level",n:"Level 15",d:"Reach level 15",got:L.lvl>=15,p:L.lvl/15},
-    {g:"Level",n:"Level 20",d:"Reach level 20",got:L.lvl>=20,p:L.lvl/20},
-    {g:"Grit",n:"Back at it",d:"Return after 14 days off",got:runs.length>=2&&(function(){for(var i=1;i<runs.length;i++)if(daysBetween(runs[i-1].date,runs[i].date)>=14)return true;return false;})(),p:0},
-    {g:"Grit",n:"Never zero",d:"Log a 5-minute minimum day",got:S.sessions.some(function(x){return x.notes==="never-zero";}),p:0},
-    {g:"Grit",n:"Weigh-in habit",d:"10 weigh-ins logged",got:S.weigh.length>=10,p:S.weigh.length/10},
-    {g:"Grit",n:"On the record",d:"25 weigh-ins logged",got:S.weigh.length>=25,p:S.weigh.length/25}
+    {g:"Distance",n:"First mile",disc:"run",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null,p:Math.min(1,runs.length)},
+    {g:"Distance",n:"25 miles",disc:"run",d:"25 miles banked",got:total>=25,p:total/25},
+    {g:"Distance",n:"50 miles",disc:"run",d:"50 miles banked",got:total>=50,p:total/50},
+    {g:"Distance",n:"100 miles",disc:"run",d:"100 miles banked",got:total>=100,p:total/100},
+    {g:"Distance",n:"250 miles",disc:"run",d:"250 miles banked",got:total>=250,p:total/250},
+    {g:"Distance",n:"500 miles",disc:"run",d:"500 miles banked",got:total>=500,p:total/500},
+    {g:"One run",n:"5K",disc:"run",d:"3.1 in one go",got:longest>=3.1,when:firstAt(function(r){return (r.distanceMi||0)>=3.1;}),p:longest/3.1},
+    {g:"One run",n:"Five miles",disc:"run",d:"5.0 in one go",got:longest>=5,p:longest/5},
+    {g:"One run",n:"10K",disc:"run",d:"6.2 in one go",got:longest>=6.2,p:longest/6.2},
+    {g:"One run",n:"Ten miles",disc:"run",d:"10.0 in one go",got:longest>=10,p:longest/10},
+    {g:"One run",n:"Half",disc:"run",d:"13.1 in one go",got:longest>=13.1,p:longest/13.1},
+    {g:"Speed",n:"Sub 11",disc:"run",d:"A mile under 11:00",got:best>0&&best<660,p:best?660/best:0},
+    {g:"Speed",n:"Sub 10",disc:"run",d:"A mile under 10:00",got:best>0&&best<600,p:best?600/best:0},
+    {g:"Speed",n:"Sub 9",disc:"run",d:"A mile under 9:00",got:best>0&&best<540,p:best?540/best:0},
+    {g:"Speed",n:"Sub 8",disc:"run",d:"A mile under 8:00",got:best>0&&best<480,p:best?480/best:0},
+    {g:"Consistency",n:"Three in a row",disc:"both",d:"3 days moved",got:streak>=3||moved>=3,p:moved/3},
+    {g:"Consistency",n:"A full week",disc:"both",d:"7 day streak",got:streak>=7,p:streak/7},
+    {g:"Consistency",n:"Two weeks",disc:"both",d:"14 day streak",got:streak>=14,p:streak/14},
+    {g:"Consistency",n:"A month",disc:"both",d:"30 day streak",got:streak>=30,p:streak/30},
+    {g:"Consistency",n:"Hundred days",disc:"both",d:"100 days moved",got:moved>=100,p:moved/100},
+    {g:"Volume",n:"Ten runs",disc:"run",d:"10 runs banked",got:runs.length>=10,p:runs.length/10},
+    {g:"Volume",n:"Fifty runs",disc:"run",d:"50 runs banked",got:runs.length>=50,p:runs.length/50},
+    {g:"Volume",n:"Ten lifts",disc:"lift",d:"10 sessions",got:lifts>=10,p:lifts/10},
+    {g:"Volume",n:"Fifty lifts",disc:"lift",d:"50 sessions",got:lifts>=50,p:lifts/50},
+    {g:"Volume",n:"Big week",disc:"run",d:"10 miles in a week",got:bestWk>=10,p:bestWk/10},
+    {g:"Volume",n:"Bigger week",disc:"run",d:"20 miles in a week",got:bestWk>=20,p:bestWk/20},
+    {g:"Level",n:"Level 3",disc:"run",d:"Reach level 3",got:L.lvl>=3,p:L.lvl/3},
+    {g:"Level",n:"Level 5",disc:"run",d:"Reach level 5",got:L.lvl>=5,p:L.lvl/5},
+    {g:"Level",n:"Level 10",disc:"run",d:"Reach level 10",got:L.lvl>=10,p:L.lvl/10},
+    {g:"Level",n:"Level 15",disc:"run",d:"Reach level 15",got:L.lvl>=15,p:L.lvl/15},
+    {g:"Level",n:"Level 20",disc:"run",d:"Reach level 20",got:L.lvl>=20,p:L.lvl/20},
+    {g:"Grit",n:"Back at it",disc:"run",d:"Return after 14 days off",got:runs.length>=2&&(function(){for(var i=1;i<runs.length;i++)if(daysBetween(runs[i-1].date,runs[i].date)>=14)return true;return false;})(),p:0},
+    {g:"Grit",n:"Never zero",disc:"both",d:"Log a 5-minute minimum day",got:S.sessions.some(function(x){return x.notes==="never-zero";}),p:0},
+    {g:"Grit",n:"Weigh-in habit",disc:"both",d:"10 weigh-ins logged",got:S.weigh.length>=10,p:S.weigh.length/10},
+    {g:"Grit",n:"On the record",disc:"both",d:"25 weigh-ins logged",got:S.weigh.length>=25,p:S.weigh.length/25},
+    /* v7.34. The lift ladder. Rungs are set against his OWN record rather than round numbers picked
+       in the abstract: his best session is 4,310 lb of tonnage, so 5k in a week is genuinely the
+       next one to fall rather than a distant nothing, and 25k is a season's target. Tonnage counts
+       bodyweight reps at an assumed load, the same basis `volumeByWeek` uses to drive the lift
+       level, so a badge and the level can never disagree about what a week was worth. */
+    {g:"Lifting",n:"First lift",disc:"lift",d:"Log your first session",got:LR.count>=1,when:LR.firstDate,p:Math.min(1,LR.count)},
+    {g:"Lifting",n:"Ten lifts",disc:"lift",d:"10 sessions banked",got:LR.count>=10,p:LR.count/10},
+    {g:"Lifting",n:"Fifty lifts",disc:"lift",d:"50 sessions banked",got:LR.count>=50,p:LR.count/50},
+    {g:"Tonnage",n:"A ton",disc:"lift",d:"2,000 lb in one session",got:LR.bestSess>=2000,when:LR.bestSess>=2000?LR.bestSessDate:null,p:LR.bestSess/2000},
+    {g:"Tonnage",n:"Two tons",disc:"lift",d:"4,000 lb in one session",got:LR.bestSess>=4000,when:LR.bestSess>=4000?LR.bestSessDate:null,p:LR.bestSess/4000},
+    {g:"Tonnage",n:"Five k week",disc:"lift",d:"5,000 lb in a week",got:LR.bestWk>=5000,p:LR.bestWk/5000},
+    {g:"Tonnage",n:"Ten k week",disc:"lift",d:"10,000 lb in a week",got:LR.bestWk>=10000,p:LR.bestWk/10000},
+    {g:"Tonnage",n:"Twenty-five k",disc:"lift",d:"25,000 lb in a week",got:LR.bestWk>=25000,p:LR.bestWk/25000},
+    {g:"Strength",n:"Eight movements",disc:"lift",d:"A best on 8 movements",got:LR.prCount>=8,p:LR.prCount/8},
+    {g:"Strength",n:"Twenty movements",disc:"lift",d:"A best on 20 movements",got:LR.prCount>=20,p:LR.prCount/20},
+    {g:"Strength",n:"Every pattern",disc:"lift",d:"A best in all 8 patterns",got:LR.patCount>=8,p:LR.patCount/8}
   ];
+  /* v7.34. The whole defs table is built regardless, then filtered, because every counter above
+     is cheap and a per-discipline build would have duplicated the ladder. */
+  if(returnDefs)return defs;
+  if(kind)defs=defs.filter(function(x){return x.disc==="both"||x.disc===kind;});
   var got=defs.filter(function(x){return x.got;});
   /* The nearest unearned badge in each group, so "next" is a state on the tile rather than a second
      copy of the tile somewhere else. */
@@ -6126,11 +6200,27 @@ function badgeList(){
     '<div class="prcell"><b class="num">'+(longest?longest.toFixed(1):"--")+'</b><span>longest run</span>'+recWhen(longRun&&longRun.date)+'</div>'+
     '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span>'+recWhen(bw.week)+'</div>'+
     '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span>'+'<em class="prw">now</em>'+'</div></div>';
-  var prBar=window.__prBar;
+  /* The lift records bar. Deliberately NOT four proud numbers on a three-session record: the one
+     thing that is a genuine ceiling at this sample size is the per-movement best, so that leads,
+     and the session count says plainly how thin the rest is. */
+  window.__liftPrBar='<div class="prbar">'+
+    '<div class="prcell"><b class="num">'+(LR.bestSet?(LR.bestSet.w+"x"+LR.bestSet.r):"--")+'</b><span>'+
+      (LR.bestSet?esc(LR.bestSet.name.length>13?LR.bestSet.name.slice(0,12)+"\u2026":LR.bestSet.name):"best set")+'</span>'+recWhen(LR.bestSet&&LR.bestSet.date)+'</div>'+
+    '<div class="prcell"><b class="num">'+(LR.bestSess?(LR.bestSess>=1000?(LR.bestSess/1000).toFixed(1)+"k":LR.bestSess):"--")+'</b><span>best session</span>'+recWhen(LR.bestSessDate)+'</div>'+
+    '<div class="prcell"><b class="num">'+(LR.prCount||"--")+'</b><span>movement bests</span>'+(LR.prCount?'<em class="prw">of '+Object.keys(LIB).length+'</em>':'')+'</div>'+
+    '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span><em class="prw">now</em></div></div>';
   var pct=Math.round(got.length/defs.length*100);
+  /* ONE collapsible, per his round: the records bar, the six nearest badges, then the full ladder.
+     It used to be a bare always-open records card near the hero PLUS a separate badge drawer at the
+     very bottom of the tab, which is the same subject in two places at opposite ends of a screen. */
+  var bar=(kind==="lift")?window.__liftPrBar:window.__prBar;
+  var near=defs.filter(function(x){return !x.got;}).sort(function(a,b){return (b.p||0)-(a.p||0);}).slice(0,6);
+  var thin=(kind==="lift"&&LR.count<5)?('<div class="ksub" style="margin:8px 0 0">Only <b>'+LR.count+'</b> lifting session'+(LR.count===1?'':'s')+' on record, so the session numbers are a starting point rather than a ceiling. The movement bests are real: each one is the most you have actually moved.</div>'):"";
   return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
     '<div class="libpad">'+
-    '<div class="bprog"><i style="width:'+pct+'%"></i></div>'+
+    (bar||"")+thin+
+    (near.length?('<div class="odoct" style="margin-top:14px">Next to fall</div><div class="badges">'+near.map(cell).join("")+'</div>'):"")+
+    '<div class="bprog" style="margin-top:14px"><i style="width:'+pct+'%"></i></div>'+
     '<div class="ksub" style="margin:8px 0 2px">'+got.length+' earned, '+(defs.length-got.length)+' to go. The outlined tile in each group is the next one to fall.</div>'+
     all+'</div></details>';
 }
@@ -7013,13 +7103,14 @@ function renderCardio(){
   /* v7.24. The records were a bare strip under a section label, which read as loose furniture
      between the hero and the Miles card. They are a card of their own now, sitting directly under
      the log buttons where they read as the hero's own footer. */
-  badgeList();
-  h+='<div class="card prcard"><div class="prct">Records</div>'+(window.__prBar||"")+'</div>';
-  h+=odoCardHTML();
-  h+=levelDetailHTML();
-  /* Warm-up sits high on the page, directly after the call to action, because it only works as
-     a prompt if you meet it on the way out the door rather than below the history. */
+  /* ROUND 8, v7.34. Same five sections, same order as Lift:
+        hero -> records and badges -> plan (pace zones) -> why this level -> detail (recent runs)
+     The bare "Records" card that used to sit here and the badge drawer that used to sit at the
+     very bottom of the tab were the same subject at opposite ends of one screen; they are one
+     collapsible now, and it opens with the records bar so nothing is lost by the fold. */
+  h+=badgeList(false,"run");
   h+=paceZonesHTML();
+  h+=levelDetailHTML();
   if(runs.length){
     var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
     var rec=runs.slice(-6).reverse().map(function(r){
@@ -7038,9 +7129,9 @@ function renderCardio(){
   /* The standalone Walk card is gone. "Log a walk" already sits in the hero at the top of this
      tab, beside "Log a run", which is where a logging action belongs. Two entry points for the
      same action on one screen was the duplication flagged twice. */
+  h+=odoCardHTML();
   h+='<div class="foot">This adapts to how often you actually run, not a fixed calendar plan. Every mile easy - base before speed.</div>';
   h+=libraryHTML("cardio");
-  h+=badgeList();
   document.getElementById("v-cardio").innerHTML=h;
 }
 
