@@ -1248,7 +1248,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.28a";
+var VERSION="v7.29";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2695,10 +2695,14 @@ function liftLevelDetailHTML(){
     (dl.due?'<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>':'')+
     '<div class="lstat3"><div class="ls3"><b class="num">'+total+'</b><span>sessions</span></div>'+
     '<div class="ls3"><b class="num">'+Math.round(L.score)+'</b><span>load carried</span></div>'+
-    '<div class="ls3"><b class="num">'+rated+'</b><span>rated</span></div></div>'+
+    '<div class="ls3"><b class="num">'+(Math.round(liftTonnageTotal()/100)/10)+'k</b><span>lb lifted</span></div></div>'+
     '<div class="lstats" style="display:none"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
-    '<div class="foot" style="margin-top:10px">Load is effort multiplied by minutes, the standard measure for lifting, scaled to sit on the same axis as your cardio level. '+
-    (rated<total?('The '+(total-rated)+' session'+(total-rated===1?'':'s')+' you did not rate are priced at effort 7. Rate them and this gets truer.'):'Every session is rated, so this is measured rather than assumed.')+'</div>';
+    '<div class="foot" style="margin-top:10px">Load is <b>tonnage</b>, every completed set counted as weight times reps, scaled to sit on the same axis as your cardio level. '+
+    (function(){var lf=S.sessions.filter(function(x){return x.type==="lift";});
+      var meas=lf.filter(function(x){return liftTonnage(x)>0;}).length;
+      if(!lf.length)return "Nothing logged yet.";
+      if(meas===lf.length)return "All "+meas+" session"+(meas===1?" is":"s are")+" measured from real sets rather than assumed from the clock.";
+      return meas+" of "+lf.length+" measured from real sets; the rest fall back to effort times minutes, which is a guess when the effort was never rated.";})()+'</div>';
   return collapsible("Where the lift level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,st.k==="base"?"warn":"");
 }
 function liftDeltaHTML(L){
@@ -3367,8 +3371,9 @@ function deepHTML(){
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
   h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
       '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">3 cards</span></div>';
+  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">4 cards</span></div>';
   h+=drawerize(weightCardHTML(),I.spark,"");
+  h+=stepsCardHTML();
   /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
      which put a second open card on a tab whose law allows exactly one. */
   h+=drawerize(calCardHTML(),I.fork,"")||collapsible("Calories","not connected",
@@ -3630,9 +3635,24 @@ function calSeries(days){
   return out;
 }
 function maintenanceCals(){var w=lastW();return w?Math.round(w*14):null;}
+/* v7.29. This averaged whatever days happened to carry a number inside a 14-day window and then
+   stated the result as "averaging X a day" with no hint of how thin that was. On the live store
+   the last 28 days hold TWO nutrition entries, so a fortnight's verdict, a maintenance gap and an
+   implied weekly rate were all being computed from two meals. Three or more days, or it says what
+   it has instead of what it thinks. */
 function calCardHTML(){
   var days=calSeries(14),logged=days.filter(function(d){return d.c>0;});
   if(!logged.length)return "";
+  if(logged.length<3){
+    var lastK=Object.keys(S.nutrition||{}).sort().slice(-1)[0];
+    return collapsible("Calories",logged.length+" day"+(logged.length===1?"":"s")+" logged",
+      '<div class="emptyd">Only <b>'+logged.length+'</b> of the last 14 days carry a calorie count'+
+      (lastK?(', the most recent on '+fullDate(lastK)):'')+
+      '. That is too thin to average, so no maintenance gap and no implied rate are shown. '+
+      '<b>Paste a week from Cal AI</b> and the whole card switches on.</div>'+
+      '<button class="sheet-cta ghost" style="margin-top:10px" onclick="calaiSheet()">Paste a week from Cal AI</button>',
+      false,I.fork,"warn");
+  }
   var avg=Math.round(logged.reduce(function(a,d){return a+d.c;},0)/logged.length);
   var maint=maintenanceCals(),gap=maint?(maint-avg):null;
   var vals=days.map(function(d){return d.c;});
@@ -3662,6 +3682,61 @@ function stepsAvg(days){
   days=days||7;var t=0,n=0,dt=new Date(NOW);dt.setDate(dt.getDate()-days+1);
   for(var i=0;i<days;i++){var v=(S.steps||{})[keyOf(dt)];if(v){t+=v;n++;}dt.setDate(dt.getDate()+1);}
   return n?{avg:Math.round(t/n),days:n}:null;
+}
+/* ============ STEPS, v7.29 ============
+   1,831 days of step counts are in the store, unbroken back to July 2021, and the entire rendering
+   of them was ONE TILE showing a seven-day average. That is the largest dataset in the app and the
+   least used, and it was hiding something current and worth knowing: his seven-day average is
+   3,646 against a twelve-month average of 7,333. The steps have halved and nothing said so.
+   The card leads with that comparison, because a step count means nothing in isolation and
+   everything against your own recent normal. */
+function stepsAvgOver(days){
+  var t=0,n=0,d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){var v=(S.steps||{})[keyOf(d)];if(v){t+=v;n++;}d.setDate(d.getDate()+1);}
+  return n?{avg:Math.round(t/n),got:n}:null;
+}
+function weeklyStepsSeries(weeks){
+  weeks=weeks||12;var out=[],d=new Date(NOW);
+  d.setDate(d.getDate()-((d.getDay()+6)%7)-7*(weeks-1));
+  for(var i=0;i<weeks;i++){
+    var t=0,n=0,c=new Date(d);
+    for(var j=0;j<7;j++){var k=keyOf(c);if(k<=TODAY){var v=(S.steps||{})[k];if(v){t+=v;n++;}}c.setDate(c.getDate()+1);}
+    out.push({w:keyOf(d),avg:n?Math.round(t/n):0,days:n});
+    d.setDate(d.getDate()+7);
+  }
+  return out;
+}
+function stepsCardHTML(){
+  var k=Object.keys(S.steps||{});if(!k.length)return "";
+  var w=stepsAvgOver(7),m=stepsAvgOver(28),q=stepsAvgOver(90),y=stepsAvgOver(365);
+  if(!w)return "";
+  var base=(y||q||m);
+  var pct=base&&base.avg?Math.round((w.avg-base.avg)/base.avg*100):0;
+  var head,tone;
+  if(pct<=-30){head="Your steps have fallen off.";tone="red";}
+  else if(pct<=-12){head="Walking less than usual.";tone="amber";}
+  else if(pct>=12){head="Walking more than usual.";tone="good";}
+  else {head="Holding your usual walking.";tone="flat";}
+  var line='<b>'+w.avg.toLocaleString()+'</b> a day over the last week, against <b>'+base.avg.toLocaleString()+
+    '</b> across the last twelve months. '+
+    (pct<0?('That is '+Math.abs(pct)+' percent down, and steps are the cheapest movement you own.')
+          :(pct>0?('That is '+pct+' percent up.'):'Level with your own normal.'));
+  var ser=weeklyStepsSeries(12);
+  var vals=ser.map(function(x){return x.avg;});
+  var labels=ser.map(function(x,i){return (i===ser.length-1)?"now":"";});
+  return collapsible("Steps",(w.avg/1000).toFixed(1)+"k a day",
+    '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
+    '<div class="pzline">'+line+'</div>'+
+    barBody(vals,function(v){return (v/1000).toFixed(1)+"k";},"")+
+    '<div class="odoct" style="margin-top:10px">Daily average by window</div>'+
+    '<div class="lstat3">'+
+      '<div class="ls3"><b class="num">'+(w.avg/1000).toFixed(1)+'k</b><span>7 days</span></div>'+
+      '<div class="ls3"><b class="num">'+(m?(m.avg/1000).toFixed(1):"--")+'k</b><span>28 days</span></div>'+
+      '<div class="ls3"><b class="num">'+(q?(q.avg/1000).toFixed(1):"--")+'k</b><span>90 days</span></div>'+
+    '</div>'+
+    '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' days recorded, back to '+
+    k.slice().sort()[0]+'. Steps are not scored on the weekly card because they are a floor, not a target.</div>',
+    false,I.gauge,tone==="red"?"warn":"");
 }
 function stepsTileHTML(){
   var st=stepsAvg(7);
@@ -4680,6 +4755,8 @@ function settingsSheet(){
   var _di=dataAudit();
   m+=sgroup("Your data",
     snav('Data check',(_di.length?_di.length+' to look at':'all clean'),"closeSheet();dataCheckSheet()")+
+    snav('What data you have',(function(){var s=dataInventory().filter(function(r){return r.stranded;}).length;
+      return s?(s+' with no reader'):'all in use';})(),"closeSheet();dataInventorySheet()")+
     snav('Back up to a file',"","closeSheet();exportSheet()")+
     snav('Restore from a file',"","closeSheet();importSheet()")+
     snav('Import from Apple Health',"","closeSheet();healthSheet()"),
@@ -5227,7 +5304,7 @@ function doHealthXml(){
   if(t.indexOf("<HealthData")<0){toast("That does not look like export.xml.",null);return;}
   var doc;try{doc=new DOMParser().parseFromString(t,"text/xml");}catch(e){toast("Could not read that file.",null);return;}
   if(doc.getElementsByTagName("parsererror").length){toast("That file is not complete XML.",null);return;}
-  var recs=doc.getElementsByTagName("Record"),stepsBy={},nW=0,nS=0;
+  var recs=doc.getElementsByTagName("Record"),stepsBy={},nW=0,nS=0,nDup=0;
   for(var i=0;i<recs.length;i++){
     var r=recs[i],ty=r.getAttribute("type")||"",dt=(r.getAttribute("startDate")||"").slice(0,10),v=parseFloat(r.getAttribute("value"));
     if(!dt||isNaN(v))continue;
@@ -5259,16 +5336,20 @@ function doHealthXml(){
        could import repeatedly under different ids. Content-keyed, matching the Shortcut path. */
     var id=dt2+"-h"+(isRun?"run":(ty2||"act").toLowerCase())+"-"+Math.round(mins*60)+"-"+Math.round(dist*100);
     if(seen[id])continue;
-    seen[id]=true;
-    var rec={id:id,date:dt2,type:isRun?"run":"activity",durationSec:Math.round(mins*60),notes:"Apple Health"};
+    var rec={id:id,date:dt2,type:isRun?"run":"activity",durationSec:Math.round(mins*60),notes:"Apple Health",src:"health-xml"};
     if(isRun){rec.distanceMi=Math.round(dist*10)/10;if(rec.distanceMi>0&&rec.durationSec)rec.paceSecPerMi=Math.round(rec.durationSec/rec.distanceMi);}
     else rec.activity=ty2||"Workout";
+    /* A run that arrives with no distance is cardio, decided at the door rather than by every
+       reader afterwards. Same rule `isRealRun` enforces on the way out. */
+    if(rec.type==="run"&&!(rec.distanceMi>0)){rec.type="activity";rec.activity="Cardio";delete rec.paceSecPerMi;}
+    if(alreadyHave(rec)){nDup++;continue;}
+    seen[id]=true;
     S.sessions.push(rec);S.done[dt2]=true;nA++;
   }
   S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
   S.sessions.sort(function(a,b){return a.date<b.date?-1:1;});
   save();closeSheet();refreshCurrent();
-  toast("Read "+nS+" days of steps, "+nW+" weigh-ins and "+nA+" workouts.",null);
+  toast("Read "+nS+" days of steps, "+nW+" weigh-ins and "+nA+" workouts."+(nDup?" Skipped "+nDup+" already on record.":""),null);
 }
 function healthSheet(){
   openSheet('<div class="grab"></div><h3>Import from Apple Health</h3><div class="ssub">Paste the JSON your Shortcut produces. Pulls in weight and workouts (incl. Apple Watch).</div>'+
@@ -5291,9 +5372,13 @@ function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON
     var isRun=(a.type==="run"||!!a.distanceMi);
     var key=a.date+"-h"+(isRun?"run":String(a.type||"act").toLowerCase())+"-"+Math.round(a.durationSec||0)+"-"+Math.round((a.distanceMi||0)*100);
     if(S.sessions.some(function(x){return x.id===key;}))return;
+    var arec=isRun
+      ?{id:key,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health",src:"health-json"}
+      :{id:key,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health",src:"health-json"};
+    if(arec.type==="run"&&!(arec.distanceMi>0)){arec.type="activity";arec.activity="Cardio";delete arec.paceSecPerMi;}
+    if(alreadyHave(arec))return;
     n++;
-    if(isRun)S.sessions.push({id:key,date:a.date,type:"run",distanceMi:a.distanceMi||0,durationSec:a.durationSec||0,paceSecPerMi:(a.distanceMi&&a.durationSec)?Math.round(a.durationSec/a.distanceMi):0,rpe:"",notes:"Apple Health"});
-    else S.sessions.push({id:key,date:a.date,type:"activity",activity:a.type||"Workout",durationSec:a.durationSec||0,notes:"Apple Health"});
+    S.sessions.push(arec);
     S.done[a.date]=true;});
   S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   save();closeSheet();toast("Imported "+n+" items from Health.",null);show("track");}
@@ -5825,6 +5910,37 @@ function sameRun(a,b){
   if(s1>0&&s2>0&&Math.abs(s1-s2)>Math.max(20,0.02*Math.max(s1,s2)))return false;
   return true;
 }
+/* ============ THE INGEST GATE, v7.29 ============
+   Every importer had the same shape of guard: a `seen[id]` set. That stops ONE importer
+   duplicating itself, which is what the v7.12 content-keyed ids were for, and it is powerless
+   against two importers keying the same real-world session differently. That is exactly how 22
+   runs and 55.6 miles ended up counted twice: the manual import wrote `2024-07-29-run` and Apple
+   Health wrote `2024-07-29-hrun-1829-312` for the same forty-five minutes on the same road.
+   `alreadyHave()` asks the question the id cannot: is this session already in the record, by any
+   name. Every import path calls it before pushing, so the next delivery of overlapping history is
+   absorbed instead of double counted. It is intentionally strict about structure and forgiving
+   about values, because two importers of the same session agree on the day and disagree in the
+   second decimal. */
+function sameActivity(a,b){
+  if(a.date!==b.date)return false;
+  var s1=a.durationSec||0,s2=b.durationSec||0;
+  if(!(s1>0)||!(s2>0))return false;
+  if(Math.abs(s1-s2)>Math.max(60,0.05*Math.max(s1,s2)))return false;
+  var d1=a.distanceMi||0,d2=b.distanceMi||0;
+  if(d1>0&&d2>0&&Math.abs(d1-d2)>Math.max(0.05,0.02*Math.max(d1,d2)))return false;
+  return true;
+}
+function alreadyHave(rec){
+  if(!rec||!rec.date)return false;
+  for(var i=0;i<S.sessions.length;i++){
+    var x=S.sessions[i];
+    if(x.date!==rec.date)continue;
+    if(x.id===rec.id)return true;
+    if(rec.type==="run"&&x.type==="run"&&sameRun(x,rec))return true;
+    if(rec.type!=="lift"&&x.type!=="lift"&&sameActivity(x,rec))return true;
+  }
+  return false;
+}
 function runDupeGroups(){
   var runs=S.sessions.filter(isRealRun).slice().sort(function(a,b){return a.date<b.date?-1:1;});
   var used={},groups=[];
@@ -5912,6 +6028,62 @@ function doRepairRuns(){
   var n=repairRuns();
   closeSheet();
   toast("Reclassified "+n+" as cardio.",null);
+}
+/* ============ THE DATA INVENTORY, v7.29 ============
+   Matthew asked for a data management system, and the thing that was actually missing is not
+   another cleaner, it is VISIBILITY. Three stores were being written by the pipeline and silently
+   dropped by the client for weeks (`body`, `vitals`, `sleep`), and the largest store in the app
+   (1,831 days of steps) was rendered by a single tile. Neither was discoverable from inside the
+   app; both took a console session to find.
+   So every store declares itself here, with what reads it. A store with no reader is not a bug on
+   its own, capture-before-render is a deliberate decision, but an UNDECLARED one is, because it is
+   indistinguishable from a broken pipe. When the next kind of data arrives it shows up in this
+   list as "captured, nothing reads it yet" rather than vanishing. */
+function dataInventory(){
+  function span(obj){
+    var k=Object.keys(obj||{});if(!k.length)return null;
+    k.sort();return {n:k.length,first:k[0],last:k[k.length-1],age:daysBetween(k[k.length-1],TODAY)};
+  }
+  var out=[];
+  var sess=S.sessions||[];
+  var sd=sess.map(function(x){return x.date;}).sort();
+  out.push({n:"Sessions",count:sess.length,first:sd[0]||null,last:sd[sd.length-1]||null,
+    age:sd.length?daysBetween(sd[sd.length-1],TODAY):null,
+    reads:"Today, Lift, Cardio, Track, both levels",
+    detail:(function(){var t={};sess.forEach(function(x){t[x.type]=(t[x.type]||0)+1;});
+      return Object.keys(t).map(function(k){return t[k]+" "+k;}).join(", ");})()});
+  var w=(S.weigh||[]);
+  out.push({n:"Weigh-ins",count:w.length,first:w.length?w[0].date:null,last:w.length?w[w.length-1].date:null,
+    age:w.length?daysBetween(w[w.length-1].date,TODAY):null,reads:"the weight card, milestones, protein target"});
+  [["Steps","steps","the steps card and the daily floor"],
+   ["Nutrition","nutrition","the calories card"],
+   ["Protein days","protein","the weekly scorecard"],
+   ["Body composition","body",null],
+   ["Vitals","vitals",null],
+   ["Sleep","sleep",null]].forEach(function(r){
+     var sp=span(S[r[1]]);
+     out.push({n:r[0],count:sp?sp.n:0,first:sp?sp.first:null,last:sp?sp.last:null,
+       age:sp?sp.age:null,reads:r[2],stranded:!r[2]&&!!(sp&&sp.n)});
+   });
+  return out;
+}
+function dataInventorySheet(){
+  var inv=dataInventory();
+  var rows=inv.map(function(r){
+    var rag=(!r.count)?"":(r.stranded?"amber":(r.age!=null&&r.age>14?"amber":"good"));
+    var sub=r.count?((r.count).toLocaleString()+" record"+(r.count===1?"":"s")+
+      (r.first?(", "+r.first+" to "+r.last):"")+
+      (r.age!=null?(" &middot; "+(r.age===0?"today":r.age+"d old")):"")):"nothing recorded";
+    var who=r.count?(r.reads?("Read by "+r.reads+"."):"<b>Captured, nothing reads it yet.</b>"):"";
+    return '<div class="srow scad" data-rag="'+(rag||"amber")+'"><span class="caddot"></span>'+
+      '<span class="srl">'+r.n+'<span class="snv" style="display:block">'+sub+
+      (r.detail?('<br>'+esc(r.detail)):'')+(who?('<br>'+who):'')+'</span></span></div>';
+  }).join("");
+  var stranded=inv.filter(function(r){return r.stranded;});
+  openSheet('<div class="grab"></div><h3>What data you have</h3>'+
+    '<div class="ssub">Every store in the app, what is in it, and what reads it. A store with no reader is kept on purpose, because a measurement not taken is gone forever while a chart is an afternoon. It is listed so it is a decision rather than a leak.</div>'+
+    sgroup("Stores",rows,(stranded.length?(stranded.length+" captured with no reader yet."):"Everything stored has a reader."))+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
 }
 function dataCheckSheet(){
   var iss=dataAudit();
@@ -6099,11 +6271,48 @@ function easyPaceTrend(){
    against about 50 for a 30-minute easy run, so dividing by four puts the two on ONE scale. That is
    deliberate. Lift level 6 and cardio level 6 should mean roughly the same amount of training. */
 var LIFT_RPE_ASSUMED=7, LIFT_SCALE=4;
+/* ============ LIFT LOAD, REBUILT ON TONNAGE, v7.29 ============
+   The cardio level was rebuilt in v7.26 because effort x minutes measures how tired you got rather
+   than how far you ran. The lift level had exactly the same defect and was never touched: it was
+   `rpe * minutes`, and on the live store BOTH lift sessions are unrated, so the number was
+   `7 * minutes` with the 7 invented. A level derived entirely from an assumed constant and a
+   stopwatch is not a measurement.
+   Meanwhile the real work was sitting right there. Those two sessions carry nine and seven
+   completed sets with weights and reps on every one: 1,515 lb of tonnage in 31 minutes and 540 lb
+   in 14. Tonnage is what a lifting program actually progresses, so tonnage is the spine, exactly as
+   mileage is the spine for cardio.
+   TON_SCALE is set so a session lands near what the old RPE model produced for the same work,
+   which keeps the existing curve, the tiers and the shared axis with cardio all valid: his 1,515 lb
+   session scores 54 against the old model's 54.
+   RPE x minutes survives as the FALLBACK for a session with no set data, so a quick logged workout
+   still counts. Which one was used is reported on the card rather than hidden. */
+var TON_SCALE=28;
+function liftTonnage(s){
+  if(!s||!s.entries)return 0;
+  var t=0,bw=bwLoadLb();
+  s.entries.forEach(function(e){
+    var ex=LIB[e.exerciseId];
+    (e.sets||[]).forEach(function(x){
+      if(!x.completed&&x.on===false)return;
+      if(!x.completed&&!x.on)return;
+      var reps=x.reps||0;if(!reps)return;
+      var w=(x.weightLb!=null)?x.weightLb:(x.w||0);
+      /* A bodyweight rep is real work. It is priced at the same declared fraction of bodyweight the
+         volume chart uses, so the two can never disagree. */
+      if(!(w>0)&&ex&&ex.bw)w=bw;
+      t+=w*reps;
+    });
+  });
+  return t;
+}
+function liftLoadBasis(s){return liftTonnage(s)>0?"tonnage":"effort";}
 function liftLoadFor(s){
   if(!s||s.type!=="lift")return 0;
+  var ton=liftTonnage(s);
+  if(ton>0)return ton/TON_SCALE;                 /* measured work */
   var mins=(s.durationSec||0)/60;if(mins<=0)return 0;
   var rpe=(typeof s.rpe==="number"&&s.rpe>0)?s.rpe:LIFT_RPE_ASSUMED;
-  return (rpe*mins)/LIFT_SCALE;
+  return (rpe*mins)/LIFT_SCALE;                  /* fallback: no set data on this session */
 }
 function liftDailyLoad(){
   var by={};S.sessions.forEach(function(x){if(!x.date||x.type!=="lift")return;by[x.date]=(by[x.date]||0)+liftLoadFor(x);});
@@ -6122,6 +6331,9 @@ function liftSeries(days){
     d.setDate(d.getDate()+1);
   }
   return out;
+}
+function liftTonnageTotal(){
+  var t=0;S.sessions.forEach(function(s){if(s.type==="lift")t+=liftTonnage(s);});return t;
 }
 function liftLevel(){
   var s=liftSeries(180);

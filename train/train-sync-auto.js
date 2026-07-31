@@ -245,6 +245,17 @@
         S.steps = mergeSteps(S.steps, srv.steps);
         S.protein = mergeDone(S.protein, srv.protein);
         S.nutrition = mergeFill(S.nutrition, srv.nutrition);
+        /* Body composition, vitals and sleep are PULL ONLY, deliberately (2026-07-30).
+           Health Auto Export writes them straight into the Worker; no client ever authors one, so
+           there is nothing to push and pushing would be actively dangerous. This client sends the
+           whole object for every key it owns, so a device that had never seen these would push an
+           empty {} and last-write-wins would erase 372 days of vitals and 315 nights of sleep.
+           Pulling them costs nothing and stops the pipeline delivering into a void: before this
+           the Worker captured all three and the client dropped them on hydrate, so the data existed
+           and no surface in the app could reach it. */
+        S.body = mergeFill(S.body || {}, srv.body);
+        S.vitals = mergeFill(S.vitals || {}, srv.vitals);
+        S.sleep = mergeFill(S.sleep || {}, srv.sleep);
         S.runs = mergeFill(S.runs, srv.runs);
         S.override = mergeFill(S.override, srv.override);
         S.daySlot = mergeFill(S.daySlot, srv.daySlot);
@@ -286,6 +297,9 @@
       steps: (srv.steps && typeof srv.steps === "object") ? srv.steps : {},
       protein: (srv.protein && typeof srv.protein === "object") ? srv.protein : {},
       nutrition: (srv.nutrition && typeof srv.nutrition === "object") ? srv.nutrition : {},
+      body: (srv.body && typeof srv.body === "object") ? srv.body : {},
+      vitals: (srv.vitals && typeof srv.vitals === "object") ? srv.vitals : {},
+      sleep: (srv.sleep && typeof srv.sleep === "object") ? srv.sleep : {},
       deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
       planPos: 0, override: {}, activeMode: "plan", genWk: null };
