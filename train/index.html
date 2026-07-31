@@ -1223,7 +1223,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.24";
+var VERSION="v7.24a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -5619,6 +5619,21 @@ function cardioLevel(){
   return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:last.fast,slow:last.slow,
           r:r,delta:score-monthAgo,series:s,sessions:S.sessions.length};
 }
+/* v7.24a. Days since anything with load actually happened, for the tab in question. The level
+   status needs this because the fast/slow ratio ALONE cannot tell "training hard" from "stopped":
+   after a layoff the fast average is still falling toward the slow one, which leaves the ratio
+   high and made the card say "Ramping" to a man who had not run in thirteen days. A ratio is only
+   a direction when there is something recent for it to be a direction OF. */
+function daysSinceLoad(kind){
+  var best=null;
+  S.sessions.forEach(function(x){
+    var isRun=(x.type==="run"||x.distanceMi),isLift=(x.type==="lift");
+    if(kind==="cardio"&&!isRun&&x.type!=="activity")return;
+    if(kind==="lift"&&!isLift)return;
+    if(!best||x.date>best)best=x.date;
+  });
+  return best?daysBetween(best,TODAY):null;
+}
 /* Five words, no red state and no downward arrow. Amber is reserved for the one fixable condition. */
 function levelStatus(L){
   var firstDate=null;S.sessions.forEach(function(x){if(!firstDate||x.date<firstDate)firstDate=x.date;});
@@ -5629,6 +5644,12 @@ function levelStatus(L){
   var wkLoad=lastNLoad(7),base4=lastNLoad(28)/4;
   if(mono>2.0&&base4>0&&wkLoad>base4*1.3&&sessionsIn(7)>=4)
     return {w:"Ramping fast",k:"warn",c:"Every day the same effort this week. Make one of them easy."};
+  /* The layoff gate comes BEFORE the ratio, because the ratio is meaningless without recent work. */
+  var gap=daysSinceLoad("cardio");
+  if(gap!=null&&gap>=21)
+    return {w:"Coming back",k:"flat",c:gap+" days since the last one. The level has been falling since; a couple of runs turns it around."};
+  if(gap!=null&&gap>=10)
+    return {w:"Easing",k:"flat",c:"Nothing logged for "+gap+" days, so this is drifting down. Nothing is lost yet."};
   var r=L.r;
   if(r>=0.20)return {w:"Ramping",k:"good",c:"Doing more than usual. Keep one of them easy."};
   if(r>=0.06)return {w:"Building",k:"good",c:"Up "+Math.max(1,Math.round(L.delta))+" points in the last four weeks."};
