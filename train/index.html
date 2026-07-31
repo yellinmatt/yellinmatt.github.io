@@ -1420,7 +1420,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.40b";
+var VERSION="v7.40c";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -4370,10 +4370,15 @@ function calCardHTML(){
      with the value label, and half a card of empty plot area - a picture that said less than the
      two numbers it was drawing. Below CAL_MIN_CONF the days are listed instead, one row each with
      its gap against maintenance, which is the whole of what a two-day record can honestly show. */
-  var picture;
+  /* The -6px pull on the verdict card below is tuned to barChart's own bottom padding. A list has
+     none, so the same pull ran "Over maintenance." straight into the last day's row. The pull
+     belongs to the chart, not to the card underneath it. */
+  var picture,pull;
   if(v.n>=CAL_MIN_CONF){
+    pull="margin-top:-6px";
     picture=barChart("Calories",v.n+" of the last "+v.windowDays+" days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"");
   } else {
+    pull="";
     /* The header shape is barChart's contract, not decoration: `drawerize()` finds the drawer's
        title and note by matching `<h3><span>..</span><span class="t">..</span></h3>` and returns
        the html UNTOUCHED when it cannot, which is exactly what happened on the first attempt -
@@ -4396,7 +4401,7 @@ function calCardHTML(){
       }).join("")+'</div>';
   }
   return picture+
-    '<div class="card" style="margin-top:-6px">'+
+    '<div class="card" style="'+pull+'">'+
     '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
       (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+
     '<div class="ksub" style="margin:6px 0 0">'+head+' Averaging <b>'+v.avg.toLocaleString()+'</b> a day against a maintenance of <b>'+
