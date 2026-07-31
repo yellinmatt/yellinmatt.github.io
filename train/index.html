@@ -1377,7 +1377,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.37";
+var VERSION="v7.37a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2295,8 +2295,10 @@ function emptyStateHTML(){
    renders, which means one writer per card, one look, and a fix in either place lands in both. */
 /* Today's body metrics ARE Track's body metrics. Same functions, same card, no second copy. */
 function todayMetricsHTML(){
-  return drawerize(weightCardHTML(),I.spark,"")+
-         stepsCardHTML()+
+  /* v7.37a. The audit caught Weight rendering TWICE on Today: this block added the Track weight
+     card while Today already carried its own weight-log drawer directly above. Today keeps its own
+     (it is the one with the logging control); this block owns the three passive streams. */
+  return stepsCardHTML()+
          sleepCardHTML()+
          (drawerize(calCardHTML(),I.fork,calTone())||"");
 }
@@ -6100,7 +6102,10 @@ function todayLogHTML(){
     rows+='<div class="tlog"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button><button class="tx" onclick="delSession(\''+s.id+'\')" aria-label="delete">'+I.trash+'</button></div>';
   });
   var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet.</div>';
-  return '<div class="card"><h3><span>Today\'s log</span>'+(items.length?'<span class="t">'+items.length+' logged</span>':'')+'</h3>'+rows+empty+
+  /* v7.37a. The chip was omitted when nothing was logged, and `drawerize` only builds the
+     chip-and-chevron block when it finds one, so this card stood 56px against every other card's
+     69. A card with nothing in it still has a state; say "nothing yet" rather than say nothing. */
+  return '<div class="card"><h3><span>Today\'s log</span><span class="t">'+(items.length?(items.length+' logged'):'nothing yet')+'</span></h3>'+rows+empty+
     '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log activity</button>'+
     (items.length?'<button class="setbtn rm" style="width:100%;margin-top:8px;padding:11px" onclick="clearToday()">Clear everything logged today</button>':'')+'</div>';
 }
