@@ -1362,7 +1362,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.36";
+var VERSION="v7.36a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -6338,8 +6338,12 @@ function paceZonesHTML(){
       '<span class="pznv num">'+(function(){var ps=runs.map(function(r){return r.paceSecPerMi;}).sort(function(a,b){return a-b;});
         var med=ps.length%2?ps[(ps.length-1)/2]:Math.round((ps[ps.length/2-1]+ps[ps.length/2])/2);
         return mmss(med)+' /mi &middot; '+mphTxt(med)+' mph';})()+'</span>'+
-      '<span class="pznl">Where it should sit for base building</span>'+
-      '<span class="pznv num">'+mmss(zs[0].lo)+'&ndash;'+mmss(zs[0].hi)+' /mi &middot; '+mphTxt(zs[0].hi)+'&ndash;'+mphTxt(zs[0].lo)+' mph</span>'+
+      /* v7.36a. This read `zs[0]`, and `zs` is sorted ASCENDING by pace, so index 0 is the FASTEST
+         band - tempo. The card was telling him base-building pace was 9:05/mi, which is the exact
+         opposite of everything else it says. Look the band up by key; never by sort position. */
+      (function(){var ez=null;zs.forEach(function(x){if(x.k==="easy")ez=x;});if(!ez)return "";
+        return '<span class="pznl">Where it should sit for base building</span>'+
+        '<span class="pznv num">'+mmss(ez.lo)+'&ndash;'+mmss(ez.hi)+' /mi &middot; '+mphTxt(ez.hi)+'&ndash;'+mphTxt(ez.lo)+' mph</span>';})()+
       '</div>'):'')+
     '<div class="pzrows">'+extra+rows+'</div>'+
     '<div class="ksub" style="margin:10px 0 0">Set the treadmill to the mph beside each band. Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
