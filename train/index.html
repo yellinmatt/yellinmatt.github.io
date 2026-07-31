@@ -446,6 +446,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 /* year heatmap */
 .hscroll{overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
 .hgrid{display:flex;gap:3.5px;min-width:min-content}
+.prcell .prw{display:block;font-style:normal;font-size:10px;letter-spacing:.02em;color:var(--faint);margin-top:2px}
+.mpip{position:relative}
+.mpip.back{opacity:.5}
 .hcol{display:flex;flex-direction:column;gap:3.5px}
 .hcol i{width:11px;height:11px;border-radius:2.5px;background:var(--surface-2);display:block}
 .hcol i[data-l="f"]{background:transparent}
@@ -1242,7 +1245,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.26";
+var VERSION="v7.27";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1807,7 +1810,8 @@ function weightStats(){
     rate:chosen?chosen.fit.rate:null,se:use?use.fit.se:null,win:use?use.win:null,
     fitN:use?use.fit.n:0,gate:use?use.gate:null,called:!!chosen,
     inBand:Math.abs(T-goal)<=band,band:band,stale:ageDays>10,
-    minTrend:tr.reduce(function(a,x){return Math.min(a,x.v);},tr[0].v)};
+    minTrend:effortMin(tr).v,minTrendDate:effortMin(tr).date,
+    effortStart:effortStart(),effortHigh:effortHigh(tr)};
 }
 /* Three states about the body, four non-states about the DATA. Never more. */
 function trendState(){
@@ -1838,9 +1842,44 @@ function rateWords(r,se){
    Absolute weights on a round ladder anchored to multiples of the step, so a mark never moves when
    the current weight moves. The step floors at 2 lb because a 1 lb mark sits inside scale noise and
    would be crossed and un-crossed by hydration alone. */
+/* ============ THE EFFORT WINDOW, v7.27 ============
+   The milestone system was anchored on `S.weigh[0]` — the OLDEST weigh-in in the record — and
+   judged "reached" on the minimum trend across all of it. That was harmless on a four-month record
+   and fatal on a five-year one. His first weigh-in is 14 May 2022 at 185 lb and his trend passed
+   through 180 in January 2023, so on the live store the app had quietly marked EVERY milestone
+   down to the 180 goal as reached and `nextMilestone()` returned null. He is 188.8. The one card
+   whose whole job is to show progress toward a goal was switched off, and nothing said so.
+   An effort is the stretch of weigh-ins since the last gap longer than 120 days. It is a FIXED
+   date rather than a rolling window, so a mark reached inside the effort can never un-reach itself
+   as time passes, which was the original design's good idea and is kept.
+   Reached is still judged on the effort's best TREND, never a raw reading, so one dehydrated
+   morning cannot ratchet a mark. But the NEXT mark is judged on where he is TODAY, because a
+   target you passed sixteen months ago and have since regained is not a target. History stays on
+   the card as evidence, underneath. */
+var EFFORT_GAP=120;
+function effortStart(){
+  var w=S.weigh;if(!w||!w.length)return null;
+  for(var i=w.length-1;i>0;i--)if(daysBetween(w[i-1].date,w[i].date)>EFFORT_GAP)return w[i].date;
+  return w[0].date;
+}
+function effortTrend(tr){
+  var es=effortStart();if(!es)return tr;
+  var e=tr.filter(function(x){return x.date>=es;});
+  return e.length?e:tr;
+}
+function effortMin(tr){
+  var e=effortTrend(tr);if(!e.length)return {v:null,date:null};
+  var best=e[0];e.forEach(function(x){if(x.v<best.v)best=x;});
+  return {v:best.v,date:best.date};
+}
+function effortHigh(tr){
+  var e=effortTrend(tr);if(!e.length)return null;
+  var hi=e[0].v;e.forEach(function(x){if(x.v>hi)hi=x.v;});
+  return hi;
+}
 function milestoneLadder(){
   var st=weightStats();if(!st)return [];
-  var start=S.weigh[0].w,goal=st.goal,dist=start-goal;
+  var start=(st.effortHigh!=null?st.effortHigh:S.weigh[0].w),goal=st.goal,dist=start-goal;
   if(dist<=0.5)return [goal];
   var step=[2,2.5,5,10].filter(function(s){return Math.ceil(dist/s)<=8;})[0]||10;
   var out=[],v=Math.floor((start-0.001)/step)*step;
@@ -1852,10 +1891,12 @@ function milestoneLadder(){
    must not ratchet a milestone permanently and leave him "un-losing" a pound he never lost. The set
    of reached marks is monotone, so a milestone can never un-complete, and it needs no stored state,
    so it survives an export, an import and a cleared cache. */
+/* The next mark is the highest one BELOW where the trend sits today. Was: the highest one below
+   the all-time best trend, which on a long record is a mark he passed years ago. */
 function nextMilestone(){
   var st=weightStats();if(!st)return null;
   var lad=milestoneLadder();
-  for(var i=0;i<lad.length;i++)if(st.minTrend>lad[i]+0.001)return lad[i];
+  for(var i=0;i<lad.length;i++)if(st.trend>lad[i]+0.001)return lad[i];
   return null;
 }
 function monthThird(d){var day=d.getDate();return day<=10?"early":day<=20?"mid":"late";}
@@ -2037,13 +2078,22 @@ function ladderHTML(){
   var lad=milestoneLadder();if(lad.length<2)return "";
   var nx=nextMilestone();
   var pips=lad.slice().reverse().map(function(m){
-    var done=(st.minTrend<=m+0.001),isNext=(m===nx);
+    var done=(st.minTrend<=m+0.001),isNext=(m===nx),above=(st.trend>m+0.001);
+    if(done&&above)return '<span class="mpip done back'+(isNext?" next":"")+'" title="'+m+' '+wLbl()+', reached earlier in this run"></span>';
     return '<span class="mpip'+(done?" done":"")+(isNext?" next":"")+'" title="'+m+' '+wLbl()+'"></span>';
   }).join("");
   var got=lad.filter(function(m){return st.minTrend<=m+0.001;}).length;
+  /* v7.27. The pips say what he has reached in this effort; the footnote says where he is now and
+     when the best of it happened, so a mark earned last year cannot read as this morning. */
+  var foot=lad[lad.length-1]+' '+wLbl()+' goal, in steps of '+(Math.round((lad[0]-lad[1])*10)/10);
+  if(st.minTrendDate&&st.minTrend!=null&&st.trend-st.minTrend>0.6){
+    var ago=daysBetween(st.minTrendDate,TODAY);
+    var whenW=(ago<45)?(Math.round(ago/7)+" weeks ago"):(ago<330)?(Math.round(ago/30)+" months ago"):("in "+st.minTrendDate.slice(0,4));
+    foot+='. Best this run was '+st.minTrend.toFixed(1)+' '+whenW+', so the near marks are re-earned.';
+  }
   return '<div class="mlad"><div class="mladt">Milestones<span>'+got+' of '+lad.length+'</span></div>'+
     '<div class="mladr">'+pips+'</div>'+
-    '<div class="mladf">'+lad[lad.length-1]+' '+wLbl()+' goal, in steps of '+(Math.round((lad[0]-lad[1])*10)/10)+'</div></div>';
+    '<div class="mladf">'+foot+'</div></div>';
 }
 
 function isoWeek(k){var p=k.split("-");var d=new Date(Date.UTC(+p[0],+p[1]-1,+p[2]));var day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day+3);var f=new Date(Date.UTC(d.getUTCFullYear(),0,4));var w=1+Math.round(((d-f)/86400000-3+((f.getUTCDay()+6)%7))/7);return d.getUTCFullYear()+"-W"+("0"+w).slice(-2);}
@@ -5254,6 +5304,7 @@ function todayLogHTML(){
   items.forEach(function(s){
     var ic,name,cap;
     if(s.type==="lift"){ic=I.dumbbell;name=(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength");var n=0;s.entries.forEach(function(e){n+=e.sets.length;});cap=n+' sets &middot; '+mmss(s.durationSec)+(s.rpe?' &middot; RPE '+s.rpe:'');}
+    else if(s.type==="run"&&!((s.distanceMi||0)>0)){ic=I.run;name="Cardio";cap=mmss(s.durationSec||0)+' &middot; no distance recorded';}
     else if(s.type==="run"){ic=I.run;name="Easy run";cap=(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+(s.rpe?' &middot; '+esc(s.rpe):'');}
     else{ic=(s.activity==="Walk")?I.run:I.bolt;name=esc(s.activity||"Workout");cap=Math.round((s.durationSec||0)/60)+' min';}
     rows+='<div class="tlog"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button><button class="tx" onclick="delSession(\''+s.id+'\')" aria-label="delete">'+I.trash+'</button></div>';
@@ -5351,11 +5402,34 @@ function saveSessionEdit(id){var s=sessById(id);if(!s){closeSheet();return;}
 /* ============ CARDIO / RUN RAMP ============ */
 function mondayOf(d){var m=new Date(d);m.setDate(d.getDate()-((d.getDay()+6)%7));m.setHours(0,0,0,0);return m;}
 /* Run tab: driven by run COUNT + GAPS, not a calendar ramp (mirrors the lift engine). */
-function allRuns(){return S.sessions.filter(function(s){return s.type==="run";}).sort(function(a,b){return a.date<b.date?-1:1;});}
+/* ============ WHAT COUNTS AS A RUN, v7.27 ============
+   The app already states the rule (v7.26, Data check): a run without a distance is not a run, it
+   is cardio. But the rule only applied if Matthew tapped Reclassify, so until he did, 82 sessions
+   carrying a duration and no distance were still counted as runs by every surface that asked.
+   That is the proxy-signal pattern again in its purest form: a stated rule that the readers do not
+   apply. The rule is enforced HERE now, at read time, so it holds whether or not the stored record
+   has been repaired. `repairRuns()` stays, because fixing the record is still worth doing, but
+   nothing depends on it having been run. */
+function isRealRun(s){return s.type==="run"&&(s.distanceMi||0)>0;}
+function allRuns(){return S.sessions.filter(isRealRun).sort(function(a,b){return a.date<b.date?-1:1;});}
 function runRhythm(){var r=allRuns();if(!r.length)return{total:0,count:0,gap:null,last:null};var count=1;for(var i=r.length-1;i>0;i--){if(daysBetween(r[i-1].date,r[i].date)<7)count++;else break;}return{total:r.length,count:count,gap:daysBetween(r[r.length-1].date,TODAY),last:r[r.length-1].date};}
 function nextRunTarget(){var rr=runRhythm();if(rr.gap!==null&&rr.gap>=7)return{mi:2,restart:true,block:0};var block=Math.floor(rr.count/3);return{mi:Math.min(4.5,2+block*0.5),restart:false,block:block};}
 function runStatusLine(rr){if(rr.total===0)return"No runs logged yet. Start with an easy 2 miles - that is the whole ask.";if(rr.gap===0)return"You ran today. That is the streak working.";if(rr.gap<=3)return"In rhythm - last run "+rr.gap+" day"+(rr.gap===1?"":"s")+" ago. Keep it rolling.";if(rr.gap<=6)return rr.gap+" days since your last run. Get one in before the week resets.";return"It has been "+rr.gap+" days. Restart easy, no penalty - the rhythm repairs itself.";}
-function weeklyMiHistory(){var by={};S.sessions.forEach(function(s){if(s.type!=="run")return;by[isoWeek(s.date)]=(by[isoWeek(s.date)]||0)+(s.distanceMi||0);});var ks=Object.keys(by).sort().slice(-12);return ks.map(function(k){return by[k];});}
+/* v7.27. This took the last twelve weeks THAT CONTAINED A RUN and labelled them "last 12 weeks".
+   On a five-year record with only sixteen running weeks in it, that chart spanned 2025-W30 to
+   2026-W29 — a full year drawn as a quarter. Same defect as the v7.5 volume chart: an index axis
+   standing in for a time axis. Calendar weeks now, empty ones included, because the empty weeks
+   are the story. */
+function weeklyMiHistory(){return weeklyMilesSeries(12).map(function(w){return w.mi;});}
+/* A record is all-time by definition, so it reads the whole series rather than the last twelve. */
+function bestWeekEver(){
+  var first=S.sessions.reduce(function(a,x){return (!a||x.date<a)?x.date:a;},null);
+  if(!first)return {mi:0,week:null};
+  var weeks=Math.max(1,Math.ceil((daysBetween(first,TODAY)+7)/7));
+  var ws=weeklyMilesSeries(Math.min(weeks,600)),best={mi:0,week:null};
+  ws.forEach(function(w){if(w.mi>best.mi)best={mi:w.mi,week:w.w};});
+  return best;
+}
 /* Pace zones as a proportional scale rather than four rows of text: the bar shows where each
    zone sits relative to the others, so "most of your miles live down here" is visible instead
    of merely asserted. Easy is the widest band on purpose. */
@@ -5381,9 +5455,19 @@ var ZONES=[
    Almost everyone runs their easy days too hard, which is what stalls a base and what makes the
    legs unavailable for lifting. So the card leads with the answer, shows the distribution of his
    OWN runs across the zones as the evidence, and only then lists the ranges. */
+/* ============ PACE ZONES, v7.27 ============
+   Two lies, both introduced by the record growing under it. The distribution counted every run
+   ever: 107 runs reaching back to July 2022, of which 18 were inside the last year. So the verdict
+   "mostly easy, which is right" was a verdict about 2024 presented as a reading of him now. And
+   the footnote said the ranges "come from your own recent times, so they move as you do" while
+   ZONES is a hardcoded constant that has never moved. The window is a year, stated on the card,
+   widening only when a year is too thin to say anything; and the footnote now says what the bands
+   actually are. */
 function paceZonesHTML(){
   var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
-  var runs=allRuns().filter(function(r){return r.paceSecPerMi>0;});
+  var paced=allRuns().filter(function(r){return r.paceSecPerMi>0;});
+  var runs=paced.filter(function(r){return daysBetween(r.date,TODAY)<=365;}),winW="the last year";
+  if(runs.length<8){runs=paced;winW="every run on record";}
   function zoneOf(p){
     for(var i=0;i<zs.length;i++)if(p<=zs[i].hi)return zs[i].k;
     return "long";
@@ -5443,7 +5527,9 @@ function paceZonesHTML(){
     '<div class="pzline">'+line+'</div>'+
     (n?'<div class="pzbar">'+bar+'</div>':'')+
     '<div class="pzrows">'+extra+rows+'</div>'+
-    '<div class="ksub" style="margin:10px 0 0">Ranges come from your own recent times, so they move as you do.</div>',
+    '<div class="ksub" style="margin:10px 0 0">Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
+      (paced.length>runs.length?(', of '+paced.length+' on record'):'')+
+      '. The bands are base-building targets, not a percentage of a test result.</div>',
     false,I.bolt,tone==="red"?"warn":"");
 }
 /* ============ RECORDS AND BADGES, v7.11 ============
@@ -5458,11 +5544,19 @@ function badgeList(){
   var runs=allRuns(),total=runs.reduce(function(a,s){return a+(s.distanceMi||0);},0);
   var longest=runs.reduce(function(a,s){return Math.max(a,s.distanceMi||0);},0);
   var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+  /* v7.27. A record with no date reads as a current capability. His best pace is from July 2025
+     and his longest run from July 2024; printed bare beside a live streak they claimed to describe
+     the man standing there now. Every record is dated. */
+  var bestRun=null,longRun=null;
+  runs.forEach(function(r){
+    if(best&&r.paceSecPerMi===best&&!bestRun)bestRun=r;
+    if(longest&&(r.distanceMi||0)===longest&&!longRun)longRun=r;
+  });
   var L=cardioLevel(),lifts=S.sessions.filter(function(x){return x.type==="lift";}).length;
   /* Was Object.keys(S.done).length, the same stale proxy that made All time read 1 active day
      across 747. Days moved is derived. */
   var moved=activeDayKeys().length,streak=computeStreak();
-  var wk=weeklyMiHistory(),bestWk=wk.length?Math.max.apply(null,wk):0;
+  var bw=bestWeekEver(),bestWk=bw.mi;
   function firstAt(pred){for(var i=0;i<runs.length;i++)if(pred(runs[i],i))return runs[i].date;return null;}
   var defs=[
     {g:"Distance",n:"First mile",d:"Log your first run",got:runs.length>=1,when:runs.length?runs[0].date:null,p:Math.min(1,runs.length)},
@@ -5526,11 +5620,17 @@ function badgeList(){
          '<div class="badges">'+gg.map(cell).join("")+'</div>';
   });
   var bestWeek=bestWk;
+  function recWhen(k){
+    if(!k)return "";
+    var ago=daysBetween(k,TODAY);
+    var w=(ago<14)?"this week":(ago<70)?(Math.round(ago/7)+" wks ago"):(ago<330)?(Math.round(ago/30)+" mo ago"):(k.slice(0,4));
+    return '<em class="prw">'+w+'</em>';
+  }
   window.__prBar='<div class="prbar">'+
-    '<div class="prcell"><b class="num">'+(best?mmss(best):"--")+'</b><span>best pace</span></div>'+
-    '<div class="prcell"><b class="num">'+(longest?longest.toFixed(1):"--")+'</b><span>longest run</span></div>'+
-    '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span></div>'+
-    '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span></div></div>';
+    '<div class="prcell"><b class="num">'+(best?mmss(best):"--")+'</b><span>best pace</span>'+recWhen(bestRun&&bestRun.date)+'</div>'+
+    '<div class="prcell"><b class="num">'+(longest?longest.toFixed(1):"--")+'</b><span>longest run</span>'+recWhen(longRun&&longRun.date)+'</div>'+
+    '<div class="prcell"><b class="num">'+(bestWeek?bestWeek.toFixed(1):"--")+'</b><span>best week</span>'+recWhen(bw.week)+'</div>'+
+    '<div class="prcell"><b class="num">'+streak+'</b><span>streak</span>'+'<em class="prw">now</em>'+'</div></div>';
   var prBar=window.__prBar;
   var pct=Math.round(got.length/defs.length*100);
   return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
@@ -5675,8 +5775,83 @@ function levelHistoryHTML(kind){
    count and the load, while contributing nothing to mileage and nothing to pace.
    THE RULE: a run without distance is not a run. It is cardio. It still counts for days moved and
    for load, because he did it, but it is out of mileage, out of pace and out of the running level. */
+/* ============ DUPLICATE RUNS, v7.27 ============
+   Found while verifying the recency pass, by asking why "best week" came back at 30.7 miles when
+   his own running profile records a 15.3 mile peak. Every run in that week was in the store twice:
+   once as `2024-07-29-run`, the manual/Strava import, and once as `2024-07-29-hrun-1829-312`, the
+   same session arriving later from Apple Health. The v7.12 fix made ids CONTENT-KEYED so that
+   re-importing the same file cannot duplicate, and the /hae consolidation merged eight pairs on
+   the first import — but two DIFFERENT importers key the same run differently, and the distances
+   disagree in the second decimal (3.12 vs 3.12, 2.63 vs 2.64), so an exact-match rule never saw
+   them. 22 pairs, 55.6 miles, about a fifth of the all-time total.
+   Matching is deliberately tolerant on values and strict on structure: same DATE, distance within
+   2 percent, duration within 20 seconds. Two real runs on one day survive that test only if they
+   were also the same length at the same pace, which is not a thing that happens.
+   Nothing is merged automatically. A duplicate is reported and repaired on a tap, like the
+   reclassify, because silently deleting a session the user logged is the one thing this app must
+   never do. */
+function sameRun(a,b){
+  if(a.date!==b.date)return false;
+  var d1=a.distanceMi||0,d2=b.distanceMi||0,s1=a.durationSec||0,s2=b.durationSec||0;
+  if(!(d1>0)||!(d2>0))return false;
+  if(Math.abs(d1-d2)>Math.max(0.05,0.02*Math.max(d1,d2)))return false;
+  if(s1>0&&s2>0&&Math.abs(s1-s2)>Math.max(20,0.02*Math.max(s1,s2)))return false;
+  return true;
+}
+function runDupeGroups(){
+  var runs=S.sessions.filter(isRealRun).slice().sort(function(a,b){return a.date<b.date?-1:1;});
+  var used={},groups=[];
+  for(var i=0;i<runs.length;i++){
+    if(used[runs[i].id])continue;
+    var g=[runs[i]];used[runs[i].id]=1;
+    for(var j=i+1;j<runs.length;j++){
+      if(runs[j].date>runs[i].date)break;
+      if(used[runs[j].id]||!sameRun(runs[i],runs[j]))continue;
+      g.push(runs[j]);used[runs[j].id]=1;
+    }
+    if(g.length>1)groups.push(g);
+  }
+  return groups;
+}
+/* Keep the device recording: it measured the distance rather than being told it. The manual copy
+   is the only one carrying a self-reported effort, so that rides across before it goes. */
+function pickKeeper(g){
+  var dev=g.filter(function(r){return /-hrun-|-hk-|-health-/.test(String(r.id));});
+  return dev.length?dev[0]:g[0];
+}
+function mergeDupeRuns(){
+  var groups=runDupeGroups(),n=0;
+  groups.forEach(function(g){
+    var keep=pickKeeper(g);
+    g.forEach(function(r){
+      if(r===keep)return;
+      if(!keep.rpe&&r.rpe)keep.rpe=r.rpe;
+      if(r.notes&&(keep.notes||"").indexOf(r.notes)<0)keep.notes=(keep.notes?keep.notes+" \u00b7 ":"")+r.notes;
+      var idx=S.sessions.indexOf(r);
+      if(idx>=0)S.sessions.splice(idx,1);
+      tomb(r.id);                    /* without this the next pull puts it straight back */
+      n++;
+    });
+    keep.notes=(keep.notes?keep.notes+" \u00b7 ":"")+"merged duplicate import";
+    S.runs[keep.date]={dist:keep.distanceMi,time:mmss(keep.durationSec||0),
+      pace:keep.paceSecPerMi?mmss(keep.paceSecPerMi):"--",rpe:keep.rpe||""};
+  });
+  if(n){invalidateDayIndex();save();refreshCurrent();}
+  return n;
+}
+function doMergeDupes(){
+  var n=mergeDupeRuns();
+  closeSheet();
+  toast("Merged "+n+" duplicate run"+(n===1?"":"s")+".",null);
+}
 function dataAudit(){
   var issues=[];
+  runDupeGroups().forEach(function(g){
+    var extra=g.length-1,mi=0;
+    g.forEach(function(r,i){if(i)mi+=r.distanceMi||0;});
+    issues.push({id:g[0].id,date:g[0].date,kind:"duplicate-run",fix:"merge",
+      say:g[0].distanceMi.toFixed(2)+" mi logged "+g.length+" times, "+mi.toFixed(2)+" mi counted twice"});
+  });
   S.sessions.forEach(function(r,i){
     var d=r.distanceMi||0,sec=r.durationSec||0;
     if(r.type==="run"){
@@ -5714,13 +5889,16 @@ function doRepairRuns(){
 function dataCheckSheet(){
   var iss=dataAudit();
   var fixable=iss.filter(function(x){return x.fix==="reclassify";});
+  var dupes=iss.filter(function(x){return x.fix==="merge";});
+  var dupeMi=runDupeGroups().reduce(function(a,g){var s=0;for(var i=1;i<g.length;i++)s+=g[i].distanceMi||0;return a+s;},0);
   var rows=iss.length?iss.map(function(x){
     return '<div class="srow scad" data-rag="'+(x.fix==="reclassify"?"amber":"red")+'"><span class="caddot"></span>'+
       '<span class="srl">'+fullDate(x.date)+'<span class="snv" style="display:block">'+esc(x.say)+'</span></span></div>';
   }).join(""):'<div class="srow"><span class="srl" style="color:var(--sub)">Everything checks out.</span></div>';
   openSheet('<div class="grab"></div><h3>Data check</h3>'+
-    '<div class="ssub">'+S.sessions.length+' sessions checked. A run without a distance is not a run; it becomes cardio, keeps its time, and stops counting toward mileage and pace.</div>'+
+    '<div class="ssub">'+S.sessions.length+' sessions checked. A run without a distance is not a run; it becomes cardio, keeps its time, and stops counting toward mileage and pace. A run that two importers both delivered is one run; merging keeps the device recording and its effort rating.</div>'+
     sgroup("Found",rows,iss.length?(iss.length+" to look at."):"Nothing to fix.")+
+    (dupes.length?'<button class="sheet-cta" onclick="doMergeDupes()">Merge '+dupes.length+' duplicate run'+(dupes.length===1?'':'s')+' &middot; '+dupeMi.toFixed(1)+' mi</button>':'')+
     (fixable.length?'<button class="sheet-cta" onclick="doRepairRuns()">Reclassify '+fixable.length+' as cardio</button>':'')+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
 }
@@ -6015,7 +6193,10 @@ function levelDetailHTML(){
    tracked uppercase micro-labels, which is exactly what made it read as clutter.
    Avg pace is total time over total distance, NOT the mean of the per-run paces: on his record
    those differ by forty seconds a mile, and the aggregate is the true one. */
-var ODOP="all";
+/* v7.27. Defaulted to "All time", so the Miles card opened on a five-year total — the least
+   actionable number it holds. It opens on the month; All time is one tap and the by-year rows
+   below it were always the better history anyway. */
+var ODOP="m";
 function odoPeriod(p){
   var r=allRuns();
   if(p==="w"){var d=new Date(NOW);d.setDate(d.getDate()-((d.getDay()+6)%7));var k=keyOf(d);
