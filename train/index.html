@@ -721,8 +721,12 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard.rpt>summary .rk{grid-area:k;display:flex;align-items:flex-end;min-width:0;height:20px}
 .dcard.rpt>summary .rs{grid-area:s;font-size:11.5px;font-weight:600;color:var(--sub);white-space:nowrap;
   overflow:hidden;text-overflow:ellipsis;text-align:right;font-variant-numeric:tabular-nums}
-.spk{display:flex;align-items:flex-end;gap:2px;height:20px;width:100%;max-width:190px}
-.spk i{flex:1;min-width:2px;background:var(--line-2);border-radius:1px;display:block}
+/* Fixed bar width, not flex. Capping the count at fourteen was only half the fix: a seven-point
+   series stretched to fill the same track drew bars twice as wide as a fourteen-point one, so the
+   Calories strip read as a different chart from the Sleep strip directly above it. A short series
+   draws a SHORT strip now, which is also the honest picture of having less to plot. */
+.spk{display:flex;align-items:flex-end;gap:2px;height:20px;max-width:100%}
+.spk i{width:12px;flex:none;background:var(--line-2);border-radius:1px;display:block}
 .spk i.on{background:var(--rag,var(--ink))}
 /* generic collapsible card */
 .dcard{padding:0}
@@ -1416,7 +1420,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.39a";
+var VERSION="v7.39b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
