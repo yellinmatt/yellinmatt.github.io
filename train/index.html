@@ -1248,7 +1248,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.29";
+var VERSION="v7.30";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3371,9 +3371,10 @@ function deepHTML(){
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
   h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
       '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">4 cards</span></div>';
+  h+='<div class="grouphd"><span class="gn">Body</span><span class="gl"></span><span class="gc">5 cards</span></div>';
   h+=drawerize(weightCardHTML(),I.spark,"");
   h+=stepsCardHTML();
+  h+=sleepCardHTML();
   /* This was rendering as a bare always-open card because I dropped the drawerize when regrouping,
      which put a second open card on a tab whose law allows exactly one. */
   h+=drawerize(calCardHTML(),I.fork,"")||collapsible("Calories","not connected",
@@ -3452,7 +3453,22 @@ function plannedMiles(){var mi=0;weekDays(0).forEach(function(k){var pl=planFor(
    pre-backfill mirror): over the last 26 weeks he walked in 12 of them, median 8.7 mi in the weeks
    he walked, best 14.6. Ten a week is above his working median and below his best, so it is a
    stretch he has already beaten rather than a number invented to motivate. */
-var WALK_TARGET=10;
+/* v7.30. Ten was a defensible number and the wrong one, and his own data says so. Over the last
+   26 weeks he walked in 12 of them, median 8.7 mi in the weeks he walked, best 14.6 — but the last
+   EIGHT weeks read 5.5, 0, 0, 1.4, 8.8, 5.3, 0, 0, a mean of 2.6. A 10 mile target would print red
+   almost every week, and this app's own note on the run row says it: a row that reads red every
+   week stops being information.
+   Six is the number that is both a real ask and a reachable one. He would have met it in 3 of the
+   last 8 weeks and in most weeks he walked at all, which is roughly the 40-60 percent hit rate a
+   target wants when a habit is being rebuilt: often enough to be worth chasing, rarely enough to
+   mean something. It is deliberately BELOW his median-when-walking, because the binding constraint
+   is the weeks he does not walk at all, not the size of the walks.
+   It ratchets rather than sitting still. `train-daily-audit` check 7b reads the last 8 completed
+   weeks every day and proposes a change when the evidence is there: up ~15 percent once he beats
+   it in 6 of 8, down when he misses it in 7 of 8 and the median is under 60 percent of it, bounded
+   3 to 25 mi/week. It PROPOSES; changing the constant is a deploy and a scheduled task does not
+   deploy. */
+var WALK_TARGET=6;
 function weekMetrics(back){
   var days=weekDays(back),today=TODAY,m={lifts:0,protein:0,moved:0,miles:0,walkMi:0,anchor:0,days:0};
   days.forEach(function(k){
@@ -3705,6 +3721,77 @@ function weeklyStepsSeries(weeks){
     d.setDate(d.getDate()+7);
   }
   return out;
+}
+/* ============ SLEEP, v7.30 ============
+   1,693 nights back to July 2021, pulled down in v7.29 and until now rendered nowhere. Coverage of
+   the recent record is genuinely good — 24 of the last 28 nights — which is better than any other
+   stream in the app including weigh-ins, so this is the one place the data is strong enough to
+   support a real verdict.
+   The verdict is duration against the 7-hour floor (AASM and the Sleep Research Society put the
+   adult recommendation at 7 or more hours; below that is where the association with weight gain
+   and impaired recovery shows up). But the headline is the SHORTFALL COUNT rather than the mean,
+   because an average of 7.2 hides four five-hour nights, and it is the short nights that cost him
+   the lift. Phase splits ride underneath when they exist, on the 177 nights that carry them,
+   labelled as the sample they are rather than presented as the norm. */
+function sleepStats(days){
+  var vals=[],d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  for(var i=0;i<days;i++){
+    var r=(S.sleep||{})[keyOf(d)];
+    if(r){var h=(r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed));if(h>0)vals.push({d:keyOf(d),h:h});}
+    d.setDate(d.getDate()+1);
+  }
+  if(!vals.length)return null;
+  var t=vals.reduce(function(a,x){return a+x.h;},0);
+  var mean=t/vals.length;
+  var sd=Math.sqrt(vals.reduce(function(a,x){return a+Math.pow(x.h-mean,2);},0)/vals.length);
+  return {n:vals.length,of:days,mean:mean,sd:sd,vals:vals,
+          short:vals.filter(function(x){return x.h<7;}).length,
+          min:Math.min.apply(null,vals.map(function(x){return x.h;})),
+          max:Math.max.apply(null,vals.map(function(x){return x.h;}))};
+}
+function hrsTxt(h){var H=Math.floor(h),m=Math.round((h-H)*60);if(m===60){H++;m=0;}return H+"h "+("0"+m).slice(-2)+"m";}
+function sleepCardHTML(){
+  var k=Object.keys(S.sleep||{});if(!k.length)return "";
+  var w=sleepStats(7),m=sleepStats(28),q=sleepStats(90);
+  if(!w||!m)return "";
+  var head,tone;
+  if(m.short>=Math.ceil(m.n*0.6)){head="You are short on sleep most nights.";tone="red";}
+  else if(m.short>=Math.ceil(m.n*0.3)){head="Sleep is uneven.";tone="amber";}
+  else if(m.mean>=7){head="Sleep is holding.";tone="good";}
+  else {head="Sitting just under seven hours.";tone="amber";}
+  var line='<b>'+m.short+'</b> of the last '+m.n+' night'+(m.n===1?'':'s')+' came in under seven hours, averaging <b>'+
+    hrsTxt(m.mean)+'</b>'+(q?(' against '+hrsTxt(q.mean)+' over ninety days'):'')+'. '+
+    (m.sd>1.4?('The spread is the bigger problem: '+hrsTxt(m.min)+' to '+hrsTxt(m.max)+' inside four weeks, and an irregular schedule costs you separately from a short one.')
+             :('Night to night it is steady, which is worth as much as the total.'));
+  var last14=[],d=new Date(NOW);d.setDate(d.getDate()-13);
+  for(var i=0;i<14;i++){var r=(S.sleep||{})[keyOf(d)];
+    last14.push(r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0);d.setDate(d.getDate()+1);}
+  /* Phase splits exist on a minority of nights, so they are shown as what they are. */
+  var ph=null,pn=0,pc=0,pd=0,pr=0;
+  Object.keys(S.sleep).forEach(function(dk){
+    var r=S.sleep[dk];if(r&&r.deep!=null&&r.rem!=null&&r.core!=null&&daysBetween(dk,TODAY)<=90){
+      pn++;pc+=r.core;pd+=r.deep;pr+=r.rem;}});
+  if(pn>=5){var tot=pc+pd+pr;ph={n:pn,core:pc/tot*100,deep:pd/tot*100,rem:pr/tot*100};}
+  var phaseHTML=ph?('<div class="odoct" style="margin-top:12px">Phases, '+ph.n+' nights in the last 90 that recorded them</div>'+
+    '<div class="pzbar">'+
+      '<i class="pz" data-z="easy" style="width:'+ph.core.toFixed(1)+'%" title="Core"></i>'+
+      '<i class="pz" data-z="tempo" style="width:'+ph.deep.toFixed(1)+'%" title="Deep"></i>'+
+      '<i class="pz" data-z="steady" style="width:'+ph.rem.toFixed(1)+'%" title="REM"></i>'+
+    '</div>'+
+    '<div class="ksub" style="margin:6px 0 0">Core '+Math.round(ph.core)+'%, deep '+Math.round(ph.deep)+'%, REM '+Math.round(ph.rem)+'%. Deep and REM together usually run 35 to 45 percent in a healthy adult night.</div>'):"";
+  return collapsible("Sleep",hrsTxt(w.mean)+" a night",
+    '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
+    '<div class="pzline">'+line+'</div>'+
+    barBody(last14,function(v){return v?v.toFixed(1)+"h":"";},"h")+
+    '<div class="odoct" style="margin-top:10px">Average by window</div>'+
+    '<div class="lstat3">'+
+      '<div class="ls3"><b class="num">'+hrsTxt(w.mean)+'</b><span>7 nights</span></div>'+
+      '<div class="ls3"><b class="num">'+hrsTxt(m.mean)+'</b><span>28 nights</span></div>'+
+      '<div class="ls3"><b class="num">'+(q?hrsTxt(q.mean):"--")+'</b><span>90 nights</span></div>'+
+    '</div>'+phaseHTML+
+    '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' nights recorded, back to '+
+    k.slice().sort()[0]+', '+m.n+' of the last 28 covered. Seven hours is the adult floor, not a target to beat.</div>',
+    false,I.spark,tone==="red"?"warn":"");
 }
 function stepsCardHTML(){
   var k=Object.keys(S.steps||{});if(!k.length)return "";
