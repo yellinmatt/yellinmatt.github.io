@@ -1248,7 +1248,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.30";
+var VERSION="v7.30a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3734,17 +3734,24 @@ function weeklyStepsSeries(weeks){
    the lift. Phase splits ride underneath when they exist, on the 177 nights that carry them,
    labelled as the sample they are rather than presented as the norm. */
 function sleepStats(days){
-  var vals=[],d=new Date(NOW);d.setDate(d.getDate()-days+1);
+  var vals=[],partial=0,d=new Date(NOW);d.setDate(d.getDate()-days+1);
   for(var i=0;i<days;i++){
     var r=(S.sleep||{})[keyOf(d)];
-    if(r){var h=(r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed));if(h>0)vals.push({d:keyOf(d),h:h});}
+    /* A "night" of 1h 35m is a partial record, not a short sleep: HealthKit writes a fragment when
+       the watch came off, the phone was the only source, or a nap landed in its own window. Counting
+       one as a bad night made the 28-night spread read 1h 35m to 11h 10m and put the verdict on an
+       artifact. Under three hours is filed as incomplete and excluded from the statistics rather
+       than deleted, and the card says how many it set aside. */
+    if(r){var h=(r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed));
+      if(h>=3)vals.push({d:keyOf(d),h:h});
+      else if(h>0)partial++;}
     d.setDate(d.getDate()+1);
   }
   if(!vals.length)return null;
   var t=vals.reduce(function(a,x){return a+x.h;},0);
   var mean=t/vals.length;
   var sd=Math.sqrt(vals.reduce(function(a,x){return a+Math.pow(x.h-mean,2);},0)/vals.length);
-  return {n:vals.length,of:days,mean:mean,sd:sd,vals:vals,
+  return {n:vals.length,of:days,mean:mean,sd:sd,vals:vals,partial:partial,
           short:vals.filter(function(x){return x.h<7;}).length,
           min:Math.min.apply(null,vals.map(function(x){return x.h;})),
           max:Math.max.apply(null,vals.map(function(x){return x.h;}))};
@@ -3762,7 +3769,8 @@ function sleepCardHTML(){
   var line='<b>'+m.short+'</b> of the last '+m.n+' night'+(m.n===1?'':'s')+' came in under seven hours, averaging <b>'+
     hrsTxt(m.mean)+'</b>'+(q?(' against '+hrsTxt(q.mean)+' over ninety days'):'')+'. '+
     (m.sd>1.4?('The spread is the bigger problem: '+hrsTxt(m.min)+' to '+hrsTxt(m.max)+' inside four weeks, and an irregular schedule costs you separately from a short one.')
-             :('Night to night it is steady, which is worth as much as the total.'));
+             :('Night to night it is steady, which is worth as much as the total.'))+
+    (m.partial?(' '+m.partial+' record'+(m.partial===1?' was':'s were')+' under three hours and set aside as incomplete rather than counted as a bad night.'):'');
   var last14=[],d=new Date(NOW);d.setDate(d.getDate()-13);
   for(var i=0;i<14;i++){var r=(S.sleep||{})[keyOf(d)];
     last14.push(r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0);d.setDate(d.getDate()+1);}
@@ -6151,7 +6159,7 @@ function dataInventory(){
    ["Protein days","protein","the weekly scorecard"],
    ["Body composition","body",null],
    ["Vitals","vitals",null],
-   ["Sleep","sleep",null]].forEach(function(r){
+   ["Sleep","sleep","the sleep card"]].forEach(function(r){
      var sp=span(S[r[1]]);
      out.push({n:r[0],count:sp?sp.n:0,first:sp?sp.first:null,last:sp?sp.last:null,
        age:sp?sp.age:null,reads:r[2],stranded:!r[2]&&!!(sp&&sp.n)});
