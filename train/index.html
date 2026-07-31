@@ -1368,11 +1368,24 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .ahow{display:flex;width:22px;height:22px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin-left:-4px}
 .ahow svg{width:16px;height:16px}
 .ahow:active{color:var(--accent)}
-.arow[role="button"]{cursor:pointer}
-/* The dose column is fixed-width so the how-to icons form a straight column.
-   Without it the dose sets its own width, so "x8 clean" pushed one icon 25px
-   left of the three above it and the column read as a mistake. */
-.arow .ad{min-width:62px;text-align:right}
+/* ROUND A4: the checklist as four tiles, read down the left edge.
+   The fixed-width dose column from A3 is gone with the problem it patched: the
+   dose sits under the name now, so nothing competes for the right edge except
+   the one quiet control that belongs there. */
+.alist{display:flex;flex-direction:column;gap:8px;margin-top:2px}
+.arow[role="button"]{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;
+  cursor:pointer;transition:background .15s,border-color .15s}
+.arow[role="button"]:active{background:var(--surface-2)}
+.arow[role="button"].checked{background:var(--good-tint);border-color:transparent}
+.arow[role="button"] .chk{width:24px;height:24px;border-width:2px}
+.arow[role="button"].checked .chk{background:var(--good);border-color:var(--good)}
+.atxt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+.arow[role="button"] .an{font-size:15px;font-weight:650;color:var(--ink);line-height:1.25}
+.arow[role="button"] .ad{font-size:12px;font-weight:600;color:var(--faint);letter-spacing:.01em;text-align:left;min-width:0}
+.arow[role="button"].checked .an{color:var(--good)}
+.arow[role="button"].checked .ad{color:var(--good);opacity:.75}
+.arow[role="button"].checked .ahow{color:var(--good);opacity:.6}
 /* The cue list inside a how-to sheet. */
 .cuelist{margin:12px 0 0;padding:0 0 0 18px;list-style:disc}
 .cuelist li{font-size:14px;line-height:1.55;color:var(--sub);margin-bottom:7px}
@@ -1383,6 +1396,17 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .hanchor.alldone .acount{color:var(--good)}
 /* The hero's bottom corners must survive a child that bleeds to its edges. */
 .hero{overflow:hidden}
+/* ROUND A4: the nested detail drawer. Quiet by design, because it is the place
+   depth goes to WAIT rather than a second headline competing with the first. */
+.more{border-top:1px solid var(--line);margin-top:14px}
+.more>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+  padding:11px 0 2px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary .chev{display:flex;color:var(--faint)}
+.more>summary .chev svg{width:15px;height:15px;transition:transform .18s}
+.more[open]>summary .chev svg{transform:rotate(180deg)}
+.moreb{padding:8px 0 2px}
+.moreb .foot{margin-top:10px}
 /* ROUND A2: a Track card rendered inside a tile's popup. The card chrome comes
    off because the sheet IS the card now, and the drawer summary is hidden
    because the sheet's h3 already names the subject. */
@@ -1497,7 +1521,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.45b";
+var VERSION="v7.46";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2395,10 +2419,15 @@ function weightCardHTML(){
        rendered as "back to Sat 14", which is a weekday and a number and no
        information at all. Caught by LOOKING at the shipped sheet. A span of
        years wants month and year; the weekday was never the useful part. */
-    '<div class="foot" style="margin-top:10px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
-      monthYear(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>'+
-    milestoneLine(t)+
-    ladderHTML()+'</div>';
+    /* ROUND A4: the milestone line, the ladder and the provenance drop into
+       `more`. The ladder is a good picture and it answers "how is the long run
+       going", which is a different question from "am I on track this week" and
+       the only one the other three cards are asked. Kept, one level down. */
+    moreHTML("The detail",
+      milestoneLine(t)+ladderHTML()+
+      '<div class="foot" style="margin-top:10px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
+      monthYear(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>')+
+    '</div>';
 }
 /* Average of the readings inside each window, with the count travelling beside
    it, on the same rule as the Steps and Calories rows: an average over two
@@ -2649,8 +2678,31 @@ function metricSheet(kind){
      would exist for one caller and every other call site would have to ignore
      it. The summary is hidden by CSS, since the sheet's own h3 already names
      the subject and two titles is the "three writers for one fact" defect. */
+  /* Only the OUTER drawer opens. Round A4 pushed each card's long prose into a
+     nested `.more`, and opening every `details` indiscriminately would have
+     unfolded exactly the depth that nesting was meant to fold away. */
   var sh=document.getElementById("sheet");
-  if(sh)[].forEach.call(sh.querySelectorAll("details"),function(d){d.open=true;});
+  if(sh)[].forEach.call(sh.querySelectorAll(".msheet>details,.msheet>.dcard"),function(d){d.open=true;});
+}
+/* ============ THE MORE DRAWER (Round A4) ============
+   Matthew, on all four popups: too much text, streamline to the key
+   information, make them read like Steps.
+
+   Steps is the model for a reason worth stating, because it is not that Steps
+   is shorter. It is that Steps answers in one line and then SHOWS: verdict,
+   one sentence, chart, three windows, one line of provenance. The other three
+   answered in paragraphs, and a paragraph is what you write when you have not
+   decided which sentence is the answer.
+
+   Nothing true was deleted. The reasoning, the caveats and the second-order
+   detail moved DOWN one level into this drawer, which is the same instruction
+   he gave for Track: simpler on top, more nesting underneath. A caveat that
+   matters on the day you first read it does not need to cost a line every day
+   after. */
+function moreHTML(label,inner){
+  if(!inner)return "";
+  return '<details class="more"><summary>'+label+'<span class="chev">'+I.chevD+'</span></summary>'+
+    '<div class="moreb">'+inner+'</div></details>';
 }
 function consistencyHTML(){
   var days=28,moved=0,met=0,planned=0,cells="";
@@ -4930,11 +4982,13 @@ function calCardHTML(){
     '<div class="card" style="'+pull+'">'+
     '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
       (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+
-    '<div class="ksub" style="margin:6px 0 0">'+head+' Averaging <b>'+v.avg.toLocaleString()+'</b> a day against a maintenance of <b>'+
-      (v.maint?v.maint.toLocaleString():"--")+'</b>, from '+maintenanceBasis()+'.'+
-      (v.lastGap!=null?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>, '+
-        (v.lastGap>0?(v.lastGap+' under'):(Math.abs(v.lastGap)+' over'))+'.'):'')+
-      (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
+    /* ROUND A4. The lead was four sentences: the verdict restated, the average
+       against maintenance, where maintenance came from, the most recent day,
+       and the protein average. One line now, the comparison that IS the verdict.
+       Everything else drops into `more`, where the maintenance derivation
+       belongs anyway: it is the thing you check once and then trust. */
+    '<div class="pzline">Averaging <b>'+v.avg.toLocaleString()+'</b> a day against a maintenance of <b>'+
+      (v.maint?v.maint.toLocaleString():"--")+'</b>.</div>'+
     /* ROUND A3: the daily-average-by-window row, so Calories carries the same
        three-up Steps and Sleep do and the four popups read as one family. It is
        also the honest answer to "is this week normal": a single 14-day figure
@@ -4943,7 +4997,12 @@ function calCardHTML(){
        twenty are not the same claim and this card's whole history is about not
        letting a thin window pass as a verdict. */
     calWindowRowHTML()+
-    '<div class="foot" style="margin-top:10px">'+cover+'</div></div>';
+    moreHTML("The detail",
+      '<div class="pzline">'+head+' Maintenance is '+maintenanceBasis()+'.'+
+      (v.lastGap!=null?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>, '+
+        (v.lastGap>0?(v.lastGap+' under'):(Math.abs(v.lastGap)+' over'))+'.'):'')+
+      (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
+      '<div class="foot" style="margin-top:10px">'+cover+'</div>')+'</div>';
 }
 /* One writer for the window row. Averages only days that carry a record, and
    says how many that was, which is the distinction 17a was opened over. */
@@ -5301,10 +5360,15 @@ function sleepCardHTML(){
   var w=sleepStats(7),m=sleepStats(28),q=sleepStats(90);
   if(!w||!m)return "";
   var sv=sleepVerdict(),head=sv.head,tone=sv.tone;
-  var line='<b>'+m.short+'</b> of the last '+m.n+' night'+(m.n===1?'':'s')+' came in under seven hours, averaging <b>'+
-    hrsTxt(m.mean)+'</b>'+(q?(' against '+hrsTxt(q.mean)+' over ninety days'):'')+'. '+
-    (m.sd>1.4?('The spread is the bigger problem: '+hrsTxt(m.min)+' to '+hrsTxt(m.max)+' inside four weeks, and an irregular schedule costs you separately from a short one.')
-             :('Night to night it is steady, which is worth as much as the total.'))+
+  /* ROUND A4. This was one sentence carrying four clauses: the short-night
+     count, the 28-night mean, the 90-day comparison, a verdict on the spread,
+     and the partial-record footnote. Steps says one thing. So the line says the
+     one thing that decides the verdict, and the rest drops into `more`. */
+  var line='<b>'+m.short+'</b> of the last '+m.n+' night'+(m.n===1?'':'s')+' came in under seven hours.';
+  var deep=(m.sd>1.4
+      ?('The spread is the bigger problem: <b>'+hrsTxt(m.min)+'</b> to <b>'+hrsTxt(m.max)+'</b> inside four weeks. An irregular schedule costs you separately from a short one.')
+      :('Night to night it is steady, which is worth as much as the total.'))+
+    (q?(' Four-week average <b>'+hrsTxt(m.mean)+'</b> against <b>'+hrsTxt(q.mean)+'</b> over ninety days.'):'')+
     (m.partial?(' '+m.partial+' record'+(m.partial===1?' was':'s were')+' under three hours and set aside as incomplete rather than counted as a bad night.'):'');
   var last14=[],d=new Date(NOW);d.setDate(d.getDate()-13);
   for(var i=0;i<14;i++){var r=(S.sleep||{})[keyOf(d)];
@@ -5331,9 +5395,10 @@ function sleepCardHTML(){
       '<div class="ls3"><b class="num">'+hrsTxt(w.mean)+'</b><span>7 nights</span></div>'+
       '<div class="ls3 on"><b class="num">'+hrsTxt(m.mean)+'</b><span>28 nights</span></div>'+
       '<div class="ls3"><b class="num">'+(q?hrsTxt(q.mean):"--")+'</b><span>90 nights</span></div>'+
-    '</div>'+phaseHTML+
-    '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' nights recorded, back to '+
-    k.slice().sort()[0]+', '+m.n+' of the last 28 covered. Seven hours is the adult floor, not a target to beat.</div>',
+    '</div>'+
+    moreHTML("The detail",'<div class="pzline">'+deep+'</div>'+phaseHTML+
+      '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' nights recorded, back to '+
+      monthYear(k.slice().sort()[0])+', '+m.n+' of the last 28 covered. Seven hours is the adult floor, not a target to beat.</div>'),
     /* v7.32: was I.spark, which Weight already owns on this tab. Track's own card law says no two
        drawers on a tab share an icon, and it had been broken here since the sleep card shipped.
        Moon was defined and unused. */
@@ -5343,7 +5408,7 @@ function stepsCardHTML(){
   var k=Object.keys(S.steps||{});if(!k.length)return "";
   var w=stepsAvgOver(7),m=stepsAvgOver(28),q=stepsAvgOver(90),y=stepsAvgOver(365);
   if(!w)return "";
-  var sv=stepsVerdict(),base=sv.base||(y||q||m),pct=sv.pct,head=sv.head,tone=sv.tone;
+  var sv=stepsVerdict(),base=sv.base||(y||q||m),pct=sv.pct,head=sv.head,tone=sv.tone,st=stepTarget();
   var line='<b>'+w.avg.toLocaleString()+'</b> a day over the last week, against <b>'+base.avg.toLocaleString()+
     '</b> across the last twelve months. '+
     (pct<0?('That is '+Math.abs(pct)+' percent down, and steps are the cheapest movement you own.')
@@ -5361,8 +5426,15 @@ function stepsCardHTML(){
       '<div class="ls3"><b class="num">'+(m?(m.avg/1000).toFixed(1):"--")+'k</b><span>28 days</span></div>'+
       '<div class="ls3"><b class="num">'+(q?(q.avg/1000).toFixed(1):"--")+'k</b><span>90 days</span></div>'+
     '</div>'+
-    '<div class="foot" style="margin-top:10px">'+k.length.toLocaleString()+' days recorded, back to '+
-    k.slice().sort()[0]+'. Steps are not scored on the weekly card because they are a floor, not a target.</div>',
+    /* ROUND A4. Steps was the model for the other three and, once they were cut
+       to it, ended up the wordiest of the four: 62 words against Sleep's 27,
+       because its provenance foot never moved. Measuring the family caught what
+       reading it did not. Same treatment, same reason, and the card keeps every
+       word it had. */
+    moreHTML("The detail",
+      '<div class="foot">'+k.length.toLocaleString()+' days recorded, back to '+
+      monthYear(k.slice().sort()[0])+'. Steps are not scored on the weekly card because they are a floor, not a target. '+
+      (st?('The '+st.t.toLocaleString()+' target is your own 28-day median plus 15 percent, capped at the 7,000 where the evidence plateaus.'):'')+'</div>'),
     false,I.gauge,tone);
 }
 function stepsTileHTML(){
@@ -6562,11 +6634,22 @@ function anchorHTML(){
      has not met before is the one case where the row is not what he wants. A
      nested <button> is invalid HTML inside a <button>, so the row became a div
      with a role rather than growing a second nested control. */
+  /* ROUND A4, his instruction: redesign the checklist so it reads as a designed
+     thing rather than a table of four rows.
+     What changed and why. The tick moved to the LEFT, because a checklist is
+     read down its left edge and a control on the right made the eye travel the
+     full width to find out whether a movement was done. The dose moved UNDER
+     the name rather than into its own right-hand column, which kills the
+     ragged-column problem the fixed width was patching and lets the name have
+     the whole line. Each row is its own tile with a filled state, so four done
+     mornings read as four filled tiles at a glance instead of four small ticks.
+     The `?` stays quiet on the right, where an escape hatch belongs. */
   list.forEach(function(m,i){var on=!!a[i];if(on)ac++;
     rows+='<div class="arow'+(on?" checked":"")+'" data-i="'+i+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="toggleAnchor('+i+',this)">'+
-      '<span class="an">'+esc(m.n)+'</span>'+
+      '<span class="chk">'+I.check+'</span>'+
+      '<span class="atxt"><span class="an">'+esc(m.n)+'</span><span class="ad">'+esc(m.d)+'</span></span>'+
       '<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>'+
-      '<span class="ad">'+esc(m.d)+'</span><span class="chk">'+I.check+'</span></div>';});
+      '</div>';});
   var C=2*Math.PI*13,off=C*(1-ac/list.length);
   return '<details class="hanchor'+(ac>=list.length?" alldone":"")+'"><summary>'+
     '<span class="asum">Morning anchor</span>'+
@@ -6576,8 +6659,11 @@ function anchorHTML(){
     '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
     '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/>'+
     '</svg></span></span></summary><div class="abody">'+
-    '<div class="ksub" style="margin:2px 0 12px">Play the routine, then tick the four off. That is the whole morning.</div>'+
-    anchorVidHTML()+rows+
+    /* The instruction paragraph is GONE. "Play the routine, then tick the four
+       off" described a screen that already shows a play row above four
+       tickboxes, so it was a caption explaining a picture that explains itself,
+       and it cost a line of reading every single morning forever. */
+    anchorVidHTML()+'<div class="alist">'+rows+'</div>'+
     '<div class="adone"'+(ac>=list.length?'':' style="display:none"')+'>'+I.check+' Morning done. Everything else today is a bonus.</div>'+
     '</div></details>';
 }
@@ -6621,12 +6707,19 @@ function anchorVidHTML(){
      through the course he is, because that is the part he reads. The player
      itself opens in `sessionVidSheet`, the sheet that already exists for
      exactly this. No new component. */
+  /* ROUND A4: the four-line paragraph under this row is GONE. It explained that
+     the course advances when the anchor is finished and that no duration is on
+     file, which are both true and neither is news after the first reading. The
+     unknown-length caveat mattered when the row PROMISED "about 10 minutes";
+     the row now states a duration only when one is actually known, so the
+     caveat has nothing left to correct. The course-advances explanation lives
+     in the session sheet this row opens, where someone asking about the course
+     will be. */
   return '<button class="avidrow" onclick="sessionVidSheet(\''+v.id+'\')">'+
     '<span class="avplay">'+I.play+'</span>'+
-    '<span class="avtxt"><b>Follow the routine</b><span>'+(v.lv?('Mobility session '+v.lv+' of '+n):'Mobility session')+
-    (mins?(' &middot; about '+mins+' min'):'')+'</span></span>'+
-    '<span class="avarr">'+I.arrow+'</span></button>'+
-    '<div class="foot" style="margin:8px 0 14px">'+note+'</div>';
+    '<span class="avtxt"><b>Follow the routine</b><span>'+(v.lv?('Mobility '+v.lv+' of '+n):'Mobility session')+
+    (mins?(' &middot; '+mins+' min'):'')+'</span></span>'+
+    '<span class="avarr">'+I.arrow+'</span></button>';
 }
 /* ============ HOW TO DO IT (Round A3) ============
    His instruction: tapping a movement should show him how to do it properly.
