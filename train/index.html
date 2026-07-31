@@ -2697,7 +2697,7 @@ function liftLevelDetailHTML(){
     '<div class="ls3"><b class="num">'+Math.round(L.score)+'</b><span>load carried</span></div>'+
     '<div class="ls3"><b class="num">'+(Math.round(liftTonnageTotal()/100)/10)+'k</b><span>lb lifted</span></div></div>'+
     '<div class="lstats" style="display:none"><span><b class="num">'+total+'</b> sessions</span><span><b class="num">'+Math.round(L.score)+'</b> load</span><span><b class="num">'+rated+'</b> rated</span></div>'+
-    '<div class="foot" style="margin-top:10px">Load is <b>tonnage</b>, every completed set counted as weight times reps, scaled to sit on the same axis as your cardio level. '+
+    '<div class="foot" style="margin-top:10px">Your level is <b>weekly tonnage</b>, every completed set counted as weight times reps, on the same curve and the same axis as your cardio level: 12,000 lb a week reads 13, exactly as 12 miles a week does. '+
     (function(){var lf=S.sessions.filter(function(x){return x.type==="lift";});
       var meas=lf.filter(function(x){return liftTonnage(x)>0;}).length;
       if(!lf.length)return "Nothing logged yet.";
@@ -5857,7 +5857,11 @@ function levelTier(n){
    Drawn from the same series the number comes from, so the two cannot disagree. */
 function levelHistoryHTML(kind){
   var s,lv;
-  if(kind==="lift"){s=liftSeries(365);lv=s.map(function(x){return levelFor(x.slow);});}
+  /* v7.29. This still drew the lift history from the RETIRED daily rpe-minutes series on the old
+     curve, while the number above it came from the new weekly-tonnage model. That is precisely the
+     two-writers-one-concept defect this function's own comment warns about, and it would have had
+     the chart and the headline disagreeing by twenty levels. Both read the model now. */
+  if(kind==="lift"){var lm=liftModel();s=lm.series;lv=s.map(function(x){return milesLevelFor(x.cwm*lm.rhythm);});}
   else{var m=cardioModel();s=m.series;lv=s.map(function(x){return milesLevelFor(x.cwm*m.rhythm);});}
   if(s.length<8)return "";
   var mx=Math.max.apply(null,lv),mn=Math.min.apply(null,lv);
@@ -6335,17 +6339,71 @@ function liftSeries(days){
 function liftTonnageTotal(){
   var t=0;S.sessions.forEach(function(s){if(s.type==="lift")t+=liftTonnage(s);});return t;
 }
+/* ============ THE LIFT LEVEL, REBUILT, v7.29 ============
+   The card has claimed since v7.2 that lift load is "scaled to sit on the same axis as your cardio
+   level". It never was, and the arithmetic is not close. The lift curve is 0.109*(n-1)^1.6 fed by
+   a daily EWMA of rpe*minutes/4; three thirty-minute sessions a week settle that at a daily mean
+   of 22.5, which on its curve is LEVEL 29. The cardio curve is 0.62*(n-1)^1.18 fed by weekly
+   miles; twelve miles a week, a real base, is LEVEL 13. So an ordinary lifting habit outscored a
+   serious running habit by more than two to one, on two unrelated curves, under one shared label.
+   Both are now the same model on the same curve, differing only in unit:
+     cardio = exponentially weighted weekly MILES  x rhythm x capped quality
+     lift   = exponentially weighted weekly TONNAGE (thousands of lb) x rhythm
+   That is not a fudge factor, it is the honest analogue: miles are the work a runner accumulates,
+   tonnage is the work a lifter accumulates, and both are the thing the programme progresses. It
+   lands the anchors on top of each other, which is what "same axis" has to mean:
+     6k lb a week  -> 7      (6 mi a week  -> 7)
+     12k lb a week -> 13     (12 mi a week -> 13)
+     30k lb a week -> 27     (30 mi a week -> 27)
+   His own record makes the point. Today's session is 4,310 lb, which is a real session; on the old
+   model his three lifetime sessions produced level 11 and climbing, which would have told a man
+   with three sessions ever that he was two thirds of the way to a serious running base. */
+function weeklyTonnageSeries(weeks){
+  weeks=weeks||52;
+  var out=[],d=new Date(NOW);
+  d.setDate(d.getDate()-((d.getDay()+6)%7));
+  d.setDate(d.getDate()-7*(weeks-1));
+  for(var i=0;i<weeks;i++){
+    var start=keyOf(d),e=new Date(d);e.setDate(e.getDate()+6);var end=keyOf(e);
+    var k=0,n=0;
+    S.sessions.forEach(function(s){
+      if(s.type!=="lift"||s.date<start||s.date>end)return;
+      var t=liftTonnage(s);
+      /* A logged lift with no set data still counts as work, priced from the clock, so a quick
+         entry is not silently worth zero. Same fallback `liftLoadFor` uses. */
+      if(!(t>0))t=((typeof s.rpe==="number"&&s.rpe>0)?s.rpe:LIFT_RPE_ASSUMED)*((s.durationSec||0)/60)*10;
+      k+=t/1000;n++;
+    });
+    out.push({w:start,k:k,sessions:n});
+    d.setDate(d.getDate()+7);
+  }
+  return out;
+}
+function liftModel(){
+  var ws=weeklyTonnageSeries(52);
+  var cwt=0,peak=0,series=[];
+  ws.forEach(function(w){
+    var tau=(w.k>cwt)?3:6;                       /* same asymmetry as cardio: rise ~3wk, fall ~6wk */
+    cwt=cwt+(w.k-cwt)*(1-Math.exp(-1/tau));
+    if(cwt>peak)peak=cwt;
+    series.push({w:w.w,cwm:cwt,k:w.k});
+  });
+  var last8=ws.slice(-8),weeksLifted=last8.filter(function(w){return w.sessions>0;}).length;
+  var rhythm=0.55+0.45*(weeksLifted/8);
+  return {cwt:cwt,peak:peak,rhythm:rhythm,weeksLifted:weeksLifted,score:cwt*rhythm,series:series,weekly:ws};
+}
 function liftLevel(){
-  var s=liftSeries(180);
-  var last=s.length?s[s.length-1]:{slow:0,fast:0};
-  var score=last.slow,lvl=levelFor(score);
-  var lo=levelFloor(lvl),hi=levelFloor(lvl+1),span=Math.max(hi-lo,1);
+  var m=liftModel();
+  var score=m.score,lvl=milesLevelFor(score);
+  var lo=milesLevelFloor(lvl),hi=milesLevelFloor(lvl+1),span=Math.max(hi-lo,1);
   var pips=Math.max(0,Math.min(9,Math.floor(10*(score-lo)/span)));
-  var monthAgo=s.length>29?s[s.length-30].slow:0;
-  var r=(last.fast-last.slow)/Math.max(last.slow,1);
+  var back4=m.series.length>4?m.series[m.series.length-5].cwm:0;
+  var lvl4=milesLevelFor(back4*m.rhythm);
+  var r=(m.cwt-back4)/Math.max(back4,0.5);
   var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
-  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:last.fast,slow:last.slow,
-          r:r,delta:score-monthAgo,series:s,sessions:n};
+  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:m.cwt,slow:m.cwt,
+          r:r,delta:lvl-lvl4,cwt:m.cwt,peak:m.peak,rhythm:m.rhythm,weeksLifted:m.weeksLifted,
+          model:m,series:m.series.map(function(x){return {date:x.w,slow:x.cwm};}),sessions:n};
 }
 /* Same vocabulary as Cardio, with the one lifting-specific amber: training hard while never
    actually adding load is the failure mode that a level alone cannot see. */
