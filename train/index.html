@@ -1271,7 +1271,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.34";
+var VERSION="v7.34a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -6130,8 +6130,8 @@ function badgeList(returnDefs,kind){
     {g:"Consistency",n:"Hundred days",disc:"both",d:"100 days moved",got:moved>=100,p:moved/100},
     {g:"Volume",n:"Ten runs",disc:"run",d:"10 runs banked",got:runs.length>=10,p:runs.length/10},
     {g:"Volume",n:"Fifty runs",disc:"run",d:"50 runs banked",got:runs.length>=50,p:runs.length/50},
-    {g:"Volume",n:"Ten lifts",disc:"lift",d:"10 sessions",got:lifts>=10,p:lifts/10},
-    {g:"Volume",n:"Fifty lifts",disc:"lift",d:"50 sessions",got:lifts>=50,p:lifts/50},
+    /* v7.34: the two lift rungs that used to live in Volume moved into the Lifting group with the
+       rest of the ladder. Leaving them here printed "Ten lifts" twice in one list. */
     {g:"Volume",n:"Big week",disc:"run",d:"10 miles in a week",got:bestWk>=10,p:bestWk/10},
     {g:"Volume",n:"Bigger week",disc:"run",d:"20 miles in a week",got:bestWk>=20,p:bestWk/20},
     {g:"Level",n:"Level 3",disc:"run",d:"Reach level 3",got:L.lvl>=3,p:L.lvl/3},
@@ -6173,13 +6173,17 @@ function badgeList(returnDefs,kind){
     var pend=groups[g].filter(function(x){return !x.got;}).sort(function(a,b){return (b.p||0)-(a.p||0);});
     if(pend.length)nextSet[g+"|"+pend[0].n]=true;
   });
-  function cell(x){
+  /* `forceBar` for the "Next to fall" strip. In the grouped list the progress bar marks the one
+     nearest tile per group, which is the point of the outline. In the strip EVERY tile is a nearest,
+     so gating the bar on group-rank drew it on some and not others for a reason the reader cannot
+     see. (Found by measuring the rendered strip, v7.34.) */
+  function cell(x,forceBar){
     var isNext=nextSet[x.g+"|"+x.n],ic=I[BADGE_ICON[x.g]]||I.trophy;
     var pct=Math.round(Math.max(0,Math.min(1,x.p||0))*100);
-    return '<div class="badge'+(x.got?" got":"")+(isNext?" next":"")+'">'+
+    return '<div class="badge'+(x.got?" got":"")+(isNext||forceBar?" next":"")+'">'+
       '<div class="bdot">'+ic+'</div><div class="bn">'+x.n+'</div>'+
       '<div class="bd">'+(x.got&&x.when?shortDate(x.when):x.d)+'</div>'+
-      (!x.got&&isNext&&pct>4&&pct<100?'<div class="bpr"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
+      (!x.got&&(isNext||forceBar)&&pct>4&&pct<100?'<div class="bpr"><i style="width:'+pct+'%"></i></div>':'')+'</div>';
   }
   var all="";
   Object.keys(groups).forEach(function(g){
@@ -6219,7 +6223,7 @@ function badgeList(returnDefs,kind){
   return '<details class="libdrop bdrop"><summary><span>Records and badges</span><span class="lcount">'+got.length+' of '+defs.length+'</span></summary>'+
     '<div class="libpad">'+
     (bar||"")+thin+
-    (near.length?('<div class="odoct" style="margin-top:14px">Next to fall</div><div class="badges">'+near.map(cell).join("")+'</div>'):"")+
+    (near.length?('<div class="odoct" style="margin-top:14px">Next to fall</div><div class="badges">'+near.map(function(x){return cell(x,true);}).join("")+'</div>'):"")+
     '<div class="bprog" style="margin-top:14px"><i style="width:'+pct+'%"></i></div>'+
     '<div class="ksub" style="margin:8px 0 2px">'+got.length+' earned, '+(defs.length-got.length)+' to go. The outlined tile in each group is the next one to fall.</div>'+
     all+'</div></details>';
