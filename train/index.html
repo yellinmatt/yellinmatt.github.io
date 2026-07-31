@@ -319,6 +319,8 @@ input,select{border:0;background:none}
 .libdrop>summary .lsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
 .libdrop>summary .lsi svg{width:14px;height:14px}
 .libdrop>summary .lleft{display:flex;align-items:center;min-width:0;flex:1}
+.libdrop>summary .dsum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+.libdrop>summary .acount{font-size:12px;font-weight:700;color:var(--sub)}
 .libdrop>summary::-webkit-details-marker{display:none}
 .libdrop>summary .lcount{font-size:11px;font-weight:700;color:var(--faint);background:var(--surface-2);border-radius:7px;padding:3px 8px}
 .libdrop[open]>summary{border-bottom:1px solid var(--line)}
@@ -1304,7 +1306,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.35";
+var VERSION="v7.35b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -5455,7 +5457,10 @@ function libraryHTML(cat){
     panes+='<div class="libpane" id="libpane-'+g[0]+'" hidden>'+libSection(g[0],g[1])+'</div>';
   });
   /* v7.35: the icon box and uppercase title that every other card on this tab wears. */
-  var h='<details class="libdrop"><summary><span class="lleft"><span class="lsi">'+I.play+'</span><span>Library</span></span><span class="lcount">'+n+' videos</span></summary>'+
+  /* v7.35b. Measured: the Library summary stood 56px against every other card's 69, because it
+     carried no `.aright` chip-and-chevron block. Same markup now, so the column is flush. */
+  var h='<details class="libdrop"><summary><span class="lleft"><span class="lsi">'+I.play+'</span><span class="dsum">Library</span></span>'+
+    '<span class="aright"><span class="acount">'+n+' videos</span><span class="chev">'+I.chevD+'</span></span></summary>'+
     '<div class="libpad nested"><div class="libgrid">'+tiles+'</div>'+panes+'</div></details>';
   /* The lift tab used to append a second "Look up a movement" drawer here holding all forty
      exercises with their form videos. Retired 2026-07-29: Your Movements now carries every
