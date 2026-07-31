@@ -1242,7 +1242,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.25";
+var VERSION="v7.26";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -4600,7 +4600,9 @@ function settingsSheet(){
     esc(sh.hint)+'.');
 
   var _bk=backupAgeDays();
+  var _di=dataAudit();
   m+=sgroup("Your data",
+    snav('Data check',(_di.length?_di.length+' to look at':'all clean'),"closeSheet();dataCheckSheet()")+
     snav('Back up to a file',"","closeSheet();exportSheet()")+
     snav('Restore from a file',"","closeSheet();importSheet()")+
     snav('Import from Apple Health',"","closeSheet();healthSheet()"),
@@ -5642,9 +5644,10 @@ function levelTier(n){
 /* The level as a line over a year, so "where has this been and where is it now" is answerable.
    Drawn from the same series the number comes from, so the two cannot disagree. */
 function levelHistoryHTML(kind){
-  var s=(kind==="lift")?liftSeries(365):fitnessSeries(365);
-  if(s.length<30)return "";
-  var lv=s.map(function(x){return levelFor(x.slow);});
+  var s,lv;
+  if(kind==="lift"){s=liftSeries(365);lv=s.map(function(x){return levelFor(x.slow);});}
+  else{var m=cardioModel();s=m.series;lv=s.map(function(x){return milesLevelFor(x.cwm*m.rhythm);});}
+  if(s.length<8)return "";
   var mx=Math.max.apply(null,lv),mn=Math.min.apply(null,lv);
   if(mx<=0)return "";
   var W=320,H=64,span=Math.max(mx-mn,1);
@@ -5663,16 +5666,151 @@ function levelHistoryHTML(kind){
     '</svg>'+
     '<div class="lvhr"><span>'+mn+'</span><span>'+verdict+'</span><span>'+mx+'</span></div></div>';
 }
+/* ============ DATA INTEGRITY, v7.26 ============
+   Matthew: "Why does this month show a 1 hour run? with 0 miles?"
+   Because the Apple Health importer types a workout as a RUN from its activity type alone, and
+   writes whatever distance the file carries. Six workouts came through with real durations and no
+   distance at all: 12, 15, 13, 23, 22 and 60 minutes. They are almost certainly treadmill or
+   untracked sessions. They were counted as runs, so they inflated the run count, the session
+   count and the load, while contributing nothing to mileage and nothing to pace.
+   THE RULE: a run without distance is not a run. It is cardio. It still counts for days moved and
+   for load, because he did it, but it is out of mileage, out of pace and out of the running level. */
+function dataAudit(){
+  var issues=[];
+  S.sessions.forEach(function(r,i){
+    var d=r.distanceMi||0,sec=r.durationSec||0;
+    if(r.type==="run"){
+      if(d<=0&&sec>0)issues.push({id:r.id,date:r.date,kind:"run-no-distance",fix:"reclassify",
+        say:Math.round(sec/60)+" min logged as a run with no distance"});
+      else if(d>0&&sec>0){
+        var pc=sec/d;
+        if(pc<210)issues.push({id:r.id,date:r.date,kind:"impossible-pace",fix:"review",say:mmss(Math.round(pc))+" a mile is not a run"});
+        else if(pc>1500)issues.push({id:r.id,date:r.date,kind:"walking-pace",fix:"review",say:mmss(Math.round(pc))+" a mile is walking, not running"});
+      }else if(d>0&&sec<=0)issues.push({id:r.id,date:r.date,kind:"distance-no-time",fix:"review",say:d.toFixed(1)+" mi with no time, so no pace"});
+    }
+    if(sec>6*3600)issues.push({id:r.id,date:r.date,kind:"absurd-duration",fix:"review",say:Math.round(sec/3600)+" hours"});
+  });
+  return issues;
+}
+/* Reclassification, never deletion. The session stays in the record with its duration intact; only
+   its TYPE changes, so days moved and load are untouched and mileage stops being a lie. */
+function repairRuns(){
+  var n=0;
+  S.sessions.forEach(function(r){
+    if(r.type==="run"&&!(r.distanceMi>0)&&(r.durationSec||0)>0){
+      r.type="activity";r.activity=r.activity||"Cardio";
+      r.notes=(r.notes?r.notes+" · ":"")+"reclassified: no distance";
+      delete r.paceSecPerMi;n++;
+    }
+  });
+  if(n){invalidateDayIndex();save();refreshCurrent();}
+  return n;
+}
+function doRepairRuns(){
+  var n=repairRuns();
+  closeSheet();
+  toast("Reclassified "+n+" as cardio.",null);
+}
+function dataCheckSheet(){
+  var iss=dataAudit();
+  var fixable=iss.filter(function(x){return x.fix==="reclassify";});
+  var rows=iss.length?iss.map(function(x){
+    return '<div class="srow scad" data-rag="'+(x.fix==="reclassify"?"amber":"red")+'"><span class="caddot"></span>'+
+      '<span class="srl">'+fullDate(x.date)+'<span class="snv" style="display:block">'+esc(x.say)+'</span></span></div>';
+  }).join(""):'<div class="srow"><span class="srl" style="color:var(--sub)">Everything checks out.</span></div>';
+  openSheet('<div class="grab"></div><h3>Data check</h3>'+
+    '<div class="ssub">'+S.sessions.length+' sessions checked. A run without a distance is not a run; it becomes cardio, keeps its time, and stops counting toward mileage and pace.</div>'+
+    sgroup("Found",rows,iss.length?(iss.length+" to look at."):"Nothing to fix.")+
+    (fixable.length?'<button class="sheet-cta" onclick="doRepairRuns()">Reclassify '+fixable.length+' as cardio</button>':'')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
+}
+/* ============ THE CARDIO LEVEL, v7.26 ============
+   Matthew: "the main goal is to teach me to do a strong weekly mileage and to slowly improve my
+   speed, pace, total miles etc per week."
+   The old level was TRAINING LOAD, effort multiplied by minutes. That measures how tired you got,
+   which is why an hour on a treadmill with no distance could raise it and why a year of not
+   running barely lowered it. It taught nothing about mileage.
+   The new one is built from what he actually wants to grow, in the order he wants to grow it:
+     MILES   - an exponentially weighted weekly mileage, the spine of the whole thing
+     RHYTHM  - how many of the last 8 weeks had a run in them, because 15 miles in one week and
+               nothing for a month is exactly the build-then-abandon pattern his own Strava profile
+               calls out, and it must be worth less than 5 a week for two months
+     QUALITY - a modest bonus for getting faster at easy effort, and for a longer long run
+   Calibrated against his real record: peak week 15.3 mi (Jul 2024), best sustained block about
+   12 mi/wk for three months, median pace 9:51, best 8:26, current 0. Research:
+   `Health/Daily-Tool/data/running-profile.md`. */
+function weeklyMilesSeries(weeks){
+  weeks=weeks||52;
+  var out=[],d=new Date(NOW);
+  d.setDate(d.getDate()-((d.getDay()+6)%7));           /* this Monday */
+  d.setDate(d.getDate()-7*(weeks-1));
+  for(var i=0;i<weeks;i++){
+    var start=keyOf(d),e=new Date(d);e.setDate(e.getDate()+6);var end=keyOf(e);
+    var mi=0,runs=0;
+    S.sessions.forEach(function(r){
+      if(r.type!=="run"||!(r.distanceMi>0))return;
+      if(r.date>=start&&r.date<=end){mi+=r.distanceMi;runs++;}
+    });
+    out.push({w:start,mi:mi,runs:runs});
+    d.setDate(d.getDate()+7);
+  }
+  return out;
+}
+/* Chronic weekly mileage. Rises over about 3 weeks, falls over about 6, so a good block counts
+   quickly and a layoff costs steadily rather than instantly. */
+function cardioModel(){
+  var ws=weeklyMilesSeries(52);
+  var cwm=0,peak=0,series=[];
+  ws.forEach(function(w){
+    var tau=(w.mi>cwm)?3:6;
+    cwm=cwm+(w.mi-cwm)*(1-Math.exp(-1/tau));
+    if(cwm>peak)peak=cwm;
+    series.push({w:w.w,cwm:cwm,mi:w.mi});
+  });
+  var last8=ws.slice(-8),weeksRun=last8.filter(function(w){return w.runs>0;}).length;
+  var rhythm=0.55+0.45*(weeksRun/8);            /* 0.55 at nothing, 1.0 at every week */
+  /* Quality: easy-pace improvement against his own median, and the long run. Both capped, because
+     mileage is the lesson and neither should be able to outrun it. */
+  var recent=[],older=[];
+  S.sessions.forEach(function(r){
+    if(r.type!=="run"||!(r.paceSecPerMi>0)||!(r.distanceMi>=0.75))return;
+    var ago=daysBetween(r.date,TODAY);
+    if(ago<=90)recent.push(r.paceSecPerMi); else if(ago<=365)older.push(r.paceSecPerMi);
+  });
+  function med(a){if(!a.length)return null;var b=a.slice().sort(function(x,y){return x-y;});return b[Math.floor(b.length/2)];}
+  var mr=med(recent),mo=med(older),paceBonus=0;
+  if(mr&&mo&&mr<mo)paceBonus=Math.min(0.15,(mo-mr)/mo);
+  var long8=0;last8.forEach(function(){});
+  S.sessions.forEach(function(r){
+    if(r.type!=="run"||!(r.distanceMi>0))return;
+    if(daysBetween(r.date,TODAY)<=56&&r.distanceMi>long8)long8=r.distanceMi;
+  });
+  var longBonus=Math.min(0.15,long8/40);
+  var score=cwm*rhythm*(1+paceBonus+longBonus);
+  return {cwm:cwm,peak:peak,rhythm:rhythm,weeksRun:weeksRun,paceBonus:paceBonus,longBonus:longBonus,
+          long8:long8,score:score,series:series,weekly:ws,medRecent:mr,medOlder:mo};
+}
+/* Level curve for MILES. 6 mi/wk consistent, which is the return-to-base target in his own
+   research file, lands at 10. His best sustained block, about 12 a week, lands near 20. A 30
+   mi/wk runner reaches the high thirties. Nobody arrives at 100 by accident. */
+function milesLevelFloor(n){return n<=1?0:0.62*Math.pow(n-1,1.18);}
+function milesLevelFor(score){var n=1;while(n<100&&score>=milesLevelFloor(n+1))n++;return n;}
 function cardioLevel(){
-  var s=fitnessSeries(180);
-  var last=s.length?s[s.length-1]:{slow:0,fast:0};
-  var score=last.slow,lvl=levelFor(score);
-  var lo=levelFloor(lvl),hi=levelFloor(lvl+1),span=Math.max(hi-lo,1);
+  /* v7.26. Was the training-load average, which measured tiredness rather than running and so
+     could be raised by an hour on a treadmill with no distance. It is the mileage model now. */
+  var m=cardioModel();
+  var score=m.score,lvl=milesLevelFor(score);
+  var lo=milesLevelFloor(lvl),hi=milesLevelFloor(lvl+1),span=Math.max(hi-lo,1);
   var pips=Math.max(0,Math.min(9,Math.floor(10*(score-lo)/span)));
-  var monthAgo=s.length>29?s[s.length-30].slow:0;
-  var r=(last.fast-last.slow)/Math.max(last.slow,1);
-  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,fast:last.fast,slow:last.slow,
-          r:r,delta:score-monthAgo,series:s,sessions:S.sessions.length};
+  var back4=m.series.length>4?m.series[m.series.length-5].cwm:0;
+  var lvl4=milesLevelFor(back4*m.rhythm);
+  /* Direction comes from the mileage trend, not from a ratio of two averages of a third quantity. */
+  var r=(m.cwm-back4)/Math.max(back4,0.5);
+  return {lvl:lvl,score:score,lo:lo,hi:hi,span:span,pips:pips,r:r,delta:lvl-lvl4,
+          cwm:m.cwm,peak:m.peak,rhythm:m.rhythm,weeksRun:m.weeksRun,long8:m.long8,
+          paceBonus:m.paceBonus,longBonus:m.longBonus,medRecent:m.medRecent,medOlder:m.medOlder,
+          model:m,series:m.series.map(function(x){return {date:x.w,slow:x.cwm};}),
+          sessions:allRuns().length};
 }
 /* v7.24a. Days since anything with load actually happened, for the tab in question. The level
    status needs this because the fast/slow ratio ALONE cannot tell "training hard" from "stopped":
