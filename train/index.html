@@ -1360,7 +1360,14 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    off because the sheet IS the card now, and the drawer summary is hidden
    because the sheet's h3 already names the subject. */
 .msheet .card,.msheet .dcard{background:transparent;border:0;box-shadow:none;padding:0;margin:0}
-.msheet .dcard>summary{display:none}
+/* The card's own title is suppressed, drawer or plain card, because the sheet's
+   h3 already names the subject. Caught by LOOKING: the Weight popup shipped its
+   first draft reading "Weight" in the sheet header and "WEIGHT 191.2 lb" again
+   nine pixels below, which is the same three-writers-for-one-fact defect the
+   run screen was corrected for. Hiding only `.dcard>summary` covered the three
+   drawer-shaped cards and missed the one plain card, which is why the defect
+   was invisible until the tile it belonged to was actually tapped. */
+.msheet>.dcard>summary,.msheet>.card>h3{display:none}
 .msheet .dbody{padding:0}
 .msheet{margin-top:4px}
 /* ROUND A: three became four when Weight joined the row. Four across at 390px
@@ -1447,7 +1454,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.44";
+var VERSION="v7.44a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
