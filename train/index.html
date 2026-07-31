@@ -1420,7 +1420,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.39b";
+var VERSION="v7.40";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3705,7 +3705,7 @@ function trackGlanceHTML(){
      without a second line to say it. The average sits underneath as the number it came from. */
   var cv=calVerdict();
   out+=glanceChip("Calories",calStat(),
-    cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+"d"):"needs 3 days",cv.tone||"none");
+    cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of "+cv.windowDays+"d"):("needs "+CAL_MIN+" days in "+CAL_DAYS),cv.tone||"none");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",
     (rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none");
@@ -3856,10 +3856,10 @@ function trackReportHTML(){
       sub:(dl>0?"+":"")+Math.round(dl)+" bpm vs the year"});
   }
   var cv=calVerdict();
-  if(cv.n){
+  if(cv.total){
     h+=reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
       series:cv.enough?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
-      sub:cv.enough?(cv.avg.toLocaleString()+" a day over "+cv.n+" logged days"):"needs three logged days"});
+      sub:cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of the last "+cv.windowDays+" days logged"):("nothing logged in the last "+CAL_DAYS+" days")});
   }
   /* Miles is Cardio's card, shown here too because a body report without the training load in it
      is half a report. Same function, so the two tabs cannot drift. */
@@ -4270,16 +4270,32 @@ function proteinMet(k){
 
    Direction: the standing goal is the cut, so UNDER maintenance is good, over is amber, and the
    dead band is +/-150, which is inside the error of any calorie count. */
-var CAL_BAND=150,CAL_WINDOW=7;
+/* ROUND 17, 2026-07-31. THE WINDOW WAS NOT A WINDOW.
+   CAL_WINDOW counted seven logged ROWS, not seven days, so on a gappy record it silently widened
+   until it found seven. His last seven rows ran 7 July to 30 July: a five-day stretch, an
+   eighteen-day hole, then two days from this week, all averaged into one number the tile called
+   today's deficit. The result was "333 under" on a day whose two most recent logged days averaged
+   185 OVER maintenance, while the scale went 187.8 to 191.2 in eight days. A verdict about now
+   has to be computed from now.
+   The window is calendar-anchored: the logged days inside the last CAL_DAYS. Coverage inside that
+   window is then a fact about the record rather than something the window hides, so it can be
+   stated. Five or more logged days is a confident read; two to four still gets a verdict, because
+   refusing to answer is its own kind of lie when he is asking whether he is gaining, but it is
+   marked provisional and the card says how thin it is. Below two, no number. */
+var CAL_BAND=150,CAL_DAYS=14,CAL_MIN=2,CAL_MIN_CONF=5;
 function calVerdict(){
   var nut=S.nutrition||{};
   var logged=Object.keys(nut).filter(function(k){return nut[k]&&nut[k].c>0;}).sort();
-  if(!logged.length)return {enough:false,n:0,tone:"",word:"",why:"never imported"};
-  var win=logged.slice(-CAL_WINDOW);
-  var last=win[win.length-1],age=daysBetween(last,TODAY);
+  if(!logged.length)return {enough:false,n:0,total:0,windowDays:CAL_DAYS,tone:"",word:"",why:"never imported"};
+  var newest=logged[logged.length-1];
+  var win=logged.filter(function(k){return daysBetween(k,TODAY)<CAL_DAYS;});
+  var last=win.length?win[win.length-1]:newest,age=daysBetween(last,TODAY);
   var lastCal=Math.round(nut[last].c);
-  if(win.length<3)return {enough:false,n:win.length,tone:"amber",word:"",why:"too few days",
+  if(win.length<CAL_MIN)return {enough:false,n:win.length,tone:"amber",word:"",
+                          why:win.length?"too few days in the window":"nothing logged in the last "+CAL_DAYS+" days",
+                          windowDays:CAL_DAYS,total:logged.length,
                           last:last,lastCal:lastCal,age:age};
+  var conf=(win.length>=CAL_MIN_CONF);
   var avg=Math.round(win.reduce(function(a,k){return a+nut[k].c;},0)/win.length);
   var span=daysBetween(win[0],last)+1;
   var maint=maintenanceCals();
@@ -4290,10 +4306,15 @@ function calVerdict(){
   else if(gap<=-CAL_BAND){word="over maintenance";tone="amber";}
   else {word="at maintenance";tone="flat";}
   /* A verdict off a record he stopped keeping three weeks ago is a verdict about three weeks ago.
-     The reading stands, but the card and every chip that quotes it say how old it is. */
-  var stale=(age>=14);
+     The reading stands, but the card and every chip that quotes it say how old it is. Inside a
+     14-day window a stale reading is now structurally impossible, so staleness is measured against
+     the last WEEK: four days without a log is the point at which a deficit claim stops describing
+     the present. A provisional read is amber for the same reason a stale one is - the number is
+     real, the confidence is not. */
+  var stale=(age>=4);
   return {enough:true,n:win.length,span:span,avg:avg,maint:maint,gap:gap,word:word,
-          tone:stale?"amber":tone,verdictTone:tone,stale:stale,age:age,
+          conf:conf,windowDays:CAL_DAYS,total:logged.length,
+          tone:(stale||!conf)?"amber":tone,verdictTone:tone,stale:stale,age:age,
           last:last,lastCal:lastCal,lastGap:maint?(maint-lastCal):null,
           from:win[0],days:win.slice()};
 }
@@ -4310,12 +4331,16 @@ function calStat(){
 }
 function calCardHTML(){
   var v=calVerdict(),nut=S.nutrition||{};
-  if(!v.n)return "";
+  if(!v.total)return "";
   if(!v.enough){
-    return collapsible("Calories",v.n+" day"+(v.n===1?"":"s")+" on record",
-      '<div class="emptyd">Only <b>'+v.n+'</b> day'+(v.n===1?'':'s')+' in the whole store carry'+(v.n===1?'s':'')+' a calorie count'+
+    /* ROUND 17: the card no longer vanishes when the WINDOW is thin, because a store holding 318
+       logged days and a fortnight holding none are different facts and the card should say which
+       one it is looking at. */
+    return collapsible("Calories",v.n?(v.n+" of the last "+v.windowDays+" days"):"nothing in "+v.windowDays+" days",
+      '<div class="emptyd"><b>'+v.n+'</b> of the last <b>'+v.windowDays+'</b> days carr'+(v.n===1?'ies':'y')+' a calorie count'+
+      (v.total>v.n?(', though the store holds <b>'+v.total+'</b> logged days in all'):'')+
       (v.last?(', the most recent on '+fullDate(v.last)):'')+
-      '. Three is the floor for an average, so no maintenance gap is shown. '+
+      '. '+CAL_MIN+' inside the window is the floor for a maintenance gap, because a verdict about now cannot be computed from three weeks ago. '+
       '<b>Paste a week from Cal AI</b> and the whole card switches on.</div>'+
       '<button class="sheet-cta ghost" style="margin-top:10px" onclick="calaiSheet()">Paste a week from Cal AI</button>',
       false,I.fork,"amber");
@@ -4334,12 +4359,13 @@ function calCardHTML(){
   var pt=proteinTarget();
   /* The coverage sentence is the point of the card, not a footnote: the average is of what he
      LOGGED, and the days he did not log are not zeros, they are unknowns that skew high. */
-  var cover='Your last <b>'+v.n+'</b> logged days span <b>'+v.span+'</b> days'+
+  var cover='You logged <b>'+v.n+'</b> of the last <b>'+v.windowDays+'</b> days'+
     (v.from?(', '+fullDate(v.from)+' to '+fullDate(v.last)):'')+
     ', so this is what you logged rather than what you ate. Days you skip tend to be the bigger ones, '+
     'which means a deficit read this way is a floor, not a ceiling.'+
+    (v.conf?'':' <b>Under '+CAL_MIN_CONF+' days is a provisional read</b>, which is why it is amber whatever the gap says.')+
     (v.stale?(' The most recent entry is <b>'+v.age+' days</b> old.'):'');
-  return barChart("Calories","your last "+v.n+" logged days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"")+
+  return barChart("Calories",v.n+" of the last "+v.windowDays+" days",vals,labels,function(x){return Math.round(x/100)/10+"k";},"")+
     '<div class="card" style="margin-top:-6px">'+
     '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
       (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+

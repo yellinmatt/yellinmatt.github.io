@@ -129,6 +129,47 @@
     return out;
   }
 
+  /* ROUND 17, 2026-07-31. THE HALF-APPLIED ACCUMULATION RULE.
+     On 2026-07-30 the Worker's nutrition rule changed from gap-fill to larger-value-per-field,
+     because an hourly exporter sends days that are still in progress and breakfast pushed at 9am
+     must not lock out dinner. The Worker got that change. The client did not, and kept pulling
+     nutrition through mergeFill, which by construction can never replace a day it already holds.
+     The result was a successful sync that adopted nothing: the Worker held 2026-07-30 at 2,670
+     kcal and 150 g protein while this browser held 1,615 and 78, the sync reported ok 483 ms
+     after the Worker's own updatedAt, and the Calories tile computed "333 under" off the stale
+     row when the truth was roughly 185 OVER. Every day whose first partial export landed before
+     he finished eating was frozen at that partial forever.
+     Two rules, not one, because the streams differ in who authors them.
+     mergeAccum: nutrition only. The client CAN author it (the Cal AI paste sheet), so a local
+     value is real and must not be discarded; a day's intake only accumulates, so the larger
+     number is the later truth. Same rule as steps, same rule the Worker now runs.
+     mergeServer: vitals, sleep, body. PULL ONLY by design (see the 2026-07-30 note below) - no
+     client ever authors one, so there is no local edit to protect and the server copy is simply
+     newer. Max-per-field would be actively wrong here: resting HR and HRV are means, and a max
+     rule would ratchet them upward forever and never come down. */
+  function mergeAccum(local, srv) {
+    var out = {}, k, f;
+    for (k in (local || {})) out[k] = local[k];
+    for (k in (srv || {})) {
+      if (!(k in out) || !out[k] || typeof out[k] !== "object") { out[k] = srv[k]; continue; }
+      var a = out[k], b = srv[k], merged = {};
+      for (f in a) merged[f] = a[f];
+      for (f in b) {
+        if (!(f in merged)) merged[f] = b[f];
+        else if (typeof b[f] === "number" && typeof merged[f] === "number") merged[f] = Math.max(merged[f], b[f]);
+        else merged[f] = b[f];
+      }
+      out[k] = merged;
+    }
+    return out;
+  }
+  function mergeServer(local, srv) {
+    var out = {}, k;
+    for (k in (local || {})) out[k] = local[k];
+    for (k in (srv || {})) out[k] = srv[k];
+    return out;
+  }
+
   /* Anchor days merge on ticks, not on recency: the device that actually did the routine holds
      the fuller record. Moved days merge as a logical OR, and the app recomputes them from
      sessions and the anchor on load, so a genuine removal corrects itself there. */
@@ -244,7 +285,7 @@
         S.done = mergeDone(S.done, srv.done);
         S.steps = mergeSteps(S.steps, srv.steps);
         S.protein = mergeDone(S.protein, srv.protein);
-        S.nutrition = mergeFill(S.nutrition, srv.nutrition);
+        S.nutrition = mergeAccum(S.nutrition, srv.nutrition);
         /* Body composition, vitals and sleep are PULL ONLY, deliberately (2026-07-30).
            Health Auto Export writes them straight into the Worker; no client ever authors one, so
            there is nothing to push and pushing would be actively dangerous. This client sends the
@@ -253,9 +294,9 @@
            Pulling them costs nothing and stops the pipeline delivering into a void: before this
            the Worker captured all three and the client dropped them on hydrate, so the data existed
            and no surface in the app could reach it. */
-        S.body = mergeFill(S.body || {}, srv.body);
-        S.vitals = mergeFill(S.vitals || {}, srv.vitals);
-        S.sleep = mergeFill(S.sleep || {}, srv.sleep);
+        S.body = mergeServer(S.body || {}, srv.body);
+        S.vitals = mergeServer(S.vitals || {}, srv.vitals);
+        S.sleep = mergeServer(S.sleep || {}, srv.sleep);
         S.runs = mergeFill(S.runs, srv.runs);
         S.override = mergeFill(S.override, srv.override);
         S.daySlot = mergeFill(S.daySlot, srv.daySlot);
