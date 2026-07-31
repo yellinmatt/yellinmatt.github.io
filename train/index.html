@@ -1528,7 +1528,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.46a";
+var VERSION="v7.46b";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -5396,7 +5396,13 @@ function sleepCardHTML(){
   return collapsible("Sleep",hrsTxt(w.mean)+" a night",
     '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
     '<div class="pzline">'+line+'</div>'+
-    barBody(last14,function(v){return v?v.toFixed(1)+"h":"";},"h")+
+    /* `firstLabel` was never passed, so the axis fell through to barBody's
+       default of "<n>w ago" and a fourteen-NIGHT series was labelled "14w ago".
+       Fourteen weeks against fourteen days is a tenfold lie about the window,
+       on a card whose entire argument is which window you are reading. Same
+       shape as the Miles card that was titled one thing and computed another.
+       Caught by looking at the axis, not the numbers. */
+    barBody(last14,function(v){return v?v.toFixed(1)+"h":"";},"h","14 nights ago")+
     '<div class="odoct" style="margin-top:10px">Average by window</div>'+
     '<div class="lstat3">'+
       '<div class="ls3"><b class="num">'+hrsTxt(w.mean)+'</b><span>7 nights</span></div>'+
