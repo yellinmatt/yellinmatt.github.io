@@ -1248,7 +1248,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.30a";
+var VERSION="v7.31a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3475,7 +3475,7 @@ function weekMetrics(back){
     if(k>today)return;
     m.days++;
     if(S.sessions.some(function(s){return s.date===k&&s.type==="lift";}))m.lifts++;
-    if(S.protein[k])m.protein++;
+    if(proteinMet(k).met)m.protein++;
     if(isDone(k))m.moved++;
     if(anchorComplete(k))m.anchor++;
     S.sessions.forEach(function(s){
@@ -3650,7 +3650,65 @@ function calSeries(days){
     out.push({date:k,c:n?(n.c||0):0,p:n?(n.p||0):0});dt.setDate(dt.getDate()+1);}
   return out;
 }
-function maintenanceCals(){var w=lastW();return w?Math.round(w*14):null;}
+/* ============ BODY MATHS, v7.31 ============
+   The Cal AI report (30 July) supplied the three facts this app had never had: height 5 ft 11,
+   male, born 2002. They live in `S.profile` in localStorage and are deliberately NOT written into
+   this file, which is a public repo.
+   With them, maintenance stops being a rule of thumb. It was `weight x 14`, which for him returns
+   2,629 a day. Mifflin-St Jeor, the equation with the best validated accuracy in adults, returns a
+   BMR of about 1,864, and at his real step count (a 28-day average of 4,835, which is sedentary)
+   a maintenance near 2,237. The rule of thumb was overstating by roughly 400 calories a day, and
+   every "under maintenance" verdict and every implied pounds-per-week inherited that error.
+   The activity factor is read from his OWN steps rather than asked for, because a self-declared
+   activity level is the least reliable input in the whole calculation and we have 1,831 days of
+   the real thing. */
+function bmi(){
+  var h=S.profile.heightIn,w=lastW();
+  if(!(h>0)||w==null)return null;
+  return 703*w/(h*h);
+}
+function bmiBand(v){
+  if(v<18.5)return {w:"underweight",k:"warn"};
+  if(v<25)return {w:"healthy range",k:"good"};
+  if(v<30)return {w:"overweight range",k:"warn"};
+  return {w:"obese range",k:"red"};
+}
+function bmr(){
+  var h=S.profile.heightIn,w=lastW(),by=S.profile.birthYear,sx=S.profile.sex;
+  if(!(h>0)||w==null||!(by>1900))return null;
+  var kg=w*0.453592,cm=h*2.54,age=(new Date(NOW)).getFullYear()-by;
+  return Math.round(10*kg+6.25*cm-5*age+(sx==="f"?-161:5));
+}
+function activityFactor(){
+  var st=stepsAvgOver(28)||stepsAvgOver(90);
+  if(!st)return {f:1.2,why:"no step data, assuming sedentary"};
+  var a=st.avg;
+  if(a>=12500)return {f:1.9,why:a.toLocaleString()+" steps a day"};
+  if(a>=10000)return {f:1.725,why:a.toLocaleString()+" steps a day"};
+  if(a>=7500)return {f:1.55,why:a.toLocaleString()+" steps a day"};
+  if(a>=5000)return {f:1.375,why:a.toLocaleString()+" steps a day"};
+  return {f:1.2,why:a.toLocaleString()+" steps a day, which is sedentary"};
+}
+function maintenanceCals(){
+  var b=bmr();
+  if(b)return Math.round(b*activityFactor().f);
+  var w=lastW();return w?Math.round(w*14):null;   /* fallback only, and it runs high */
+}
+function maintenanceBasis(){
+  return bmr()?("Mifflin-St Jeor at "+activityFactor().why):"a weight-times-14 rule of thumb, which runs high";
+}
+/* Protein scored from what he ATE, not from a tap. `S.protein` is a one-tap self-report and it was
+   the only thing the weekly card counted; the store now holds 318 days carrying real grams, so on
+   any day with a record the record wins and the tap is the fallback. On the Cal AI report his mean
+   is 91 g against a 136 g floor, and he cleared it on 15 of 133 days. The tap was not lying, it
+   was answering a different question. */
+function proteinMet(k){
+  var t=proteinTarget();
+  var n=(S.nutrition||{})[k];
+  if(n&&n.p>0&&t)return {met:n.p>=t.lo,grams:n.p,measured:true};
+  if(n&&n.p>0&&!t)return {met:false,grams:n.p,measured:true};
+  return {met:!!(S.protein||{})[k],grams:null,measured:false};
+}
 /* v7.29. This averaged whatever days happened to carry a number inside a 14-day window and then
    stated the result as "averaging X a day" with no hint of how thin that was. On the live store
    the last 28 days hold TWO nutrition entries, so a fortnight's verdict, a maintenance gap and an
@@ -3675,8 +3733,11 @@ function calCardHTML(){
   var labels=days.map(function(d,i){return (i===days.length-1)?"now":"";});
   var head=(gap==null)?"":(gap>150?("About "+gap+" under maintenance, which is roughly "+(Math.round(gap*7/3500*10)/10)+" lb a week."):
             gap<-150?("About "+Math.abs(gap)+" over maintenance."):"Right around maintenance.");
+  var pAvg=(function(){var ps=days.filter(function(d){return d.p>0;});return ps.length?Math.round(ps.reduce(function(a,d){return a+d.p;},0)/ps.length):0;})();
+  var pt=proteinTarget();
   return barChart("Calories","last 14 days, "+logged.length+" logged",vals,labels,function(v){return Math.round(v/100)/10+"k";},"")+
-    (head?'<div class="card" style="margin-top:-6px"><div class="ksub" style="margin:0">Averaging <b>'+avg.toLocaleString()+'</b> a day against an estimated maintenance of <b>'+maint.toLocaleString()+'</b>. '+head+'</div></div>':"");
+    (head?'<div class="card" style="margin-top:-6px"><div class="ksub" style="margin:0">Averaging <b>'+avg.toLocaleString()+'</b> a day against a maintenance of <b>'+maint.toLocaleString()+'</b>, from '+maintenanceBasis()+'. '+head+
+      (pAvg&&pt?(' Protein is averaging <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div></div>':"");
 }
 /* B5 - the body hero. Latest ACTUAL weight leads (never the lagging EWMA);
    the smoothed trend sits beside it as context, labelled as what it is. */
@@ -3847,10 +3908,18 @@ function bodyTilesHTML(){
   /* Days moved and protein already have scorecard rows directly above, measured over the calendar
      week. Repeating them here on a rolling-7 window put two different true numbers for the same
      thing side by side, which reads as a bug. Only the streak and the pending Steps pipe remain. */
+  /* v7.31. BMI is only computable now that height is on file; before the Cal AI report the app
+     did not know how tall he is, which is also why maintenance was a rule of thumb. Shown against
+     the trend weight rather than the last raw reading, because a single dehydrated morning should
+     not move a body-composition number. */
+  var bm=bmi(),bmb=bm?bmiBand(bm):null;
   var h='<div class="stattiles">'+
     stat("Streak",streak,streak===1?"day":"days","consecutive days moved","flat")+
     stepsTileHTML()+
-    '</div>';
+    (bm?stat("BMI",bm.toFixed(1),"",bmb.w,bmb.k==="good"?"flat":"flat"):"")+
+    '</div>'+
+    (bm?('<div class="ksub" style="margin:8px 0 0">BMI is height and weight only, so it cannot tell muscle from fat and reads high on anyone carrying a lot of the former. '+
+      (Object.keys(S.body||{}).length>1?'':'<b>Body fat and lean mass are not arriving</b> — Health Auto Export is not sending them, so the one composition reading on file is from May 2022.')+'</div>'):'');
   var on=!!S.protein[TODAY];
   h+='<div class="card"><h3><span>Fuel</span><span class="t">Cal AI counts it, you confirm it</span></h3>'+
     '<button class="ptog'+(on?" on":"")+'" onclick="toggleProtein()" aria-pressed="'+on+'"><span class="pc">'+I.check+'</span>'+
