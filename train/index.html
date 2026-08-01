@@ -71,6 +71,54 @@ input,select{border:0;background:none}
 @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ============ TODAY MOTION PASS (v7.58, 2026-08-01) ============
+   Every improvement this app records has been silent, and a tracker that never reacts is a
+   spreadsheet with rounded corners. The pass is deliberately narrow: things ENTER, things that
+   changed are MARKED, and nothing loops. Anything that repeats forever becomes wallpaper within a
+   week and then becomes noise. All of it sits under the standing no-preference guard, so a system
+   reduced-motion setting zeroes the lot without a second switch. */
+@media (prefers-reduced-motion:no-preference){
+  /* The tab itself assembles, in reading order, once per entry. 55ms apart holds the four blocks
+     together as one gesture; past ~80ms they read as four separate arrivals. */
+  #v-today.on>.head{animation:tRise .42s cubic-bezier(.22,1,.36,1) both}
+  #v-today.on>.hero{animation:tRise .46s .05s cubic-bezier(.22,1,.36,1) both}
+  #v-today.on>.lvlrow{animation:tRise .46s .1s cubic-bezier(.22,1,.36,1) both}
+  #v-today.on>.dots-card{animation:tRise .46s .15s cubic-bezier(.22,1,.36,1) both}
+  @keyframes tRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  /* Cross-tab: a short fade with a small lift, so switching reads as a move rather than a cut. */
+  .view.on{animation:vIn .3s cubic-bezier(.22,1,.36,1) both}
+  @keyframes vIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  #v-workout.on,#v-run.on{animation:none}
+  /* The week strip. A completed day stamps rather than appears; today's ring draws itself. */
+  .dots .dot.done{animation:dStamp .5s cubic-bezier(.34,1.5,.5,1) both}
+  .dots .dot:nth-child(1){animation-delay:.18s}.dots .dot:nth-child(2){animation-delay:.22s}
+  .dots .dot:nth-child(3){animation-delay:.26s}.dots .dot:nth-child(4){animation-delay:.3s}
+  .dots .dot:nth-child(5){animation-delay:.34s}.dots .dot:nth-child(6){animation-delay:.38s}
+  .dots .dot:nth-child(7){animation-delay:.42s}
+  @keyframes dStamp{0%{opacity:0;transform:scale(.55)}62%{transform:scale(1.13)}100%{opacity:1;transform:none}}
+  .dots .dot.today{animation:dRing .55s .4s cubic-bezier(.22,1,.36,1) both}
+  @keyframes dRing{from{box-shadow:0 0 0 0 transparent}to{box-shadow:none}}
+  /* The mobility, stretch and pilates rails fill from zero, so the three tiles show motion even on
+     a morning when nothing else on the screen has changed. */
+  .pcbar i{animation:barFill .75s .3s cubic-bezier(.22,1,.36,1) both;transform-origin:left center}
+  @keyframes barFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+  .pcol{animation:tRise .44s cubic-bezier(.22,1,.36,1) both}
+  .pcol:nth-child(1){animation-delay:.14s}.pcol:nth-child(2){animation-delay:.19s}.pcol:nth-child(3){animation-delay:.24s}
+  /* The two level rings sweep their arc instead of arriving drawn. */
+  .lvlrow .lcring g circle{animation:ringSweep .85s .18s cubic-bezier(.22,1,.36,1) both}
+  @keyframes ringSweep{from{stroke-dashoffset:113.1}}
+  /* The streak chip acknowledges an increment once, on the day it happens. */
+  .streak.bumped{animation:stPulse .8s .3s cubic-bezier(.34,1.4,.5,1) both}
+  @keyframes stPulse{0%{transform:scale(1)}35%{transform:scale(1.12)}100%{transform:scale(1)}}
+  /* Resume carries its own progress. A button that states "1/10 sets" and shows nothing is asking
+     him to picture the fraction; the fill does the picturing. */
+  .big-start.hasfill::before{content:"";position:absolute;inset:0;border-radius:inherit;
+    background:rgba(255,255,255,.17);transform-origin:left center;transform:scaleX(0);
+    animation:fillTo .8s .25s cubic-bezier(.22,1,.36,1) forwards;pointer-events:none}
+  @keyframes fillTo{to{transform:scaleX(var(--fill,0))}}
+}
+.big-start{position:relative;overflow:hidden}
+.big-start.hasfill>*{position:relative;z-index:1}
 
 /* header */
 .head{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 12px;gap:10px}
@@ -1664,7 +1712,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.57";
+var VERSION="v7.58";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3064,7 +3112,7 @@ function renderToday(){
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+primeRowHTML()+anchorHTML()+'</div>';
+        '<button class="big-start'+(resuming&&wp.total?" hasfill":"")+'"'+(resuming&&wp.total?(' style="--fill:'+(wp.done/wp.total).toFixed(3)+'"'):'')+' onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+primeRowHTML()+anchorHTML()+'</div>';
   }else if(plan.type==="run"){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
@@ -3117,6 +3165,17 @@ function renderToday(){
     (isFresh()?emptyStateHTML():"")+
     drawerize(todayLogHTML(),I.check,"");
   tileBandPulse();
+  streakPulse();
+}
+/* The streak only reacts on the day it actually moves. Stored device-local for the same reason the
+   tile band is: a milestone is a moment on the screen you are holding, not a fact worth syncing. */
+function streakPulse(){
+  try{
+    var n=computeStreak(),prev=parseInt(localStorage.getItem("train.streakSeen")||"-1",10);
+    var el=document.querySelector("#v-today .streak");
+    if(el&&prev>=0&&n>prev)el.classList.add("bumped");
+    localStorage.setItem("train.streakSeen",String(n));
+  }catch(e){}
 }
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
@@ -3250,7 +3309,36 @@ function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.sta
    warm-up (17c), so a sheet in front of it was the same gate twice. Straight in. */
 function startWorkout(){startWorkoutNow();}
 function startWorkoutNow(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
-function closeWorkout(){woFreeze();endRest();show(RETV||"today");}
+/* ============ LEAVING A WORKOUT (v7.58, 2026-08-01) ============
+   The defect he reported: Today offered "Resume 1/10 sets" for a workout he had quit. The cause is
+   not in the resume test, it is that THE APP HAD ONE EXIT AND IT MEANT PAUSE. The back chevron
+   called woFreeze and navigated, so quitting and pausing wrote the identical state and every
+   abandonment came back the next day asking to be resumed. A single control cannot express two
+   intentions, and inferring which one he meant from a timestamp would be guessing about the one
+   thing he can simply be asked.
+   Three ways out now, and the middle one matters most: four sets done IS a workout, and forcing a
+   binary of resume-or-lose is exactly the friction this app exists to remove. With nothing logged
+   there is nothing to lose, so the chevron still leaves silently and clears the slate. */
+function closeWorkout(){
+  var wp=wkProgress(AW());
+  if(!wp.done){ if(S.activeMode!=="gen"&&S.wk[TODAY]&&!S.sessions.some(function(x){return x.date===TODAY&&x.type==="lift";}))delete S.wk[TODAY];
+    save();woFreeze();endRest();show(RETV||"today");return; }
+  woFreeze();endRest();exitSheet(wp);
+}
+function exitSheet(wp){
+  openSheet('<div class="grab"></div><h3>Leave this workout</h3>'+
+    '<div class="ssub">'+wp.done+' of '+wp.total+' sets logged so far.</div>'+
+    '<button class="sheet-cta" onclick="closeSheet();finishWorkout()">Log the '+wp.done+' I did</button>'+
+    '<button class="sheet-cta ghost" onclick="exitKeep()">Keep it for later</button>'+
+    '<button class="sheet-cta ghost" onclick="exitDiscard()">Discard, start fresh</button>');
+}
+function exitKeep(){closeSheet();show(RETV||"today");}
+function exitDiscard(){
+  var w=AW();
+  if(S.activeMode==="gen"){S.genWk=null;}else{delete S.wk[TODAY];}
+  recomputeDone(TODAY);save();closeSheet();show(RETV||"today");
+  toast("Discarded. Today is clean.",null);
+}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
   o.sets.forEach(function(s,si){
     var wcell=o.bw?'<div class="bwtag">'+(e.equip==="band"?"Band":"BW")+'</div>':'<div class="stp"><button onclick="step('+oi+','+si+',\'w\',-1)" aria-label="less weight">&minus;</button><input class="val num" inputmode="decimal" value="'+s.w+'" aria-label="weight" onchange="setVal('+oi+','+si+',\'w\',this.value)"><span class="u">'+wLbl()+'</span><button onclick="step('+oi+','+si+',\'w\',1)" aria-label="more weight">+</button></div>';
