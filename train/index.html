@@ -1469,7 +1469,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.67";
+var VERSION="v7.68";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2801,11 +2801,11 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   if(doneL.length){h+='<div class="doneband'+(active.length?"":" gd")+'">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
   h+='<button class="addex" onclick="addExSheet()">'+I.plus+' Add an exercise</button>';
   document.getElementById("wo-body").innerHTML=h;}
-function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
+function step(oi,si,f,dir){var o=exAt(oi),s=o&&o.sets[si];if(!s)return;
   if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
   else{var d=o.unit==="s"?5:1;s.reps=Math.max(0,(parseInt(s.reps)||0)+dir*d);}
   save();var el=document.getElementById("set-"+oi+"-"+si);if(el){var inp=el.querySelectorAll(".val");inp[0].value=s.w;inp[1].value=s.reps;}}
-function setVal(oi,si,f,v){var s=AW().order[oi].sets[si];v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
+function setVal(oi,si,f,v){var o=exAt(oi),s=o&&o.sets[si];if(!s)return;v=(""+v).replace(/[^0-9.]/g,"");s[f]=f==="w"?(v===""?0:parseFloat(v)):(v===""?0:parseInt(v));save();}
 var ST={oi:-1,si:-1,t0:0,int:null};
 function setElapsed(s){return (s.sec||0)+(ST.t0?Math.floor((Date.now()-ST.t0)/1000):0);}
 function startSet(oi,si){
@@ -2834,7 +2834,7 @@ function stopSet(oi,si,quiet){
     if(!st.on)toggleSet(oi,si);else renderWorkout();
   }
 }
-function toggleSet(oi,si){var w=AW(),o=w.order[oi],s=o.sets[si];
+function toggleSet(oi,si){var w=AW(),o=exAt(oi),s=o&&o.sets[si];if(!s)return;
   if(ST.oi===oi&&ST.si===si)stopSet(oi,si,true);
   s.on=!s.on;if(s.on)s.ts=Date.now();else delete s.ts;save();
   if(s.on){
@@ -2855,10 +2855,18 @@ function toggleSet(oi,si){var w=AW(),o=w.order[oi],s=o.sets[si];
   }
   if(exComplete(o))delete openEx[oi];
   renderWorkout();}
-function addSet(oi){var o=AW().order[oi],last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});save();renderWorkout();}
-function removeSet(oi){var o=AW().order[oi];if(o.sets.length>1){o.sets.pop();save();renderWorkout();}}
+function addSet(oi){var o=exAt(oi);if(!o)return;var last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});save();renderWorkout();}
+function removeSet(oi){var o=exAt(oi);if(!o)return;if(o.sets.length>1){o.sets.pop();save();renderWorkout();}}
+function exAt(oi){
+  var w=AW();
+  if(!w||!w.order)return null;
+  var o=w.order[oi];
+  return (o&&LIB[o.exId])?o:null;
+}
+function exGone(){closeSheet();toast("That movement is no longer in today's session.",null);renderWorkout();}
 function exMenu(oi){
-  var o=AW().order[oi],e=LIB[o.exId];
+  var o=exAt(oi);if(!o){exGone();return;}
+  var e=LIB[o.exId];
   var m='<div class="grab"></div><h3>'+esc(e.name)+'</h3><div class="ssub">'+PATTERNS[e.pattern]+' &middot; '+e.equip+'</div>';
   m+=optRow(I.swap,"Swap exercise","Anything in the library","swapSheet("+oi+")");
   var fv=formVid(o.exId);
@@ -2902,7 +2910,8 @@ function exJump(btn,p){
   t.scrollIntoView({behavior:"smooth",block:"start"});
 }
 function swapSheet(oi){
-  var o=AW().order[oi],e=LIB[o.exId];
+  var o=exAt(oi);if(!o){exGone();return;}
+  var e=LIB[o.exId];
   openSheet('<div class="grab"></div><h3>Swap '+esc(e.name)+'</h3>'+
     '<div class="ssub">Anything in the library. Same movement first; dimmed means kit you did not list. You have '+equipLabel(sessionEquip())+' today.</div>'+
     exPickList("doSwap",oi,o.exId,e.pattern));
@@ -2929,11 +2938,11 @@ function doAddEx(_ignored,id){
   save();closeSheet();renderWorkout();
   toast("Added "+e.name+".",null);
 }
-function doSwap(oi,id){var o=AW().order[oi],e=LIB[id];
+function doSwap(oi,id){var o=exAt(oi),e=LIB[id];if(!o||!e){exGone();return;}
   o.exId=id;o.unit=e.unit||"reps";o.side=!!e.side;o.bw=!!e.bw;
   o.sets.forEach(function(s){if(e.bw)s.w=0;});
   save();closeSheet();renderWorkout();}
-function removeEx(oi){var o=AW().order[oi];var rm=AW().order.splice(oi,1)[0];save();closeSheet();renderWorkout();
+function removeEx(oi){if(!exAt(oi)){exGone();return;}var rm=AW().order.splice(oi,1)[0];save();closeSheet();renderWorkout();
   toast("Removed "+LIB[rm.exId].name,function(){AW().order.splice(oi,0,rm);save();renderWorkout();});}
 var rpePick=null;
 function finishWorkout(){var w=AW();if(!w)return;var wp=wkProgress(AW());if(wp.done===0){toast("Log at least one set first, or tap Today to leave.",null);return;}
@@ -5075,7 +5084,7 @@ VID=VID.concat([
  {id:"fKiCBqsyM-0",t:"Stretch & Stability for Runners | Session 24/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:24},
  {id:"X1q4K6lDBVs",t:"Stretch & Stability for Runners | Session 25/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:25},
  {id:"zRqjRtAC7Qk",t:"Stretch & Stability for Runners | Session 26/26 | Stretch & Stability with Coach Fraser from Runna",a:"Runna",c:"recovery",m:"",lv:26},
- {id:"TIHs5EQ2KYw",t:"10 minute foam roller routine for runners | Runna",a:"Runna",c:"strength",m:""},
+ {id:"TIHs5EQ2KYw",t:"10 minute foam roller routine for runners | Runna",a:"Runna",c:"recovery",m:"10m"},
  {id:"m2zKKJmdExg",t:"20 minute core workout for runners | Runna",a:"Runna",c:"strength",m:""},
  {id:"6LB__vPvaaE",t:"20 minute leg strength workout for runners | Runna",a:"Runna",c:"strength",m:""},
  {id:"6-tZaV4W_mI",t:"30 minute pilates for running session | Runna",a:"Runna",c:"strength",m:""},
@@ -5100,11 +5109,12 @@ var SLOTS={
   warmup  :{n:"Lift warm-up",   max:12, cats:["warmup","mobility"],   untimedOK:true,  day:"pre",  note:"short, raises temperature, no fatigue"},
   runwarm :{n:"Run warm-up",    max:12, cats:["runwarm","warmup","mobility"], untimedOK:true, day:"pre", note:"dynamic, legs, short"},
   cooldown:{n:"Cool-down",      max:20, cats:["recovery","yoga","mobility"],           day:"post", note:"after a session, slow"},
-  session :{n:"Replaces a session", min:15, max:60, cats:["wk","strength","core","pilates"], day:"pre", note:"stands in for the day's workout"},
+  session :{n:"Replaces a session", min:15, max:60, cats:["wk","strength","core","pilates"], note:"stands in for the day's workout"},
   study   :{n:"Form reference", max:60, cats:["form"],                                             note:"how a movement should look"},
-  calm    :{n:"Wind-down",      max:60, cats:["meditation","yoga","recovery"],         day:"night",note:"evening, low effort"}
+  calm    :{n:"Wind-down",      max:60, cats:["meditation","yoga","recovery","mobility"], day:"night",note:"evening, low effort"}
 };
 var SHORT_BY_NATURE={warmup:1,runwarm:1};
+var LADDER_TRACKS={mobility:1,recovery:1,pilates:1,morning:1};
 function vidDaypart(v){
   var ov=((S.vidTags||{})[v.id]||{}).day;
   if(ov)return ov;
@@ -5207,7 +5217,7 @@ function videoRegistry(){
     if(h.status==="broken")out.broken.push({id:v.id,t:v.t,fails:h.fails});
     if(verd==="good")out.good++; else if(verd==="bad")out.bad++; else out.unrated++;
     if(vidMins(v)==null)out.untimed++;
-    if(!vidSlots(v).length)out.orphans.push({id:v.id,t:v.t,c:v.c,m:v.m});
+    if(!vidSlots(v).length&&!(v.lv&&LADDER_TRACKS[v.c]))out.orphans.push({id:v.id,t:v.t,c:v.c,m:v.m});
   });
   out.emptySlots=Object.keys(out.bySlot).filter(function(k){return out.bySlot[k]===0;});
   out.ok=(out.broken.length===0&&out.emptySlots.length===0);
