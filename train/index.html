@@ -1573,6 +1573,8 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 @keyframes wpulse{0%{box-shadow:0 0 0 0 rgba(255,92,58,.5)}70%{box-shadow:0 0 0 9px rgba(255,92,58,0)}100%{box-shadow:0 0 0 0 rgba(255,92,58,0)}}
 .runsegs i.cur{animation:segin .4s ease}
 @keyframes segin{from{transform:scaleX(.4);opacity:.4}to{transform:none;opacity:1}}
+.iconbtn.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
@@ -1626,7 +1628,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.55a";
+var VERSION="v7.56";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1684,9 +1686,9 @@ var LIB={
   pushup:{name:"Push-up",pattern:"h-push",equip:"BW",bw:true,diff:"beginner",cue:"hollow body, elbows back",q:"proper push up form"},
   inclinepress:{name:"DB incline press",pattern:"h-push",equip:"DB",diff:"beginner",cue:"45 incline, no elbow flare",q:"dumbbell incline press form"},
   feetpush:{name:"Feet-elevated push-up",pattern:"h-push",equip:"BW",bw:true,diff:"intermediate",cue:"harder press, no more load",q:"feet elevated push up"},
-  kneelpress:{name:"Half-kneeling DB press",pattern:"v-push",equip:"DB",side:true,diff:"intermediate",cue:"ribs down, no shrug, pain-free ROM",q:"half kneeling dumbbell press form"},
+  kneelpress:{name:"Half-kneeling DB press",pattern:"v-push",equip:"DB",side:true,neck:true,diff:"intermediate",cue:"ribs down, no shrug, pain-free ROM",q:"half kneeling dumbbell press form"},
   neutralpress:{name:"Neutral-grip DB press",pattern:"v-push",equip:"DB",diff:"intermediate",cue:"neutral grip, shoulder-friendly",q:"neutral grip dumbbell shoulder press"},
-  bandpress:{name:"Band overhead press",pattern:"v-push",equip:"band",bw:true,diff:"beginner",cue:"control the way down",q:"resistance band overhead press"},
+  bandpress:{name:"Band overhead press",pattern:"v-push",equip:"band",bw:true,neck:true,diff:"beginner",cue:"control the way down, ribs down, no neck jut",q:"resistance band overhead press"},
   row1:{name:"1-arm DB row",pattern:"h-pull",equip:"DB",side:true,diff:"beginner",cue:"flat back, elbow to hip",q:"one arm dumbbell row form"},
   csrow:{name:"Chest-supported DB row",pattern:"h-pull",equip:"DB",diff:"beginner",cue:"no lower-back load, retract",q:"chest supported dumbbell row"},
   bandrow:{name:"Band seated row",pattern:"h-pull",equip:"band",bw:true,diff:"beginner",cue:"squeeze blades, tall chest",q:"resistance band seated row"},
@@ -1700,11 +1702,15 @@ var LIB={
   suitcase:{name:"Suitcase carry",pattern:"core",equip:"DB",side:true,unit:"s",diff:"beginner",cue:"don't lean, brace hard",q:"suitcase carry exercise"},
   pallof:{name:"Pallof press",pattern:"core",equip:"band",bw:true,side:true,diff:"beginner",cue:"resist rotation, ribs down",q:"pallof press band form"},
   facepull:{name:"Band face pull",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"elbows high, external rotate (shoulder health)",q:"band face pull form"},
+  /* 2026-08-01, his yes to the plan proposal: pull-aparts promoted from a warm-up line to a
+     working slot (Day A), and a direct shoulder accessory for Day C once past Base. */
+  pullapart:{name:"Band pull-apart",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"straight arms, squeeze the shoulder blades, chin tucked",q:"band pull apart form"},
+  latraise:{name:"DB lateral raise",pattern:"isolation",equip:"DB",diff:"beginner",cue:"soft elbows, lead with the elbow, stop at shoulder height, no shrug",q:"dumbbell lateral raise form"},
   ytw:{name:"Prone Y-T-W raises",pattern:"isolation",equip:"BW",bw:true,diff:"beginner",cue:"thumbs up, low traps, no neck",q:"prone y t w raises shoulder"},
   bwsquat:{name:"Bodyweight squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"sit between hips, chest tall, full depth",q:"bodyweight squat proper form"},
   bwsplit:{name:"Split squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"tall torso, front heel drives, controlled",q:"bodyweight split squat form"},
   bwlunge:{name:"Reverse lunge",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"step back, control the way down",q:"bodyweight reverse lunge form"},
-  pikepush:{name:"Pike push-up",pattern:"v-push",equip:"BW",bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
+  pikepush:{name:"Pike push-up",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
   sglutebridge:{name:"Single-leg glute bridge",pattern:"hinge",equip:"BW",bw:true,side:true,diff:"beginner",cue:"hips level, drive through the heel",q:"single leg glute bridge form"},
   birddog:{name:"Bird dog",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"reach long, no hip rock, brace",q:"bird dog exercise form"},
   plank:{name:"Front plank",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"}
@@ -1720,7 +1726,8 @@ var DAYS={
     {pat:"h-push",bw:"pushup",      db:"floorpress", sets:3,low:6,high:12},
     {pat:"h-pull",bw:"invrow",      db:"row1",  band:"bandrow", none:"tablerow", sets:3,low:8,high:12},
     {pat:"v-pull",bw:"deadhang",    db:"pullup", bar:"pullup", band:"bandpulldown", sets:2,low:6,high:10},
-    {pat:"core",  bw:"deadbug",     db:"deadbug",    sets:2,low:8,high:10}]},
+    {pat:"core",  bw:"deadbug",     db:"deadbug",    sets:2,low:8,high:10},
+    {pat:"isolation",bw:"ytw",      db:"facepull", band:"pullapart", sets:2,low:12,high:15}]},
   B:{name:"Hinge + Pull",slots:[
     {pat:"hinge", bw:"sglutebridge",db:"rdl",        sets:3,low:8,high:12},
     {pat:"squat", bw:"bwsplit",     db:"bulgarian",  sets:3,low:8,high:12},
@@ -1982,7 +1989,7 @@ if(!S.daySlot)S.daySlot={};
 if(!S.vetted)S.vetted={};
 if(S.cycleNext==null)S.cycleNext=0;
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{},anchor:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -2071,6 +2078,13 @@ function workDay(){
     var sets=[];for(var i=0;i<nSets;i++)sets.push({w:w,reps:low,on:false});
     return {exId:id,unit:e.unit||"reps",side:!!e.side,bw:!!e.bw,low:low,high:high,weight:w,sets:sets};
   }).filter(Boolean);
+  /* 2026-08-01, his yes: one direct shoulder accessory on Day C once the level clears Base.
+     Low fatigue cost, cosmetic value, gated so a beginner block stays lean. */
+  if(L==="C"&&hasDB(eq)&&LIB.latraise&&levelTier(liftLevel().lvl).k!=="base"){
+    var lt=S.progress.latraise||{};var lw=(lt.weight!=null?lt.weight:10);
+    order.push({exId:"latraise",unit:"reps",side:false,bw:false,low:12,high:15,weight:lw,
+      sets:[{w:lw,reps:12,on:false},{w:lw,reps:12,on:false}]});
+  }
   S.wk[TODAY]={letter:L,name:tpl.name,mode:hasDB(eq)?"db":"bw",equip:eq.slice(),order:order,start:null};
   save();return S.wk[TODAY];
 }
@@ -2942,6 +2956,7 @@ function renderToday(){
   var streak=computeStreak();
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
     '<div class="tools">'+streakChipHTML("all")+
+    '<button class="iconbtn" id="syncbtn" onclick="syncTap(this)" aria-label="Sync now"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.9-3M4 13a8 8 0 0 0 14.9 3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M5 4v4h4M19 20v-4h-4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   // hero
   var hero='';
@@ -3006,6 +3021,11 @@ function renderToday(){
 }
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
+  /* 2026-08-01: stamp the day so an UNCHECK can travel. Most-ticks-wins on the wire meant a
+     box unticked here could never clear on the server or another device -- the max-per-field
+     disease one layer up. The newer stamp now wins on both ends. */
+  S.stamps=S.stamps||{nutrition:{},steps:{}};S.stamps.anchor=S.stamps.anchor||{};
+  S.stamps.anchor[TODAY]=Date.now();
   recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();
   save();
   var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
@@ -3146,7 +3166,7 @@ function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
       : '<button class="tick setgo'+(held?" had":"")+'" onclick="startSet('+oi+','+si+')" aria-label="start set timer"><span class="sgt num">'+(held?mmss(held):"Start")+'</span></button>';
     setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+timeBtn+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
   });
-  return '<div class="ex'+(isActive?" active hero":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div><div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
+  return '<div class="ex'+(isActive?" active hero":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div>'+(e.neck?'<div class="aim" style="color:var(--amber)">Neck-aware: stop the set at any neck pull; a smaller range beats pain.</div>':'')+'<div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
 function exDoneHTML(oi){var o=AW().order[oi],e=LIB[o.exId];var summ=o.sets.map(function(s){return (o.bw?"":s.w+"x")+s.reps+(o.unit==="s"?"s":"");}).join(", ");
   return '<button class="exdone" onclick="openEx['+oi+']=true;focusEx('+oi+')"><span class="edc">'+I.check+'</span><span class="edt"><span class="edn">'+esc(e.name)+'</span><span class="eds">'+summ+'</span></span><span class="ede">'+I.edit+'</span></button>';}
 /* A compact row for a movement you have not reached yet: what it is, what it is asking for, and
@@ -3352,9 +3372,12 @@ function verifySheet(wp){var w=AW(),dur=elapsedSec(),setsN=0,vol=0,rows="";
     '<div class="sectlbl" style="margin:16px 2px 8px">How hard? <span style="text-transform:none;font-weight:500;color:var(--sub)">optional</span></div>'+
     '<div class="rpe wide" id="v-rpe">'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<button onclick="setRpe('+n+',this)">'+n+'</button>';}).join("")+'</div>'+
     '<div class="rpeanch"><span>very easy</span><span>hard</span><span>all out</span></div>'+
+    '<button class="wbtn" id="hurtbtn" onclick="toggleHurt(this)" style="width:100%;margin-top:12px" aria-pressed="false">Something hurt (neck, joint)</button>'+
     '<textarea class="ta" id="rpe-notes" placeholder="Notes (optional): how it felt, the shoulder, energy..." style="min-height:78px;margin-top:10px"></textarea>'+
     '<button class="sheet-cta" onclick="doFinish()">Confirm &amp; save</button><button class="sheet-cta ghost" onclick="closeSheet()">Keep going</button>';
   openSheet(m);}
+var hurtPick=false;
+function toggleHurt(b){hurtPick=!hurtPick;b.classList.toggle("sel",hurtPick);b.setAttribute("aria-pressed",hurtPick);b.style.background=hurtPick?"var(--amber-tint)":"";b.style.color=hurtPick?"var(--amber)":"";}
 function setRpe(n,btn){rpePick=n;document.querySelectorAll("#v-rpe button").forEach(function(b){b.classList.remove("sel")});btn.classList.add("sel");}
 function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0,prs=[];
   w.order.forEach(function(o){var onSets=o.sets.filter(function(s){return s.on;});if(!onSets.length)return;
@@ -3367,6 +3390,10 @@ function doFinish(){var w=AW();var dur=elapsedSec();var entries=[],setsN=0,vol=0
       if(nb){if(o.bw){if(!prev||nb.r>prev.r)prs.push(LIB[o.exId].name+" x"+nb.r);}else{if(!prev||nb.v>prev.e+0.01)prs.push(LIB[o.exId].name+" "+nb.w+wLbl()+" x"+nb.r);}}}
   });
   var nt=document.getElementById("rpe-notes");
+  /* 2026-08-01, the go-too-hard-then-quit counter: a flagged hurt eases the next week; a
+     pain-free finish clears it. Device-local by design -- it describes THIS body today. */
+  if(hurtPick){S.liftHold={date:TODAY};}else if(S.liftHold)delete S.liftHold;
+  hurtPick=false;
   var _wasCustom=(S.activeMode==="gen"||w.letter==="Gen");
   /* Record whether THIS session moved the rotation on, so deleting it can move the rotation back.
      Without this the app treated a deleted lift as still having happened and stayed on the next
@@ -3408,6 +3435,8 @@ function daysSinceLift(){
 /* green: push. amber: hold and repeat. red: back off a step. layoff: rebuild, no judgement. */
 function coachState(){
   var gap=daysSinceLift(),rec=recentLiftRPE(3);
+  if(S.liftHold&&S.liftHold.date&&daysBetween(S.liftHold.date,TODAY)<=7)
+    return {k:"red",t:"Eased back",d:"You flagged something hurting on "+runDate(S.liftHold.date)+". Hold the loads a step down; one pain-free session clears this. Going too hard too soon is the one pattern that has ended every previous block."};
   if(gap!=null&&gap>=14)return {k:"layoff",gap:gap,
     t:"Back after "+gap+" days",d:"Loads are pulled back a step for the first session or two. This is a ramp, not a reset."};
   var lifted=S.sessions.filter(function(x){return x.type==="lift";}).length;
@@ -7124,6 +7153,18 @@ function cadenceLine(){
   if(spans.length<3)return {rag:"red",t:spans.length+" weigh-in"+(spans.length===1?"":"s")+" in 28 days",s:"Three is the minimum. Below that there is nothing to fit a line to."};
   if(span<14)return {rag:"amber",t:spans.length+" weigh-ins, but only "+span+" days apart",s:"Three readings inside two weeks cannot separate a real trend from scale noise. Spread them out and the card starts measuring."};
   return {rag:"good",t:spans.length+" weigh-ins across "+span+" days",s:"Enough to fit a rate. Keep it up and the window tightens."};
+}
+/* THE SYNC BUTTON (his ask, 2026-08-01): one tap on Today, top right beside Settings.
+   Pushes the current state and pulls the merge back, so an anchor unticked here is saved
+   before any refresh. The button spins while it works and says what happened. */
+function syncTap(btn){
+  if(!window.TrainSyncAuto||!TrainSyncAuto.now){toast("Sync is not loaded on this device.",null);return;}
+  if(btn)btn.classList.add("spin");
+  TrainSyncAuto.now().then(function(r){
+    if(btn)btn.classList.remove("spin");
+    toast(r&&r.ok?"Synced.":("Sync failed"+(r&&r.reason?": "+r.reason:".")),null);
+    refreshCurrent();
+  });
 }
 function syncNow(btn){
   if(btn){btn.disabled=true;btn.textContent="Syncing...";}

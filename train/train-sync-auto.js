@@ -189,12 +189,7 @@
      the fuller record. Moved days merge as a logical OR, and the app recomputes them from
      sessions and the anchor on load, so a genuine removal corrects itself there. */
   function ticks(a) { var n = 0; for (var k in (a || {})) if (a[k]) n++; return n; }
-  function mergeAnchor(local, srv) {
-    var out = {}, k;
-    for (k in (local || {})) out[k] = local[k];
-    for (k in (srv || {})) if (!out[k] || ticks(srv[k]) > ticks(out[k])) out[k] = srv[k];
-    return out;
-  }
+  /* mergeAnchor retired 2026-08-01: the anchor merges stamped now (see pull). */
   function mergeDone(local, srv) {
     var out = {}, k;
     for (k in (local || {})) if (local[k]) out[k] = true;
@@ -296,7 +291,18 @@
         S.deleted = mergeTombs(S.deleted, srv.deleted);
         S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
-        S.anchor = mergeAnchor(S.anchor, srv.anchor);
+        /* 2026-08-01: anchor is stamped per day now, so an UNCHECK travels. Newer stamp wins;
+           days with no stamp on either side keep the old most-ticks rule. */
+        S.stamps = S.stamps || { nutrition: {}, steps: {} };
+        S.stamps.anchor = S.stamps.anchor || {};
+        var srvAS = (srv.stamps && srv.stamps.anchor) || {};
+        var mA = mergeStamped(S.anchor, srv.anchor, S.stamps.anchor, srvAS);
+        for (var _ak in (srv.anchor || {})) {
+          if (!Object.prototype.hasOwnProperty.call(srvAS, _ak) && !Object.prototype.hasOwnProperty.call(S.stamps.anchor, _ak)) {
+            if (!mA.map[_ak] || ticks(srv.anchor[_ak]) > ticks(mA.map[_ak])) mA.map[_ak] = srv.anchor[_ak];
+          }
+        }
+        S.anchor = mA.map; S.stamps.anchor = mA.stamps;
         S.done = mergeDone(S.done, srv.done);
         S.stamps = S.stamps || { nutrition: {}, steps: {} };
         /* DEPLOY-ORDER SAFETY. This file ships to Pages the moment it is pushed;
