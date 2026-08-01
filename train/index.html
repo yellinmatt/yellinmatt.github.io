@@ -843,14 +843,20 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .genrow .gt{flex:1;min-width:0}.genrow .gn{font-size:15px;font-weight:700}.genrow .gc{font-size:12px;color:var(--sub);margin-top:1px}
 .genrow .gr{width:38px;height:38px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:none}
 .genrow .gr:active{background:var(--accent-tint)}
+/* v7.47 log presentation pass. The icon chip is NEUTRAL by default: a log row is a
+   record, and painting every record accent-orange was colour as decoration. The one
+   session that satisfied today's plan carries `.plan` and goes green -- colour from
+   its own state, nothing else. Ramp-aligned 15/13 (was 14.5/12). The per-row trash
+   is GONE: the row already opens `sessionSheet`, which owns Edit and Delete, and a
+   permanently displayed destructive control was the 17b-old "discard with the
+   weight of a primary control" defect shipped a second time. */
 .tlog{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
 .tlog:last-of-type{border-bottom:0}
-.tlog .ti{width:36px;height:36px;border-radius:10px;background:var(--accent-tint);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.tlog .ti{width:36px;height:36px;border-radius:10px;background:var(--surface-2);color:var(--sub);display:flex;align-items:center;justify-content:center;flex:none}
+.tlog.plan .ti{background:var(--good-tint);color:var(--good)}
 .tlog .ti svg{width:18px;height:18px}
-.tlog .tt{flex:1;min-width:0;background:none;text-align:left;padding:0}
-.tlog .tn{font-size:14.5px;font-weight:700}.tlog .tc{font-size:12px;color:var(--sub);margin-top:1px}
-.tlog .tx{width:34px;height:34px;border-radius:9px;background:var(--surface-2);color:var(--faint);display:flex;align-items:center;justify-content:center;flex:none}
-.tlog .tx svg{width:16px;height:16px}
+.tlog .tt{flex:1;min-width:0;background:none;text-align:left;padding:0;min-height:44px;display:flex;flex-direction:column;justify-content:center}
+.tlog .tn{font-size:15px;font-weight:700}.tlog .tc{font-size:13px;color:var(--sub);margin-top:1px}
 .eqchips{display:flex;flex-wrap:wrap;gap:8px}
 .eqchip{padding:9px 14px;border-radius:999px;background:var(--surface-2);font-size:13px;font-weight:700;color:var(--sub);border:1.5px solid transparent}
 .eqchip.on{background:var(--accent-tint);color:var(--accent);border-color:var(--accent)}
@@ -1528,7 +1534,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.46b";
+var VERSION="v7.47";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -7277,6 +7283,7 @@ function doClearToday(){
 }
 function todayLogHTML(){
   var items=S.sessions.filter(function(s){return s.date===TODAY;});
+  var plan=todayPlan();
   var rows="";
   items.forEach(function(s){
     var ic,name,cap;
@@ -7284,15 +7291,23 @@ function todayLogHTML(){
     else if(s.type==="run"&&!((s.distanceMi||0)>0)){ic=I.run;name="Cardio";cap=mmss(s.durationSec||0)+' &middot; no distance recorded';}
     else if(s.type==="run"){ic=I.run;name="Easy run";cap=(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+(s.rpe?' &middot; '+esc(s.rpe):'');}
     else{ic=(s.activity==="Walk")?I.run:I.bolt;name=esc(s.activity||"Workout");cap=Math.round((s.durationSec||0)/60)+' min';}
-    rows+='<div class="tlog"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button><button class="tx" onclick="delSession(\''+s.id+'\')" aria-label="delete">'+I.trash+'</button></div>';
+    /* v7.47: the row that satisfied today's prescription is the one that goes green.
+       A lift day is met by a lift, a run day by a run, a recover day by any walk,
+       run or activity. Everything else stays a neutral record. */
+    var met=plan&&((plan.type==="lift"&&s.type==="lift")||
+                   (plan.type==="run"&&s.type==="run")||
+                   (plan.type==="rest"&&(s.type==="activity"||s.type==="run")));
+    rows+='<div class="tlog'+(met?' plan':'')+'"><span class="ti">'+ic+'</span><button class="tt" onclick="sessionSheet(\''+s.id+'\')"><div class="tn">'+name+'</div><div class="tc">'+cap+'</div></button></div>';
   });
   var empty=items.length?'':'<div style="padding:10px 0;font-size:13px;color:var(--sub)">Nothing logged yet.</div>';
   /* v7.37a. The chip was omitted when nothing was logged, and `drawerize` only builds the
      chip-and-chevron block when it finds one, so this card stood 56px against every other card's
      69. A card with nothing in it still has a state; say "nothing yet" rather than say nothing. */
+  /* v7.47: "Clear everything" kept but demoted to a footnote-weight text control --
+     one destructive act on permanent display was one too many, two was absurd. */
   return '<div class="card"><h3><span>Today\'s log</span><span class="t">'+(items.length?(items.length+' logged'):'nothing yet')+'</span></h3>'+rows+empty+
     '<button class="setbtn" style="width:100%;margin-top:12px;padding:13px" onclick="logSheet()">+ Log activity</button>'+
-    (items.length?'<button class="setbtn rm" style="width:100%;margin-top:8px;padding:11px" onclick="clearToday()">Clear everything logged today</button>':'')+'</div>';
+    (items.length?'<button style="width:100%;min-height:44px;margin-top:4px;font-size:13px;font-weight:600;color:var(--faint)" onclick="clearToday()">Clear everything logged today</button>':'')+'</div>';
 }
 function sessionSheet(id){var s=S.sessions.filter(function(x){return x.id===id;})[0];if(!s){closeSheet();return;}
   var title=s.type==="lift"?(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength"):s.type==="run"?"Easy run":esc(s.activity||"Workout");
