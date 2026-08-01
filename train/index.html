@@ -1316,7 +1316,12 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .msheet .pch i.gap{background:var(--surface-2);opacity:1;height:2px!important;align-self:flex-end}
 .msheet .prule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--faint);opacity:.6;z-index:1}
 .msheet .prule b{position:absolute;right:0;top:-16px;font-size:11px;font-weight:600;color:var(--faint)}
-.msheet .pax{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:14px}
+.msheet .pax{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:11px;color:var(--faint);margin-bottom:14px}
+.msheet .pax .pread{flex:1;text-align:center;font-size:12px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msheet .pch i{cursor:pointer;transition:opacity .14s ease}
+.msheet .pch i.sel{opacity:1;box-shadow:0 0 0 1.5px var(--tone)}
+.msheet .pch i.gap.sel{box-shadow:0 0 0 1.5px var(--faint)}
+.msheet .pch i.gap{min-height:2px}
 .msheet .pstrip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:12px}
 .msheet .pstrip div{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:1px solid var(--line);min-width:0}
 .msheet .pstrip div.first{padding-left:0;border-left:0}
@@ -1440,7 +1445,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.61";
+var VERSION="v7.62";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2323,17 +2328,38 @@ function famHead(icon,label,sub,pct){
   return '<div class="phead"><span class="pic">'+icon+'</span>'+
     '<span class="pl"><span class="cap">'+label+'</span><span class="psub">'+sub+'</span></span>'+famRing(pct)+'</div>';
 }
+function shortDay(k){var d=new Date(k+"T12:00:00");
+  return DWL[d.getDay()]+" "+d.getDate()+" "+["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];}
 function famBars(pts,o){
   var H=88,vals=pts.filter(function(p){return p.v>0;}).map(function(p){return p.v;});
   if(!vals.length)return "";
   var max=Math.max.apply(null,vals.concat(o.rule||0))*1.05;
-  var bars=pts.map(function(p){
-    if(!(p.v>0))return '<i class="gap"></i>';
-    return '<i class="'+(p.cls||"")+'" style="height:'+Math.max(3,Math.round(p.v/max*H))+'px"></i>';
+  var fmt=o.fmt||function(v){return Math.round(v).toLocaleString();};
+  var bars=pts.map(function(p,i){
+    var lbl=(p.d?p.d:"")+(p.v>0?(" &middot; "+fmt(p.v)):" &middot; nothing recorded");
+    var common=' data-r="'+esc(lbl)+'" onmouseenter="famRead(this)" onclick="famRead(this)"';
+    if(!(p.v>0))return '<i class="gap"'+common+'></i>';
+    return '<i class="'+(p.cls||"")+'" style="height:'+Math.max(3,Math.round(p.v/max*H))+'px"'+common+'></i>';
   }).join("");
   var rule=(o.rule?('<div class="prule" style="bottom:'+Math.round(o.rule/max*H)+'px"><b>'+o.ruleLbl+'</b></div>'):'');
-  return '<div class="pch">'+rule+bars+'</div><div class="pax"><span>'+o.axL+'</span><span>'+o.axR+'</span></div>';
+  var seed="";
+  for(var z=pts.length-1;z>=0;z--){if(pts[z].v>0){seed=(pts[z].d?pts[z].d+" &middot; ":"")+fmt(pts[z].v);break;}}
+  return '<div class="pch" onmouseleave="famReadReset(this)">'+rule+bars+'</div>'+
+    '<div class="pax"><span>'+o.axL+'</span><span class="pread" data-seed="'+esc(seed)+'">'+seed+'</span><span>'+o.axR+'</span></div>';
 }
+function famRead(el){
+  var wrap=el.parentNode,ax=wrap.parentNode.querySelector(".pread");
+  if(!ax)return;
+  ax.innerHTML=el.getAttribute("data-r")||ax.getAttribute("data-seed")||"";
+  wrap.querySelectorAll("i.sel").forEach(function(x){x.classList.remove("sel");});
+  el.classList.add("sel");
+}
+function famReadReset(wrap){
+  var ax=wrap.parentNode.querySelector(".pread");
+  if(ax)ax.innerHTML=ax.getAttribute("data-seed")||"";
+  wrap.querySelectorAll("i.sel").forEach(function(x){x.classList.remove("sel");});
+}
+
 function famStrip(a){
   return '<div class="pstrip">'+a.map(function(x,i){
     return '<div'+(i===0?' class="first"':'')+'><b class="num">'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join("")+'</div>';
@@ -2350,11 +2376,11 @@ function famA(kind){
     var defDays=0;
     for(var i=0;i<14;i++){var k=keyOf(dd),c=Math.round(((S.nutrition[k]||{}).c)||0);
       if(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)defDays++;
-      pts.push({v:c,cls:(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)?"hit":""});dd.setDate(dd.getDate()+1);}
+      pts.push({v:c,d:shortDay(k),cls:(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)?"hit":""});dd.setDate(dd.getDate()+1);}
     return '<div data-tone="'+(v.tone||"flat")+'">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",pct)+
       '<div class="hero56 toned num">'+heroN.toLocaleString()+'<span>'+heroU+'</span></div>'+
       '<div class="verd">'+(v.word?v.word.charAt(0).toUpperCase()+v.word.slice(1)+".":"")+(v.stale?" Last log "+v.age+" days ago.":(v.conf?"":" Thin read: under "+CAL_MIN_CONF+" days logged."))+'</div>'+
-      famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days ago",axR:"yesterday"})+
+      famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days",axR:"yesterday",fmt:function(x){return Math.round(x).toLocaleString()+" kcal";}})+
       famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[defDays,"deficit days"]])+
       '<div class="pfoot">Cal AI via Apple Health &middot; through yesterday &middot; rule is maintenance, '+maintenanceBasis()+'</div></div>';
   }
@@ -2366,11 +2392,11 @@ function famA(kind){
     var hh=Math.floor(s7.mean),mm=Math.round((s7.mean-hh)*60);if(mm===60){hh++;mm=0;}
     var pts2=[],d2=new Date(NOW);d2.setDate(d2.getDate()-13);
     for(var j=0;j<14;j++){var r=(S.sleep||{})[keyOf(d2)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
-      pts2.push({v:(t>=3?t:0),cls:(t>=3?(t>=sT?"hit":"miss"):"")});d2.setDate(d2.getDate()+1);}
+      pts2.push({v:(t>=3?t:0),d:shortDay(keyOf(d2)),cls:(t>=3?(t>=sT?"hit":"miss"):"")});d2.setDate(d2.getDate()+1);}
     return '<div data-tone="'+tone+'">'+famHead(I.moon,"Sleep","Last 7 nights",Math.round(s7.mean/sT*100))+
       '<div class="hero56 num">'+hh+'<span>h</span> '+("0"+mm).slice(-2)+'<span>m</span></div>'+
       '<div class="verd">'+(s7.mean>=sT?"Holding above the seven-hour floor.":"Under the seven-hour floor this week.")+'</div>'+
-      famBars(pts2,{rule:sT,ruleLbl:sT+"h",axL:"14 nights ago",axR:"last night"})+
+      famBars(pts2,{rule:sT,ruleLbl:sT+"h",axL:"14 nights",axR:"last night",fmt:hrsTxt})+
       famStrip([[hrsTxt(s7.mean),"7 nights"],[s28?hrsTxt(s28.mean):"&mdash;","28 nights"],[(s28?s28.short+" of "+s28.n:"&mdash;"),"under 7h"]])+
       '<div class="pfoot">Apple Health &middot; through yesterday &middot; 7h is the AASM consensus floor, not a derived target</div></div>';
   }
@@ -2381,11 +2407,11 @@ function famA(kind){
     var hit=0,pts3=[],d3=new Date(NOW);d3.setDate(d3.getDate()-6);
     for(var q=0;q<7;q++){var sv=(S.steps||{})[keyOf(d3)]||0;
       if(st&&sv>=st.t)hit++;
-      pts3.push({v:sv,cls:(sv>0&&st)?(sv>=st.t?"hit":"miss"):""});d3.setDate(d3.getDate()+1);}
+      pts3.push({v:sv,d:shortDay(keyOf(d3)),cls:(sv>0&&st)?(sv>=st.t?"hit":"miss"):""});d3.setDate(d3.getDate()+1);}
     return '<div data-tone="'+tone2+'">'+famHead(I.gauge,"Steps","Last 7 days",st?Math.round(s7s.avg/st.t*100):null)+
       '<div class="hero56 num">'+s7s.avg.toLocaleString()+'</div>'+
       '<div class="verd">'+(st?((s7s.avg>=st.t?"Averaging over the "+st.t.toLocaleString()+" rung. ":"Short of the "+st.t.toLocaleString()+" rung on average. "))+hit+" of "+s7s.got+" recorded days hit it.":"No rung yet: it derives from your 28-day median.")+'</div>'+
-      famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days ago",axR:"yesterday"})+
+      famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days",axR:"yesterday"})+
       famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
       '<div class="pfoot">Apple Health &middot; through yesterday &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
   }
@@ -2439,7 +2465,7 @@ function metricSheet(kind){
   var body=famA(kind);
   if(!body)return;
   openSheet('<div class="grab"></div><div class="msheet">'+body+'</div>'+
-    '<button class="setbtn" style="width:100%;margin-top:12px" onclick="closeSheet();show(&quot;track&quot;)">See everything on Track</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet();show(&quot;track&quot;)">See everything on Track</button>'+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
   famAnimate();
 }
