@@ -74,6 +74,10 @@
       runs: S.runs && typeof S.runs === "object" ? S.runs : {},
       override: S.override && typeof S.override === "object" ? S.override : {},
       daySlot: S.daySlot && typeof S.daySlot === "object" ? S.daySlot : {},
+      /* ROUND C. Vetting verdicts: date-keyed, gap-fill on both ends, same shape as
+         override/daySlot. A day marked clean on the phone must read clean everywhere,
+         including to the daily audit, which reads the Worker copy. */
+      vetted: S.vetted && typeof S.vetted === "object" ? S.vetted : {},
       /* Settings and the cycle cursor are last-write-wins, so their timestamps must only move when
          the value actually changed. Stamping Date.now() on every push would make whichever device
          pushed most recently the winner, which is how an idle laptop silently undoes a setting
@@ -249,7 +253,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, pf: p.profile, cu: p.cursor });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { onUnauthorized(r.status); mark(false, "push " + r.status); } })
@@ -340,6 +344,7 @@
         S.runs = mergeFill(S.runs, srv.runs);
         S.override = mergeFill(S.override, srv.override);
         S.daySlot = mergeFill(S.daySlot, srv.daySlot);
+        S.vetted = mergeFill(S.vetted || {}, srv.vetted);
         /* Settings and the cursor only come down if the server's copy is genuinely newer than what
            this device last stamped. Same rule the Worker applies, checked on both ends. */
         if (srv.profile && Number(srv.profileUpdatedAt || 0) > stampedAt("profile", S.profile)) {
@@ -385,6 +390,7 @@
       body: (srv.body && typeof srv.body === "object") ? srv.body : {},
       vitals: (srv.vitals && typeof srv.vitals === "object") ? srv.vitals : {},
       sleep: (srv.sleep && typeof srv.sleep === "object") ? srv.sleep : {},
+      vetted: (srv.vetted && typeof srv.vetted === "object") ? srv.vetted : {},
       deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
       planPos: 0, override: {}, activeMode: "plan", genWk: null };

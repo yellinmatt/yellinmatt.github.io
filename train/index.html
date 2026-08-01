@@ -1536,7 +1536,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.48";
+var VERSION="v7.49";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -1889,9 +1889,10 @@ var LS="train_v2";
 var S=load();
 if(!S.profile.mode)S.profile.mode="bw";
 if(!S.daySlot)S.daySlot={};
+if(!S.vetted)S.vetted={};
 if(S.cycleNext==null)S.cycleNext=0;
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},activeMode:"plan",genWk:null};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -4405,6 +4406,10 @@ function renderTrack(){
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+=trackDashHTML();
+  /* ROUND C. The reconcile queue sits right under the dash when it has work: an unvetted day
+     is actionable, not reference, so it does not live inside the report. Empty, it is
+     nothing at all. */
+  h+=reconcileHTML();
   /* v7.39. The report is OPEN. Gating the data behind "Go deeper" on the data tab is the same
      backwards move as hiding each chart behind its own drawer: he came here to look. The control
      stays, as a way to collapse a long page back to the hero, and it says so. */
@@ -7948,6 +7953,124 @@ function doMergeDupes(){
   var n=mergeDupeRuns();
   closeSheet();
   toast("Merged "+n+" duplicate run"+(n===1?"":"s")+".",null);
+}
+/* ============ ROUND C, CARDIO RECONCILIATION ============
+   Apple's record and the manual log for the same day are VETTED ALONGSIDE each other and
+   never auto-merged. `alreadyHave` still absorbs the identical twin (same day, same numbers,
+   two spellings), because that is one measurement arriving twice; this queue handles the
+   pairs that are NOT the same numbers: a manual run beside an Apple walk that swallowed it,
+   a manual entry beside two Apple walk records (2026-07-17 is the live example), a watch
+   record disagreeing with a hand log. Each unvetted day renders both sides and takes one
+   judgement: both real, keep one side, or log the run leg Apple bundled into a walk. The
+   verdict lands in `S.vetted[date]`, which rides the sync gap-fill-only, so "the day is
+   clean" is a stated fact the daily audit can read rather than an inference it must make. */
+function fromApple(s){return ((s.notes||"").indexOf("Apple Health")>=0)||(String(s.src||"").indexOf("health")===0)||/-h(run|walk|act|k)/.test(String(s.id||""));}
+function reconDays(){
+  if(!S.vetted)S.vetted={};
+  var by={};
+  S.sessions.forEach(function(s){if(s.type==="lift")return;(by[s.date]=by[s.date]||[]).push(s);});
+  var out=[];
+  Object.keys(by).forEach(function(k){
+    if(S.vetted[k])return;
+    var man=by[k].filter(function(s){return !fromApple(s);});
+    var app=by[k].filter(fromApple);
+    if(man.length&&app.length)out.push({date:k,man:man,app:app,kind:"pair"});
+  });
+  /* Run-inside-walk: a run-slot day whose run never arrived, but an Apple walk did. A
+     4-minute run inside a longer walk reaches HealthKit as ONE Outdoor Walk, so the run
+     slot never fills and the day reads unmet when it was not. Last 14 days only: older
+     gaps are history, not a queue. */
+  var d=new Date(NOW);
+  for(var i=1;i<=14;i++){
+    d.setDate(d.getDate()-1);var k=keyOf(d);
+    if(S.vetted[k])continue;
+    if(out.some(function(o){return o.date===k;}))continue;
+    var slot=(S.daySlot&&S.daySlot[k]!=null)?resolveSlot(CYCLE[S.daySlot[k]%cycleLen()]):null;
+    if(!slot||slot.type!=="run")continue;
+    var hasRun=(by[k]||[]).some(isRealRun)||!!S.runs[k];
+    if(hasRun)continue;
+    var walk=(by[k]||[]).filter(function(s){return fromApple(s)&&s.type==="activity"&&(s.durationSec||0)>=900;});
+    if(walk.length)out.push({date:k,app:walk,man:[],kind:"walkrun"});
+  }
+  out.sort(function(a,b){return a.date<b.date?1:-1;});
+  return out.slice(0,10);
+}
+function reconLine(s){
+  if(isRealRun(s))return (s.distanceMi||0)+' mi'+(s.durationSec?' &middot; '+mmss(s.durationSec):'')+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'');
+  if(s.type==="run")return 'run &middot; '+mmss(s.durationSec||0)+' &middot; no distance';
+  return esc(s.activity||"Activity")+' &middot; '+Math.round((s.durationSec||0)/60)+' min';
+}
+function vetClean(k){S.vetted[k]=true;save();refreshCurrent();toast("Marked clean. Everything on "+shortDate(k)+" stands.",null);}
+function vetKeep(k,keep){
+  var day=S.sessions.filter(function(s){return s.date===k&&s.type!=="lift";});
+  var losers=day.filter(function(s){return keep==="app"?!fromApple(s):fromApple(s);});
+  var keepers=day.filter(function(s){return keep==="app"?fromApple(s):!fromApple(s);});
+  losers.forEach(function(r){
+    /* effort rides across before the losing copy goes, same rule as mergeDupeRuns */
+    if(r.rpe&&keepers.length&&!keepers[0].rpe)keepers[0].rpe=r.rpe;
+    tomb(r.id);
+    var idx=S.sessions.indexOf(r);if(idx>=0)S.sessions.splice(idx,1);
+  });
+  /* S.runs mirrors the surviving run, or nothing */
+  var kr=S.sessions.filter(function(s){return s.date===k&&isRealRun(s);})[0];
+  if(kr)S.runs[k]={dist:kr.distanceMi,time:kr.durationSec?mmss(kr.durationSec):"--",pace:kr.paceSecPerMi?mmss(kr.paceSecPerMi):"--",rpe:kr.rpe||""};
+  else delete S.runs[k];
+  S.vetted[k]=true;
+  recomputeDone(k);purgeDerived(k);invalidateDayIndex();save();refreshCurrent();
+  toast("Kept "+(keep==="app"?"Apple's record":"your log")+" for "+shortDate(k)+".",null);
+}
+/* The run leg, logged for a PAST day. `runSheet`/`saveRun` are TODAY-bound by design;
+   this is the one flow that writes a run onto an earlier date, and it exists precisely
+   for the walk-swallowed-the-run case, so the walk record stays untouched beside it. */
+function legSheet(k){
+  openSheet('<div class="grab"></div><h3>Log the run leg</h3><div class="ssub">'+shortDate(k)+' &middot; just the running part; the walk stays on the record.</div>'+
+    '<div class="logrow"><label>Distance</label><div class="inp"><input id="lg-dist" inputmode="decimal" value="" aria-label="distance"><span class="u">mi</span></div></div>'+
+    '<div class="logrow"><label>Time <span style="color:var(--faint);font-weight:500">mm:ss</span></label><div class="inp"><input id="lg-time" inputmode="numeric" placeholder="4:30" aria-label="time" style="width:92px"></div></div>'+
+    '<div class="rerr" id="lg-err" style="display:none"></div>'+
+    '<button class="sheet-cta" onclick="saveLeg(\''+k+'\')">Save the leg</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
+}
+function saveLeg(k){
+  var d=validDist((document.getElementById("lg-dist")||{}).value);
+  var el=document.getElementById("lg-err");
+  function err(m){if(el){el.textContent=m;el.style.display="block";}}
+  if(d==null){err("Enter a distance between 0.1 and 200 mi.");return;}
+  var tRaw=((document.getElementById("lg-time")||{}).value||"").trim();
+  var sec=tRaw?parseTime(tRaw):0;
+  if(tRaw&&(sec==null||!(sec>0))){err("Time should look like 4:30.");return;}
+  if(sec>0){var pace=sec/d;if(pace<150||pace>3600){err("That works out at "+mmss(Math.round(pace))+" a mile. Check the numbers.");return;}}
+  var id=k+"-run-"+Math.round(sec)+"-"+Math.round(d*100);
+  if(!S.sessions.some(function(x){return x.id===id;})){
+    S.sessions.push({id:id,date:k,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:"",notes:"run leg inside a walk"});
+    S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
+  }
+  S.runs[k]={dist:d,time:tRaw||"--",pace:sec>0?mmss(Math.round(sec/d)):"--",rpe:""};
+  S.vetted[k]=true;
+  recomputeDone(k);purgeDerived(k);invalidateDayIndex();save();closeSheet();refreshCurrent();
+  toast("Run leg saved for "+shortDate(k)+".",null);
+}
+function reconcileHTML(){
+  var q=reconDays();
+  if(!q.length)return "";
+  var rows=q.map(function(o){
+    var lab=shortDate(o.date);
+    if(o.kind==="walkrun"){
+      return '<div style="padding:12px 0;border-bottom:1px solid var(--line)">'+
+        '<div style="font-size:15px;font-weight:700">'+lab+' &middot; run day, no run on record</div>'+
+        '<div class="ksub" style="margin:4px 0 10px">Apple recorded '+o.app.map(reconLine).join('; ')+'. If the run was inside it, log just the run leg; the walk stays.</div>'+
+        '<div class="herorow" style="gap:8px"><button class="wbtn" onclick="legSheet(\''+o.date+'\')">Log the run leg</button>'+
+        '<button class="wbtn" onclick="vetClean(\''+o.date+'\')">It was just a walk</button></div></div>';
+    }
+    return '<div style="padding:12px 0;border-bottom:1px solid var(--line)">'+
+      '<div style="font-size:15px;font-weight:700">'+lab+'</div>'+
+      '<div class="ksub" style="margin:4px 0 2px"><b>Yours:</b> '+o.man.map(reconLine).join('; ')+'</div>'+
+      '<div class="ksub" style="margin:0 0 10px"><b>Apple:</b> '+o.app.map(reconLine).join('; ')+'</div>'+
+      '<div class="herorow" style="flex-wrap:wrap;gap:8px"><button class="wbtn" onclick="vetClean(\''+o.date+'\')">Both real</button>'+
+      '<button class="wbtn" onclick="vetKeep(\''+o.date+'\',\'app\')">Keep Apple\'s</button>'+
+      '<button class="wbtn" onclick="vetKeep(\''+o.date+'\',\'man\')">Keep mine</button></div></div>';
+  }).join("");
+  return '<div class="card"><h3><span>Reconcile</span><span class="t">'+q.length+' day'+(q.length>1?"s":"")+' to vet</span></h3>'+
+    '<div class="ksub" style="margin:0 0 4px">Two sources wrote these days. Nothing merges on its own; say what each day was.</div>'+rows+'</div>';
 }
 function dataAudit(){
   var issues=[];
