@@ -1554,6 +1554,25 @@ details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 .woprog .wpd i{transition:width .5s cubic-bezier(.22,1,.36,1)}
 .miniring circle:last-child{transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
 .runsegs i{transition:background .3s ease}
+
+/* ============ LEVEL HERO (his upgrade ask, 2026-08-01) ============ */
+.lvhero{display:flex;align-items:center;gap:16px;margin:2px 0 14px}
+.lvbig{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.lvhero .lvmeta{flex:1;min-width:0}
+.lvhero .lvtierrow{display:flex;align-items:center;gap:8px}
+.lvhero .lvword{font-size:13px;font-weight:700;color:var(--sub)}
+.lvpipbar{display:flex;gap:3px;margin:8px 0 6px}
+.lvpipbar i{flex:1;height:6px;border-radius:3px;background:var(--surface-2);display:block;transition:background .4s ease}
+.lvpipbar i.on{background:var(--accent)}
+.lvdtxt{font-size:13px;color:var(--sub);line-height:1.4}
+details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
+/* ============ RUN STEPPER MOTION (2026-08-01) ============ */
+.stepin{animation:stepin .3s cubic-bezier(.22,1,.36,1)}
+@keyframes stepin{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+.wpulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:7px;vertical-align:1px;animation:wpulse 1.6s ease infinite}
+@keyframes wpulse{0%{box-shadow:0 0 0 0 rgba(255,92,58,.5)}70%{box-shadow:0 0 0 9px rgba(255,92,58,0)}100%{box-shadow:0 0 0 0 rgba(255,92,58,0)}}
+.runsegs i.cur{animation:segin .4s ease}
+@keyframes segin{from{transform:scaleX(.4);opacity:.4}to{transform:none;opacity:1}}
 </style>
 </head>
 <body>
@@ -1607,7 +1626,7 @@ details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.54";
+var VERSION="v7.55";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3455,7 +3474,7 @@ function liftLevelDetailHTML(){
   var L=liftLevel(),st=liftLevelStatus(L),dl2=deloadState();
   var rated=S.sessions.filter(function(x){return x.type==="lift"&&typeof x.rpe==="number";}).length;
   var dl=liftDelta(L);
-  var inner=liftDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
+  var inner=levelHeroHTML("lift",L,st.w)+liftDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("lift",L)+
     (dl2.due?'<button class="wbtn" style="width:100%;margin-top:11px" onclick="startDeload()">Take a deload week</button>':'')+
     '<div class="foot" style="margin-top:11px">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>';
@@ -3726,15 +3745,17 @@ function renderRun(){
   var steps=runSteps(s),c=steps[s.idx],last=(s.idx>=steps.length-1);
   var p=s.pres||runPrescription(false);
   var segs='';for(var i=0;i<steps.length;i++)segs+='<i'+(i<s.idx?' class="on"':(i===s.idx?' class="cur"':''))+'></i>';
+  var watch=(c.role==="Get set"||c.role==="Wrap up");
   var h='<div class="runhero" style="padding:22px 18px;text-align:left">'+
-    '<div class="lbl">'+esc(c.role)+' &middot; step '+(s.idx+1)+' of '+steps.length+'</div>'+
+    '<div class="stepin" data-step="'+s.idx+'">'+
+    '<div class="lbl">'+(watch?'<span class="wpulse" aria-hidden="true"></span>':'')+esc(c.role)+' &middot; step '+(s.idx+1)+' of '+steps.length+'</div>'+
     '<div style="font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:8px">'+c.title+'</div>'+
     '<div style="font-size:15px;color:var(--sub);line-height:1.45;margin-top:8px">'+c.note+'</div>'+
     (c.role==="The run"?'<button onclick="customRunSheet()" style="background:none;border:0;color:var(--faint);font-size:13px;font-weight:600;padding:10px 0;min-height:44px;cursor:pointer">'+(s.custom?"Edit my plan &middot; or go back to the generated one":"Use my own plan instead")+'</button>':'')+
     '<div class="runsegs">'+segs+'</div>'+
     '<button class="big-start" style="margin-top:16px" onclick="runStepNext()">'+(last?"Log the run":"Next: "+esc(steps[s.idx+1].role.toLowerCase()))+'</button>'+
     (s.idx>0?'<div style="text-align:center;margin-top:4px"><button onclick="runStepBack()" style="background:none;border:0;color:var(--faint);font-size:13px;font-weight:600;padding:10px 16px;min-height:44px;cursor:pointer">Back</button></div>':'')+
-    '</div>';
+    '</div></div>';
   /* One quiet card of context: what generated this session. The why-lines live on the run step
      itself, so this never repeats them. */
   h+='<div class="card"><h3><span>'+esc(p.name)+'</span><span class="t">level '+p.lvl+' &middot; '+esc(p.tier.w)+'</span></h3>'+
@@ -6033,6 +6054,16 @@ function ytWatch(id){return "https://www.youtube.com/watch?v="+id;}
    YouTube oEmbed endpoint on 2026-07-28 - none are guessed, and the two Tom Merrick
    routines that actually live on the Vivobarefoot channel are attributed to Vivobarefoot. */
 var VID=[
+/* MORNING PREP, his call 2026-08-01: the anchor's video slot must never borrow from the
+    mobility, stretch or pilates tracks that live in their own tiles above it. Its own short
+    course: wake-up mobility and guided-breath clips, five-ish minutes, every id verified
+    against the YouTube oEmbed endpoint on 2026-08-01. */
+ {id:"cacwri2wio4",t:"5 Minute Morning Mobility Routine! (FOLLOW ALONG)",a:"Tom Merrick",c:"morning",m:"5m",lv:1},
+ {id:"5H4MWQEe1Z0",t:"5 Minute Morning Mobility Routine (FULL BODY)",a:"FitnessFAQs",c:"morning",m:"5m",lv:2},
+ {id:"DaHH--jJBtg",t:"5-Minute Guided Meditation: Morning Energy",a:"SELF",c:"morning",m:"5m",lv:3},
+ {id:"_U6cRWRaawg",t:"Morning Routine for Beginners (Stretching & Meditation)",a:"Strength Side",c:"morning",m:"",lv:4},
+ {id:"nRiu7fcrJ0w",t:"A Powerful 5 Minute Morning Meditation",a:"Great Meditation",c:"morning",m:"5m",lv:5},
+ {id:"n9ja1Wqkp1U",t:"5 Minute Guided Morning Mindfulness Meditation",a:"MindfulPeace",c:"morning",m:"5m",lv:6},
  {id:"0VrLgzwTmTg",t:"10 Minute Morning Mobility Routine",a:"Tom Merrick",c:"mobility",m:"10m"},
  {id:"1u30bEkE2dE",t:"15 Minute Relaxed Stretching Routine",a:"Tom Merrick",c:"mobility",m:"15m"},
  {id:"XIXjdireZzE",t:"Morning Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m"},
@@ -6052,7 +6083,7 @@ var VID=[
  {id:"inpok4MKVLM",t:"5 Minute Meditation You Can Do Anywhere",a:"Goodful",c:"meditation",m:"5m"},
  {id:"eE5Mnqu0QY0",t:"Mindfulness Meditation, Guided Breathing",a:"The Honest Guys",c:"meditation",m:"10m"}
 ];
-var VCAT={mobility:"Mobility",core:"Core finishers",strength:"Strength",yoga:"Yoga",recovery:"Recovery",meditation:"Wind down"};
+var VCAT={morning:"Morning prep",mobility:"Mobility",core:"Core finishers",strength:"Strength",yoga:"Yoga",recovery:"Recovery",meditation:"Wind down"};
 
 /* Round E: 62 further follow-alongs and one form clip per movement, every id, title and
    channel re-verified against the YouTube oEmbed endpoint on 2026-07-28. `ex` links a clip to
@@ -6885,12 +6916,15 @@ function sessionVidSheet(id){
    the duration is unknown, which is the app's own standing rule about proxy signals. */
 function vidMinutes(v){var n=(v&&v.m!==""&&v.m!=null)?+v.m:NaN;return (isFinite(n)&&n>0)?n:null;}
 function anchorVidHTML(){
-  var v=ladderVid("mobility")||pickVid("mobility",0);
+  /* HIS CALL 2026-08-01: the anchor never borrows the mobility/stretch/pilates tracks --
+     those live in their own tiles directly above it, and one clip serving two surfaces made
+     the same session count twice. The anchor runs its own MORNING course. */
+  var v=ladderVid("morning")||pickVid("morning",0);
   if(!v)return "";
-  var n=ladderList("mobility").length;
+  var n=ladderList("morning").length;
   var mins=vidMinutes(v);
   var note=v.lv
-    ? 'Session '+v.lv+' of '+n+' in the Runna mobility course. It moves on when you finish the anchor, so the morning develops you rather than repeating.'
+    ? 'Session '+v.lv+' of '+n+' in the morning course. It moves on when you finish the anchor, so the morning develops you rather than repeating.'
     : 'Rotates each day. Tap for a different one in the library below.';
   note+=mins?(' About '+mins+' minutes.')
             :(' <b>Length unknown</b> - no duration is on file for any clip in the library, so the morning slot cannot promise you a ten-minute session. Check the runtime before you start.');
@@ -8062,14 +8096,30 @@ function levelTier(n){
 }
 /* The level as a line over a year, so "where has this been and where is it now" is answerable.
    Drawn from the same series the number comes from, so the two cannot disagree. */
-function levelHistoryHTML(kind){
+/* One extractor for the level-over-time series, so the hero's delta, the chart and the
+   headline all read the SAME model output (the v7.29 two-writers lesson, kept). */
+function levelLvSeries(kind){
   var s,lv;
-  /* v7.29. This still drew the lift history from the RETIRED daily rpe-minutes series on the old
-     curve, while the number above it came from the new weekly-tonnage model. That is precisely the
-     two-writers-one-concept defect this function's own comment warns about, and it would have had
-     the chart and the headline disagreeing by twenty levels. Both read the model now. */
   if(kind==="lift"){var lm=liftModel();s=lm.series;lv=s.map(function(x){return milesLevelFor(x.cwm*lm.rhythm);});}
   else{var m=cardioModel();s=m.series;lv=s.map(function(x){return milesLevelFor(x.cwm*m.rhythm);});}
+  return {s:s,lv:lv};
+}
+function levelHeroHTML(kind,L,stWord){
+  var q=levelLvSeries(kind),lv=q.lv;
+  var dtxt="";
+  if(lv.length>=9){
+    var d=lv[lv.length-1]-lv[lv.length-9];
+    dtxt=(d>0?"Up "+d+" level"+(d===1?"":"s"):d<0?"Down "+Math.abs(d)+" level"+(d===-1?"":"s"):"Level unchanged")+" over 8 weeks.";
+  }
+  var pips="";for(var i=0;i<10;i++)pips+='<i'+(i<L.pips?' class="on"':'')+'></i>';
+  return '<div class="lvhero"><div class="lvbig num">'+L.lvl+'</div>'+
+    '<div class="lvmeta"><div class="lvtierrow"><span class="tierpill">'+levelTier(L.lvl).w+'</span><span class="lvword">'+esc(stWord||"")+'</span></div>'+
+    '<div class="lvpipbar">'+pips+'</div>'+
+    '<div class="lvdtxt">'+('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1))+(dtxt?' &middot; '+dtxt:'')+'</div>'+
+    '</div></div>';
+}
+function levelHistoryHTML(kind){
+  var q=levelLvSeries(kind),s=q.s,lv=q.lv;
   if(s.length<8)return "";
   var mx=Math.max.apply(null,lv),mn=Math.min.apply(null,lv);
   if(mx<=0)return "";
@@ -8927,7 +8977,7 @@ function levelDetailHTML(){
   var L=cardioLevel(),st=levelStatus(L),ep=easyPaceTrend();
   var runs=allRuns(),mi=runs.reduce(function(a,r){return a+(r.distanceMi||0);},0);
   var dl=levelDelta(L);
-  var inner=levelDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
+  var inner=levelHeroHTML("cardio",L,st.w)+levelDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("cardio",L)+
     (ep?'<div class="ksub" style="margin-top:9px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago. That is fitness, which the level cannot show.</div>':'')+
     '<div class="foot" style="margin-top:11px">Weekly mileage, rising over about three weeks and falling over six, so a quiet fortnight bends the level rather than docking you. '+runs.length+' runs, '+mi.toFixed(0)+' mi on record.</div>';
