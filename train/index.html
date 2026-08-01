@@ -1486,6 +1486,42 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
    have run into it. 20px clears it with room and still reads as the headline of the tile. */
 .d3v{display:block;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:12px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
 .d3l{display:block;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:7px}
+/* ============ v7.57 TILE: DIRECTION, NOT AVERAGE (2026-08-01) ============
+   The quad printed four trailing-seven-day AVERAGES. Sleep read 8h 03m on a 5h 45m night and steps
+   read 3.3k on a 5,902 day, both arithmetically correct and both read by him as stale data. The
+   defect was never the number, it was that an average answers "how was the week" while the face of
+   a tile is read as "how am I".
+   Three rules replace it. The FACE is a direction word measured against his own prior seven days,
+   because a comparison to himself is the only trend that is nuanced and the only one that cannot
+   shame him: "Moving less" describes the world, "Rarely hits 5k" grades the man, and a scoreboard
+   he is losing is one he stops opening. The FOOT is the real figure for a named day plus the
+   baseline it is judged against, so the number he wanted is present and can never be mistaken for
+   a week. And LEVEL SETS THE COLOUR while DIRECTION SETS THE WORD, because "Moving more" from 2k to
+   2.5k is still 2.5k, and a tile that goes green there is lying pleasantly. */
+.d3w{display:block;font-size:18px;font-weight:780;letter-spacing:-.02em;color:var(--rag);margin-top:12px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.d3f{display:block;font-size:11.5px;line-height:1.32;color:var(--sub);margin-top:auto;padding-top:9px;font-variant-numeric:tabular-nums}
+.d3f b{color:var(--ink);font-weight:700}
+.d3f.miss{color:var(--faint);font-style:italic}
+.d3{min-height:104px}
+@media (prefers-reduced-motion:no-preference){
+  /* Entry: the quad assembles instead of appearing. 55ms apart is under the ~80ms at which a
+     stagger stops reading as one gesture and starts reading as four separate events. */
+  .d3wrap .d3{animation:d3in .46s cubic-bezier(.22,1,.36,1) both}
+  .d3wrap .d3:nth-child(1){animation-delay:.04s}
+  .d3wrap .d3:nth-child(2){animation-delay:.095s}
+  .d3wrap .d3:nth-child(3){animation-delay:.15s}
+  .d3wrap .d3:nth-child(4){animation-delay:.205s}
+  @keyframes d3in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+  .d3wrap .d3 .d3w{animation:d3pop .5s .28s cubic-bezier(.34,1.4,.5,1) both}
+  @keyframes d3pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+  /* The band change. Every improvement he has ever made in this app has been silent; this is the
+     one moment where progress becomes an event rather than a reading, so it is the only animation
+     here that fires on a state change instead of on paint. Once, then never again for that band. */
+  .d3.bump{animation:d3in .46s cubic-bezier(.22,1,.36,1) both, d3bump 1.05s .5s cubic-bezier(.34,1.3,.5,1) both}
+  @keyframes d3bump{0%{box-shadow:var(--shadow)}28%{box-shadow:0 0 0 3px var(--rag-tint),var(--shadow)}100%{box-shadow:var(--shadow)}}
+  .d3.bump .d3w{animation:d3pop2 .62s .5s cubic-bezier(.34,1.5,.5,1) both}
+  @keyframes d3pop2{0%{opacity:0;transform:translateY(6px) scale(.9)}60%{transform:translateY(0) scale(1.07)}100%{opacity:1;transform:none}}
+}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1628,7 +1664,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.56";
+var VERSION="v7.57";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2680,70 +2716,132 @@ function emptyStateHTML(){
 /* The unit is part of the value string, not a <small>. The first render put "3.4" at 22px with a
    12px "k" hanging off it, sitting beside "8h 09m" whose own units are full-size inline glyphs, so
    one row contained two different rules for the same thing. One rule: the stat is one string. */
+/* ============ TILE TREND ENGINE (v7.57, 2026-08-01) ============
+   One reader per metric. These functions do NOT compute a new truth: level and target come from the
+   existing computers (stepTarget, sleepTarget, calGlance, weightVerdict) exactly as the popups read
+   them, so the tile and its sheet can never disagree. What is new here is only the COMPARISON:
+   this seven days against the prior seven, on MEDIANS rather than means, because his 30 July night
+   of 11h 10m moves a mean by nearly an hour and moves a median not at all, and a tile that a single
+   bad record can flip is a tile he learns to distrust. */
+function tMed(a){a=a.filter(function(x){return x!=null;}).sort(function(x,y){return x-y;});
+  return a.length?(a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2):null;}
+function tWin(get,from,to){var o=[],d,v;for(var i=from;i>=to;i--){d=new Date(NOW);d.setDate(d.getDate()-i);
+  v=get(keyOf(d));if(v!=null&&!isNaN(v))o.push(v);}return o;}
+/* A 6% deadband. Without one, 4,590 against 4,600 reads as a decline and the word flickers day to
+   day on noise, which is the fastest way to make a signal meaningless. */
+function tDir(now,prev,band){if(now==null||prev==null||!prev)return 0;var r=(now-prev)/prev;
+  band=band||0.06;return r>band?1:(r<-band?-1:0);}
+function tDay(k){var d=new Date(NOW);d.setDate(d.getDate()-1);return DFULL[d.getDay()];}
+function tNum(n){return n==null?null:Math.round(n).toLocaleString();}
+function yKey(){var d=new Date(NOW);d.setDate(d.getDate()-1);return keyOf(d);}
+
+/* Level sets the colour; direction sets the word. Below the mark and rising holds at amber rather
+   than going green, so the trend earns credit without the tile pretending he has arrived. */
+function tTone(atMark,dir){return atMark?(dir>=0?"good":"amber"):(dir>0?"amber":(dir===0?"amber":"red"));}
+
+function trendSteps(){
+  var g=function(k){return (S.steps||{})[k];};
+  var now=tMed(tWin(g,6,0)),prev=tMed(tWin(g,13,7)),st=stepTarget();
+  if(now==null)return {tone:"none",word:"Not enough yet",foot:"No steps recorded",miss:1};
+  var dir=tDir(now,prev),atMark=!!(st&&now>=st.t);
+  var y=(S.steps||{})[yKey()];
+  return {tone:tTone(atMark,dir),
+    word:dir>0?"Moving more":(dir<0?"Moving less":"Holding steady"),
+    foot:(y!=null?("<b>"+tDay()+"</b> "+tNum(y)):("<b>"+tDay()+"</b> not recorded"))+
+         (prev!=null?(" &middot; was "+tNum(prev)):(st?(" &middot; rung "+tNum(st.t)):"")),
+    miss:(y==null)};
+}
+function trendSleep(){
+  var g=function(k){var v=(S.sleep||{})[k];return v?(v.total!=null?v.total:v.asleep):null;};
+  var now=tMed(tWin(g,6,0)),prev=tMed(tWin(g,13,7)),sT=sleepTarget();
+  if(now==null)return {tone:"none",word:"Not enough yet",foot:"No sleep recorded",miss:1};
+  var dir=tDir(now,prev,0.05),atMark=(now>=sT.t);
+  var y=g(yKey());
+  return {tone:tTone(atMark,dir),
+    word:dir>0?"Sleeping more":(dir<0?"Sleeping less":"Holding steady"),
+    foot:(y!=null?("<b>Last night</b> "+hrsTxt(y)):"<b>Last night</b> not recorded")+
+         " &middot; "+hrsTxt(now)+" typical",
+    miss:(y==null)};
+}
+function trendCal(){
+  var g=function(k){var v=(S.nutrition||{})[k];return v?v.c:null;};
+  var vals=tWin(g,6,0),now=tMed(vals),prev=tMed(tWin(g,13,7)),cg=calGlance();
+  /* Four logged days is the floor for a verdict. Three was enough to paint the old tile amber, and
+     a verdict off three days is a guess wearing a colour. */
+  if(vals.length<4)return {tone:"none",word:"Not enough yet",
+    foot:(now!=null?("<b>"+tDay()+"</b> "+tNum(g(yKey())||now)+" &middot; "):"")+vals.length+" of 7 days logged",miss:(vals.length<1)};
+  var dir=tDir(now,prev),atMark=(cg&&cg.tone==="good");
+  var y=g(yKey());
+  return {tone:tTone(atMark,-dir),
+    word:dir<0?"Eating lighter":(dir>0?"Eating heavier":"Holding steady"),
+    foot:(y!=null?("<b>"+tDay()+"</b> "+tNum(y)):("<b>"+tDay()+"</b> not logged"))+
+         (prev!=null?(" &middot; was "+tNum(prev)):""),
+    miss:(y==null)};
+}
+function trendWeight(){
+  /* Weight does not get its own trend maths. weightVerdict already runs an SE-gated OLS fit with
+     adaptive windows and it is the single writer for the rate; recomputing it here would put two
+     authors on one number, which is the defect this whole pass exists to remove. */
+  var wv=weightVerdict(),st=wv.st;
+  if(!st||!st.called||st.rate==null)return {tone:"none",word:"Not enough yet",
+    foot:(st&&st.raw!=null)?("<b>Latest</b> "+st.raw.toFixed(1)+" lb"):"Tap to weigh in",miss:(!st||st.raw==null)};
+  var r=st.rate,dir=(r<-0.25)?1:((r>0.25)?-1:0);
+  var fresh=(st.ageDays!=null&&st.ageDays<1);
+  return {tone:dir>0?"good":(dir===0?"amber":"red"),
+    word:dir>0?"Coming down":(dir===0?"Holding steady":"Creeping up"),
+    foot:(st.raw!=null?("<b>"+(fresh?"Today":"Latest")+"</b> "+st.raw.toFixed(1))
+      :"Tap to weigh in")+(st.to!=null?(" &middot; "+Math.abs(st.to).toFixed(0)+" lb to "+st.goal):""),
+    miss:(st.raw==null)};
+}
+
 function dailyTileHTML(o){
-  var has=(o.val!=null&&o.val!=="");
-  return '<button class="d3" data-tone="'+(has?(o.tone||"flat"):"none")+'" onclick="'+o.act+'" aria-label="'+o.label+'">'+
+  var t=o.tr||{};
+  return '<button class="d3" data-tone="'+(t.tone||"none")+'" data-k="'+o.key+'" onclick="'+o.act+'" aria-label="'+o.label+', '+(t.word||"")+'">'+
     '<span class="d3i">'+o.icon+'</span>'+
-    '<span class="d3v num">'+(has?o.val:"&mdash;")+'</span>'+
-    '<span class="d3l">'+o.label+'</span></button>';
+    '<span class="d3w">'+(t.word||"&mdash;")+'</span>'+
+    '<span class="d3l">'+o.label+'</span>'+
+    '<span class="d3f'+(t.miss?" miss":"")+'">'+(t.foot||"")+'</span></button>';
+}
+/* The band change, written after paint so a render never triggers a save mid-render. Compares the
+   tone just painted against the tone last painted and pulses only the tiles that actually moved.
+   Device-local by design: a promotion is a moment on the screen you are holding, not a fact to sync. */
+function tileBandPulse(){
+  try{
+    var prev=JSON.parse(localStorage.getItem("train.tileBand")||"{}"),next={},any=false;
+    document.querySelectorAll('#v-today .d3wrap .d3').forEach(function(el){
+      var k=el.getAttribute("data-k"),tone=el.getAttribute("data-tone");
+      next[k]=tone;
+      if(prev[k]&&prev[k]!==tone&&tone!=="none"){el.classList.add("bump");any=true;}
+    });
+    localStorage.setItem("train.tileBand",JSON.stringify(next));
+    return any;
+  }catch(e){return false;}
 }
 function todayMetricsHTML(){
-  /* ROUND A, 2026-07-31. THE QUAD, and why it stopped being about today.
-     Health Auto Export moved to a "Previous 7 Days" range, which by HAE's own
-     definition covers the full previous seven days and EXCLUDES the day in
-     progress. That is deliberate: a whole-day range is the only one that is
-     safe under whole-day merging, and it self-heals a missed run instead of
-     leaving a permanent hole. The cost is that today's steps, sleep and
-     calories are now absent by design.
-
-     Which means the failure mode to design against is a tile that reads a
-     missing today as a zero and looks broken. Every value here is therefore an
-     explicit trailing-seven-day read, said once in a caption above the quad
-     rather than repeated four times in four labels, and the question each tile
-     answers is "am I on track", not "what did I do today". The specific numbers
-     live on Track, one tap away, which is where he said they belong.
-
-     Weight joins the row as the fourth, at his instruction, because it was the
-     one stream reading as a different kind of thing from its neighbours. Same
-     component, same rules. The weigh-in CONTROL stays on Today with the morning
-     anchor, where the habit actually happens; this is the read, not the log. */
-  var sv=sleepVerdict(),tv=stepsVerdict(),cg=calGlance();
-  var s7=sleepStats(7),st=stepTarget(),sT=sleepTarget();
-  var wv=weightVerdict(),wst=wv.st;
-
-  /* Sleep tone comes from the 7-day mean against the consensus 7 hours, not
-     from the 28-day verdict, because the tile is a trailing-week read and
-     borrowing a four-week tone would have the colour disagree with the number
-     printed beside it. */
-  var sleepTone=s7?(s7.mean>=sT.t?"good":s7.mean>=sT.t-0.75?"amber":"red"):"";
-  /* Steps against the derived rung. Coverage matters as much as the average:
-     an average of three recorded days inside a seven-day window is a thin read
-     and says so in amber rather than pretending to a verdict. This is the same
-     defect 17a fixed for calories, where a window counted ROWS and not DAYS. */
-  var s7steps=stepsAvgOver(7);
-  var stepsTone=(!s7steps||!st)?"":(s7steps.got<4?"amber":s7steps.avg>=st.t?"good":s7steps.avg>=st.t*0.8?"amber":"red");
-
+  /* THE QUAD, v7.57. Rewritten 2026-08-01; the Round A design it replaces is in
+     `_backup-v7.56-pre-tiles-*.html` and its reasoning is preserved in UPGRADE.md.
+     Round A made every tile an explicit trailing-seven-day AVERAGE and captioned the row to say so,
+     because Health Auto Export sends whole days only and today is absent by design. The arithmetic
+     was right and the reading was wrong: a caption above four tiles is read once and forgotten,
+     while a bare number on a tile face is read every morning as "this is me now". Sleep said
+     8h 03m on a 5h 45m night; steps said 3.3k on a 5,902 day. He reported it as stale data, which
+     is the correct diagnosis of the experience even though the store was current to the hour.
+     So the quad no longer prints a level at all. Each face is a DIRECTION against his own prior
+     seven days, each foot is the real figure for a NAMED day beside the baseline judging it, and
+     the caption is gone because nothing here can be mistaken for today any more. The four trend
+     computers sit above; the numbers they read still come from stepTarget, sleepTarget, calGlance
+     and weightVerdict, so a tile and its sheet cannot disagree. */
   var tiles=[
-    {label:"Calories",icon:I.fork,val:calStat(),tone:cg.tone,act:"metricSheet('cal')"},
-    {label:"Sleep",icon:I.moon,val:(s7?hrsTxt(s7.mean):null),tone:sleepTone,act:"metricSheet('sleep')"},
-    {label:"Steps",icon:I.gauge,val:(s7steps?((s7steps.avg/1000).toFixed(1)+"k"):null),tone:stepsTone,act:"metricSheet('steps')"},
-    /* THE RATE, not a weight, and the first draft of this tile got it wrong.
-       Printing the trend put 189.0 here and 191.2 in the weigh-in drawer nine
-       pixels below it, which is two different weight numbers on one screen and
-       precisely the duplication the v7.37a audit caught and removed. Printing
-       the raw reading instead would merely duplicate the drawer exactly.
-       The tile is not a second scale. Every tile in this quad answers "am I on
-       track": Calories prints the GAP and not the intake, and weight's
-       equivalent is the direction it is moving, which is a question nothing
-       else on Today answers. When no window clears its confidence gate there is
-       no honest rate to print, so it prints nothing and the drawer below says
-       why, rather than inventing a number to fill the tile. */
-    {label:"Weight",icon:I.spark,
-     val:(wst&&wst.called&&wst.rate!=null)?((wst.rate>0?"+":"")+wst.rate.toFixed(1)+" /wk"):null,
-     tone:wv.tone,act:"metricSheet('weight')"}
+    {key:"cal",   label:"Calories",icon:I.fork, tr:trendCal(),    act:"metricSheet('cal')"},
+    {key:"sleep", label:"Sleep",   icon:I.moon, tr:trendSleep(),  act:"metricSheet('sleep')"},
+    {key:"steps", label:"Steps",   icon:I.gauge,tr:trendSteps(),  act:"metricSheet('steps')"},
+    {key:"weight",label:"Weight",  icon:I.spark,tr:trendWeight(), act:"metricSheet('weight')"}
   ];
-  if(!tiles.some(function(t){return t.val!=null;}))return "";
-  return '<div class="d3cap">Last 7 days</div><div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
+  if(!tiles.some(function(t){return t.tr&&t.tr.tone!=="none";}))return "";
+  /* The caption is gone. It existed to say "these are averages, not today", and nothing here is an
+     average any more: each face names a direction and each foot names its own day, so a banner
+     above the row would be correcting a misreading that can no longer happen. */
+  return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
 }
 /* ============ THE TILE POPUPS (Round A2) ============
    His instruction: pressing a tile opens a popup, it does not throw you onto
@@ -3018,6 +3116,7 @@ function renderToday(){
     todayMetricsHTML()+
     (isFresh()?emptyStateHTML():"")+
     drawerize(todayLogHTML(),I.check,"");
+  tileBandPulse();
 }
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
