@@ -216,10 +216,13 @@ input,select{border:0;background:none}
 .runhero .rd small{font-size:19px;font-weight:700;color:var(--sub);letter-spacing:0}
 .runhero .pace{display:inline-flex;align-items:center;gap:7px;margin-top:14px;background:var(--accent-tint);color:var(--accent);border-radius:999px;padding:9px 15px;font-size:13.5px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
 .runhero .pace svg{width:15px;height:15px;flex:none}
-.runstruct .rs{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px}
-.runstruct .rs:last-child{border-bottom:0}
-.runstruct .rs .n{width:24px;height:24px;border-radius:7px;background:var(--surface-2);font-size:12px;font-weight:700;color:var(--sub);display:flex;align-items:center;justify-content:center;flex:none}
-.runstruct .rs b{font-weight:600}
+/* ROUND B: `.runstruct` (the timed cue list) died with the cue engine. `.runsegs` is new
+   because no existing class draws a segmented step-progress strip; it is the stepper's one
+   piece of chrome, six segments, done in good, current in accent, colour meaning state. */
+.runsegs{display:flex;gap:4px;margin-top:16px}
+.runsegs i{flex:1;height:6px;border-radius:3px;background:var(--surface-2);display:block}
+.runsegs i.on{background:var(--good)}
+.runsegs i.cur{background:var(--accent)}
 
 /* sheet */
 .scrim{position:fixed;inset:0;z-index:50;background:var(--scrim);display:none;align-items:flex-end;justify-content:center}
@@ -1497,15 +1500,14 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
     </div>
     <div id="wo-body"></div>
   </section>
-  <!-- ROUND 17. The run screen was a static "how to run it" card with a Log button, reachable only
-       from Today, while Cardio's Start-a-run skipped it entirely and opened a form. A lift got a
-       session and a run got a text box. Same ptop as the workout now: back, a live clock that
-       pauses on tap, and Finish. -->
+  <!-- ROUND B. The run tool is a STEPPER now, rebuilt from a blank page on the agreed model:
+       the app times nothing and counts nothing. The watch owns measurement; this screen owns
+       the plan. The 17c clock, pause control and cue engine are deliberately gone. -->
   <section class="view" id="v-run">
     <div class="ptop">
       <button class="back" onclick="leaveRun()" aria-label="Back to today"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Today</button>
-      <button class="wtime" onclick="toggleRunPause()" aria-label="pause or resume the run clock"><span id="run-pico" aria-hidden="true"></span><span class="num" id="run-elapsed">0:00</span></button>
-      <button class="fin" onclick="finishRun()">Finish</button>
+      <span class="mid">Run</span>
+      <button class="fin" onclick="runLogNow()">Log it</button>
     </div>
     <div id="run-body"></div>
   </section>
@@ -1534,7 +1536,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.47";
+var VERSION="v7.48";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3397,127 +3399,71 @@ function runPrescription(isLong){
   };
 }
 
-/* ============ RUN SESSION, ROUND 17 ============
-   A lift is a sequence of discrete decisions and a run is one continuous effort, so this is the
-   workout tool's SHAPE (a clock that owns the screen, a phase that advances, a Finish that hands
-   off a filled log) with a run's CONTENT. It does not pretend to know distance: no browser can
-   read the watch, so the honest live number is elapsed time against the target time the pace band
-   implies, and the pace check is a prompt rather than a measurement.
-   State lives in `S.runSess` so a locked phone, a backgrounded PWA or an accidental reload cannot
-   lose a run in progress - the same reason the lift session stores start/accum/paused rather than
-   holding them in a closure. */
-var runTimer=null;
+/* ============ RUN SESSION, ROUND B ============
+   THE STEPPER, rebuilt from a blank page on the model agreed 31 July: the app times NOTHING
+   and counts NOTHING. He runs with an Apple Watch; the watch owns every measurement, and a
+   browser pretending otherwise is what got two run tools rejected. This screen owns exactly
+   one thing, the plan, walked as steps: get set, warm up, the run, cool down, stop the watch,
+   log. Next and Back are the only verbs. The run leg is generated from the cardio level plus
+   the CYCLE slot, with a free-text "use my own" override for today only. Logging turns the
+   day green immediately; Apple's own record lands tomorrow and is vetted beside the manual
+   log in Round C, never merged.
+   State lives in `S.runSess` so a locked phone, a backgrounded PWA or a reload cannot lose
+   the place. There is no timer to lose. */
 function runSess(){return (S.runSess&&S.runSess.d===TODAY)?S.runSess:null;}
 function runTargetMi(){var p=todayPlan();return (p.type==="run"&&p.dist)?p.dist:2;}
-/* The pace band is a string like "9:50-11:00". The target time uses the EASY end, because the
-   band's job is to keep an easy run easy and quoting the fast end would invert that. */
-function paceBandSec(){
-  var m=String(PACE_MI).split("-");
-  function s(t){var p=String(t).trim().split(":");return (+p[0]||0)*60+(+p[1]||0);}
-  return {fast:s(m[0]),easy:s(m[1]||m[0])};
-}
-/* ROUND 17c. Straight to the screen, no warm-up pop-up. The warm-up is step one OF the session
-   now, exactly as it is on Lift, so there is nothing for a sheet to interrupt. */
 function startRun(mi){beginRun(mi);}
 function beginRun(mi){
-  var s=runSess();
-  if(!s){
+  if(!runSess()){
     var p=runPrescription(!!(todayPlan()&&todayPlan().long));
-    S.runSess={d:TODAY,tgt:mi||runTargetMi(),start:Date.now(),accum:0,paused:false,
-               cue:0,cueAt:0,pres:p,cues:runCueList(p)};
+    S.runSess={d:TODAY,tgt:mi||runTargetMi(),idx:0,custom:null,pres:p};
   }
-  else if(!s.start&&!s.paused)s.start=Date.now();
   RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track"||CURV==="today")?CURV:"today";
-  save();show("run");renderRun();startRunTick();
+  save();show("run");renderRun();
 }
-/* THE CLOCK IS AN INTERVAL CUE, NOT A LOGGER. He records the run on the watch, which measures
-   distance and pace properly; the app's job is the one thing the watch will not do, which is
-   telling him when to switch between a jog bout and a walk bout. A prescription of
-   "10 x (1:00 jog / 2:00 walk)" is unrunnable without something counting the switches. */
-function runCue(){var s=runSess();if(!s||!s.cues)return null;return s.cues[s.cue]||null;}
-function runCueLeft(){
-  var s=runSess(),c=runCue();if(!s||!c)return 0;
-  return Math.max(0,c.sec-(elapsedRunSec()-(s.cueAt||0)));
+/* The step list is derived, never stored: it is a pure view of the prescription plus the
+   custom override, so editing the override or reaching this from a stale session cannot
+   desync a stored copy. Six steps, always. */
+function runSteps(s){
+  var p=s.pres||runPrescription(false);
+  var main=s.custom
+    ? {role:"The run",title:"Your plan",note:esc(s.custom)}
+    : {role:"The run",
+       title:(p.continuous?("Run easy, about "+Math.round(p.runSec/60)+" min")
+                          :(p.reps+" × "+mmss(p.jog)+" run, "+mmss(p.walk)+" walks")),
+       note:(p.continuous
+              ?"Unbroken and conversational. If you cannot say a full sentence, slow down."
+              :"Walk breaks are part of the session, not a failure of it. Let the watch carry the timing.")+
+            (p.why&&p.why.length?" Eased back because "+p.why.join(", and ")+".":"")};
+  return [
+    {role:"Get set",title:"Start the watch",note:"Open the Workout app or Pedometer and start an outdoor run. It does all the measuring. This screen only walks the plan."},
+    {role:"Warm up",title:"Walk, about "+Math.round(RUN_WARM/60)+" min",note:"Brisk. Nothing that feels like running yet."},
+    main,
+    {role:"Cool down",title:"Walk, about "+Math.round(RUN_COOL/60)+" min",note:"Part of the session, not the bit after it."},
+    {role:"Wrap up",title:"Stop the watch",note:"End the recording. Apple's own record lands here by tomorrow."},
+    {role:"Log it",title:"Log the run",note:"Punch in what the watch says. Today goes green the moment you save."}
+  ];
 }
-function nextCue(auto){
+function runStepNext(){
   var s=runSess();if(!s)return;
-  if(s.cue>=s.cues.length-1){finishRun();return;}
-  s.cue++;s.cueAt=elapsedRunSec();save();
-  if(auto&&navigator.vibrate)try{navigator.vibrate([40,80,40]);}catch(e){}
-  renderRun();
+  if(s.idx>=runSteps(s).length-1){runSheet(s.tgt);return;}
+  s.idx++;save();renderRun();
 }
-function prevCue(){var s=runSess();if(!s||s.cue<=0)return;s.cue--;s.cueAt=elapsedRunSec();save();renderRun();}
-function skipToCue(i){var s=runSess();if(!s)return;s.cue=Math.max(0,Math.min(s.cues.length-1,i));s.cueAt=elapsedRunSec();save();renderRun();}
-function elapsedRunSec(){var s=runSess();if(!s)return 0;return Math.floor((s.accum||0)+((s.start&&!s.paused)?(Date.now()-s.start)/1000:0));}
-function startRunTick(){
-  if(runTimer)clearInterval(runTimer);
-  function t(){
-    var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());
-    var s=runSess();
-    var p=document.getElementById("run-pico");if(p)p.innerHTML=(s&&s.paused)?I.play2:I.pause;
-    var cd=document.getElementById("run-count");
-    if(cd&&s&&!s.paused){
-      var left=runCueLeft();
-      cd.textContent=mmss(left);
-      var bar=document.getElementById("run-cuefill"),c=runCue();
-      if(bar&&c&&c.sec)bar.style.width=Math.max(0,Math.min(100,(1-left/c.sec)*100)).toFixed(1)+"%";
-      if(left<=0)nextCue(true);
-    }
-  }
-  t();runTimer=setInterval(t,1000);
-}
-function stopRunTick(){if(runTimer){clearInterval(runTimer);runTimer=null;}}
-function runFreeze(){var s=runSess();if(s&&s.start){s.accum=(s.accum||0)+(Date.now()-s.start)/1000;s.start=null;save();}stopRunTick();}
-function toggleRunPause(){
+function runStepBack(){var s=runSess();if(!s||s.idx<=0)return;s.idx--;save();renderRun();}
+function leaveRun(){show(RETV||"today");}
+function runLogNow(){var s=runSess();runSheet(s?s.tgt:runTargetMi());}
+function discardRun(){S.runSess=null;save();show(RETV||"today");toast("Run discarded. Nothing logged.",null);}
+/* "Use my own": free text, today only, stored on the session so it dies with it. */
+function customRunSheet(){
   var s=runSess();if(!s)return;
-  if(s.paused){s.paused=false;s.start=Date.now();save();startRunTick();}
-  else{runFreeze();s.paused=true;save();var e=document.getElementById("run-elapsed");if(e)e.textContent=mmss(elapsedRunSec());startRunTick();}
-  renderRun();
+  openSheet('<div class="grab"></div><h3>Your own plan</h3><div class="ssub">Say it in your words. It replaces the generated run leg for today only.</div>'+
+    '<textarea class="ta" id="cr-txt" placeholder="4 easy laps of the park, walk the hills">'+(s.custom?esc(s.custom):"")+'</textarea>'+
+    '<button class="sheet-cta" onclick="saveCustomRun()">Use this plan</button>'+
+    (s.custom?'<button class="sheet-cta ghost" onclick="clearCustomRun()">Back to the generated plan</button>':'')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
 }
-/* RUNNING TIME, not session time. The cue list already knows which bouts were jogs, so the running
-   total is the completed jog cues plus however far into the current one he is. Prefilling total
-   elapsed would fold the warm-up walk, every walk break and the cool down into the pace, which is
-   how a 10:00 run logs as a 25:00 one and poisons the pace zones, the level and every average that
-   reads them. */
-function runLegSec(){
-  var s=runSess();if(!s||!s.cues)return null;
-  var tot=0;
-  for(var i=0;i<s.cue&&i<s.cues.length;i++)if(s.cues[i].act==="jog")tot+=s.cues[i].sec;
-  var c=s.cues[s.cue];
-  if(c&&c.act==="jog")tot+=Math.max(0,Math.min(c.sec,elapsedRunSec()-(s.cueAt||0)));
-  return tot;
-}
-function leaveRun(){runFreeze();show(RETV||"today");}
-function finishRun(){
-  var s=runSess();
-  var leg=runLegSec(),sec=(leg!=null&&leg>0)?leg:elapsedRunSec();
-  runFreeze();
-  runSheet(s?s.tgt:runTargetMi(),sec);
-}
-function discardRun(){S.runSess=null;save();stopRunTick();show(RETV||"today");toast("Run discarded. Nothing logged.",null);}
-/* Flatten the prescription tree into the ordered cue list the screen walks. A repeat becomes its
-   expanded bouts, because at run time there is no such thing as "rep 3 of 7" in the abstract -
-   there is only the bout you are in. The tree stays the source; this is the runtime view of it. */
-function runCueList(p){
-  var out=[];
-  p.steps.forEach(function(st){
-    if(st.kind==="repeat"){
-      for(var i=0;i<st.reps;i++){
-        st.steps.forEach(function(inner,j){
-          /* The last walk of the last rep is dropped: it would sit between the final jog and the
-             cool-down walk, which is the same activity twice with a boundary invented between. */
-          if(i===st.reps-1&&inner.act==="walk")return;
-          out.push({act:inner.act,sec:inner.sec,role:"main",rep:i+1,of:st.reps,note:j===0?st.note:null});
-        });
-      }
-    } else out.push({act:st.act,sec:st.sec,role:st.role,note:st.note});
-  });
-  return out;
-}
-function runActWord(a){return a==="jog"?"Run":a==="walk"?"Walk":a;}
-/* Gerunds are looked up, not built. "Run"+"ing" is "runing"; English doubles the consonant and a
-   string concatenation does not know that. */
-function runActing(a){return a==="jog"?"running":a==="walk"?"walking":a;}
+function saveCustomRun(){var s=runSess();if(!s)return;var v=((document.getElementById("cr-txt")||{}).value||"").trim();s.custom=v||null;save();closeSheet();renderRun();}
+function clearCustomRun(){var s=runSess();if(!s)return;s.custom=null;save();closeSheet();renderRun();}
 function renderRun(){
   var s=runSess();
   var logged=S.runs[TODAY];
@@ -3529,60 +3475,34 @@ function renderRun(){
     body.innerHTML='<div class="runhero"><div class="lbl">Today\'s run</div><div class="rd num" style="margin-top:8px">'+mi+'<small> mi</small></div>'+
       '<div class="pace">'+I.run+' Easy &middot; '+PACE_MI+' /mi</div></div>'+
       (logged?('<div class="card"><h3><span>Logged today</span></h3><div class="weighrow" style="margin-top:8px"><span class="wcur"><b>'+logged.dist+' mi</b> in '+esc(logged.time)+' &middot; '+logged.pace+'/mi'+(logged.rpe?' &middot; '+esc(logged.rpe):'')+'</span><button class="wbtn" onclick="runSheet('+mi+')">Edit</button></div></div>'):'')+
-      '<button class="big-start" onclick="beginRun('+mi+')">'+I.run+' Start the clock</button>'+
+      '<button class="big-start" onclick="beginRun('+mi+')">'+I.run+' Start the run</button>'+
       '<button class="sheet-cta ghost" style="margin-top:10px" onclick="runSheet('+mi+')">Log a run I already did</button>';
     return;
   }
-  /* HERO IS THE CURRENT CUE, the same spine as the Lift tool: one thing to do, big enough to read
-     at arm's length while moving, and the rest of the session collapsed underneath it. */
-  var p=s.pres||runPrescription(false),c=runCue()||{act:"walk",sec:0,role:"warmup"};
-  var roleWord=(c.role==="warmup")?"Warm up":(c.role==="cooldown")?"Cool down":(c.rep?("Bout "+c.rep+" of "+c.of):"The run");
-  var h='<div class="runhero" style="padding:20px 18px">'+
-    '<div class="lbl">'+(s.paused?"Paused &middot; ":"")+esc(roleWord)+'</div>'+
-    '<div class="rd num" style="margin-top:6px;font-size:64px">'+runActWord(c.act)+'</div>'+
-    '<div id="run-count" class="num" style="font-size:34px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums">'+mmss(c.sec)+'</div>'+
-    '<div style="height:4px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin-top:14px">'+
-      '<i id="run-cuefill" style="display:block;height:4px;width:0;background:'+(c.act==="jog"?"var(--accent)":"var(--good)")+'"></i></div>'+
-    /* Name what the button goes TO. "Skip ahead" could mean skip this bout or skip the session. */
-    '<div class="herorow" style="margin-top:14px">'+
-      (s.cue>0?'<button class="wbtn" onclick="prevCue()">Back</button>':'')+
-      '<button class="wbtn" onclick="nextCue()">'+
-        (s.cue>=s.cues.length-1?"Log the run":("Start "+runActing(s.cues[s.cue+1].act)))+
-      '</button>'+
-    '</div></div>';
-  /* The prescription, and WHY it is this one. A generated session he did not choose has to be
-     arguable, so every guard that pushed the rung down says so in a line he can read. */
-  /* The title IS the prescription, so the body must not open by restating it. */
-  h+='<div class="card"><h3><span>'+esc(p.name)+'</span><span class="t">level '+p.lvl+' &middot; '+esc(p.tier.w)+'</span></h3>'+
-    '<div class="ksub" style="margin:0">'+
-      (p.continuous?'Run it unbroken. ':('<b>'+mmss(p.walk)+'</b> walking between each. '))+
-      '<b>'+Math.round(p.runSec/60)+' min</b> on your feet running, about '+Math.round(p.totalSec/60)+' min all in. '+
-      (p.target.kind==="effort"
-        ?'No pace target: <b>conversational</b> is the target. If you cannot say a full sentence, you are running too hard.'
-        :'Hold <b>'+esc(p.target.txt)+' /mi</b>.')+
-    '</div>'+
-    (p.why.length?('<div class="ksub" style="margin:10px 0 0;color:var(--faint)">Eased back because '+p.why.join(", and ")+'.</div>'):'')+
+  /* THE HERO IS THE CURRENT STEP and the only verbs are Next and Back. No clock, no countdown,
+     no live number: the watch is doing that job, and this screen saying anything numeric about
+     time would be a second writer for a fact it does not own. */
+  var steps=runSteps(s),c=steps[s.idx],last=(s.idx>=steps.length-1);
+  var p=s.pres||runPrescription(false);
+  var segs='';for(var i=0;i<steps.length;i++)segs+='<i'+(i<s.idx?' class="on"':(i===s.idx?' class="cur"':''))+'></i>';
+  var h='<div class="runhero" style="padding:22px 18px;text-align:left">'+
+    '<div class="lbl">'+esc(c.role)+' &middot; step '+(s.idx+1)+' of '+steps.length+'</div>'+
+    '<div style="font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:8px">'+c.title+'</div>'+
+    '<div style="font-size:15px;color:var(--sub);line-height:1.45;margin-top:8px">'+c.note+'</div>'+
+    (c.role==="The run"?'<button onclick="customRunSheet()" style="background:none;border:0;color:var(--faint);font-size:13px;font-weight:600;padding:10px 0;min-height:44px;cursor:pointer">'+(s.custom?"Edit my plan &middot; or go back to the generated one":"Use my own plan instead")+'</button>':'')+
+    '<div class="runsegs">'+segs+'</div>'+
+    '<button class="big-start" style="margin-top:16px" onclick="runStepNext()">'+(last?"Log the run":"Next: "+esc(steps[s.idx+1].role.toLowerCase()))+'</button>'+
+    (s.idx>0?'<div style="text-align:center;margin-top:4px"><button onclick="runStepBack()" style="background:none;border:0;color:var(--faint);font-size:13px;font-weight:600;padding:10px 16px;min-height:44px;cursor:pointer">Back</button></div>':'')+
     '</div>';
-  /* The watch measures, the app cues. Split stated on the card so the division of labour is not
-     something he has to infer from the absence of a distance readout. */
-  h+='<div class="card"><h3><span>Recording</span></h3><div class="ksub" style="margin:0">'+
-    'Start an <b>Outdoor Run</b> on your watch. It measures distance and pace and lands here on its own. '+
-    'This screen only counts the bouts, which is the one thing the watch will not do.</div>'+
-    '<div class="herorow" style="margin-top:12px"><button class="wbtn" onclick="finishRun()">Log it by hand now</button></div></div>';
-  /* COLLAPSED, per card law and per his brief: the hero is the only thing open, the full session
-     is a drawer under it. At level 1 this list is twenty-one rows and it buried every other card
-     on the screen when it rendered open. The summary carries the position so he never has to open
-     it to know where he is. */
-  h+=collapsible("The session",(s.cue+1)+" of "+s.cues.length,
-    '<div class="runstruct">'+s.cues.map(function(q,i){
-      var st=(i<s.cue)?"done":(i===s.cue?"now":"next");
-      return '<div class="rs" onclick="skipToCue('+i+')" style="cursor:pointer'+(st==="next"?";opacity:.5":"")+'">'+
-        '<span class="n"'+(st==="now"?' style="background:var(--accent);color:#fff"':(st==="done"?' style="background:var(--good);color:#fff"':''))+'>'+(i+1)+'</span>'+
-        '<span style="flex:1">'+runActWord(q.act)+'</span><span style="color:var(--faint);font-size:13px">'+mmss(q.sec)+'</span></div>';
-    }).join("")+'</div>',false,I.run,"");
-  /* Discard is destructive and rare, so it gets the weight of a footnote rather than the weight of
-     a primary control. It read as prominently as Log the run in the first build. */
-  h+='<div style="text-align:center;margin-top:14px"><button onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;cursor:pointer">Discard this run</button></div>';
+  /* One quiet card of context: what generated this session. The why-lines live on the run step
+     itself, so this never repeats them. */
+  h+='<div class="card"><h3><span>'+esc(p.name)+'</span><span class="t">level '+p.lvl+' &middot; '+esc(p.tier.w)+'</span></h3>'+
+    '<div class="ksub" style="margin:0">About <b>'+Math.round(p.totalSec/60)+' min</b> all in. '+
+      (p.target.kind==="effort"
+        ?'No pace target: <b>conversational</b> is the target.'
+        :'Hold <b>'+esc(p.target.txt)+' /mi</b>.')+'</div></div>';
+  /* Discard is destructive and rare: footnote weight, never a primary control. */
+  h+='<div style="text-align:center;margin-top:14px"><button onclick="discardRun()" style="background:none;border:0;color:var(--faint);font-size:13px;padding:8px 12px;min-height:44px;cursor:pointer">Discard this run</button></div>';
   body.innerHTML=h;
 }
 var rpeRun="";
@@ -3642,11 +3562,9 @@ function saveRun(){
   S.sessions.push({id:id,date:TODAY,type:"run",distanceMi:d,durationSec:sec||0,paceSecPerMi:sec>0?Math.round(sec/d):0,rpe:rpeRun,notes:""});
   S.sessions.sort(function(a,b){return (a.date+"|"+a.id)<(b.date+"|"+b.id)?-1:1;});
   S.done[TODAY]=true;advanceCycle();save();closeSheet();
-  /* ROUND 17. The session is over once it is logged, so the clock is torn down here rather than
-     left running behind the cool-down sheet. That was one of the five real-use bugs on the LIFT
-     side (the workout timer kept running behind the Finish sheet) and there is no reason to ship
-     it a second time on the run side. */
-  S.runSess=null;stopRunTick();save();
+  /* ROUND B. The session ends when it is logged. There is no clock to tear down any more;
+     clearing the stepper state is the whole teardown. */
+  S.runSess=null;save();
   setTimeout(function(){coolSheet("run");},900);
   if(rpeRun==="Hard")toast("Logged. Keep easy runs easy - that protects your lifting.",null);
   else toast("Logged "+d.toFixed(2).replace(/\.?0+$/,"")+" mi"+(sec>0?" at "+paceStr+"/mi":"")+".",null);
