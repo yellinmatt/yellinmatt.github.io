@@ -209,16 +209,19 @@ input,select{border:0;background:none}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
   opacity:0;pointer-events:none;transition:opacity .2s ease}
 .restover.on{opacity:1;pointer-events:auto}
-.restover .cap{color:rgba(255,255,255,.55)}
-.restover .rt{font-size:76px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:12px 0 8px}
-.restover .rnext{font-size:15px;color:rgba(255,255,255,.75);margin-bottom:24px;text-align:center;padding:0 24px}
-.restover .rbar{width:min(280px,70vw);height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;margin-bottom:28px}
-.restover .rbar i{display:block;height:100%;background:var(--accent);width:100%}
-.restover.warn .rbar i{background:var(--good)}
-.restover .rrow{display:flex;gap:10px}
-.restover .rb{font-size:15px;font-weight:700;padding:0 18px;min-height:48px;border-radius:12px;background:rgba(255,255,255,.14);min-width:64px}
-.restover .rb:active{background:rgba(255,255,255,.26)}
-.restover .rb.skip{color:var(--accent);background:none}
+/* Children carry overlay-unique names: the first cut reused `.rrow`/`.rbar`, which are the
+   recent-runs row classes, and the global rules dragged the button row to full width -- the
+   same class-collision disease `.sw` had, caught the same day it was fixed. */
+.restover .rocap{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.55)}
+.restover .rot{font-size:76px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:12px 0 8px}
+.restover .ronext{font-size:15px;color:rgba(255,255,255,.75);margin-bottom:24px;text-align:center;padding:0 24px}
+.restover .robar{width:min(280px,70vw);height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;margin-bottom:28px}
+.restover .robar i{display:block;height:100%;background:var(--accent);width:100%}
+.restover.warn .robar i{background:var(--good)}
+.restover .rorow{display:flex;gap:10px}
+.restover .rob{font-size:15px;font-weight:700;padding:0 18px;min-height:48px;border-radius:12px;background:rgba(255,255,255,.14);min-width:64px}
+.restover .rob:active{background:rgba(255,255,255,.26)}
+.restover .rob.skip{color:var(--accent);background:none}
 
 /* run */
 .runhero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:22px 20px;text-align:center;margin-bottom:12px}
@@ -1532,14 +1535,14 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 </div>
 
 <div class="restover" id="restover" role="timer" aria-label="Rest timer">
-  <div class="cap">Rest</div>
-  <div class="rt num" id="rest-t">1:30</div>
-  <div class="rnext" id="rest-next"></div>
-  <div class="rbar"><i id="rest-fill"></i></div>
-  <div class="rrow">
-    <button class="rb" onclick="bumpRest(-15)">&minus;15</button>
-    <button class="rb" onclick="bumpRest(15)">+15</button>
-    <button class="rb skip" onclick="skipRest()">Skip</button>
+  <div class="rocap">Rest</div>
+  <div class="rot num" id="rest-t">1:30</div>
+  <div class="ronext" id="rest-next"></div>
+  <div class="robar"><i id="rest-fill"></i></div>
+  <div class="rorow">
+    <button class="rob" onclick="bumpRest(-15)">&minus;15</button>
+    <button class="rob" onclick="bumpRest(15)">+15</button>
+    <button class="rob skip" onclick="skipRest()">Skip</button>
   </div>
 </div>
 <div class="toast" id="toast"><span class="tm" id="toast-m"></span><button class="tu" id="toast-u">Undo</button></div>
