@@ -105,8 +105,10 @@ input,select{border:0;background:none}
   .pcol{animation:tRise .44s cubic-bezier(.22,1,.36,1) both}
   .pcol:nth-child(1){animation-delay:.14s}.pcol:nth-child(2){animation-delay:.19s}.pcol:nth-child(3){animation-delay:.24s}
   /* The two level rings sweep their arc instead of arriving drawn. */
-  .lvlrow .lcring g circle{animation:ringSweep .85s .18s cubic-bezier(.22,1,.36,1) both}
-  @keyframes ringSweep{from{stroke-dashoffset:113.1}}
+  /* The CSS sweep is gone: it drew the arc to its final position and said nothing about how the
+     level got there. levelRingAnim below walks the ring from LAST WEEK'S level to today's, winding
+     through every whole turn on the way, so a jump from 1 to 2 is watched rather than reported. */
+  .lvlcard .lcnum{transition:color .3s ease}
   /* The streak chip acknowledges an increment once, on the day it happens. */
   .streak.bumped{animation:stPulse .8s .3s cubic-bezier(.34,1.4,.5,1) both}
   @keyframes stPulse{0%{transform:scale(1)}35%{transform:scale(1.12)}100%{transform:scale(1)}}
@@ -1635,6 +1637,31 @@ details.dcard[open]>.dbody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 @keyframes dopen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* THE ANCHOR OPEN AND CLOSE (v7.59). It had one fade on the body and nothing else, so the single
+   most important interaction on the screen opened like a disclosure triangle. Now the body unfolds,
+   the four rows cascade in on their own beat so the checklist reads as a list arriving rather than
+   a block appearing, the chevron turns, and the summary chip hands the width over instead of
+   vanishing. Closing reverses the fold. All inside the standing no-preference guard. */
+@media (prefers-reduced-motion:no-preference){
+  details.hanchor>.abody{overflow:hidden}
+  details.hanchor[open]>.abody{animation:aFold .34s cubic-bezier(.22,1,.36,1) both}
+  @keyframes aFold{from{opacity:0;transform:translateY(-8px) scaleY(.96);transform-origin:top}to{opacity:1;transform:none}}
+  details.hanchor[open] .abody .arow{animation:aRow .34s cubic-bezier(.22,1,.36,1) both}
+  details.hanchor[open] .abody .arow:nth-child(1){animation-delay:.06s}
+  details.hanchor[open] .abody .arow:nth-child(2){animation-delay:.11s}
+  details.hanchor[open] .abody .arow:nth-child(3){animation-delay:.16s}
+  details.hanchor[open] .abody .arow:nth-child(4){animation-delay:.21s}
+  details.hanchor[open] .abody .arow:nth-child(5){animation-delay:.26s}
+  @keyframes aRow{from{opacity:0;transform:translateX(-9px)}to{opacity:1;transform:none}}
+  details.hanchor[open] .abody .avid{animation:aFold .38s .02s cubic-bezier(.22,1,.36,1) both}
+  .hanchor>summary svg{transition:transform .3s cubic-bezier(.22,1,.36,1)}
+  .hanchor[open]>summary svg{transform:rotate(180deg)}
+  .hanchor .acount{transition:opacity .22s ease,transform .22s ease}
+  .hanchor[open]>summary .acount{display:inline;opacity:0;transform:translateX(8px);pointer-events:none}
+  /* A tick is an event. The row marks itself rather than merely restyling. */
+  .arow.checked .an{animation:aTick .42s cubic-bezier(.34,1.4,.5,1) both}
+  @keyframes aTick{0%{transform:translateX(0)}40%{transform:translateX(4px)}100%{transform:translateX(0)}}
+}
 .woprog .wpd i{transition:width .5s cubic-bezier(.22,1,.36,1)}
 .miniring circle:last-child{transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
 .runsegs i{transition:background .3s ease}
@@ -1712,7 +1739,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.58";
+var VERSION="v7.59";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3166,6 +3193,7 @@ function renderToday(){
     drawerize(todayLogHTML(),I.check,"");
   tileBandPulse();
   streakPulse();
+  levelRingAnim();
 }
 /* The streak only reacts on the day it actually moves. Stored device-local for the same reason the
    tile band is: a milestone is a moment on the screen you are holding, not a fact worth syncing. */
@@ -7018,7 +7046,12 @@ function miniLevelHTML(kind){
   var L=(kind==="lift")?liftLevel():cardioLevel();
   var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
   var t=levelTier(L.lvl),C=2*Math.PI*18,off=C*(1-L.pips/10);
-  return '<button class="lvlcard" data-tier="'+t.k+'" onclick="show(\''+(kind==="lift"?"lift":"cardio")+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+'">'+
+  /* FROM and TO, in levels-with-fraction. The ring is not a gauge of where he is, it is a replay of
+     how he got here since last week: green winding forward on a gain, red unwinding on a loss, and
+     the number ticking through each whole level as the arc passes it. A gauge states a fact; this
+     shows the move, which is the only part of a level that motivates anybody. */
+  var prev=levelPrevLv(kind),to=L.lvl+L.pips/10;
+  return '<button class="lvlcard" data-tier="'+t.k+'" data-kind="'+kind+'" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+'">'+
     '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
       '<circle cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
       '<g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--tier)" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
@@ -7026,6 +7059,73 @@ function miniLevelHTML(kind){
     '<span class="lctxt"><span class="lck">'+(kind==="lift"?"Lift":"Cardio")+'</span>'+
     '<span class="lcw">'+esc(st.w)+'</span>'+
     '<span class="lct">'+t.w+'</span></span></button>';
+}
+/* ============ LEVEL RING REPLAY (v7.59, 2026-08-01) ============
+   levelLvSeries is a weekly series and its last entry is this week, so the entry before it is where
+   he stood seven days ago. That single number is the whole feature: without it the ring can only
+   draw a position, and a position is not a story. */
+function levelPrevLv(kind){
+  try{var lv=levelLvSeries(kind).lv;if(!lv||lv.length<2)return null;var v=lv[lv.length-2];
+    return (typeof v==="number"&&isFinite(v))?v:null;}catch(e){return null;}
+}
+var RINGC=2*Math.PI*18;
+function levelRingAnim(){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  document.querySelectorAll("#v-today .lvlcard").forEach(function(card){
+    var arc=card.querySelector(".lcring g circle"),num=card.querySelector(".lcnum");
+    if(!arc||!num)return;
+    var to=parseFloat(card.getAttribute("data-to")),fromA=card.getAttribute("data-from");
+    var from=(fromA===""||fromA==="null")?null:parseFloat(fromA);
+    if(!isFinite(to))return;
+    /* No prior week on record means there is no move to replay, so it climbs from zero once. A
+       first-run animation that pretended to be a gain would be the app flattering him with fiction. */
+    if(from==null||!isFinite(from))from=0;
+    var delta=to-from, up=delta>=0;
+    /* 900ms per level travelled, floor 700, ceiling 2600. Deliberately slower than the old sweep:
+       he asked to WATCH it, and a level that arrives in a third of a second was never watched. */
+    var dur=Math.min(2600,Math.max(700,Math.abs(delta)*900||700));
+    var tone=Math.abs(delta)<0.05?null:(up?"var(--good)":"var(--accent)");
+    var settled=arc.getAttribute("stroke")||"var(--tier)";
+    if(tone)arc.setAttribute("stroke",tone);
+    var t0=null;
+    function ease(x){return 1-Math.pow(1-x,3);}
+    function frame(ts){
+      if(t0==null)t0=ts;
+      var k=Math.min(1,(ts-t0)/dur),v=from+delta*ease(k);
+      var frac=v-Math.floor(v);
+      arc.setAttribute("stroke-dashoffset",(RINGC*(1-frac)).toFixed(1));
+      num.textContent=Math.floor(v+1e-9);
+      if(k<1){requestAnimationFrame(frame);return;}
+      /* Land on the truth, not on the animation's last frame. */
+      var L=(card.getAttribute("data-kind")==="lift")?liftLevel():cardioLevel();
+      num.textContent=L.lvl;
+      arc.setAttribute("stroke-dashoffset",(RINGC*(1-L.pips/10)).toFixed(1));
+      if(tone)setTimeout(function(){arc.setAttribute("stroke",settled);},420);
+    }
+    arc.setAttribute("stroke-dashoffset",(RINGC*(1-(from-Math.floor(from)))).toFixed(1));
+    num.textContent=Math.floor(from);
+    setTimeout(function(){requestAnimationFrame(frame);},260);
+  });
+}
+/* The card's onclick contract. Added in the same edit that pointed the card at it: a replacement
+   must emit the CONTRACT of what it replaces, and pointing a live button at a function that does
+   not exist is the exact failure the build-craft rules were written after. Reuses levelHeroHTML so
+   the sheet and the Lift/Cardio drawers cannot drift apart. */
+function levelSheet(kind){
+  var L=(kind==="lift")?liftLevel():cardioLevel();
+  var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
+  var t=levelTier(L.lvl),prev=levelPrevLv(kind);
+  var move="";
+  if(prev!=null&&isFinite(prev)){
+    var d=(L.lvl+L.pips/10)-prev;
+    move=(Math.abs(d)<0.05)?"Level held where it was last week."
+      :((d>0?"Up ":"Down ")+Math.abs(d).toFixed(1)+" of a level since last week.");
+  }
+  openSheet('<div class="grab"></div><h3>'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+'</h3>'+
+    '<div class="ssub">'+esc(t.w)+' &middot; '+esc(st.w)+(move?(" &middot; "+move):"")+'</div>'+
+    levelHeroHTML(kind,L,st.w)+
+    '<button class="sheet-cta" onclick="closeSheet();show(\''+kind+'\')">Open '+(kind==="lift"?"Lift":"Cardio")+'</button>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
 function levelRowHTML(){
   return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
