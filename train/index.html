@@ -164,9 +164,9 @@ input,select{border:0;background:none}
 .ex .more svg{width:18px;height:18px}
 .aim{font-size:12.5px;color:var(--sub);font-weight:500;margin-bottom:6px}
 .aim b{color:var(--accent);font-weight:700}
-.colhead{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;padding:6px 2px 2px}
+.colhead{display:grid;grid-template-columns:26px 1fr 1fr 58px 42px;gap:6px;padding:6px 2px 2px}
 .colhead span{font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--faint);text-align:center}
-.set{display:grid;grid-template-columns:26px 1fr 1fr 54px 42px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
+.set{display:grid;grid-template-columns:26px 1fr 1fr 58px 42px;gap:6px;align-items:center;padding:5px 0;border-top:1px solid var(--line)}
 .set:first-of-type{border-top:0}
 .set .sn{width:26px;height:26px;border-radius:8px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--sub);margin:0 auto}
 /* GREEN MEANS DONE. Matthew liked the green the anchor turns when it is complete, so that is now
@@ -180,8 +180,10 @@ input,select{border:0;background:none}
    settings toggle switch (`.sw`, ~line 1141), whose `.sw .swt` rule absolutely positions a 16px
    knob -- so the Start label inherited a toggle knob's geometry. Known root cause of the ugly
    Start button; the two components share nothing but two letters now. */
-.tick.setgo{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
-.tick.setgo .sgt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+/* Sized to its 58px grid column: the old auto width let "Start" spill into the tick's
+   cell, which was the overlap on every set row. Fixed width, label sized to fit. */
+.tick.setgo{width:58px;min-width:0;padding:0;background:var(--surface-2);color:var(--sub)}
+.tick.setgo .sgt{font-size:11px;font-weight:700;letter-spacing:.01em}
 .tick.setgo.had{color:var(--faint)}
 .tick.setgo.run{background:var(--accent);color:var(--white)}
 .stp button{width:34px;height:42px;font-size:20px;font-weight:600;color:var(--sub);flex:none;display:flex;align-items:center;justify-content:center}
@@ -1501,6 +1503,57 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .consk i[data-l="1"]{background:var(--amber);opacity:.75}
 .consk i[data-l="2"]{background:var(--good)}
 .consk .conss{margin-left:auto;color:var(--accent);font-weight:750}
+
+/* ============ FAMILY A POPUPS (his pick, 2026-08-01) ============ */
+.msheet [data-tone="good"]{--tone:var(--good);--tone-tint:var(--good-tint)}
+.msheet [data-tone="amber"]{--tone:var(--amber);--tone-tint:var(--amber-tint)}
+.msheet [data-tone="red"]{--tone:var(--accent);--tone-tint:var(--accent-tint)}
+.msheet [data-tone="flat"],.msheet [data-tone=""]{--tone:var(--sub);--tone-tint:var(--surface-2)}
+.msheet .phead{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.msheet .pic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;background:var(--tone-tint);color:var(--tone)}
+.msheet .pic svg{width:18px;height:18px}
+.msheet .phead .pl{flex:1;min-width:0}
+.msheet .phead .cap{display:block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.msheet .psub{font-size:13px;color:var(--sub);margin-top:2px;display:block}
+.msheet .pring{position:relative;width:48px;height:48px;flex:none}
+.msheet .pring svg{width:48px;height:48px;display:block}
+.msheet .pring .pv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--tone)}
+.msheet .pfill{transition:stroke-dashoffset .8s cubic-bezier(.22,1,.36,1)}
+.msheet .hero56{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--ink)}
+.msheet .hero56 span{font-size:20px;font-weight:600;color:var(--faint);letter-spacing:0}
+.msheet .hero56.toned{color:var(--tone)}
+.msheet .hero56.toned span{color:var(--tone);opacity:.65}
+.msheet .verd{font-size:15px;color:var(--sub);line-height:1.4;margin-top:6px}
+.msheet .pch{display:flex;align-items:flex-end;gap:4px;height:88px;position:relative;margin:16px 0 6px}
+.msheet .pch i{flex:1;border-radius:3px 3px 0 0;background:var(--tone);opacity:.4;display:block}
+.msheet .pch i.hit{opacity:.85}
+.msheet .pch i.miss{background:var(--faint);opacity:.35}
+.msheet .pch i.gap{background:var(--surface-2);opacity:1;height:2px!important;align-self:flex-end}
+.msheet .prule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--faint);opacity:.6;z-index:1}
+.msheet .prule b{position:absolute;right:0;top:-16px;font-size:11px;font-weight:600;color:var(--faint)}
+.msheet .pax{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:14px}
+.msheet .pstrip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:12px}
+.msheet .pstrip div{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:1px solid var(--line);min-width:0}
+.msheet .pstrip div.first{padding-left:0;border-left:0}
+.msheet .pstrip b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msheet .pstrip span{font-size:11px;color:var(--faint)}
+.msheet .pfoot{font-size:11px;color:var(--faint);margin-top:14px;line-height:1.5}
+.msheet .logbtn{width:100%;min-height:52px;margin-top:16px;background:var(--accent);color:#fff;border-radius:14px;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.msheet .logbtn svg{width:18px;height:18px}
+.msheet .wpop{display:block;width:100%;height:88px;margin:16px 0 6px}
+
+/* ============ MOTION KIT, wave 1 (2026-08-01, his priority) ============
+   Micro-motion with one vocabulary: presses compress, drawers unfold, fills draw in.
+   The global prefers-reduced-motion block above already zeroes all of it. */
+.wbtn,.setbtn,.big-start,.iconbtn,.tick,.logbtn,.sheet-cta,.unnext,.dot,.tile{transition:transform .12s ease,background .15s ease,color .15s ease}
+.wbtn:active,.setbtn:active,.big-start:active,.iconbtn:active,.logbtn:active,.sheet-cta:active,.unnext:active{transform:scale(.96)}
+details.dcard[open]>.dbody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
+details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
+details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
+@keyframes dopen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.woprog .wpd i{transition:width .5s cubic-bezier(.22,1,.36,1)}
+.miniring circle:last-child{transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
+.runsegs i{transition:background .3s ease}
 </style>
 </head>
 <body>
@@ -1554,7 +1607,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.53a";
+var VERSION="v7.54";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2678,45 +2731,145 @@ function todayMetricsHTML(){
    weight log, per his instruction, so the card's own "Log today" control is the
    point of the sheet and it carries no extra footer link because the card
    already ends with one. */
+/* ============ THE POPUPS: FAMILY A, his pick (2026-08-01) ============
+   One design worn by all four metrics so the family reads as a family: the tile's own icon
+   and label top left, the score ring top right, the answer at 56px, one verdict line, the
+   evidence chart against the target rule, three windows, provenance, and the metric's own
+   action (weight carries Log). Every number comes from the SAME computers the tiles and
+   Track read (calVerdict, sleepStats, stepTarget, weightStats): the popup is a different
+   PRESENTATION of one computation, never a second author. Per the standing ruling there is
+   no fold inside a popup; the long detail sits at the foot, demoted by size. */
+function famRing(pct){
+  var C=119.4,capped=(pct==null)?null:Math.max(0,Math.min(100,pct));
+  var off=(capped==null)?C:C*(1-capped/100);
+  return '<span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/>'+
+    '<circle class="pfill" cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4" data-off="'+off.toFixed(1)+'" transform="rotate(-90 24 24)"/></svg>'+
+    '<span class="pv num">'+(pct==null?"&mdash;":pct+"%")+'</span></span>';
+}
+function famHead(icon,label,sub,pct){
+  return '<div class="phead"><span class="pic">'+icon+'</span>'+
+    '<span class="pl"><span class="cap">'+label+'</span><span class="psub">'+sub+'</span></span>'+famRing(pct)+'</div>';
+}
+function famBars(pts,o){
+  var H=88,vals=pts.filter(function(p){return p.v>0;}).map(function(p){return p.v;});
+  if(!vals.length)return "";
+  var max=Math.max.apply(null,vals.concat(o.rule||0))*1.05;
+  var bars=pts.map(function(p){
+    if(!(p.v>0))return '<i class="gap"></i>';
+    return '<i class="'+(p.cls||"")+'" style="height:'+Math.max(3,Math.round(p.v/max*H))+'px"></i>';
+  }).join("");
+  var rule=(o.rule?('<div class="prule" style="bottom:'+Math.round(o.rule/max*H)+'px"><b>'+o.ruleLbl+'</b></div>'):'');
+  return '<div class="pch">'+rule+bars+'</div><div class="pax"><span>'+o.axL+'</span><span>'+o.axR+'</span></div>';
+}
+function famStrip(a){
+  return '<div class="pstrip">'+a.map(function(x,i){
+    return '<div'+(i===0?' class="first"':'')+'><b class="num">'+x[0]+'</b><span>'+x[1]+'</span></div>';}).join("")+'</div>';
+}
+function famA(kind){
+  if(kind==="cal"){
+    var v=calVerdict();
+    if(!v.enough)return '<div data-tone="amber">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",null)+
+      '<div class="verd" style="margin-top:2px">'+(v.n?("Only "+v.n+" day"+(v.n===1?"":"s")+" logged in the window. Paste a week from Cal AI and this switches on."):"Nothing logged yet. Paste a week from Cal AI and this switches on.")+'</div></div>';
+    var pct=v.maint?Math.round(v.avg/v.maint*100):null;
+    var heroN=(v.gap!=null)?Math.abs(v.gap):v.avg;
+    var heroU=(v.gap!=null)?(v.gap>=0?" under":" over"):" avg";
+    var pts=[],dd=new Date(NOW);dd.setDate(dd.getDate()-13);
+    var defDays=0;
+    for(var i=0;i<14;i++){var k=keyOf(dd),c=Math.round(((S.nutrition[k]||{}).c)||0);
+      if(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)defDays++;
+      pts.push({v:c,cls:(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)?"hit":""});dd.setDate(dd.getDate()+1);}
+    return '<div data-tone="'+(v.tone||"flat")+'">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",pct)+
+      '<div class="hero56 toned num">'+heroN.toLocaleString()+'<span>'+heroU+'</span></div>'+
+      '<div class="verd">'+(v.word?v.word.charAt(0).toUpperCase()+v.word.slice(1)+".":"")+(v.stale?" Last log "+v.age+" days ago.":(v.conf?"":" Thin read: under "+CAL_MIN_CONF+" days logged."))+'</div>'+
+      famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days ago",axR:"yesterday"})+
+      famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[defDays,"deficit days"]])+
+      '<div class="pfoot">Cal AI via Apple Health &middot; through yesterday &middot; rule is maintenance, '+maintenanceBasis()+'</div></div>';
+  }
+  if(kind==="sleep"){
+    var s7=sleepStats(7),s28=sleepStats(28);
+    if(!s7)return '<div data-tone="flat">'+famHead(I.moon,"Sleep","Last 7 nights",null)+'<div class="verd" style="margin-top:2px">No sleep records yet. They arrive with the next Health export.</div></div>';
+    var sT=sleepTarget().t;
+    var tone=s7.mean>=sT?"good":s7.mean>=sT-0.75?"amber":"red";
+    var hh=Math.floor(s7.mean),mm=Math.round((s7.mean-hh)*60);if(mm===60){hh++;mm=0;}
+    var pts2=[],d2=new Date(NOW);d2.setDate(d2.getDate()-13);
+    for(var j=0;j<14;j++){var r=(S.sleep||{})[keyOf(d2)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
+      pts2.push({v:(t>=3?t:0),cls:(t>=3?(t>=sT?"hit":"miss"):"")});d2.setDate(d2.getDate()+1);}
+    return '<div data-tone="'+tone+'">'+famHead(I.moon,"Sleep","Last 7 nights",Math.round(s7.mean/sT*100))+
+      '<div class="hero56 num">'+hh+'<span>h</span> '+("0"+mm).slice(-2)+'<span>m</span></div>'+
+      '<div class="verd">'+(s7.mean>=sT?"Holding above the seven-hour floor.":"Under the seven-hour floor this week.")+'</div>'+
+      famBars(pts2,{rule:sT,ruleLbl:sT+"h",axL:"14 nights ago",axR:"last night"})+
+      famStrip([[hrsTxt(s7.mean),"7 nights"],[s28?hrsTxt(s28.mean):"&mdash;","28 nights"],[(s28?s28.short+" of "+s28.n:"&mdash;"),"under 7h"]])+
+      '<div class="pfoot">Apple Health &middot; through yesterday &middot; 7h is the AASM consensus floor, not a derived target</div></div>';
+  }
+  if(kind==="steps"){
+    var st=stepTarget(),s7s=stepsAvgOver(7);
+    if(!s7s)return '<div data-tone="flat">'+famHead(I.gauge,"Steps","Last 7 days",null)+'<div class="verd" style="margin-top:2px">No step records yet. They arrive with the next Health export.</div></div>';
+    var tone2=(!st)?"flat":(s7s.got<4?"amber":s7s.avg>=st.t?"good":s7s.avg>=st.t*0.8?"amber":"red");
+    var hit=0,pts3=[],d3=new Date(NOW);d3.setDate(d3.getDate()-6);
+    for(var q=0;q<7;q++){var sv=(S.steps||{})[keyOf(d3)]||0;
+      if(st&&sv>=st.t)hit++;
+      pts3.push({v:sv,cls:(sv>0&&st)?(sv>=st.t?"hit":"miss"):""});d3.setDate(d3.getDate()+1);}
+    return '<div data-tone="'+tone2+'">'+famHead(I.gauge,"Steps","Last 7 days",st?Math.round(s7s.avg/st.t*100):null)+
+      '<div class="hero56 num">'+s7s.avg.toLocaleString()+'</div>'+
+      '<div class="verd">'+(st?((s7s.avg>=st.t?"Averaging over the "+st.t.toLocaleString()+" rung. ":"Short of the "+st.t.toLocaleString()+" rung on average. "))+hit+" of "+s7s.got+" recorded days hit it.":"No rung yet: it derives from your 28-day median.")+'</div>'+
+      famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days ago",axR:"yesterday"})+
+      famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
+      '<div class="pfoot">Apple Health &middot; through yesterday &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
+  }
+  var stt=weightStats();
+  if(!stt)return '<div data-tone="flat">'+famHead(I.spark,"Weight","Trend",null)+'<div class="verd" style="margin-top:2px">No weigh-in yet.</div>'+
+    '<button class="logbtn" onclick="closeSheet();weighSheet()">'+I.plus+' Log today&rsquo;s weight</button></div>';
+  var wv=weightVerdict();
+  var hi=(stt.effortHigh&&stt.effortHigh.v)||stt.raw;
+  var pctW=(hi>stt.goal&&stt.trend!=null&&hi>stt.trend)?Math.round(Math.max(0,Math.min(1,(hi-stt.trend)/(hi-stt.goal)))*100):0;
+  var sent;
+  if(stt.rate==null)sent="Too few weigh-ins for a rate. The trend is the line to trust.";
+  else{
+    var dirw=stt.rate<=-0.15?"Down ":stt.rate>=0.15?"Up ":"Holding, moving ";
+    sent=dirw+rateWords(stt.rate,stt.se)+" over the last "+Math.round(stt.win/7)+" weeks, from "+stt.fitN+" weigh-ins.";
+  }
+  var W=320,Hc=88;
+  var pts4=S.weigh.filter(function(x){return daysBetween(x.date,TODAY)<=27;});
+  var tr4=trendSeries().filter(function(pp){return daysBetween(pp.date,TODAY)<=27;});
+  var svg="";
+  if(pts4.length){
+    var lo=Math.min.apply(null,pts4.map(function(x){return x.w;}).concat([stt.goal])),
+        hiv=Math.max.apply(null,pts4.map(function(x){return x.w;}));
+    if(stt.trend!=null){lo=Math.min(lo,stt.trend);hiv=Math.max(hiv,stt.trend);}
+    lo-=0.5;hiv+=0.5;
+    var X=function(dstr){return Math.round((27-daysBetween(dstr,TODAY))/27*(W-12))+6;};
+    var Y=function(v){return Math.round(Hc-8-((v-lo)/(hiv-lo))*(Hc-20))+4;};
+    var dots=pts4.map(function(pp){return '<circle cx="'+X(pp.date)+'" cy="'+Y(pp.w)+'" r="2" fill="var(--faint)" opacity=".55"/>';}).join("");
+    var tline="";
+    if(tr4.length>1){
+      tline='<path d="'+tr4.map(function(pp,i){return (i?"L":"M")+X(pp.date)+","+Y(pp.v);}).join(" ")+'" fill="none" stroke="var(--tone)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round"/>'+
+        '<circle cx="'+X(tr4[tr4.length-1].date)+'" cy="'+Y(tr4[tr4.length-1].v)+'" r="3.5" fill="var(--tone)"/>';
+    }
+    var gY=(stt.goal>=lo&&stt.goal<=hiv)?Y(stt.goal):null;
+    svg='<svg class="wpop" viewBox="0 0 '+W+' '+Hc+'" preserveAspectRatio="none">'+
+      (gY!=null?('<line x1="0" y1="'+gY+'" x2="'+W+'" y2="'+gY+'" stroke="var(--good)" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/><text x="'+(W-4)+'" y="'+(gY-4)+'" text-anchor="end" font-size="11" fill="var(--good)">'+stt.goal+'</text>'):'')+
+      dots+tline+'</svg><div class="pax"><span>28 days ago</span><span>today</span></div>';
+  }
+  return '<div data-tone="'+(wv.tone||"flat")+'">'+famHead(I.spark,"Weight","Trend, last "+(stt.win||28)+" days",pctW)+
+    '<div class="hero56 num">'+(stt.trend!=null?stt.trend.toFixed(1):stt.raw)+'<span> '+wLbl()+' trend</span></div>'+
+    '<div class="verd">'+sent+'</div>'+svg+
+    famStrip([[stt.raw.toFixed(1),"scale, "+(stt.ageDays===0?"today":stt.ageDays+"d ago")],[(stt.trend!=null?stt.trend.toFixed(1):"&mdash;"),"trend"],[stt.goal,"goal"]])+
+    '<button class="logbtn" onclick="closeSheet();weighSheet()">'+I.plus+' Log today&rsquo;s weight</button>'+
+    '<div class="pfoot">Your scale &middot; dots are readings, the line is the 2-week trend'+(stt.stale?' &middot; last reading '+stt.ageDays+' days ago':'')+'</div></div>';
+}
+/* Rings draw in after the sheet paints; reduced motion gets the final frame via CSS. */
+function famAnimate(){
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    document.querySelectorAll("#sheet .pfill").forEach(function(c){c.setAttribute("stroke-dashoffset",c.getAttribute("data-off"));});
+  });});
+}
 function metricSheet(kind){
-  var M={
-    cal:   {t:"Calories", w:calCardHTML,        track:true,
-            empty:"Nothing logged yet. Paste a week from Cal AI and this switches on."},
-    sleep: {t:"Sleep",    w:sleepCardHTML,      track:true,
-            empty:"No sleep records yet. They arrive with the next Health export."},
-    steps: {t:"Steps",    w:stepsCardHTML,      track:true,
-            empty:"No step records yet. They arrive with the next Health export."},
-    /* ROUND A3, his instruction: make all four popups look the same, modelled
-       on Sleep and Steps. Weight was the odd one, and the cause was that it
-       alone rendered `weightLogCardHTML`, a stripped Today-only card that was a
-       number, a button and nothing else, while the other three rendered the
-       full Track writers with a verdict headline, a chart and a paragraph. It
-       renders `weightCardHTML` now, the same writer Track uses, which carries
-       its own History and Log controls in the header, so the sheet keeps the
-       logging job he asked for and gains the shape he asked for.
-       `weightLogCardHTML` had no other caller and was DELETED. */
-    weight:{t:"Weight",   w:weightCardHTML,     track:true,
-            empty:"No weigh-in yet."}
-  }[kind];
-  if(!M)return;
-  var body="";
-  try{body=M.w()||"";}catch(e){body="";}
-  if(!body)body='<div class="anote">'+M.empty+'</div>';
-  openSheet('<div class="grab"></div><h3>'+M.t+'</h3>'+
-    '<div class="msheet">'+body+'</div>'+
-    (M.track?'<button class="setbtn" style="width:100%;margin-top:12px" onclick="closeSheet();show(\'track\')">See everything on Track</button>':'')+
+  var body=famA(kind);
+  if(!body)return;
+  openSheet('<div class="grab"></div><div class="msheet">'+body+'</div>'+
+    '<button class="setbtn" style="width:100%;margin-top:12px" onclick="closeSheet();show(&quot;track&quot;)">See everything on Track</button>'+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
-  /* The card writers return collapsed drawers, which is right on a tab and
-     wrong in a sheet he opened precisely to see inside. Forced open here rather
-     than by threading an `open` flag through four writers, because the flag
-     would exist for one caller and every other call site would have to ignore
-     it. The summary is hidden by CSS, since the sheet's own h3 already names
-     the subject and two titles is the "three writers for one fact" defect. */
-  /* Only the OUTER drawer opens. Round A4 pushed each card's long prose into a
-     nested `.more`, and opening every `details` indiscriminately would have
-     unfolded exactly the depth that nesting was meant to fold away. */
-  var sh=document.getElementById("sheet");
-  if(sh)[].forEach.call(sh.querySelectorAll(".msheet>details,.msheet>.dcard"),function(d){d.open=true;});
+  famAnimate();
 }
 /* ============ THE MORE DRAWER (Round A4) ============
    Matthew, on all four popups: too much text, streamline to the key
@@ -2955,7 +3108,9 @@ function updatePico(){var p=document.getElementById("wo-pico");if(!p)return;var 
 function woFreeze(){var w=AW();if(w&&w.start){w.accum=(w.accum||0)+(Date.now()-w.start)/1000;w.start=null;save();}if(woTimer){clearInterval(woTimer);woTimer=null;}}
 function woResume(){var w=AW();if(w&&!w.paused&&!w.start){w.start=Date.now();save();startWoTick();}}
 function togglePause(){var w=AW();if(!w)return;if(w.paused){w.paused=false;w.start=Date.now();save();startWoTick();}else{woFreeze();w.paused=true;save();var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());updatePico();}}
-function startWorkout(){primeSheet("lift",function(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();});}
+/* HIS CALL 2026-08-01: no pre-workout video popup. The spine's first hero card IS the
+   warm-up (17c), so a sheet in front of it was the same gate twice. Straight in. */
+function startWorkout(){startWorkoutNow();}
 function startWorkoutNow(){S.activeMode="plan";var w=workDay();w.id=TODAY;save();startActive();}
 function closeWorkout(){woFreeze();endRest();show(RETV||"today");}
 function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
@@ -3027,8 +3182,10 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   if(!w.warmDone){
     /* step one: the warm-up as the hero */
     h+='<div class="exeyebrow">Now &middot; step 1 of '+total+'</div>';
+    var wv=pickForSlot("warmup",0)||pickVid(warmCat("lift"),0);
     h+='<div class="ex active hero"><div class="exhead"><div class="exname">Warm up</div></div>'+
       '<div class="aim">About 3 minutes. '+WARM+'</div>'+
+      (wv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(wv,true)+'</div>'):'')+
       '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().warmDone=true;save();renderWorkout()">Done, first movement</button></div></div>';
     if(active.length){
       h+='<div class="doneband">Then ('+active.length+')</div>';
@@ -4499,10 +4656,9 @@ function renderTrack(){
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+=trackDashHTML();
-  /* ROUND C. The reconcile queue sits right under the dash when it has work: an unvetted day
-     is actionable, not reference, so it does not live inside the report. Empty, it is
-     nothing at all. */
-  h+=reconcileHTML();
+  /* HIS CALL 2026-08-01: the Reconcile queue does NOT render for him. The daily scheduled
+     task does the vetting with judgement and pushes verdicts into `vetted` over the sync.
+     The engine (reconDays, vetClean, vetKeep, legSheet) stays as that task's API. */
   /* v7.39. The report is OPEN. Gating the data behind "Go deeper" on the data tab is the same
      backwards move as hiding each chart behind its own drawer: he came here to look. The control
      stays, as a way to collapse a long page back to the hero, and it says so. */
