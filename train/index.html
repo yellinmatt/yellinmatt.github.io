@@ -8000,7 +8000,7 @@ function reconLine(s){
   if(s.type==="run")return 'run &middot; '+mmss(s.durationSec||0)+' &middot; no distance';
   return esc(s.activity||"Activity")+' &middot; '+Math.round((s.durationSec||0)/60)+' min';
 }
-function vetClean(k){S.vetted[k]=true;save();refreshCurrent();toast("Marked clean. Everything on "+shortDate(k)+" stands.",null);}
+function vetClean(k){S.vetted[k]=true;save();refreshCurrent();toast("Marked clean. Everything on "+runDate(k)+" stands.",null);}
 function vetKeep(k,keep){
   var day=S.sessions.filter(function(s){return s.date===k&&s.type!=="lift";});
   var losers=day.filter(function(s){return keep==="app"?!fromApple(s):fromApple(s);});
@@ -8017,13 +8017,13 @@ function vetKeep(k,keep){
   else delete S.runs[k];
   S.vetted[k]=true;
   recomputeDone(k);purgeDerived(k);invalidateDayIndex();save();refreshCurrent();
-  toast("Kept "+(keep==="app"?"Apple's record":"your log")+" for "+shortDate(k)+".",null);
+  toast("Kept "+(keep==="app"?"Apple's record":"your log")+" for "+runDate(k)+".",null);
 }
 /* The run leg, logged for a PAST day. `runSheet`/`saveRun` are TODAY-bound by design;
    this is the one flow that writes a run onto an earlier date, and it exists precisely
    for the walk-swallowed-the-run case, so the walk record stays untouched beside it. */
 function legSheet(k){
-  openSheet('<div class="grab"></div><h3>Log the run leg</h3><div class="ssub">'+shortDate(k)+' &middot; just the running part; the walk stays on the record.</div>'+
+  openSheet('<div class="grab"></div><h3>Log the run leg</h3><div class="ssub">'+runDate(k)+' &middot; just the running part; the walk stays on the record.</div>'+
     '<div class="logrow"><label>Distance</label><div class="inp"><input id="lg-dist" inputmode="decimal" value="" aria-label="distance"><span class="u">mi</span></div></div>'+
     '<div class="logrow"><label>Time <span style="color:var(--faint);font-weight:500">mm:ss</span></label><div class="inp"><input id="lg-time" inputmode="numeric" placeholder="4:30" aria-label="time" style="width:92px"></div></div>'+
     '<div class="rerr" id="lg-err" style="display:none"></div>'+
@@ -8047,13 +8047,13 @@ function saveLeg(k){
   S.runs[k]={dist:d,time:tRaw||"--",pace:sec>0?mmss(Math.round(sec/d)):"--",rpe:""};
   S.vetted[k]=true;
   recomputeDone(k);purgeDerived(k);invalidateDayIndex();save();closeSheet();refreshCurrent();
-  toast("Run leg saved for "+shortDate(k)+".",null);
+  toast("Run leg saved for "+runDate(k)+".",null);
 }
 function reconcileHTML(){
   var q=reconDays();
   if(!q.length)return "";
   var rows=q.map(function(o){
-    var lab=shortDate(o.date);
+    var lab=runDate(o.date);
     if(o.kind==="walkrun"){
       return '<div style="padding:12px 0;border-bottom:1px solid var(--line)">'+
         '<div style="font-size:15px;font-weight:700">'+lab+' &middot; run day, no run on record</div>'+
