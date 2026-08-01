@@ -176,10 +176,14 @@ input,select{border:0;background:none}
 .stp{display:flex;align-items:center;background:var(--surface-2);border-radius:10px;height:42px;overflow:hidden}
 .set.on .stp{background:var(--good-tint)}
 /* per-set stopwatch button */
-.tick.sw{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
-.tick.sw .swt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
-.tick.sw.had{color:var(--faint)}
-.tick.sw.run{background:var(--accent);color:var(--white)}
+/* 17c: the per-set Start button gets its OWN class. It was `.tick.sw`, which also matched the
+   settings toggle switch (`.sw`, ~line 1141), whose `.sw .swt` rule absolutely positions a 16px
+   knob -- so the Start label inherited a toggle knob's geometry. Known root cause of the ugly
+   Start button; the two components share nothing but two letters now. */
+.tick.setgo{width:auto;min-width:52px;padding:0 9px;background:var(--surface-2);color:var(--sub)}
+.tick.setgo .sgt{font-size:11.5px;font-weight:700;letter-spacing:.02em}
+.tick.setgo.had{color:var(--faint)}
+.tick.setgo.run{background:var(--accent);color:var(--white)}
 .stp button{width:34px;height:42px;font-size:20px;font-weight:600;color:var(--sub);flex:none;display:flex;align-items:center;justify-content:center}
 .stp button:active{background:rgba(0,0,0,.06)}
 .stp .val{flex:1;text-align:center;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;min-width:0;padding:0}
@@ -197,18 +201,24 @@ input,select{border:0;background:none}
 .setbtn.rm{border-style:solid;color:var(--faint)}
 
 /* rest bar */
-.restbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--restbar-bg);color:var(--restbar-ink);
-  padding:14px 16px calc(14px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px;
-  box-shadow:0 -6px 24px rgba(0,0,0,.18);transform:translateY(120%);transition:transform .28s cubic-bezier(.4,0,.2,1)}
-.restbar.on{transform:none}
-.restbar .rt{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;min-width:60px}
-.restbar .rlab{font-size:10.5px;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.05em}
-.restbar .bar{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden}
-.restbar .bar i{display:block;height:100%;background:var(--accent);width:100%}
-.restbar.warn .bar i{background:var(--good)}
-.restbar .rb{font-size:13px;font-weight:700;padding:11px 12px;border-radius:9px;background:rgba(255,255,255,.14);min-width:44px}
-.restbar .rb:active{background:rgba(255,255,255,.26)}
-.restbar .skip{color:var(--accent);background:none;padding:11px 8px}
+/* 17c: rest is a FULL-SCREEN overlay, his call, replacing the bottom bar. During rest there is
+   nothing else to do, so the countdown owns the screen; the next set is named so the overlay is
+   also the cue; skip and the bumps stay. `.restover` is new because nothing else in the app is a
+   full-screen takeover (the sheet is a bottom drawer). */
+.restover{position:fixed;inset:0;z-index:60;background:var(--restbar-bg);color:var(--restbar-ink);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  opacity:0;pointer-events:none;transition:opacity .2s ease}
+.restover.on{opacity:1;pointer-events:auto}
+.restover .cap{color:rgba(255,255,255,.55)}
+.restover .rt{font-size:76px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:12px 0 8px}
+.restover .rnext{font-size:15px;color:rgba(255,255,255,.75);margin-bottom:24px;text-align:center;padding:0 24px}
+.restover .rbar{width:min(280px,70vw);height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;margin-bottom:28px}
+.restover .rbar i{display:block;height:100%;background:var(--accent);width:100%}
+.restover.warn .rbar i{background:var(--good)}
+.restover .rrow{display:flex;gap:10px}
+.restover .rb{font-size:15px;font-weight:700;padding:0 18px;min-height:48px;border-radius:12px;background:rgba(255,255,255,.14);min-width:64px}
+.restover .rb:active{background:rgba(255,255,255,.26)}
+.restover .rb.skip{color:var(--accent);background:none}
 
 /* run */
 .runhero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:22px 20px;text-align:center;margin-bottom:12px}
@@ -884,12 +894,16 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .woprog .wpd{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
 .woprog .wpd i{display:block;height:100%;background:var(--good);border-radius:2px;transition:width .25s ease}
 .exeyebrow{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin:0 2px 7px}
-.unrow{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+/* 17c: the up-next row is a CONTAINER now, not one button, because it carries two verbs: the
+   main body jumps to the movement, and "Next" reorders it to the front of the queue for this
+   session only. Two actions cannot nest inside one <button>. */
+.unrow{display:flex;align-items:center;gap:11px;width:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin-bottom:8px;box-shadow:var(--shadow)}
+.unrow .unmain{display:flex;align-items:center;gap:11px;flex:1;min-width:0;background:none;text-align:left;padding:0;min-height:44px}
 .unrow .unn{width:25px;height:25px;border-radius:50%;background:var(--surface-2);color:var(--sub);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;font-variant-numeric:tabular-nums}
 .unrow .unt{flex:1;min-width:0}
 .unrow .unname{font-size:14.5px;font-weight:700;display:block}
 .unrow .unsub{font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums}
-.unrow .une{color:var(--faint);flex:none;font-size:12px;font-weight:700}
+.unrow .unnext{flex:none;min-height:44px;padding:0 12px;border-radius:9px;background:var(--surface-2);color:var(--sub);font-size:12px;font-weight:700}
 .mgroup{padding:0 14px 10px}
 .mvthumb{display:flex;width:38px;height:27px;border-radius:6px;background:var(--accent-tint);color:var(--accent);align-items:center;justify-content:center;flex:none}
 .mvthumb svg{width:13px;height:13px}
@@ -1517,12 +1531,16 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
   <section class="view" id="v-generate"></section>
 </div>
 
-<div class="restbar" id="restbar" role="timer" aria-label="Rest timer">
-  <div><div class="rt num" id="rest-t">1:30</div><div class="rlab">Rest</div></div>
-  <div class="bar"><i id="rest-fill"></i></div>
-  <button class="rb" onclick="bumpRest(-15)">-15</button>
-  <button class="rb" onclick="bumpRest(15)">+15</button>
-  <button class="rb skip" onclick="endRest()">Skip</button>
+<div class="restover" id="restover" role="timer" aria-label="Rest timer">
+  <div class="cap">Rest</div>
+  <div class="rt num" id="rest-t">1:30</div>
+  <div class="rnext" id="rest-next"></div>
+  <div class="rbar"><i id="rest-fill"></i></div>
+  <div class="rrow">
+    <button class="rb" onclick="bumpRest(-15)">&minus;15</button>
+    <button class="rb" onclick="bumpRest(15)">+15</button>
+    <button class="rb skip" onclick="skipRest()">Skip</button>
+  </div>
 </div>
 <div class="toast" id="toast"><span class="tm" id="toast-m"></span><button class="tu" id="toast-u">Undo</button></div>
 <div class="scrim" id="scrim"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
@@ -1536,7 +1554,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.49";
+var VERSION="v7.50";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2940,8 +2958,8 @@ function exCardHTML(oi,isActive){var o=AW().order[oi],e=LIB[o.exId],setsHtml="";
     var running=(ST.oi===oi&&ST.si===si);
     var held=s.sec||0;
     var timeBtn=running
-      ? '<button class="tick sw run" onclick="stopSet('+oi+','+si+')" aria-label="stop set timer"><span class="swt num" id="swt-'+oi+'-'+si+'">'+mmss(setElapsed(s))+'</span></button>'
-      : '<button class="tick sw'+(held?" had":"")+'" onclick="startSet('+oi+','+si+')" aria-label="start set timer"><span class="swt num">'+(held?mmss(held):"Start")+'</span></button>';
+      ? '<button class="tick setgo run" onclick="stopSet('+oi+','+si+')" aria-label="stop set timer"><span class="sgt num" id="sgt-'+oi+'-'+si+'">'+mmss(setElapsed(s))+'</span></button>'
+      : '<button class="tick setgo'+(held?" had":"")+'" onclick="startSet('+oi+','+si+')" aria-label="start set timer"><span class="sgt num">'+(held?mmss(held):"Start")+'</span></button>';
     setsHtml+='<div class="set'+(s.on?" on":"")+'" id="set-'+oi+'-'+si+'"><div class="sn">'+(si+1)+'</div>'+wcell+rcell+timeBtn+'<button class="tick" onclick="toggleSet('+oi+','+si+')" aria-label="complete set '+(si+1)+'">'+I.check+'</button></div>';
   });
   return '<div class="ex'+(isActive?" active hero":"")+'" data-ex="'+oi+'"><div class="exhead"><div class="exname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</div><button class="more" onclick="exMenu('+oi+')" aria-label="Exercise options">'+I.more+'</button></div><div class="aim">'+aimText(o)+'</div><div class="colhead"><span>Set</span><span>'+(o.bw?"Load":"Weight")+'</span><span>'+(o.unit==="s"?"Time":"Reps")+'</span><span></span></div>'+setsHtml+'<div class="setbtns"><button class="setbtn" onclick="addSet('+oi+')">+ Add set</button>'+(o.sets.length>1?'<button class="setbtn rm" onclick="removeSet('+oi+')">&minus; Remove set</button>':'')+'</div></div>';}
@@ -2953,10 +2971,25 @@ function exUpNextHTML(oi){var o=AW().order[oi],e=LIB[o.exId];
   var n=o.sets.length,s0=o.sets[0]||{reps:0,w:0};
   var target=n+' x '+s0.reps+(o.unit==="s"?"s":"")+(o.bw?"":' at '+s0.w+' '+wLbl());
   var logged=o.sets.filter(function(s){return s.on;}).length;
-  return '<button class="unrow" onclick="focusEx('+oi+')"><span class="unn">'+(oi+1)+'</span>'+
+  return '<div class="unrow"><button class="unmain" onclick="focusEx('+oi+')"><span class="unn">'+(oi+1)+'</span>'+
     '<span class="unt"><span class="unname">'+esc(e.name)+(o.side?' <span style="font-size:12px;color:var(--faint);font-weight:600">/side</span>':'')+'</span>'+
-    '<span class="unsub">'+target+(logged?' &middot; '+logged+' of '+n+' logged':'')+'</span></span>'+
-    '<span class="une">Open</span></button>';}
+    '<span class="unsub">'+target+(logged?' &middot; '+logged+' of '+n+' logged':'')+'</span></span></button>'+
+    '<button class="unnext" onclick="doNext('+oi+')" aria-label="Move '+esc(e.name)+' to next">Next</button></div>';}
+/* 17c: session-only reorder. Moves the movement to the front of the queue, right behind the
+   current hero, by splicing the DAY'S working copy -- the A/B/C templates never move. Index-keyed
+   scratch state (openEx, FOCUS, a running set timer) cannot survive a reorder honestly, so it is
+   stopped and cleared rather than remapped and quietly wrong. */
+function doNext(oi){
+  var w=AW();if(!w||oi<0||oi>=w.order.length)return;
+  if(ST.oi>=0)stopSet(ST.oi,ST.si,true);
+  var active=[];w.order.forEach(function(o,i){if(!exComplete(o)&&i!==oi)active.push(i);});
+  var heroObj=active.length?w.order[active[0]]:null;
+  var mv=w.order.splice(oi,1)[0];
+  var at=heroObj?(w.order.indexOf(heroObj)+1):0;
+  w.order.splice(at,0,mv);
+  openEx={};FOCUS=null;save();renderWorkout();
+  toast("Up next: "+(LIB[mv.exId]?LIB[mv.exId].name:"movement"),null);
+}
 /* Which movement is showing as the hero. Null means "whatever is next", which is the normal case;
    it is only set when you deliberately jump to something out of order, and it clears itself as
    soon as that movement is finished. */
@@ -2968,26 +3001,47 @@ function focusEx(oi){FOCUS=oi;renderWorkout();try{window.scrollTo({top:0,behavio
    still owed is a compact list beneath it, and the hero advances by itself as each one completes,
    because a set going green is what should move you forward, not a button you have to find. */
 function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
+  /* 17c: the warm-up and the cooldown are REAL STEPS of the spine, not text bars bolted above
+     and below it. The session is warm-up, movements, cooldown; the progress count says so; and
+     the hero walks that spine in order. Jumping to a movement past a pending warm-up counts as
+     choosing to start, so the warm-up step marks itself done rather than nagging forever. */
   var active=[],doneL=[];w.order.forEach(function(o,oi){if(exComplete(o)&&!openEx[oi])doneL.push(oi);else active.push(oi);});
+  if(FOCUS!=null&&!w.warmDone)w.warmDone=true;
   var hero=(FOCUS!=null&&active.indexOf(FOCUS)>=0)?FOCUS:(active.length?active[0]:null);
   if(hero===null||hero!==FOCUS)FOCUS=null;
-  var total=w.order.length,doneN=total-active.length;
+  var movesDone=w.order.length-active.length;
+  var total=w.order.length+2;
+  var doneN=movesDone+(w.warmDone?1:0)+(w.coolDone?1:0);
   var h='<div class="woprog"><span class="wpn">'+doneN+' of '+total+' done</span>'+
     '<span class="wpd"><i style="width:'+Math.round(doneN/Math.max(1,total)*100)+'%"></i></span></div>';
-  h+='<div class="warmcard"><b>Warm-up (3 min):</b> '+WARM+'</div>';
-  if(hero!==null){
-    h+='<div class="exeyebrow">Now &middot; movement '+(hero+1)+' of '+total+'</div>';
+  if(!w.warmDone){
+    /* step one: the warm-up as the hero */
+    h+='<div class="exeyebrow">Now &middot; step 1 of '+total+'</div>';
+    h+='<div class="ex active hero"><div class="exhead"><div class="exname">Warm up</div></div>'+
+      '<div class="aim">About 3 minutes. '+WARM+'</div>'+
+      '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().warmDone=true;save();renderWorkout()">Done, first movement</button></div></div>';
+    if(active.length){
+      h+='<div class="doneband">Then ('+active.length+')</div>';
+      active.forEach(function(oi){h+=exUpNextHTML(oi);});
+    }
+  }else if(hero!==null){
+    h+='<div class="exeyebrow">Now &middot; movement '+(hero+1)+' of '+w.order.length+'</div>';
     h+=exCardHTML(hero,true);
     var rest=active.filter(function(oi){return oi!==hero;});
     if(rest.length){
       h+='<div class="doneband">Still to come ('+rest.length+')</div>';
       rest.forEach(function(oi){h+=exUpNextHTML(oi);});
     }
+  }else if(!w.coolDone){
+    /* last step: the cooldown as the hero */
+    h+='<div class="exeyebrow">Now &middot; last step</div>';
+    h+='<div class="ex active hero"><div class="exhead"><div class="exname">Cool down</div></div>'+
+      '<div class="aim">2 to 3 minutes. '+COOL+'</div>'+
+      '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().coolDone=true;save();renderWorkout()">Done cooling down</button></div></div>';
   }else{
-    h+='<div class="exeyebrow">Every movement done &middot; tap Finish</div>';
+    h+='<div class="exeyebrow">Every step done &middot; tap Finish</div>';
   }
   if(doneL.length){h+='<div class="doneband'+(active.length?"":" gd")+'">'+I.check+' Done ('+doneL.length+')</div>';doneL.forEach(function(oi){h+=exDoneHTML(oi);});}
-  h+='<div class="warmcard"><b>Cooldown (2-3 min):</b> '+COOL+'</div>';
   document.getElementById("wo-body").innerHTML=h;}
 function step(oi,si,f,dir){var o=AW().order[oi],s=o.sets[si];
   if(f==="w"){var v=(parseFloat(s.w)||0)+dir*inc();s.w=Math.max(0,Math.round(v*10)/10);}
@@ -3004,7 +3058,7 @@ function startSet(oi,si){
   if(ST.int)clearInterval(ST.int);
   ST.int=setInterval(function(){
     var w=AW();if(!w||ST.oi<0)return;
-    var el=document.getElementById("swt-"+ST.oi+"-"+ST.si);
+    var el=document.getElementById("sgt-"+ST.oi+"-"+ST.si);
     if(!el){stopSet(ST.oi,ST.si,true);return;}
     el.textContent=mmss(setElapsed(w.order[ST.oi].sets[ST.si]));
   },1000);
@@ -3025,12 +3079,28 @@ function stopSet(oi,si,quiet){
     if(!st.on)toggleSet(oi,si);else renderWorkout();
   }
 }
-function toggleSet(oi,si){var o=AW().order[oi],s=o.sets[si];
+function toggleSet(oi,si){var w=AW(),o=w.order[oi],s=o.sets[si];
   if(ST.oi===oi&&ST.si===si)stopSet(oi,si,true);
   s.on=!s.on;if(s.on)s.ts=Date.now();else delete s.ts;save();
-  var last=(oi===AW().order.length-1&&si===o.sets.length-1);
-  if(s.on&&!last){startRest(S.profile.rest||90);if(navigator.vibrate)navigator.vibrate(12);}
-  if(s.on&&last)endRest();
+  /* 17c: rest length keys off the exercise type, and the overlay names what comes next --
+     the next set of this movement, the next movement, or the cooldown. When every movement
+     is complete there is nothing to rest FOR, so the spine goes straight to the cooldown. */
+  if(s.on){
+    var allDone=w.order.every(exComplete);
+    if(allDone){endRest();}
+    else{
+      var nxt;
+      if(!exComplete(o)){
+        var ni=0;for(var i2=0;i2<o.sets.length;i2++)if(!o.sets[i2].on){ni=i2;break;}
+        nxt="Next: set "+(ni+1)+" of "+(LIB[o.exId]?LIB[o.exId].name:"this movement");
+      }else{
+        var na=null;w.order.forEach(function(x,xi){if(na===null&&!exComplete(x))na=xi;});
+        nxt=(na!=null)?("Next: "+(LIB[w.order[na].exId]?LIB[w.order[na].exId].name:"next movement")):"Next: cool down";
+      }
+      startRest(restFor(o),nxt);
+      if(navigator.vibrate)navigator.vibrate(12);
+    }
+  }
   if(exComplete(o))delete openEx[oi];
   renderWorkout();}
 function addSet(oi){var o=AW().order[oi],last=o.sets[o.sets.length-1];o.sets.push({w:last?last.w:o.weight,reps:o.low,on:false});save();renderWorkout();}
@@ -3295,12 +3365,35 @@ function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.hi
   else{t.low=o.low;t.high=o.high;t.weight=o.weight;}
   t.ladderStep=repMode?"reps":"load";S.progress[o.exId]=t;}
 
-/* ============ REST ============ */
+/* ============ REST, 17c ============
+   Full-screen overlay, per-exercise-type length, auto-advance. The length keys off the LIB
+   pattern: hips-and-legs compounds get the long rest, upper push/pull the middle one, core and
+   prehab the short one, and the profile setting stays the fallback for anything unbucketed.
+   When the clock runs out the overlay closes ITSELF and re-renders the workout, which is what
+   advances the hero to the next set or movement -- the screen moves because rest ended, not
+   because he found a button. Skip does the same thing sooner. */
+var REST_BY={squat:120,hinge:120,"h-push":90,"v-push":90,"h-pull":90,"v-pull":90,core:45,isolation:45};
+function restFor(o){var e=LIB[o.exId]||{};return REST_BY[e.pattern]||S.profile.rest||90;}
 var restEnd=0,restTot=0,restInt=null;
-function startRest(sec){restTot=sec;restEnd=Date.now()+sec*1000;var rb=document.getElementById("restbar");rb.classList.add("on");drawRest();if(restInt)clearInterval(restInt);restInt=setInterval(function(){if(drawRest()<=0){endRest();if(navigator.vibrate)navigator.vibrate([20,60,20]);}},250);}
-function drawRest(){var left=Math.round((restEnd-Date.now())/1000);document.getElementById("rest-t").textContent=mmss(Math.max(left,0));document.getElementById("rest-fill").style.width=(restTot?Math.max(left,0)/restTot*100:0)+"%";document.getElementById("restbar").classList.toggle("warn",left<=5&&left>0);return left;}
+function startRest(sec,nextTxt){
+  restTot=sec;restEnd=Date.now()+sec*1000;
+  var rn=document.getElementById("rest-next");if(rn)rn.textContent=nextTxt||"";
+  var rb=document.getElementById("restover");rb.classList.add("on");
+  drawRest();
+  if(restInt)clearInterval(restInt);
+  restInt=setInterval(function(){if(drawRest()<=0){endRest(true);if(navigator.vibrate)navigator.vibrate([20,60,20]);}},250);
+}
+function drawRest(){var left=Math.round((restEnd-Date.now())/1000);document.getElementById("rest-t").textContent=mmss(Math.max(left,0));document.getElementById("rest-fill").style.width=(restTot?Math.max(left,0)/restTot*100:0)+"%";document.getElementById("restover").classList.toggle("warn",left<=5&&left>0);return left;}
 function bumpRest(d){restEnd+=d*1000;restTot=Math.max(restTot,Math.round((restEnd-Date.now())/1000));drawRest();}
-function endRest(){if(restInt){clearInterval(restInt);restInt=null;}var rb=document.getElementById("restbar");if(rb){rb.classList.remove("on");rb.classList.remove("warn");}}
+function skipRest(){endRest(true);}
+function endRest(advance){
+  if(restInt){clearInterval(restInt);restInt=null;}
+  var rb=document.getElementById("restover");if(rb){rb.classList.remove("on");rb.classList.remove("warn");}
+  /* auto-advance: the render recomputes the hero, so the next set or movement is on screen the
+     moment the overlay clears. Guarded to the workout view so a rest ending after Finish or on
+     another tab cannot repaint the wrong screen. */
+  if(advance&&CURV==="workout"&&AW())renderWorkout();
+}
 
 /* ============ THE RUN PRESCRIPTION, ROUND 17c ============
    Generated from the cardio level on every render. Nothing is stored, there is no calendar and
