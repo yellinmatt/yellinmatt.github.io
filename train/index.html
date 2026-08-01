@@ -1445,7 +1445,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.62";
+var VERSION="v7.63";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2378,8 +2378,10 @@ function famA(kind){
       if(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)defDays++;
       pts.push({v:c,d:shortDay(k),cls:(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)?"hit":""});dd.setDate(dd.getDate()+1);}
     return '<div data-tone="'+(v.tone||"flat")+'">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",pct)+
-      '<div class="hero56 toned num">'+heroN.toLocaleString()+'<span>'+heroU+'</span></div>'+
-      '<div class="verd">'+(v.word?v.word.charAt(0).toUpperCase()+v.word.slice(1)+".":"")+(v.stale?" Last log "+v.age+" days ago.":(v.conf?"":" Thin read: under "+CAL_MIN_CONF+" days logged."))+'</div>'+
+      (function(){var tc=trendCal(),yv=((S.nutrition[yKey()]||{}).c)||0;
+        return '<div class="hero56 toned num">'+(yv>0?yv.toLocaleString():heroN.toLocaleString())+'<span>'+(yv>0?(" kcal "+tDay().toLowerCase()):heroU)+'</span></div>'+
+        '<div class="verd">'+esc(tc.word)+'. '+(v.gap!=null?(Math.abs(v.gap).toLocaleString()+(v.gap>=0?" under":" over")+" maintenance on average. "):"")+
+        (v.stale?"Last log "+v.age+" days ago.":(v.conf?"":"Thin read: under "+CAL_MIN_CONF+" days logged."))+'</div>';})()+
       famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days",axR:"yesterday",fmt:function(x){return Math.round(x).toLocaleString()+" kcal";}})+
       famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[defDays,"deficit days"]])+
       '<div class="pfoot">Cal AI via Apple Health &middot; through yesterday &middot; rule is maintenance, '+maintenanceBasis()+'</div></div>';
@@ -2394,8 +2396,11 @@ function famA(kind){
     for(var j=0;j<14;j++){var r=(S.sleep||{})[keyOf(d2)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
       pts2.push({v:(t>=3?t:0),d:shortDay(keyOf(d2)),cls:(t>=3?(t>=sT?"hit":"miss"):"")});d2.setDate(d2.getDate()+1);}
     return '<div data-tone="'+tone+'">'+famHead(I.moon,"Sleep","Last 7 nights",Math.round(s7.mean/sT*100))+
-      '<div class="hero56 num">'+hh+'<span>h</span> '+("0"+mm).slice(-2)+'<span>m</span></div>'+
-      '<div class="verd">'+(s7.mean>=sT?"Holding above the seven-hour floor.":"Under the seven-hour floor this week.")+'</div>'+
+      (function(){var ts=trendSleep(),yr=(S.sleep||{})[yKey()],yv=yr?((yr.total!=null?yr.total:yr.asleep)||0):0;
+        var Hh=Math.floor(yv||s7.mean),Mm=Math.round(((yv||s7.mean)-Hh)*60);if(Mm===60){Hh++;Mm=0;}
+        return '<div class="hero56 num">'+Hh+'<span>h</span> '+("0"+Mm).slice(-2)+'<span>m</span>'+
+          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+(yv?"last night":"7-night mean")+'</span></div>'+
+        '<div class="verd">'+esc(ts.word)+'. '+(s7.mean>=sT?"The week is holding above the seven-hour floor.":"The week is under the seven-hour floor.")+'</div>';})()+
       famBars(pts2,{rule:sT,ruleLbl:sT+"h",axL:"14 nights",axR:"last night",fmt:hrsTxt})+
       famStrip([[hrsTxt(s7.mean),"7 nights"],[s28?hrsTxt(s28.mean):"&mdash;","28 nights"],[(s28?s28.short+" of "+s28.n:"&mdash;"),"under 7h"]])+
       '<div class="pfoot">Apple Health &middot; through yesterday &middot; 7h is the AASM consensus floor, not a derived target</div></div>';
@@ -2409,8 +2414,10 @@ function famA(kind){
       if(st&&sv>=st.t)hit++;
       pts3.push({v:sv,d:shortDay(keyOf(d3)),cls:(sv>0&&st)?(sv>=st.t?"hit":"miss"):""});d3.setDate(d3.getDate()+1);}
     return '<div data-tone="'+tone2+'">'+famHead(I.gauge,"Steps","Last 7 days",st?Math.round(s7s.avg/st.t*100):null)+
-      '<div class="hero56 num">'+s7s.avg.toLocaleString()+'</div>'+
-      '<div class="verd">'+(st?((s7s.avg>=st.t?"Averaging over the "+st.t.toLocaleString()+" rung. ":"Short of the "+st.t.toLocaleString()+" rung on average. "))+hit+" of "+s7s.got+" recorded days hit it.":"No rung yet: it derives from your 28-day median.")+'</div>'+
+      (function(){var tp=trendSteps(),yv=(S.steps||{})[yKey()]||0;
+        return '<div class="hero56 num">'+(yv||s7s.avg).toLocaleString()+
+          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+(yv?tDay().toLowerCase():"7-day avg")+'</span></div>'+
+        '<div class="verd">'+esc(tp.word)+'. '+(st?(hit+" of "+s7s.got+" recorded days cleared the "+st.t.toLocaleString()+" rung."):"No rung yet: it derives from your 28-day median.")+'</div>';})()+
       famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days",axR:"yesterday"})+
       famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
       '<div class="pfoot">Apple Health &middot; through yesterday &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
@@ -2451,7 +2458,7 @@ function famA(kind){
   }
   return '<div data-tone="'+(wv.tone||"flat")+'">'+famHead(I.spark,"Weight","Trend, last "+(stt.win||28)+" days",pctW)+
     '<div class="hero56 num">'+(stt.trend!=null?stt.trend.toFixed(1):stt.raw)+'<span> '+wLbl()+' trend</span></div>'+
-    '<div class="verd">'+sent+'</div>'+svg+
+    '<div class="verd">'+esc(trendWeight().word)+'. '+sent+'</div>'+svg+
     famStrip([[stt.raw.toFixed(1),"scale, "+(stt.ageDays===0?"today":stt.ageDays+"d ago")],[(stt.trend!=null?stt.trend.toFixed(1):"&mdash;"),"trend"],[stt.goal,"goal"]])+
     '<button class="logbtn" onclick="closeSheet();weighSheet()">'+I.plus+' Log today&rsquo;s weight</button>'+
     '<div class="pfoot">Your scale &middot; dots are readings, the line is the 2-week trend'+(stt.stale?' &middot; last reading '+stt.ageDays+' days ago':'')+'</div></div>';
