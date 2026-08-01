@@ -550,8 +550,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .lvlrow{display:grid;grid-template-columns:1fr 1fr}
 .lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
 .lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
-.lvlcard .lcring svg circle:first-of-type{stroke:var(--line-2)}
-.lvlcard .lcring g circle{stroke-width:5}
+.lvlcard .lcring .lctrack{stroke:var(--line-2)}
+.lvlcard .lcring .lcarc{stroke:var(--tier)}
 .lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
 .lvlcard .lctxt{min-width:0}
 .lvlcard .lck{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
@@ -1465,7 +1465,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.66";
+var VERSION="v7.66a";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5490,8 +5490,8 @@ function miniLevelHTML(kind){
   var prev=levelPrevLv(kind),to=L.lvl+L.pips/10;
   return '<button class="lvlcard" data-tier="'+t.k+'" data-kind="'+kind+'" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+'">'+
     '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
-      '<circle cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
-      '<g transform="rotate(-90 22 22)"><circle cx="22" cy="22" r="18" fill="none" stroke="var(--tier)" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
+      '<circle class="lctrack" cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
+      '<g transform="rotate(-90 22 22)"><circle class="lcarc" cx="22" cy="22" r="18" fill="none" stroke="var(--tier)" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
       '</svg><span class="lcnum num">'+L.lvl+'</span></span>'+
     '<span class="lctxt"><span class="lck">'+(kind==="lift"?"Lift":"Cardio")+'</span>'+
     '<span class="lcw">'+esc(st.w)+'</span>'+
@@ -5505,7 +5505,7 @@ var RINGC=2*Math.PI*18;
 function levelRingAnim(){
   if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)return;
   document.querySelectorAll("#v-today .lvlcard").forEach(function(card){
-    var arc=card.querySelector(".lcring g circle"),num=card.querySelector(".lcnum");
+    var arc=card.querySelector(".lcring .lcarc"),num=card.querySelector(".lcnum");
     if(!arc||!num)return;
     var to=parseFloat(card.getAttribute("data-to")),fromA=card.getAttribute("data-from");
     var from=(fromA===""||fromA==="null")?null:parseFloat(fromA);
