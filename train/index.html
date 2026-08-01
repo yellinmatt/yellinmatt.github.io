@@ -1311,7 +1311,8 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .msheet .verd{font-size:15px;color:var(--sub);line-height:1.4;margin-top:6px}
 .msheet .pch{display:flex;align-items:flex-end;gap:4px;height:88px;position:relative;margin:16px 0 6px}
 .msheet .pch i{flex:1;border-radius:3px 3px 0 0;background:var(--tone);opacity:.4;display:block}
-.msheet .pch i.hit{opacity:.85}
+.msheet .pch i.hit{opacity:.9;background:var(--good)}
+.msheet .pch i.miss{background:var(--faint);opacity:.3}
 .msheet .pch i.miss{background:var(--faint);opacity:.35}
 .msheet .pch i.gap{background:var(--surface-2);opacity:1;height:2px!important;align-self:flex-end}
 .msheet .prule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--faint);opacity:.6;z-index:1}
@@ -1445,7 +1446,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.63";
+var VERSION="v7.63a";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2416,7 +2417,7 @@ function famA(kind){
     return '<div data-tone="'+tone2+'">'+famHead(I.gauge,"Steps","Last 7 days",st?Math.round(s7s.avg/st.t*100):null)+
       (function(){var tp=trendSteps(),yv=(S.steps||{})[yKey()]||0;
         return '<div class="hero56 num">'+(yv||s7s.avg).toLocaleString()+
-          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+(yv?tDay().toLowerCase():"7-day avg")+'</span></div>'+
+          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+(yv?("on "+tDay()):"7-day avg")+'</span></div>'+
         '<div class="verd">'+esc(tp.word)+'. '+(st?(hit+" of "+s7s.got+" recorded days cleared the "+st.t.toLocaleString()+" rung."):"No rung yet: it derives from your 28-day median.")+'</div>';})()+
       famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days",axR:"yesterday"})+
       famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
