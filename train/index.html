@@ -551,7 +551,6 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
 .lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
 .lvlcard .lcring .lctrack{stroke:var(--line-2)}
-.lvlcard .lcring .lcarc{stroke:var(--tier)}
 .lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
 .lvlcard .lctxt{min-width:0}
 .lvlcard .lck{display:block;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
@@ -1465,7 +1464,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.66a";
+var VERSION="v7.66b";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5470,7 +5469,9 @@ function playVidInline(id,slot){
   }
 }
 function pickVid(cat,offset){
-  var vs=vidsBy(cat);if(!vs.length)return null;
+  var vs=vidsBy(cat).filter(function(v){return vidDaypart(v)!=="night";});
+  if(!vs.length)vs=vidsBy(cat);
+  if(!vs.length)return null;
   var p=TODAY.split("-"),n=Math.floor(Date.UTC(+p[0],+p[1]-1,+p[2])/86400000)+(offset||0);
   return vs[((n%vs.length)+vs.length)%vs.length];
 }
