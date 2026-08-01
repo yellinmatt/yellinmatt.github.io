@@ -595,7 +595,12 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .herorow{display:flex;gap:8px;margin-top:10px}
 /* PRIME ROW - the "or just do this" strip under the day's action. Small on purpose: it must not
    compete with the headline, only be there when the headline feels like too much. (2026-07-29) */
-.primerow{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+/* v7.60. `.primerow` was built to sit INSIDE the hero, which is why it carried a top border and no
+   side padding: it was a divider under the start button, not a section. The swap moved it out to
+   the page, where that border read as an orphan rule floating over the background and the tiles
+   butted straight into the week strip below. It is a section now, so it gets a section's spacing
+   and loses the divider it no longer divides anything from. */
+.primerow{margin:18px 0 12px}
 .primelbl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
 .pcols{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pcol{display:flex;flex-direction:column;align-items:center;gap:1px;padding:11px 8px 9px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);min-width:0}
@@ -635,6 +640,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .tierpill{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--tier);background:color-mix(in srgb,var(--tier) 14%,transparent);border-radius:6px;padding:3px 7px;margin-left:7px;vertical-align:2px}
 /* Today's two level cards */
 .lvlrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+/* Inside the hero the level row is the second half of a single card, so it takes a divider off the
+   button above it and gives its bottom margin back to the card's own padding. */
+.hero .lvlrow{margin:14px 0 0;padding-top:14px;border-top:1px solid var(--line)}
 .lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
 .lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
 .lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
@@ -1757,7 +1765,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.60";
+var VERSION="v7.60a";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
