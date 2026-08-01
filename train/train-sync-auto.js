@@ -1,15 +1,3 @@
-/*
- * train-sync-auto.js  -  zero-wiring sync for the Train logger.
- * Adapted to this app's storage model: the ENTIRE app state lives in one
- * localStorage object under "train_v2" (sessions[], weigh[], progress{}, ...).
- * We read/write that single blob and never touch the app's other fields.
- * Wire-up is still one line after your scripts:
- *     <script src="train-sync-auto.js"></script>
- * Override the state key if it ever changes:
- *     <script>window.TRAIN_SYNC = { key:"train_v2" };</script>
- * The passphrase is entered once per device and stored in that device's
- * localStorage; it is never in this file.
- */
 (function (global) {
   var EP = "https://train-sync.yellinmatt.workers.dev"; // set automatically after deploy
   var CFG = global.TRAIN_SYNC || {};
@@ -52,36 +40,16 @@
       sessions: Array.isArray(S.sessions) ? S.sessions : [],
       weighins: Array.isArray(S.weigh) ? S.weigh.map(function (w) { return { date: w.date, weightLb: w.w }; }) : [],
       deleted: Array.isArray(S.deleted) ? S.deleted : [],
-      /* The morning anchor and the moved-day map. These were missing until 2026-07-29, which meant
-         the declared minimum day - open the anchor, do the four movements - was the one thing in
-         the app that did not survive a second device. */
       anchor: S.anchor && typeof S.anchor === "object" ? S.anchor : {},
       done: S.done && typeof S.done === "object" ? S.done : {},
-      /* Steps, protein and nutrition are measurements, and they were being left behind for the
-         same reason the anchor was: the wire schema was written before any of them existed and
-         nobody widened it. Cal AI gets pasted on the phone and the scorecard is read on the
-         laptop, so leaving these local meant the two devices disagreed about what he had eaten. */
       steps: S.steps && typeof S.steps === "object" ? S.steps : {},
       protein: S.protein && typeof S.protein === "object" ? S.protein : {},
       nutrition: S.nutrition && typeof S.nutrition === "object" ? S.nutrition : {},
-      /* ROUND A. The per-day provenance for steps and nutrition. Sent verbatim,
-         never synthesised at push time: a stamp invented on the way out would
-         make whichever device pushed last the winner, which is exactly the
-         clobber trap `stampedAt` exists to avoid for settings. An absent stamp
-         means this device never authored that day, and the Worker treats it as
-         gap-fill-only rather than as an authority. */
       stamps: (S.stamps && typeof S.stamps === "object") ? S.stamps : { nutrition: {}, steps: {} },
       runs: S.runs && typeof S.runs === "object" ? S.runs : {},
       override: S.override && typeof S.override === "object" ? S.override : {},
       daySlot: S.daySlot && typeof S.daySlot === "object" ? S.daySlot : {},
-      /* ROUND C. Vetting verdicts: date-keyed, gap-fill on both ends, same shape as
-         override/daySlot. A day marked clean on the phone must read clean everywhere,
-         including to the daily audit, which reads the Worker copy. */
       vetted: S.vetted && typeof S.vetted === "object" ? S.vetted : {},
-      /* Settings and the cycle cursor are last-write-wins, so their timestamps must only move when
-         the value actually changed. Stamping Date.now() on every push would make whichever device
-         pushed most recently the winner, which is how an idle laptop silently undoes a setting
-         changed on the phone. `stampedAt` remembers the last value seen and reuses its timestamp. */
       profile: S.profile || null,
       profileUpdatedAt: stampedAt("profile", S.profile),
       cursor: { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 },
@@ -91,11 +59,6 @@
     };
   }
   var STAMP_KEY = "train.syncStamps";
-  /* v7.9. `train.syncStamps` records when a VALUE LAST CHANGED, which is what last-write-wins needs
-     and is emphatically NOT the same thing as when a sync last succeeded. The Track dashboard's
-     "Sync" row was reading those stamps as a health signal, so it would happily say "today" while
-     every push and pull had been failing for a week, which is the exact failure the row exists to
-     catch. Success and failure are now recorded explicitly, here, by the only code that knows. */
   var HEALTH_KEY = "train.syncHealth";
   function mark(ok, what) {
     var h = {};
@@ -115,18 +78,12 @@
     }
     return st[name].at;
   }
-  /* Accepting the server's value means adopting its timestamp too, otherwise this device would
-     immediately re-stamp it as newer and push it straight back, and the two would ping-pong. */
   function bumpStamp(name, value, at) {
     var st = {};
     try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
     st[name] = { sig: JSON.stringify(value === undefined ? null : value), at: at || Date.now() };
     try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
   }
-  /* `mergeSteps` (take the larger of the two) was deleted in Round A along with
-     mergeAccum. Both encoded "a measurement only ever grows", which is true of a
-     day in progress and false of a day being corrected. `mergeStamped` below
-     replaces both. */
   function mergeFill(local, srv) {
     var out = {}, k;
     for (k in (local || {})) out[k] = local[k];
@@ -134,39 +91,6 @@
     return out;
   }
 
-  /* ROUND 17, 2026-07-31. THE HALF-APPLIED ACCUMULATION RULE.
-     On 2026-07-30 the Worker's nutrition rule changed from gap-fill to larger-value-per-field,
-     because an hourly exporter sends days that are still in progress and breakfast pushed at 9am
-     must not lock out dinner. The Worker got that change. The client did not, and kept pulling
-     nutrition through mergeFill, which by construction can never replace a day it already holds.
-     The result was a successful sync that adopted nothing: the Worker held 2026-07-30 at 2,670
-     kcal and 150 g protein while this browser held 1,615 and 78, the sync reported ok 483 ms
-     after the Worker's own updatedAt, and the Calories tile computed "333 under" off the stale
-     row when the truth was roughly 185 OVER. Every day whose first partial export landed before
-     he finished eating was frozen at that partial forever.
-     Two rules, not one, because the streams differ in who authors them.
-     mergeAccum: nutrition only. The client CAN author it (the Cal AI paste sheet), so a local
-     value is real and must not be discarded; a day's intake only accumulates, so the larger
-     number is the later truth. Same rule as steps, same rule the Worker now runs.
-     mergeServer: vitals, sleep, body. PULL ONLY by design (see the 2026-07-30 note below) - no
-     client ever authors one, so there is no local edit to protect and the server copy is simply
-     newer. Max-per-field would be actively wrong here: resting HR and HRV are means, and a max
-     rule would ratchet them upward forever and never come down. */
-  /* ROUND A, 2026-07-31. mergeAccum (max per field) is RETIRED, on both ends.
-     Max was right about one thing and catastrophically wrong about another. It
-     was right that an hourly export of a day in progress must not lock the day
-     at breakfast. It was wrong that the fix is arithmetic, because "take the
-     bigger number" makes a day incapable of ever travelling DOWN, and a day
-     that can only go up is a day no correction can reach. Matthew's 30 July sat
-     at 2,670 kcal against 2,108 actually eaten, and under max, deleting the
-     duplicated meal upstream would have changed that number never.
-
-     The rule on both ends is now latest-write-wins, arbitrated by a per-day
-     stamp rather than by size, so a smaller later truth beats a larger older
-     one and a stale re-push still loses. `S.stamps` is the client's half of
-     that: a day is stamped when this device authors it (the Cal AI sheet, a
-     manual edit) and adopts the server's stamp when it pulls. A day this
-     device has never authored carries no stamp and therefore cannot clobber. */
   function mergeStamped(local, srv, localS, srvS) {
     var out = {}, outS = {}, k;
     for (k in (local || {})) out[k] = local[k];
@@ -185,11 +109,7 @@
     return out;
   }
 
-  /* Anchor days merge on ticks, not on recency: the device that actually did the routine holds
-     the fuller record. Moved days merge as a logical OR, and the app recomputes them from
-     sessions and the anchor on load, so a genuine removal corrects itself there. */
   function ticks(a) { var n = 0; for (var k in (a || {})) if (a[k]) n++; return n; }
-  /* mergeAnchor retired 2026-08-01: the anchor merges stamped now (see pull). */
   function mergeDone(local, srv) {
     var out = {}, k;
     for (k in (local || {})) if (local[k]) out[k] = true;
@@ -204,10 +124,6 @@
     var d = Number(s.duration || s.durationSec || s.durationMs || 0) || 0;
     return sets * 1e9 + d;
   }
-  /* A plain union cannot express a deletion: whatever you remove locally comes straight back on
-     the next pull, because the server still has it and a union only ever adds. Deleted ids are
-     therefore carried as tombstones and filtered out of the merged result, so a delete survives
-     sync and propagates to the other device instead of silently resurrecting. */
   function unionSessions(a, b, tomb) {
     var dead = {};
     (tomb || []).forEach(function (t) { if (t && t.id != null) dead[String(t.id)] = true; });
@@ -216,8 +132,6 @@
     (b || []).forEach(function (s) { if (!s || s.id == null || dead[String(s.id)]) return; var k = String(s.id), p = m.get(k); if (!p || completeness(s) >= completeness(p)) m.set(k, s); });
     return Array.from(m.values());
   }
-  /* Tombstones are pruned after 120 days: long enough for every device to have seen the delete,
-     short enough that the list never grows without bound. */
   function mergeTombs(a, b) {
     var m = {}, cut = Date.now() - 120 * 86400000;
     (a || []).concat(b || []).forEach(function (t) {
@@ -255,11 +169,6 @@
       .catch(function (e) { mark(false, "push " + (e && e.message)); });
   }
 
-  /* 2026-07-30. The passphrase prompt only ever fired when NO token was stored, so rotating
-     SYNC_TOKEN on the Worker left every already-paired device holding a dead passphrase and
-     401ing forever, silently, with no way back short of clearing site data. A stale credential
-     has to invalidate itself: on a 401 the stored token is dropped and the pairing overlay is
-     shown again, which turns "sync quietly stopped weeks ago" into one visible question. */
   var reprompting = false;
   function onUnauthorized(status) {
     if (status !== 401 || reprompting) return;
@@ -291,8 +200,6 @@
         S.deleted = mergeTombs(S.deleted, srv.deleted);
         S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
         S.weigh = mergeWeigh(S.weigh, srv.weighins);
-        /* 2026-08-01: anchor is stamped per day now, so an UNCHECK travels. Newer stamp wins;
-           days with no stamp on either side keep the old most-ticks rule. */
         S.stamps = S.stamps || { nutrition: {}, steps: {} };
         S.stamps.anchor = S.stamps.anchor || {};
         var srvAS = (srv.stamps && srv.stamps.anchor) || {};
@@ -305,18 +212,6 @@
         S.anchor = mA.map; S.stamps.anchor = mA.stamps;
         S.done = mergeDone(S.done, srv.done);
         S.stamps = S.stamps || { nutrition: {}, steps: {} };
-        /* DEPLOY-ORDER SAFETY. This file ships to Pages the moment it is pushed;
-           the Worker ships only when someone runs `wrangler deploy`. Between
-           those two moments the client is new and the server is old, and an old
-           server sends no `stamps` at all. Read naively that means every server
-           day carries stamp 0, nothing can beat a local 0, and the merge quietly
-           degrades to gap-fill, which is the EXACT defect 17a was opened to fix:
-           a successful sync that adopts nothing.
-           So an absent stamps object is treated as "this server predates
-           provenance", and its days are taken as authoritative using the store's
-           own updatedAt as their stamp. Once the Worker ships it sends real
-           per-day stamps and this branch stops running. Delete it when the two
-           have been in step for a while. */
         var srvS = srv.stamps;
         if (!srvS || typeof srvS !== "object") {
           var at = Number(srv.updatedAt) || Date.now();
@@ -328,22 +223,10 @@
         S.steps = mSteps.map; S.stamps.steps = mSteps.stamps;
         var mNut = mergeStamped(S.nutrition, srv.nutrition, S.stamps.nutrition, srvS.nutrition);
         S.nutrition = mNut.map; S.stamps.nutrition = mNut.stamps;
-        /* Protein follows nutrition rather than OR-ing, for the same reason the
-           Worker recomputes it: a flag that can be set but never cleared lies
-           about a day whose grams were corrected downward. The server is the one
-           writer, so a day the server carries takes the server's verdict. */
         S.protein = S.protein || {};
         for (var _pk in (srv.nutrition || {})) {
           if ((srv.protein || {})[_pk]) S.protein[_pk] = true; else delete S.protein[_pk];
         }
-        /* Body composition, vitals and sleep are PULL ONLY, deliberately (2026-07-30).
-           Health Auto Export writes them straight into the Worker; no client ever authors one, so
-           there is nothing to push and pushing would be actively dangerous. This client sends the
-           whole object for every key it owns, so a device that had never seen these would push an
-           empty {} and last-write-wins would erase 372 days of vitals and 315 nights of sleep.
-           Pulling them costs nothing and stops the pipeline delivering into a void: before this
-           the Worker captured all three and the client dropped them on hydrate, so the data existed
-           and no surface in the app could reach it. */
         S.body = mergeServer(S.body || {}, srv.body);
         S.vitals = mergeServer(S.vitals || {}, srv.vitals);
         S.sleep = mergeServer(S.sleep || {}, srv.sleep);
@@ -351,8 +234,6 @@
         S.override = mergeFill(S.override, srv.override);
         S.daySlot = mergeFill(S.daySlot, srv.daySlot);
         S.vetted = mergeFill(S.vetted || {}, srv.vetted);
-        /* Settings and the cursor only come down if the server's copy is genuinely newer than what
-           this device last stamped. Same rule the Worker applies, checked on both ends. */
         if (srv.profile && Number(srv.profileUpdatedAt || 0) > stampedAt("profile", S.profile)) {
           S.profile = srv.profile; bumpStamp("profile", S.profile, Number(srv.profileUpdatedAt));
         }
@@ -414,10 +295,6 @@
   if (document.readyState === "complete" || document.readyState === "interactive") setTimeout(start, 500);
   else global.addEventListener("load", function () { setTimeout(start, 500); });
 
-  /* v7.10. Settings needs a way to force an exchange and report what happened, rather than making
-     Matthew wait out the poll interval and guess. `now()` runs a real pull then a real push and
-     resolves with the health record, so the caller can show the actual outcome instead of a
-     hopeful toast. */
   function now() {
     if (!getToken()) return Promise.resolve({ ok: false, reason: "not paired" });
     return pullAndMerge().then(function () { push(); }).then(function () {
