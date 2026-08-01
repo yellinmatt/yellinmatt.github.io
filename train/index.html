@@ -1446,7 +1446,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.63a";
+var VERSION="v7.64";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2579,10 +2579,39 @@ function anchorToggle(sum,ev){
   el.classList.add("closing");
   setTimeout(function(){el.classList.remove("closing");el.open=false;},430);
 }
+function anchorLog(src,i,on){
+  try{
+    var j=JSON.parse(localStorage.getItem("train.anchorLog")||"[]");
+    j.push({t:new Date().toISOString(),believed:TODAY,i:i,on:!!on,src:src,
+            vis:(document.visibilityState||"?"),
+            standalone:!!(window.navigator.standalone||matchMedia("(display-mode:standalone)").matches)});
+    while(j.length>30)j.shift();
+    localStorage.setItem("train.anchorLog",JSON.stringify(j));
+  }catch(e){}
+}
+function anchorLogSheet(){
+  var j=[];try{j=JSON.parse(localStorage.getItem("train.anchorLog")||"[]");}catch(e){}
+  var rows=j.slice().reverse().map(function(r){
+    var d=new Date(r.t);
+    var clock=("0"+d.getHours()).slice(-2)+":"+("0"+d.getMinutes()).slice(-2);
+    var believedToday=(r.believed===keyOf(d));
+    return '<div style="display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px">'+
+      '<span style="color:var(--sub)">'+shortDay(keyOf(d))+' '+clock+'</span>'+
+      '<span style="font-variant-numeric:tabular-nums">box '+(r.i+1)+' '+(r.on?"on":"off")+'</span>'+
+      '<span style="color:'+(believedToday?"var(--faint)":"var(--accent)")+'">'+
+        (believedToday?"date ok":"believed "+r.believed)+'</span></div>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>Anchor journal</h3>'+
+    '<div class="ssub">Every tick, and the date the app believed it was when it wrote. '+
+    'Anything in orange is a write that landed on the wrong day, which is the bug we are hunting.</div>'+
+    (rows||'<div class="verd">Nothing recorded yet. Tick a box and it appears here.</div>')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+}
 function toggleAnchor(i,btn){
   var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
   S.stamps=S.stamps||{nutrition:{},steps:{}};S.stamps.anchor=S.stamps.anchor||{};
   S.stamps.anchor[TODAY]=Date.now();
+  anchorLog("toggle",i,a[i]);
   recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();
   save();
   var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
@@ -5343,7 +5372,8 @@ function settingsSheet(){
   m+=sgroup("Sync",
     '<div class="srow scad" data-rag="'+sh.rag+'"><span class="caddot"></span><span class="srl">'+(sh.rag==="none"?"Not paired":"Last exchange "+esc(sh.txt))+'</span>'+
       '<span class="src">'+(sh.rag==="none"?'<button class="minibtn" onclick="closeSheet();syncPassSheet()">Set up</button>':'<button class="minibtn" onclick="syncNow(this)">Sync now</button>')+'</span></div>'+
-    (sh.rag!=="none"?snav('Change the passphrase',"","closeSheet();syncPassSheet()"):""),
+    (sh.rag!=="none"?snav('Change the passphrase',"","closeSheet();syncPassSheet()"):"")+
+    snav('Anchor journal',(function(){try{return (JSON.parse(localStorage.getItem("train.anchorLog")||"[]").length)+" writes";}catch(e){return "";}})(),"closeSheet();anchorLogSheet()"),
     esc(sh.hint)+'.');
 
   var _bk=backupAgeDays();
