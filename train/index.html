@@ -326,23 +326,12 @@ input,select{border:0;background:none}
 .wbig{width:150px;text-align:center;font-size:44px;font-weight:800;letter-spacing:-.03em;background:transparent;border:0;color:var(--text);padding:0}
 .wunit{text-align:center;font-size:13px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
 .wunit b{font-weight:800}
-/* exercise lookup, collapsed by default */
-.libdrop{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);margin:12px 0 6px;overflow:hidden}
-/* v7.35. The Library summary was a 14.5px sentence-case sentence with a grey pill, sitting under a
-   column of `.dcard` summaries that are 12px uppercase with an icon in a tinted box. Same padding,
-   same type, same chip now, so the tab reads as one component set rather than two. */
-/* v7.35c. Setting the type ON the summary shrank the chip too, so the row stood 63px against 69.
-   The summary now carries only layout, exactly like `.dcard>summary`, and `.dsum` carries the type. */
-.libdrop>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 18px}
-.libdrop>summary .lsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
-.libdrop>summary .lsi svg{width:14px;height:14px}
-.libdrop>summary .lleft{display:flex;align-items:center;min-width:0;flex:1}
-.libdrop>summary .dsum{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
-.libdrop>summary::-webkit-details-marker{display:none}
-.libdrop>summary .lcount{font-size:11px;font-weight:700;color:var(--faint);background:var(--surface-2);border-radius:7px;padding:3px 8px}
-.libdrop[open]>summary{border-bottom:1px solid var(--line)}
-.libdrop .libsearch{margin:12px 18px 4px;width:calc(100% - 36px)}
-.libdrop .sectlbl,.libdrop .libgrid{margin-left:18px;margin-right:18px}
+/* ROUND 14: `.libdrop` is DEAD. The Library speaks `.dcard` outright now -- v7.35b gave it the
+   card's markup shape and this finishes the job, so there is exactly one drawer component in the
+   app. The two rules below are the Library's interior spacing inside the dcard body, whose 18px
+   padding replaces the old per-element margins. */
+.dcard .dbody .libsearch{margin:12px 0 4px;width:100%}
+.dcard .dbody .libgrid{margin-bottom:12px}
 .libpad{padding:12px 0 16px}
 .libpad>.ksub{padding:0 18px}
 .libpad.nested{padding:0}
@@ -361,7 +350,7 @@ input,select{border:0;background:none}
 .libsub .libsub .vrow{padding-left:28px}
 .libnote{padding:2px 14px 10px;font-size:12px;line-height:1.45;color:var(--sub)}
 .libpad .sectlbl:first-child{margin-top:8px}
-.libdrop .libgrid{margin-bottom:12px}
+/* (folded into .dcard .dbody .libgrid above, Round 14) */
 /* press-play video cards */
 .vrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
 .vcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
@@ -624,11 +613,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
    as two different components stacked. The pill is the chip's base shape now and the verdict only
    changes its COLOUR. A card with nothing to grade gets a neutral pill rather than an invented
    status, which keeps the accent system meaning what it says. */
-/* `.libdrop` is the last surviving bespoke card class: v7.35b gave it the card's markup but not
-   its class, so the first render of this rule pilled every chip on Lift and Cardio EXCEPT the
-   Library's, and the one card I did not touch became the odd one out. The selector covers both.
-   The residual `.libdrop` class itself is logged for the audit round rather than swept here. */
-.dcard .acount,.libdrop .acount{font-size:13.5px;font-weight:700;line-height:1.35;background:var(--surface-2);color:var(--sub);border-radius:7px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+/* Round 14: the `.libdrop` note that lived here is history; the Library is a `.dcard` now. */
+.dcard .acount{font-size:13.5px;font-weight:700;line-height:1.35;background:var(--surface-2);color:var(--sub);border-radius:7px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
 .dcard .acount.gd,.dcard .acount.wn{color:var(--rag,var(--sub));background:var(--rag-tint,var(--surface-2))}
 .dcard[data-tone]>summary .dsi{background:var(--rag-tint,var(--surface-2));color:var(--rag,var(--sub))}
 /* The data itself. The current bar and the headline stat carry the status colour; the comparison
@@ -1332,9 +1318,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .pzr .pzc{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 22px;text-align:right}
 
 /* v7.24 */
-.prcard{padding:14px 16px 15px}
-.prcard .prct{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
-.prcard .prbar{margin:0}
+/* `.prcard` deleted (Round 14); it had no caller since v7.35d. */
 .lvhist{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
 .lvht{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
 .lvhs{width:100%;height:64px;display:block}
@@ -1387,31 +1371,47 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .ahow{display:flex;width:22px;height:22px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin-left:-4px}
 .ahow svg{width:16px;height:16px}
 .ahow:active{color:var(--accent)}
-/* ROUND A4: the checklist as four tiles, read down the left edge.
-   The fixed-width dose column from A3 is gone with the problem it patched: the
-   dose sits under the name now, so nothing competes for the right edge except
-   the one quiet control that belongs there. */
-.alist{display:flex;flex-direction:column;gap:8px;margin-top:2px}
-.arow[role="button"]{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
-  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;
-  cursor:pointer;transition:background .15s,border-color .15s}
+/* HIS PICK, 2026-08-01: the anchor is the C9 SPLIT LEDGER, animated. The count owns a left
+   column; each tick bumps it; at 4 of 4 the count crossfades to the done mark, holds 900ms,
+   then the column collapses while the ledger takes the full width and a summary line absorbs
+   the counting job. Unchecking reverses the sequence. Replaces the A4 tiles. */
+.c9a{display:flex;align-items:stretch;margin-top:4px}
+.c9al{flex:none;max-width:96px;width:96px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--line);padding-right:16px;margin-right:16px;overflow:hidden;position:relative;transition:max-width .45s cubic-bezier(.22,1,.36,1),width .45s cubic-bezier(.22,1,.36,1),opacity .3s,padding .45s,margin .45s,border-color .45s}
+.c9a.collapsed .c9al{max-width:0;width:0;opacity:0;padding-right:0;margin-right:0;border-color:transparent}
+.c9acount{transition:opacity .25s,transform .25s}
+.c9a.celebrate .c9acount{opacity:0;transform:scale(.7)}
+.c9abig{font-size:48px;font-weight:800;letter-spacing:-.04em;line-height:1;display:inline-block}
+.c9abig.bump{animation:c9bump .35s cubic-bezier(.22,1,.36,1)}
+@keyframes c9bump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+.c9aof{font-size:17px;font-weight:600;color:var(--faint);margin-top:2px}
+.c9acap{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:6px}
+.c9abadge{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;opacity:0;transform:scale(.6);transition:opacity .3s,transform .35s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.c9a.celebrate .c9abadge{opacity:1;transform:scale(1)}
+.c9abadge .bd{width:48px;height:48px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center}
+.c9abadge .bd svg{width:24px;height:24px}
+.c9abadge .bt{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--good);margin-top:8px}
+.c9ar{flex:1;min-width:0}
+.c9asum{max-height:0;overflow:hidden;opacity:0;transition:max-height .45s cubic-bezier(.22,1,.36,1),opacity .35s .1s;display:flex;align-items:center;gap:8px;color:var(--good);font-size:15px;font-weight:700}
+.c9a.collapsed .c9asum{max-height:44px;opacity:1;padding-bottom:6px}
+.c9asum svg{width:16px;height:16px;flex:none}
+.c9asum span{color:var(--faint);font-weight:600;font-size:13px}
+.arow[role="button"]{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--line);border-radius:0;padding:6px 0;min-height:48px;cursor:pointer}
+.arow[role="button"]:first-of-type{border-top:0}
 .arow[role="button"]:active{background:var(--surface-2)}
-.arow[role="button"].checked{background:var(--good-tint);border-color:transparent}
 .arow[role="button"] .chk{width:24px;height:24px;border-width:2px}
 .arow[role="button"].checked .chk{background:var(--good);border-color:var(--good)}
 .atxt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
-.arow[role="button"] .an{font-size:15px;font-weight:650;color:var(--ink);line-height:1.25}
+.arow[role="button"] .an{font-size:15px;font-weight:500;color:var(--ink);line-height:1.25}
 .arow[role="button"] .ad{font-size:12px;font-weight:600;color:var(--faint);letter-spacing:.01em;text-align:left;min-width:0}
-.arow[role="button"].checked .an{color:var(--good)}
-.arow[role="button"].checked .ad{color:var(--good);opacity:.75}
-.arow[role="button"].checked .ahow{color:var(--good);opacity:.6}
+.arow[role="button"].checked .an{color:var(--faint)}
+.arow[role="button"].checked .ad{color:var(--faint);opacity:.8}
+.arow[role="button"].checked .ahow{color:var(--faint)}
 /* The cue list inside a how-to sheet. */
 .cuelist{margin:12px 0 0;padding:0 0 0 18px;list-style:disc}
 .cuelist li{font-size:14px;line-height:1.55;color:var(--sub);margin-bottom:7px}
 .cuelist li::marker{color:var(--faint)}
 .hanchor .avid{margin-top:2px}
-.hanchor .adone{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 14px;border-radius:12px;background:var(--good-tint);color:var(--good);font-size:13.5px;font-weight:700}
-.hanchor .adone svg{width:16px;height:16px}
+/* `.adone` retired with the C9 anchor: the collapsed summary line is the one done-writer. */
 .hanchor.alldone .acount{color:var(--good)}
 /* The hero's bottom corners must survive a child that bleeds to its edges. */
 .hero{overflow:hidden}
@@ -1550,7 +1550,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.51";
+var VERSION="v7.53";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -2843,8 +2843,18 @@ function toggleAnchor(i,btn){
     var ring=card.querySelector(".miniring circle:last-child");
     if(ring){var C=2*Math.PI*13;ring.setAttribute("stroke-dashoffset",(C*(1-ac/n)).toFixed(1));}
     card.classList.toggle("alldone",ac>=n);
-    var done=card.querySelector(".adone");
-    if(done)done.style.display=(ac>=n)?"":"none";
+    /* the C9 machine: bump the count, celebrate at full, collapse after a beat; reverse on
+       uncheck by expanding FIRST so the count is visible the moment the badge fades. */
+    var wrap=document.getElementById("anch-c9"),num=document.getElementById("anch-num");
+    if(wrap&&num){
+      var was=+(num.getAttribute("data-v")||0);
+      num.textContent=ac;num.setAttribute("data-v",ac);
+      num.classList.remove("bump");void num.offsetWidth;num.classList.add("bump");
+      if(window.__anchT){clearTimeout(window.__anchT);window.__anchT=null;}
+      if(ac>=n){wrap.classList.add("celebrate");window.__anchT=setTimeout(function(){wrap.classList.add("collapsed");},900);}
+      else if(was>=n){wrap.classList.remove("collapsed");window.__anchT=setTimeout(function(){wrap.classList.remove("celebrate");},450);}
+      else wrap.classList.remove("celebrate","collapsed");
+    }
   }
   /* v7.15. The strip used to be repainted only on a full re-render, so ticking the anchor left
      today's pip stale until the tab was changed. Repaint it in place, both surfaces. */
@@ -5482,8 +5492,9 @@ function bodyTilesHTML(){
     stepsTileHTML()+
     (bm?stat("BMI",bm.toFixed(1),"",bmb.w,bmb.k==="good"?"flat":"flat"):"")+
     '</div>'+
-    (bm?('<div class="ksub" style="margin:8px 0 0">BMI is height and weight only, so it cannot tell muscle from fat and reads high on anyone carrying a lot of the former. '+
-      (Object.keys(S.body||{}).length>1?'':'<b>Body fat and lean mass are not arriving</b> - Health Auto Export is not sending them, so the one composition reading on file is from May 2022.')+'</div>'):'');
+    /* ROUND 14: the "body fat and lean mass are not arriving" prompt is RETIRED. It nagged a
+       pipeline decision that has been made; the caveat that matters (what BMI cannot see) stays. */
+    (bm?('<div class="ksub" style="margin:8px 0 0">BMI is height and weight only, so it cannot tell muscle from fat and reads high on anyone carrying a lot of the former.</div>'):'');
   var on=!!S.protein[TODAY];
   h+='<div class="card"><h3><span>Fuel</span><span class="t">Cal AI counts it, you confirm it</span></h3>'+
     '<button class="ptog'+(on?" on":"")+'" onclick="toggleProtein()" aria-pressed="'+on+'"><span class="pc">'+I.check+'</span>'+
@@ -6684,8 +6695,13 @@ function anchorHTML(){
        off" described a screen that already shows a play row above four
        tickboxes, so it was a caption explaining a picture that explains itself,
        and it cost a line of reading every single morning forever. */
-    anchorVidHTML()+'<div class="alist">'+rows+'</div>'+
-    '<div class="adone"'+(ac>=list.length?'':' style="display:none"')+'>'+I.check+' Morning done. Everything else today is a bonus.</div>'+
+    anchorVidHTML()+
+    '<div class="c9a'+(ac>=list.length?' collapsed':'')+'" id="anch-c9">'+
+      '<div class="c9al"><div class="c9acount"><span class="c9abig num" id="anch-num" data-v="'+ac+'">'+ac+'</span>'+
+        '<div class="c9aof num">of '+list.length+'</div><div class="c9acap">anchor</div></div>'+
+        '<div class="c9abadge"><span class="bd">'+I.check+'</span><span class="bt">Done</span></div></div>'+
+      '<div class="c9ar"><div class="c9asum">'+I.check+'All '+list.length+' done<span>&middot; this morning</span></div>'+rows+'</div>'+
+    '</div>'+
     '</div></details>';
 }
 /* One video, full width, with its tick right there. Opening a sheet rather than jumping tabs keeps
@@ -6864,9 +6880,9 @@ function libraryHTML(cat){
   /* v7.35: the icon box and uppercase title that every other card on this tab wears. */
   /* v7.35b. Measured: the Library summary stood 56px against every other card's 69, because it
      carried no `.aright` chip-and-chevron block. Same markup now, so the column is flush. */
-  var h='<details class="libdrop"><summary><span class="lleft"><span class="lsi">'+I.play+'</span><span class="dsum">Library</span></span>'+
+  var h='<details class="card dcard"><summary><span class="dleft"><span class="dsi">'+I.play+'</span><span class="dsum">Library</span></span>'+
     '<span class="aright"><span class="acount">'+n+' videos</span><span class="chev">'+I.chevD+'</span></span></summary>'+
-    '<div class="libpad nested"><div class="libgrid">'+tiles+'</div>'+panes+'</div></details>';
+    '<div class="dbody"><div class="libgrid">'+tiles+'</div>'+panes+'</div></details>';
   /* The lift tab used to append a second "Look up a movement" drawer here holding all forty
      exercises with their form videos. Retired 2026-07-29: Your Movements now carries every
      movement grouped by day, with the video on each row, so this was the same shelf twice. */
@@ -8166,11 +8182,14 @@ function dataAudit(){
         say:Math.round(sec/60)+" min logged as a run with no distance"});
       else if(d>0&&sec>0){
         var pc=sec/d;
-        if(pc<210)issues.push({id:r.id,date:r.date,kind:"impossible-pace",fix:"review",say:mmss(Math.round(pc))+" a mile is not a run"});
+        /* ROUND 14: a sub-3:30 "mile" or a sub-quarter-mile "run" from the Health pipe is a GPS
+           fragment, not a run -- repairable, not merely reviewable. */
+        if(pc<210||d<0.25)issues.push({id:r.id,date:r.date,kind:"gps-fragment",fix:"fragment",say:(d<0.25?(d.toFixed(2)+" mi"):(mmss(Math.round(pc))+" a mile"))+" is a GPS fragment, not a run"});
         else if(pc>1500)issues.push({id:r.id,date:r.date,kind:"walking-pace",fix:"review",say:mmss(Math.round(pc))+" a mile is walking, not running"});
       }else if(d>0&&sec<=0)issues.push({id:r.id,date:r.date,kind:"distance-no-time",fix:"review",say:d.toFixed(1)+" mi with no time, so no pace"});
     }
-    if(sec>6*3600)issues.push({id:r.id,date:r.date,kind:"absurd-duration",fix:"review",say:Math.round(sec/3600)+" hours"});
+    /* ROUND 14: six-plus hours is a watch left running, and once labelled it stops being flagged. */
+    if(sec>6*3600&&(r.activity!=="Watch left on"))issues.push({id:r.id,date:r.date,kind:"watch-left-on",fix:"watchon",say:Math.round(sec/3600)+" hours is a watch left running"});
   });
   return issues;
 }
@@ -8193,6 +8212,37 @@ function doRepairRuns(){
   closeSheet();
   toast("Reclassified "+n+" as cardio.",null);
 }
+/* ROUND 14 repairs. Reclassification, never deletion, same law as repairRuns: the record keeps
+   its duration and its day; only the TYPE or the NAME changes, so "days moved" cannot regress
+   and mileage, pace and the level stop reading garbage. */
+function repairFragments(){
+  var n=0;
+  S.sessions.forEach(function(r){
+    var d=r.distanceMi||0,sec=r.durationSec||0;
+    if(r.type==="run"&&d>0&&sec>0&&((sec/d)<210||d<0.25)){
+      r.type="activity";r.activity="GPS fragment";
+      r.notes=(r.notes?r.notes+" \u00b7 ":"")+"reclassified: GPS fragment";
+      delete r.paceSecPerMi;n++;
+    }
+  });
+  if(n){invalidateDayIndex();save();refreshCurrent();}
+  return n;
+}
+function doRepairFragments(){var n=repairFragments();closeSheet();toast("Reclassified "+n+" GPS fragment"+(n===1?"":"s")+".",null);}
+function repairWatchOn(){
+  var n=0;
+  S.sessions.forEach(function(r){
+    if((r.durationSec||0)>6*3600&&r.activity!=="Watch left on"){
+      if(r.type==="run"){r.type="activity";delete r.paceSecPerMi;}
+      r.activity="Watch left on";
+      r.notes=(r.notes?r.notes+" \u00b7 ":"")+"watch left running";
+      n++;
+    }
+  });
+  if(n){invalidateDayIndex();save();refreshCurrent();}
+  return n;
+}
+function doRepairWatchOn(){var n=repairWatchOn();closeSheet();toast("Labelled "+n+" as a watch left on.",null);}
 /* ============ THE DATA INVENTORY, v7.29 ============
    Matthew asked for a data management system, and the thing that was actually missing is not
    another cleaner, it is VISIBILITY. Three stores were being written by the pipeline and silently
@@ -8304,6 +8354,8 @@ function dataCheckSheet(){
     sgroup("Found",rows,iss.length?(iss.length+" to look at."):"Nothing to fix.")+
     (dupes.length?'<button class="sheet-cta" onclick="doMergeDupes()">Merge '+dupes.length+' duplicate run'+(dupes.length===1?'':'s')+' &middot; '+dupeMi.toFixed(1)+' mi</button>':'')+
     (fixable.length?'<button class="sheet-cta" onclick="doRepairRuns()">Reclassify '+fixable.length+' as cardio</button>':'')+
+    (iss.some(function(x){return x.fix==="fragment";})?'<button class="sheet-cta" onclick="doRepairFragments()">Reclassify '+iss.filter(function(x){return x.fix==="fragment";}).length+' GPS fragments</button>':'')+
+    (iss.some(function(x){return x.fix==="watchon";})?'<button class="sheet-cta" onclick="doRepairWatchOn()">Label '+iss.filter(function(x){return x.fix==="watchon";}).length+' as watch left on</button>':'')+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
 }
 /* ============ THE CARDIO LEVEL, v7.26 ============
