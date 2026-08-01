@@ -1231,14 +1231,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .libpane{margin-top:6px}
 
 /* v7.23 */
-.altcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;background:var(--surface-2);border:1px dashed var(--line-2);border-radius:13px;padding:12px 13px;margin-top:10px}
-.altcard .aci{width:20px;height:20px;color:var(--sub);flex:none;display:inline-flex}
-.altcard .aci svg{width:20px;height:20px}
-.altcard .acm{flex:1;min-width:0}
-.altcard .acn{display:block;font-size:14px;font-weight:750;color:var(--ink)}
-.altcard .acd{display:block;font-size:12px;color:var(--faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.altcard .aca{width:18px;height:18px;color:var(--faint);flex:none;display:inline-flex}
-.altcard .aca svg{width:18px;height:18px}
+/* `.altcard` deleted with "Follow a video instead" (item 7, 2026-08-01). */
 .lstat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
 .ls3{background:var(--surface-2);border-radius:11px;padding:11px 12px}
 .ls3 b{display:block;font-size:19px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -1557,7 +1550,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 
 <script>
 "use strict";
-var VERSION="v7.50";
+var VERSION="v7.51";
 /* ============ icons ============ */
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
@@ -3269,30 +3262,10 @@ function dayRailHTML(cur){
 /* This used to offer a stretching clip, which is not a replacement for a lift. It now offers
    workouts matched to what THIS day trains. Styled as a quiet text link rather than a second
    filled button, because a second filled button reads as a second equal choice, which it is not. */
-function replaceVids(L){return VID.filter(function(v){return v.c==="wk"&&v.day===L;});}
-function liftGuidedBtnHTML(L){
-  if(!replaceVids(L).length)return "";
-  /* v7.23. Was a thin text link that read as a footnote. It is a real alternative to the session
-     above it, so it looks like one: its own bordered card, the swap icon rather than a play
-     triangle, and copy that says what you get. Deliberately NOT the three-tile shape Today uses for
-     mobility, stretch and pilates, because this replaces the day rather than adding to it. */
-  var alt=pickForSlot("session",0);
-  return '<button class="altcard" onclick="replaceSheet(\''+L+'\')">'+
-    '<span class="aci">'+I.swap+'</span>'+
-    '<span class="acm"><span class="acn">Follow a video instead</span>'+
-    '<span class="acd">'+(alt?esc(alt.t.slice(0,46)):"A guided session in place of Day "+L)+'</span></span>'+
-    '<span class="aca">'+I.arrow+'</span></button>';
-}
-function replaceSheet(L){
-  var vs=replaceVids(L);if(!vs.length)return;
-  var nm=(DAYS[L]?DAYS[L].name:"");
-  var h='<div class="grab"></div><h3>Instead of Day '+L+'</h3>'+
-    '<div class="ssub">Day '+L+' is '+esc(nm)+'. These train the same thing with someone counting for you. Tick one when you are done and the day is logged as moved.</div>'+
-    '<div class="vrow" style="grid-template-columns:1fr">';
-  vs.forEach(function(v){h+=vidCardHTML(v,true);});
-  h+='</div><button class="sheet-cta ghost" onclick="closeSheet()">Close</button>';
-  openSheet(h);
-}
+/* ITEM 7: "Follow a video instead" is gone at his instruction (2026-08-01), along with
+   `replaceSheet` and the `.altcard` class. The wk-tagged videos remain reachable through the
+   Library; nothing else called this path. Kept as a stub comment so the next reader knows the
+   removal was a decision, not an accident. */
 /* The coach was a dot, a phrase and a paragraph, which told you the verdict and nothing about the
    machine behind it. It now shows the ladder it sits on (back off / hold / push), what is driving
    the call, the EXIT CONDITION that would move it, and where the deload block stands. A coach that
@@ -3919,10 +3892,14 @@ function cycleHTML(){
       (isNext?'<span class="ptag">Next</span>':'')+'</div>';
   }).join("");
   var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
+  /* ITEM 7: the rotation's own state is whether the loop is turning. Tone from the days since
+     the last lift: three or fewer good, a week amber, longer red, never lifted flat. */
+  var lastLift=null;for(var li=S.sessions.length-1;li>=0;li--){if(S.sessions[li].type==="lift"){lastLift=S.sessions[li].date;break;}}
+  var rotTone=lastLift?(daysBetween(lastLift,TODAY)<=3?"good":daysBetween(lastLift,TODAY)<=7?"amber":"red"):"";
   return collapsible("The rotation",esc(DAYS[next]?DAYS[next].name:("Day "+next))+" next",'<div>'+
     '<div class="ksub">Three sessions on a loop. The next one is whatever you have not done, not whatever day of the week it is.</div>'+
     rows+
-    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.swap,"");
+    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.swap,rotTone);
 }
 /* Per-movement state: what you lift now, what happened last time, and what to do next. */
 /* YOUR MOVEMENTS, variation M1 (Matthew picked it, 2026-07-29).
@@ -4070,9 +4047,14 @@ function movementRows(){
      big the list is, which he can see, and not what to do. The chip names the session he is about
      to train, which is the only reason this card gets opened. */
   var trainedAll=0;["A","B","C"].forEach(function(k){g[k].forEach(function(id){if(lastEntry(id))trainedAll++;});});
+  /* ITEM 7: the movements card's own state is whether any working weight has a pending
+     proposal -- amber says "something here wants a decision", good says every movement in the
+     rotation has a session behind it, flat says neither. */
+  var props=0;["A","B","C"].forEach(function(k){(g[k]||[]).forEach(function(id){if(suggestWeight(id))props++;});});
+  var mvTone=props?"amber":(total&&trainedAll===total?"good":"");
   return collapsible("Your movements","Day "+L+" &middot; "+(g[L]?g[L].length:0)+" to train",
     '<div class="ksub" style="padding:0 4px 10px">Grouped by the day you train them. <b>'+trainedAll+' of '+total+'</b> have a session behind them'+(prs?(', '+prs+' with a record'):'')+'. Tap any movement for its form video, its history and what to do next time.</div>'+inner,
-    false,I.dumbbell,"");
+    false,I.dumbbell,mvTone);
 }
 function movementSheet(id){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
@@ -4137,17 +4119,13 @@ function renderLift(){
       ('<b>'+nex+' movements</b> &middot; not scheduled today, yours when you want it'))+'</div>'+
     (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
       '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):(scheduled?"Start workout":("Day "+L+" &middot; "+esc(DAYS[L]?DAYS[L].name:""))))+'</button>')+
-    liftGuidedBtnHTML(L)+
     '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div>'+
     '</div>';
-  /* ROUND 8, v7.34. Both tabs run the same five sections in the same order, so the shape reads as
-     deliberate rather than as whatever each tab accreted:
-        hero -> records and badges -> plan -> why this level -> detail -> library
-     Lift's plan is the rotation, Cardio's is the pace zones; Lift's detail is the movements,
-     Cardio's is the recent runs. Lift previously opened with "why this level" before it had shown
-     the plan the level is about, and had no records or badges at all. */
-  h+=cycleHTML();
+  /* ITEM 7, his order: level first under the hero, then the rotation, the movements, the week --
+     each card coloured from its own state, not from its neighbour's. "Follow a video instead" is
+     DEAD at his instruction, with its sheet and its card class. */
   h+=liftLevelDetailHTML();
+  h+=cycleHTML();
   h+=movementRows();
   h+=weekHTML(false);
   /* v7.35, his call: badges sit directly above the Library rather than under the hero. They are a
@@ -4427,71 +4405,76 @@ function reportize(cardHTML,o){
     '<span class="chev">'+I.chevD+'</span></summary>'+
     '<div class="dbody">'+body+'</div></details>';
 }
-/* The report rows, in the order a body report reads: what you weigh, what moves it, what it costs
-   you. Each names the series its own card already plots, so the row and the card cannot disagree. */
-function trackReportHTML(){
-  var h="",st=weightStats(),wv=weightVerdict();
-  if(st){
-    var tr=trendSeries().slice(-14).map(function(p){return p.v;});
-    h+=reportize(drawerize(weightCardHTML(),I.spark,wv.tone),{title:"Weight",tone:wv.tone,
-      val:st.raw.toFixed(1)+'<small> '+wLbl()+'</small>',series:tr,
-      sub:(st.to>0.3?(st.to.toFixed(1)+" "+wLbl()+" to "+st.goal):"at goal")+" &middot; "+wv.word});
-  }
-  var tv=stepsVerdict();
-  if(tv.val!=null){
-    h+=reportize(stepsCardHTML(),{title:"Steps",tone:tv.tone,
-      val:(tv.val/1000).toFixed(1)+'<small>k</small>',
-      series:weeklyStepsSeries(12).map(function(x){return x.avg;}),
-      sub:(tv.base?((tv.pct>0?"+":"")+tv.pct+"% vs year"):"7-day average")});
-  }
-  var sv=sleepVerdict(),s7=sleepStats(7),s28=sleepStats(28);
-  if(s7&&s28){
-    var nights=[],d=new Date(NOW);d.setDate(d.getDate()-27);
-    for(var i=0;i<28;i++){var r=(S.sleep||{})[keyOf(d)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
-      nights.push(t>=3?t:0);d.setDate(d.getDate()+1);}
-    h+=reportize(sleepCardHTML(),{title:"Sleep",tone:sv.tone,val:hrsTxt(s7.mean),series:nights,
-      sub:s28.short+" of "+s28.n+" under seven hours"});
-  }
-  var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
-  if(rw&&ry){
-    var mon=rhrMonthly(12).map(function(x){return x.med;});
-    var dl=rw.med-ry.med;
-    var rt=(dl>=5)?"red":(dl>=2)?"amber":(dl<=-3)?"good":"flat";
-    h+=reportize(rhrCardHTML(),{title:"Resting HR",tone:rt,
-      val:Math.round(rw.med)+'<small> bpm</small>',series:mon,
-      sub:(dl>0?"+":"")+Math.round(dl)+" bpm vs the year"});
-  }
+/* ITEM 9 (2026-08-01). The report is grouped BY QUESTION now, his spec: changing / recovering /
+   training / provenance. Simple early view above (the dash), heavy nesting underneath -- every
+   card stays a drawer. Each stream row is its own builder so a group is a list of names, not a
+   monolith that has to be reordered by scissors. */
+function trWeightRow(){
+  var st=weightStats(),wv=weightVerdict();
+  if(!st)return "";
+  var tr=trendSeries().slice(-14).map(function(p){return p.v;});
+  return reportize(drawerize(weightCardHTML(),I.spark,wv.tone),{title:"Weight",tone:wv.tone,
+    val:st.raw.toFixed(1)+'<small> '+wLbl()+'</small>',series:tr,
+    sub:(st.to>0.3?(st.to.toFixed(1)+" "+wLbl()+" to "+st.goal):"at goal")+" &middot; "+wv.word});
+}
+function trCalRow(){
   var cv=calVerdict();
-  if(cv.total){
-    h+=reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
-      series:(cv.enough&&cv.n>=CAL_MIN_CONF)?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
-      sub:cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of the last "+cv.windowDays+" days logged"):("nothing logged in the last "+CAL_DAYS+" days")});
-  }
-  /* Miles is Cardio's card, shown here too because a body report without the training load in it
-     is half a report. Same function, so the two tabs cannot drift. */
+  if(!cv.total)return "";
+  return reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
+    series:(cv.enough&&cv.n>=CAL_MIN_CONF)?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
+    sub:cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of the last "+cv.windowDays+" days logged"):("nothing logged in the last "+CAL_DAYS+" days")});
+}
+function trSleepRow(){
+  var sv=sleepVerdict(),s7=sleepStats(7),s28=sleepStats(28);
+  if(!s7||!s28)return "";
+  var nights=[],d=new Date(NOW);d.setDate(d.getDate()-27);
+  for(var i=0;i<28;i++){var r=(S.sleep||{})[keyOf(d)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
+    nights.push(t>=3?t:0);d.setDate(d.getDate()+1);}
+  return reportize(sleepCardHTML(),{title:"Sleep",tone:sv.tone,val:hrsTxt(s7.mean),series:nights,
+    sub:s28.short+" of "+s28.n+" under seven hours"});
+}
+function trRhrRow(){
+  var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
+  if(!rw||!ry)return "";
+  var mon=rhrMonthly(12).map(function(x){return x.med;});
+  var dl=rw.med-ry.med;
+  var rt=(dl>=5)?"red":(dl>=2)?"amber":(dl<=-3)?"good":"flat";
+  return reportize(rhrCardHTML(),{title:"Resting HR",tone:rt,
+    val:Math.round(rw.med)+'<small> bpm</small>',series:mon,
+    sub:(dl>0?"+":"")+Math.round(dl)+" bpm vs the year"});
+}
+function trStepsRow(){
+  var tv=stepsVerdict();
+  if(tv.val==null)return "";
+  return reportize(stepsCardHTML(),{title:"Steps",tone:tv.tone,
+    val:(tv.val/1000).toFixed(1)+'<small>k</small>',
+    series:weeklyStepsSeries(12).map(function(x){return x.avg;}),
+    sub:(tv.base?((tv.pct>0?"+":"")+tv.pct+"% vs year"):"7-day average")});
+}
+function trMilesRow(){
   var wkMi=weekMetrics(0).miles,miS=weeklyMilesSeries(12).map(function(w){return w.mi;});
-  h+=reportize(odoCardHTML(),{title:"Miles run",tone:kpiRag("miles")||"flat",
+  return reportize(odoCardHTML(),{title:"Miles run",tone:kpiRag("miles")||"flat",
     val:wkMi.toFixed(1)+'<small> mi</small>',series:miS,
     sub:"target "+plannedMiles().toFixed(1)+" mi this week"});
-  return h;
 }
-/* v7.39. The groups are the report's sections. THE STREAMS come first and read as rows; the
-   WORKINGS below them are cards that have no single series to plot and are genuinely reference,
-   so a drawer is the right shape for those and only those. The old "6 cards" counts are gone: a
-   count of how many things are hidden is a confession, not a label. */
 function deepHTML(){
-  var h='<div class="grouphd"><span class="gn">The streams</span><span class="gl"></span><span class="gc">tap a row for the workings</span></div>';
-  h+=trackReportHTML();
-  h+='<div class="grouphd"><span class="gn">This week</span><span class="gl"></span><span class="gc"></span></div>';
+  var h='<div class="grouphd"><span class="gn">Changing</span><span class="gl"></span><span class="gc">what the body is doing</span></div>';
+  h+=trWeightRow();
+  h+=trCalRow();
+  h+=drawerize(bodyTilesHTML(),I.flame,"");
+  h+='<div class="grouphd"><span class="gn">Recovering</span><span class="gl"></span><span class="gc"></span></div>';
+  h+=trSleepRow();
+  h+=trRhrRow();
+  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc"></span></div>';
+  h+=trStepsRow();
+  h+=trMilesRow();
   h+=scorecardHTML();
   h+=drawerize(heatmapHTML("6m"),I.cal,"");
   h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
       '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc"></span></div>';
   h+=sessionLengthHTML();
   h+=progressHTML();
-  h+=drawerize(bodyTilesHTML(),I.flame,"");
-  h+='<div class="grouphd"><span class="gn">Data and backup</span><span class="gl"></span><span class="gc"></span></div>';
+  h+='<div class="grouphd"><span class="gn">Provenance</span><span class="gl"></span><span class="gc">where the numbers come from</span></div>';
   h+=freshnessHTML();
   h+=backupBlockHTML();
   h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>';
@@ -8922,8 +8905,11 @@ function renderCardio(){
      The bare "Records" card that used to sit here and the badge drawer that used to sit at the
      very bottom of the tab were the same subject at opposite ends of one screen; they are one
      collapsible now, and it opens with the records bar so nothing is lost by the fold. */
-  h+=paceZonesHTML();
+  /* ITEM 8: below the hero, Lift's order -- level first, then the plan (pace zones), then the
+     detail (recent runs), then the week's miles. Recent runs tone from their own state:
+     recency, same ladder as Lift's rotation. */
   h+=levelDetailHTML();
+  h+=paceZonesHTML();
   if(runs.length){
     var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
     var rec=runs.slice(-6).reverse().map(function(r){
@@ -8936,7 +8922,9 @@ function renderCardio(){
         '<span class="rmi num">'+mi.toFixed(1)+'<small> mi</small></span>'+
         '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
     }).join("");
-    h+=collapsible("Recent runs",(best?("best "+mmss(best)+"/mi"):("last "+Math.min(6,runs.length))),rec,false,I.run,"");}
+    var lastRun=runs[runs.length-1].date;
+    var runTone=daysBetween(lastRun,TODAY)<=3?"good":daysBetween(lastRun,TODAY)<=7?"amber":"red";
+    h+=collapsible("Recent runs",(best?("best "+mmss(best)+"/mi"):("last "+Math.min(6,runs.length))),rec,false,I.run,runTone);}
 
   /* Weekly miles folded into the Miles card in v7.23; it was the same series in a second drawer. */
   /* The standalone Walk card is gone. "Log a walk" already sits in the hero at the top of this
