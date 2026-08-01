@@ -1,12 +1,13 @@
 <!doctype html><html data-theme="dark"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Train — round 3</title><style>
+<title>Train — round 4</title><style>
 :root{
   --bg:#F5F6F8; --surface:#FFFFFF; --surface-2:#EEF0F3; --raise:#FFFFFF;
   --ink:#0E1116; --sub:#616875; --faint:#767C86; --white:#FFFFFF;
   --line:#E7E9ED; --line-2:#D8DCE2;
   --accent:#FF4E2B; --accent-press:#E63E1E; --accent-tint:#FFE9E3;
   --good:#12A150; --good-tint:#E4F6EC; --amber:#B7791F; --amber-tint:#FBF1DD;
+  --red:#D64545; --red-tint:#F9E4E4;
   --shadow:0 1px 2px rgba(16,17,22,.04), 0 3px 12px rgba(16,17,22,.06);
   --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
 }
@@ -16,6 +17,7 @@ html[data-theme="dark"]{
   --line:#242A32; --line-2:#30363F;
   --accent:#FF5C3A; --accent-press:#FF7053; --accent-tint:#3A1E17;
   --good:#34D399; --good-tint:#12271E; --amber:#F0C36B; --amber-tint:#2A2213;
+  --red:#F07575; --red-tint:#2A1515;
   --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
 }
 :root{color-scheme:dark}
@@ -28,453 +30,331 @@ button{touch-action:manipulation;border:0;background:none;cursor:pointer;font-fa
 .vt{font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin-bottom:4px}
 .vd{font-size:13px;line-height:1.46;color:var(--faint);margin-bottom:16px}
 .stage{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;overflow:hidden}
-.stage.pop{padding:24px 16px 16px;border-radius:22px}
-
-/* ============ shared vocabulary ============ */
+.stage.pop{padding:20px 16px 16px;border-radius:22px;margin-bottom:14px}
 .cap{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
-.tickc{width:28px;height:28px;flex:none;border-radius:50%;border:1.5px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:transparent}
+.tickc{width:28px;height:28px;flex:none;border-radius:50%;border:1.5px solid var(--line-2);display:flex;align-items:center;justify-content:center;color:transparent;background:none;padding:0}
 .tickc svg{width:14px;height:14px}
-.on>.tickc,.tickc.on{background:var(--good);border-color:var(--good);color:#fff}
+.on .tickc,.tickc.on{background:var(--good);border-color:var(--good);color:#fff}
 
-/* ============ C-series: anchor ============ */
-/* C1 hero count */
-.c1top{display:flex;align-items:baseline;gap:10px;margin:4px 0 2px}
-.c1n{font-size:76px;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--ink)}
-.c1u{font-size:17px;font-weight:600;color:var(--faint)}
-.c1coach{font-size:13px;color:var(--sub);margin:6px 0 8px}
-.crow{display:flex;align-items:center;gap:12px;min-height:52px;border-top:1px solid var(--line)}
-.crow.first{border-top:0}
-.crow .cm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;padding:8px 0}
-.crow .cn{font-size:17px;font-weight:400;color:var(--ink);line-height:1.2;letter-spacing:-.01em}
-.crow .cd{font-size:13px;color:var(--faint)}
-.crow.on .cn{color:var(--faint)}
-/* C2 single ring */
-.c2ring{position:relative;width:128px;height:128px;margin:4px auto 12px}
-.c2ring svg{width:128px;height:128px;display:block}
-.c2in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0}
-.c2v{font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1;color:var(--ink)}
-.c2v span{font-size:20px;font-weight:600;color:var(--faint)}
-.c2l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:4px}
-/* C3 segmented arc */
-.c3wrap{position:relative;width:150px;height:150px;margin:4px auto 12px}
-.c3wrap svg{width:150px;height:150px;display:block}
-.c3in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.c3v{font-size:48px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.c3v span{font-size:20px;font-weight:600;color:var(--faint)}
-.c3l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-top:4px}
-/* C4 next-up */
-.c4prog{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--faint);margin-bottom:20px}
-.c4dots{display:flex;gap:5px;align-items:center}
-.c4dots i{width:7px;height:7px;border-radius:50%;background:var(--surface-2);display:block}
-.c4dots i.on{background:var(--good)}
-.c4next{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
-.c4t{font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:8px}
-.c4s{font-size:15px;color:var(--sub);line-height:1.4;margin-bottom:20px}
-.c4go{width:100%;height:52px;border-radius:14px;background:var(--good);color:#0b0f14;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px}
-.c4go svg{width:18px;height:18px}
-.c4q{font-size:13px;color:var(--faint);margin-top:16px}
-.c4q b{font-weight:600;color:var(--sub)}
-/* C5 promoted progress header */
-.c5top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}
-.c5n{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.c5n span{font-size:24px;font-weight:600;color:var(--faint)}
-.c5bar{display:flex;gap:4px;margin-bottom:8px}
-.c5bar i{flex:1;height:8px;border-radius:4px;background:var(--surface-2);display:block}
-.c5bar i.on{background:var(--good)}
-/* C6 rail */
-.c6head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.c6rows{position:relative}
-.c6rows::before{content:"";position:absolute;left:13px;top:16px;bottom:16px;width:2px;background:var(--line-2);border-radius:1px}
-.c6row{display:flex;align-items:center;gap:14px;min-height:56px;position:relative}
-.c6node{width:28px;height:28px;flex:none;border-radius:50%;border:2px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;color:transparent;z-index:1}
-.c6node svg{width:14px;height:14px}
-.c6row.on .c6node{background:var(--good);border-color:var(--good);color:#fff}
-.c6row.next .c6node{border-color:var(--accent)}
-.c6row.next .c6node i{width:10px;height:10px;border-radius:50%;background:var(--accent);display:block}
-.c6m{flex:1;display:flex;flex-direction:column;gap:1px;padding:8px 0}
-.c6m .cn{font-size:17px;font-weight:400;color:var(--ink);line-height:1.2}
-.c6m .cd{font-size:13px;color:var(--faint)}
-.c6row.on .cn{color:var(--faint)}
-/* C7 filling tiles */
-.c7n{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:6px 0 14px}
-.c7n span{font-size:22px;font-weight:600;color:var(--faint)}
-.c7tile{display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;border-radius:12px;background:var(--surface-2);margin-top:8px}
-.c7tile.on{background:var(--good-tint)}
-.c7tile .cm{flex:1;display:flex;flex-direction:column;gap:1px}
-.c7tile .cn{font-size:17px;font-weight:500;color:var(--ink);line-height:1.2}
-.c7tile .cd{font-size:13px;color:var(--faint)}
-.c7tile.on .cn{color:var(--good)}
-.c7tile.on .cd{color:var(--good);opacity:.7}
-/* C8 bare */
-.c8n{display:flex;align-items:baseline;gap:10px;margin:6px 0 12px}
-.c8v{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.c8u{font-size:17px;font-weight:600;color:var(--faint)}
-.c8row{display:flex;align-items:center;gap:10px;min-height:48px;border-top:1px solid var(--line);font-size:17px}
-.c8row svg{width:18px;height:18px;flex:none;color:var(--good);opacity:0}
-.c8row.on svg{opacity:1}
-.c8row .c8name{flex:1;color:var(--ink);font-weight:400}
-.c8row.on .c8name{color:var(--faint)}
-.c8row .c8dose{font-size:13px;color:var(--faint)}
-/* C9 split */
-.c9{display:flex;gap:20px;align-items:stretch}
-.c9l{flex:none;width:96px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;border-right:1px solid var(--line);padding-right:20px}
-.c9big{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1}
+/* ============ C9 animated ============ */
+.c9wrap{display:flex;gap:0;align-items:stretch}
+.c9l{flex:none;max-width:120px;width:120px;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;border-right:1px solid var(--line);padding-right:20px;margin-right:20px;overflow:hidden;transition:max-width .45s cubic-bezier(.22,1,.36,1),width .45s cubic-bezier(.22,1,.36,1),opacity .3s,padding .45s,margin .45s,border-color .45s;position:relative}
+.c9wrap.collapsed .c9l{max-width:0;width:0;opacity:0;padding-right:0;margin-right:0;border-color:transparent}
+.c9big{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;display:inline-block}
+.c9big.bump{animation:bump .35s cubic-bezier(.22,1,.36,1)}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
 .c9of{font-size:22px;font-weight:600;color:var(--faint);margin-top:2px}
 .c9cap{margin-top:8px}
+.c9count{transition:opacity .25s,transform .25s}
+.c9wrap.celebrate .c9count{opacity:0;transform:scale(.7)}
+.c9badge{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;opacity:0;transform:scale(.6);transition:opacity .3s,transform .35s cubic-bezier(.22,1,.36,1);pointer-events:none}
+.c9wrap.celebrate .c9badge{opacity:1;transform:scale(1)}
+.c9badge .bd{width:56px;height:56px;border-radius:50%;background:var(--good);color:#fff;display:flex;align-items:center;justify-content:center}
+.c9badge .bd svg{width:28px;height:28px}
+.c9badge .bt{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--good);margin-top:10px}
 .c9r{flex:1;min-width:0}
-.c9row{display:flex;align-items:center;gap:10px;min-height:44px;border-top:1px solid var(--line)}
+.c9sum{max-height:0;overflow:hidden;opacity:0;transition:max-height .45s cubic-bezier(.22,1,.36,1),opacity .35s .1s;display:flex;align-items:center;gap:8px;color:var(--good);font-size:15px;font-weight:700}
+.c9wrap.collapsed .c9sum{max-height:44px;opacity:1;padding-bottom:8px}
+.c9sum svg{width:16px;height:16px;flex:none}
+.c9sum span{color:var(--faint);font-weight:600;font-size:13px}
+.c9row{display:flex;align-items:center;gap:10px;min-height:48px;border-top:1px solid var(--line);width:100%;text-align:left;background:none;padding:0}
 .c9row.first{border-top:0}
 .c9row .tickc{width:24px;height:24px}
 .c9row .tickc svg{width:12px;height:12px}
 .c9m{flex:1;display:flex;flex-direction:column;gap:0;padding:6px 0}
-.c9m .cn{font-size:15px;font-weight:400;line-height:1.2;color:var(--ink)}
+.c9m .cn{font-size:15px;font-weight:400;line-height:1.2;color:var(--ink);transition:color .25s}
 .c9m .cd{font-size:11px;color:var(--faint)}
 .c9row.on .cn{color:var(--faint)}
-/* C10 sentence */
-.c10s{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.35;margin:8px 0 12px}
-.c10s button{font:inherit;color:var(--ink);background:var(--surface-2);border-radius:12px;padding:8px 14px;min-height:44px;display:inline-flex;align-items:center;margin:2px 0}
-.c10done{font-size:15px;color:var(--faint);display:flex;align-items:center;gap:7px;margin-bottom:16px}
-.c10done svg{width:15px;height:15px;color:var(--good);flex:none}
 
-/* ============ R-series: popup ============ */
-.rlab{text-align:center}
-.rhero{font-size:76px;font-weight:800;letter-spacing:-.045em;line-height:1;text-align:center;margin:10px 0 8px}
-.rhero span{font-size:22px;font-weight:600;color:var(--faint);letter-spacing:0}
-.rverd{font-size:15px;color:var(--sub);text-align:center;line-height:1.4;margin-bottom:20px}
-.rfoot{font-size:11px;color:var(--faint);margin-top:14px}
-.rabout{font-size:13px;color:var(--faint);line-height:1.5;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-/* bar chart */
-.rch{display:flex;align-items:flex-end;gap:4px;height:96px;position:relative;margin:0 0 6px}
-.rch i{flex:1;border-radius:3px 3px 0 0;background:var(--good);opacity:.45;display:block}
-.rch i.lo{background:var(--amber);opacity:.7}
-.rch i.now{opacity:1}
-.rch i.gap{background:var(--surface-2);opacity:1;height:2px!important;align-self:flex-end}
-.rrule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--faint);opacity:.6}
-.rrule span{position:absolute;right:0;top:-16px;font-size:11px;color:var(--faint)}
-.rax{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:16px}
-.rstrip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:12px}
-.rstrip div{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:1px solid var(--line)}
-.rstrip div.first{padding-left:0;border-left:0}
-.rstrip b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
-.rstrip span{font-size:11px;color:var(--faint)}
-.bleed{margin-left:-16px;margin-right:-16px}
-.bleed .rch{padding:0 16px}
-.bleed .rax{padding:0 16px}
-/* R2 apple */
-.r2head{margin-bottom:16px}
-.r2v{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;margin-top:4px}
-.r2v span{font-size:20px;font-weight:600;color:var(--faint)}
-.rins{background:var(--surface-2);border-radius:12px;overflow:hidden;margin-top:16px}
-.rinrow{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:8px 14px;position:relative}
-.rinrow+.rinrow::before{content:"";position:absolute;left:14px;right:0;top:0;height:1px;background:var(--line)}
-.rinrow span{font-size:15px;color:var(--sub)}
-.rinrow b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
-/* R3 oura */
-.r3top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:8px 0}
-.r3v{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.r3v span{font-size:20px;font-weight:600;color:var(--faint)}
-.r3ring{position:relative;width:72px;height:72px;flex:none}
-.r3ring svg{width:72px;height:72px;display:block}
-.r3in{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:var(--good)}
-.r3rows{margin-top:8px}
-.r3row{min-height:52px;padding:8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:5px}
-.r3rt{display:flex;align-items:baseline;justify-content:space-between}
-.r3rt span{font-size:15px;color:var(--ink)}
-.r3rt b{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
-.r3bar{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
-.r3bar i{display:block;height:100%;border-radius:2px;background:var(--good)}
-.r3bar i.am{background:var(--amber)}
-/* R4 chart hero */
-.r4top{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
-.r4v{font-size:48px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.r4v span{font-size:17px;font-weight:600;color:var(--faint);margin-left:4px}
-.r4area{display:block;width:100%;height:120px}
-/* R5 dots */
-.r5{display:flex;align-items:center;gap:20px;margin:8px 0 12px}
-.r5v{font-size:64px;font-weight:800;letter-spacing:-.045em;line-height:1}
-.r5v span{font-size:20px;font-weight:600;color:var(--faint)}
-.r5days{margin-left:auto;display:grid;grid-template-columns:repeat(7,14px);gap:6px;flex:none}
-.r5days i{width:14px;height:14px;border-radius:4px;background:var(--good);opacity:.9;display:block}
-.r5days i.lo{background:var(--amber)}
-.r5days u{text-decoration:none;font-size:11px;color:var(--faint);text-align:center;display:block}
-/* R6 band */
-.r6band{margin:-24px -16px 16px;padding:24px 16px 20px;background:var(--good-tint);text-align:center}
-.r6band .cap{color:var(--good)}
-.r6v{font-size:64px;font-weight:800;letter-spacing:-.045em;line-height:1;color:var(--good);margin:8px 0 6px}
-.r6v span{font-size:20px;font-weight:600;opacity:.6}
-.r6verd{font-size:15px;color:var(--ink)}
-/* R7 dataword */
-.r7row{display:flex;align-items:flex-end;gap:16px;margin:8px 0 8px}
-.r7v{font-size:64px;font-weight:800;letter-spacing:-.045em;line-height:1}
-.r7v span{font-size:20px;font-weight:600;color:var(--faint)}
-.r7spark{flex:1;height:40px;margin-bottom:4px;min-width:0}
-/* R8 gap */
-.r8v{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1;color:var(--good);text-align:center;margin:10px 0 6px}
-.r8v span{font-size:20px;font-weight:600;opacity:.65}
-.r8sub{font-size:13px;color:var(--sub);text-align:center;margin-bottom:20px}
-/* R9 heat */
-.r9v{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1;margin:6px 0 4px}
-.r9v span{font-size:20px;font-weight:600;color:var(--faint)}
-.r9grid{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;margin:16px 0 8px}
-.r9grid i{aspect-ratio:1;border-radius:3px;background:var(--good);display:block}
-.r9grid i[data-l="0"]{background:var(--surface-2)}
-.r9grid i[data-l="1"]{opacity:.3}
-.r9grid i[data-l="2"]{opacity:.55}
-.r9grid i[data-l="3"]{opacity:1}
-.r9leg{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--faint);margin-bottom:16px}
-.r9leg i{width:8px;height:8px;border-radius:2px;background:var(--good);display:inline-block}
-.r9leg i[data-l="0"]{background:var(--surface-2)}
-.r9leg i[data-l="1"]{opacity:.3}
-.r9leg i[data-l="2"]{opacity:.55}
-/* R10 stacked windows */
-.r10a{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:8px}
-.r10v{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1}
-.r10v span{font-size:20px;font-weight:600;color:var(--faint)}
-.r10spark{width:110px;height:36px;flex:none;margin-bottom:4px}
-.r10rows{margin-top:16px}
-.r10row{display:flex;align-items:baseline;gap:10px;min-height:40px;border-top:1px solid var(--line);padding:8px 0}
-.r10row b{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
-.r10row.dim b{color:var(--faint)}
-.r10row span{font-size:13px;color:var(--faint)}
+/* ============ popup family shared ============ */
+.phead{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.pic{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none}
+.pic svg{width:18px;height:18px}
+.phead .pl{flex:1;min-width:0}
+.phead .pl .cap{display:block}
+.phead .pl .sub{font-size:13px;color:var(--sub);margin-top:2px}
+.pring{position:relative;width:48px;height:48px;flex:none}
+.pring svg{width:48px;height:48px;display:block}
+.pring .pv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+[data-tone="good"]{--tone:var(--good);--tone-tint:var(--good-tint)}
+[data-tone="amber"]{--tone:var(--amber);--tone-tint:var(--amber-tint)}
+[data-tone="red"]{--tone:var(--red);--tone-tint:var(--red-tint)}
+.pic{background:var(--tone-tint);color:var(--tone)}
+.pring .pv{color:var(--tone)}
+.hero56{font-size:56px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.hero56 span{font-size:20px;font-weight:600;color:var(--faint);letter-spacing:0}
+.hero56.toned{color:var(--tone)}
+.hero56.toned span{color:var(--tone);opacity:.65}
+.verd{font-size:15px;color:var(--sub);line-height:1.4;margin-top:6px}
+.pfoot{font-size:11px;color:var(--faint);margin-top:14px}
+.logbtn{width:100%;min-height:52px;margin-top:16px;background:var(--accent);color:#fff;border-radius:14px;font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.logbtn svg{width:18px;height:18px}
+/* chart */
+.pch{display:flex;align-items:flex-end;gap:4px;height:88px;position:relative;margin:16px 0 6px}
+.pch i{flex:1;border-radius:3px 3px 0 0;background:var(--tone);opacity:.4;display:block}
+.pch i.hit{opacity:.85}
+.pch i.miss{background:var(--faint);opacity:.35}
+.pch i.gap{background:var(--surface-2);opacity:1;height:2px!important;align-self:flex-end}
+.prule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--faint);opacity:.6}
+.prule b{position:absolute;right:0;top:-16px;font-size:11px;font-weight:600;color:var(--faint)}
+.pax{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-bottom:14px}
+.pstrip{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);padding-top:12px}
+.pstrip div{display:flex;flex-direction:column;gap:2px;padding-left:12px;border-left:1px solid var(--line)}
+.pstrip div.first{padding-left:0;border-left:0}
+.pstrip b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+.pstrip span{font-size:11px;color:var(--faint)}
+/* weight chart */
+.wchart{display:block;width:100%;height:88px;margin:16px 0 6px}
+/* family B strip */
+.gweek{display:flex;gap:6px;margin:16px 0 4px}
+.gweek .gd{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.gweek i{width:100%;max-width:34px;height:34px;border-radius:8px;background:var(--surface-2);display:block}
+.gweek i.hit{background:var(--tone);opacity:.9}
+.gweek i.part{background:var(--tone);opacity:.35}
+.gweek u{text-decoration:none;font-size:11px;color:var(--faint)}
+.gik{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--faint);margin:8px 0 14px}
+.gik i{width:9px;height:9px;border-radius:3px;display:inline-block;background:var(--tone);opacity:.9;margin-right:4px;vertical-align:-1px}
+.gik i.part{opacity:.35}
+.gik i.off{background:var(--surface-2);opacity:1}
+.pins{background:var(--surface-2);border-radius:12px;overflow:hidden;margin-top:4px}
+.pinrow{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:8px 14px;position:relative}
+.pinrow+.pinrow::before{content:"";position:absolute;left:14px;right:0;top:0;height:1px;background:var(--line)}
+.pinrow span{font-size:15px;color:var(--sub)}
+.pinrow b{font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
+/* family C contributors */
+.crows{margin-top:12px}
+.crow2{min-height:52px;padding:8px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;justify-content:center;gap:5px}
+.crt{display:flex;align-items:baseline;justify-content:space-between}
+.crt span{font-size:15px;color:var(--ink)}
+.crt b{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
+.cbar{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden}
+.cbar i{display:block;height:100%;border-radius:2px;background:var(--tone)}
 </style></head><body><div class="wrap">
 
-<div class="vh" style="color:var(--faint);margin-top:28px">Round 3 · after the ruling</div>
-<div class="vt" style="font-size:24px">Morning anchor — ten more</div>
-<div class="vd">Same content in all ten: 2 of 4 done, push-ups and squats ticked, hamstring reach and chin tucks open. One 17/15/13/11 ramp plus a stated hero size, 8pt spacing, 44pt targets, colour only where it means something.</div>
+<div class="vh" style="color:var(--faint);margin-top:28px">Round 4 · your picks, built</div>
+<div class="vt" style="font-size:24px">C9, animated</div>
+<div class="vd">Live: tick and untick the rows. The count bumps as it climbs; at 4 of 4 the left column becomes the done mark, holds a beat, then collapses while the ledger takes the full width and carries the count line itself. Unchecking reverses it.</div>
 
-<div class="vh">C1</div><div class="vt">The count is the hero</div><div class="vd">WHOOP's move applied literally: the primary number at 76px so it reads at arm's length. The coaching line names the two moves left, then a bare list.</div>
-<div class="stage">
-  <div class="cap">Morning anchor</div>
-  <div class="c1top"><span class="c1n num">2</span><span class="c1u">left</span></div>
-  <div class="c1coach">Hamstring reach, then chin tucks.</div>
-  <div class="crow on first"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Push-ups (sub-max)</span><span class="cd">x8 clean</span></span></div>
-  <div class="crow on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
-</div>
-
-<div class="vh">C2</div><div class="vt">Close the ring</div><div class="vd">Apple Fitness grammar with ONE ring, not four. The ring is the day's bounded goal; the numeral inside is the state; the list is the map.</div>
-<div class="stage">
-  <div class="c2ring"><svg viewBox="0 0 128 128"><circle cx="64" cy="64" r="56" fill="none" stroke="var(--surface-2)" stroke-width="10"/><circle cx="64" cy="64" r="56" fill="none" stroke="var(--good)" stroke-width="10" stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="175.9" transform="rotate(-90 64 64)"/></svg>
-    <div class="c2in"><div class="c2v num">2<span>/4</span></div><div class="c2l">done</div></div></div>
-  <div class="crow on first"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Push-ups (sub-max)</span><span class="cd">x8 clean</span></span></div>
-  <div class="crow on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
-</div>
-
-<div class="vh">C3</div><div class="vt">Segmented arc</div><div class="vd">One ring, four segments, one per movement — the ring IS the checklist, so the list below goes tick-quiet. Count at 48px inside.</div>
-<div class="stage">
-  <div class="c3wrap"><svg viewBox="0 0 150 150">
-    <g transform="rotate(-90 75 75)">
-      <circle cx="75" cy="75" r="64" fill="none" stroke="var(--good)"      stroke-width="10" stroke-linecap="round" stroke-dasharray="88.5 313.6" stroke-dashoffset="-6"/>
-      <circle cx="75" cy="75" r="64" fill="none" stroke="var(--good)"      stroke-width="10" stroke-linecap="round" stroke-dasharray="88.5 313.6" stroke-dashoffset="-106.5"/>
-      <circle cx="75" cy="75" r="64" fill="none" stroke="var(--surface-2)" stroke-width="10" stroke-linecap="round" stroke-dasharray="88.5 313.6" stroke-dashoffset="-207"/>
-      <circle cx="75" cy="75" r="64" fill="none" stroke="var(--surface-2)" stroke-width="10" stroke-linecap="round" stroke-dasharray="88.5 313.6" stroke-dashoffset="-307.5"/>
-    </g></svg>
-    <div class="c3in"><div class="c3v num">2<span>/4</span></div><div class="c3l">this morning</div></div></div>
-  <div class="c8row on"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Push-ups (sub-max)</span><span class="c8dose">x8 clean</span></div>
-  <div class="c8row on"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Bodyweight squats</span><span class="c8dose">x10</span></div>
-  <div class="c8row"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Standing hamstring reach</span><span class="c8dose">x10</span></div>
-  <div class="c8row"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Chin tucks</span><span class="c8dose">x10</span></div>
-</div>
-
-<div class="vh">C4</div><div class="vt">Next up is the screen</div><div class="vd">Coaching is the data: the next movement's NAME is the hero at 32px. Done work collapses to dots, the queue to one line. One real button.</div>
-<div class="stage">
-  <div class="c4prog"><span>Morning anchor · 2 of 4</span><span class="c4dots"><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
-  <div class="c4next">Next</div>
-  <div class="c4t">Standing hamstring reach</div>
-  <div class="c4s">x10 · soft knees, hinge from the hips</div>
-  <button class="c4go"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Mark done</button>
-  <div class="c4q">Then <b>chin tucks x10</b> · push-ups and squats done</div>
-</div>
-
-<div class="vh">C5</div><div class="vt">B5, promoted</div><div class="vd">The progress-header direction you half-liked, with the header actually enormous: 64px count over a 4-segment bar, then the bare list.</div>
-<div class="stage">
-  <div class="c5top"><span class="c5n num">2<span>/4</span></span><span class="cap">Morning anchor</span></div>
-  <div class="c5bar"><i class="on"></i><i class="on"></i><i></i><i></i></div>
-  <div class="crow on first"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Push-ups (sub-max)</span><span class="cd">x8 clean</span></span></div>
-  <div class="crow on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-  <div class="crow"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
-</div>
-
-<div class="vh">C6</div><div class="vt">The rail</div><div class="vd">A vertical route: done nodes filled, the next node ringed in accent — the one place accent appears. Order reads top to bottom as the morning's path.</div>
-<div class="stage">
-  <div class="c6head"><span class="cap">Morning anchor</span><span class="cap" style="color:var(--good)">2 of 4</span></div>
-  <div class="c6rows">
-    <div class="c6row on"><span class="c6node"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c6m"><span class="cn">Push-ups (sub-max)</span><span class="cd">x8 clean</span></span></div>
-    <div class="c6row on"><span class="c6node"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c6m"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-    <div class="c6row next"><span class="c6node"><i></i></span><span class="c6m"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-    <div class="c6row"><span class="c6node"></span><span class="c6m"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
-  </div>
-</div>
-
-<div class="vh">C7</div><div class="vt">Tiles that fill</div><div class="vd">The shipped A4 checklist kept, under a headline that finally commits: 56px count, tiles flood green when done. The closest option to live.</div>
-<div class="stage">
-  <div class="cap">Morning anchor</div>
-  <div class="c7n num">2<span>/4</span></div>
-  <div class="c7tile on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Push-ups (sub-max)</span><span class="cd">x8 clean</span></span></div>
-  <div class="c7tile on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-  <div class="c7tile"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-  <div class="c7tile"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="cm"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
-</div>
-
-<div class="vh">C8</div><div class="vt">Bare, Tufte</div><div class="vd">No containers at all: a 64px count, four text lines, hairlines. Dose sits inline at 13px. The quietest option here — chrome zero, data total.</div>
-<div class="stage">
-  <div class="cap">Morning anchor</div>
-  <div class="c8n"><span class="c8v num">2</span><span class="c8u">left</span></div>
-  <div class="c8row on"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Push-ups</span><span class="c8dose">x8 clean</span></div>
-  <div class="c8row on"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Bodyweight squats</span><span class="c8dose">x10</span></div>
-  <div class="c8row"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Standing hamstring reach</span><span class="c8dose">x10</span></div>
-  <div class="c8row"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="c8name">Chin tucks</span><span class="c8dose">x10</span></div>
-</div>
-
-<div class="vh">C9</div><div class="vt">Split ledger</div><div class="vd">WHOOP's strain-screen shape: the count owns the left column behind a hairline, the four movements stack compact on the right. Densest option.</div>
-<div class="stage">
-  <div class="c9">
-    <div class="c9l"><span class="c9big num">2</span><span class="c9of num">of 4</span><span class="cap c9cap">Anchor</span></div>
+<div class="stage" id="c9demo">
+  <div class="c9wrap" id="d-wrap">
+    <div class="c9l">
+      <div class="c9count" id="d-count"><span class="c9big num" id="d-num">2</span><div class="c9of num">of 4</div><div class="cap c9cap">Anchor</div></div>
+      <div class="c9badge" id="d-badge"><div class="bd"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="bt">Done</div></div>
+    </div>
     <div class="c9r">
-      <div class="c9row on first"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c9m"><span class="cn">Push-ups</span><span class="cd">x8 clean</span></span></div>
-      <div class="c9row on"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c9m"><span class="cn">Bodyweight squats</span><span class="cd">x10</span></span></div>
-      <div class="c9row"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c9m"><span class="cn">Standing hamstring reach</span><span class="cd">x10</span></span></div>
-      <div class="c9row"><span class="tickc"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="c9m"><span class="cn">Chin tucks</span><span class="cd">x10</span></span></div>
+      <div class="c9sum" id="d-sum"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>All 4 done<span>· this morning</span></div>
+      <div id="d-rows"></div>
     </div>
   </div>
 </div>
 
-<div class="vh">C10</div><div class="vt">The sentence is the screen</div><div class="vd">Coaching-is-the-data taken literally: what's left is a 24px sentence whose movement names are the tap targets. Done work is one quiet ticked line.</div>
-<div class="stage">
-  <div class="cap">Morning anchor</div>
-  <div class="c10s"><button>Hamstring reach</button> and <button>chin tucks</button> left.</div>
-  <div class="c10done"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Push-ups and squats done.</div>
-  <div class="c5bar"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+<div class="vh" style="color:var(--faint);margin-top:56px">Round 4 · the popups, steel-manned</div>
+<div class="vt" style="font-size:24px">Three families × all four metrics</div>
+<div class="vd">Each family is one design worn by all four popups, so uniformity is judged on its face. Every popup answers its own question: calories, in deficit or not; sleep, above the floor or not; steps, hit the rung or not; weight, the trend, with the log button it must carry. The header everywhere is the piece you liked from R3: the tile's own icon and label top left, the score ring top right.</div>
+
+<div class="vh">Family A</div><div class="vt">The verdict hero</div><div class="vd">Answer first at 56px, one verdict line, then the evidence chart against the target rule, three windows, provenance. Weight swaps bars for dots plus trend, and carries Log.</div>
+
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v7M11 3v7M9 3v18M16 3c-1.5 1.5-2 4-2 6 0 2 .8 3 2 3v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Calories</span><span class="sub">Last 14 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">108%</span></span></div>
+  <div class="hero56 toned num">185<span> over</span></div>
+  <div class="verd">Over maintenance. The scale agrees.</div>
+  <div class="pch"><div class="prule" style="bottom:56px"><b>2,300</b></div><i style="height:62px"></i><i style="height:51px"></i><i class="gap"></i><i style="height:66px"></i><i class="hit" style="height:49px"></i><i style="height:70px"></i><i class="gap"></i><i class="hit" style="height:52px"></i><i style="height:64px"></i><i class="gap"></i><i class="hit" style="height:47px"></i><i style="height:73px"></i><i style="height:60px"></i><i style="height:68px"></i></div>
+  <div class="pax"><span>14 days ago</span><span>yesterday</span></div>
+  <div class="pstrip"><div class="first"><b class="num">2,485</b><span>daily avg</span></div><div><b class="num">9 of 14</b><span>days logged</span></div><div><b class="num">3</b><span>deficit days</span></div></div>
+  <div class="pfoot">Cal AI via Apple Health · through yesterday · rule is maintenance</div>
 </div>
 
-<div class="vh" style="color:var(--faint);margin-top:56px">Round 3 · after the ruling</div>
-<div class="vt" style="font-size:24px">Metric popup — ten more</div>
-<div class="vd">Sleep in all ten: avg 8h 09m over 7 nights, 7h floor, 14-night history with one gap night, windows 8:09 / 8:10 / 7:50, five of 22 under seven. Per the ruling there is NO fold inside any of these — long detail sits at the foot of the scroll, demoted by size.</div>
-
-<div class="vh">R1</div><div class="vt">WHOOP hero</div><div class="vd">The score screen: 76px number centred, one verdict line, the evidence below in strict size order. Nothing competes with the number.</div>
-<div class="stage pop">
-  <div class="cap rlab">Sleep · last 7 nights</div>
-  <div class="rhero num">8<span>h</span> 09<span>m</span></div>
-  <div class="rverd">Holding above seven hours.</div>
-  <div class="rch"><div class="rrule" style="bottom:70px"><span>7h</span></div><i style="height:79px"></i><i class="lo" style="height:68px"></i><i class="gap"></i><i style="height:74px"></i><i style="height:81px"></i><i style="height:76px"></i><i style="height:72px"></i><i class="lo" style="height:64px"></i><i style="height:83px"></i><i style="height:78px"></i><i class="lo" style="height:59px"></i><i style="height:71px"></i><i style="height:80px"></i><i class="now" style="height:74px"></i></div>
-  <div class="rax"><span>14 nights ago</span><span>last night</span></div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-  <div class="rfoot">Apple Health · through yesterday</div>
+<div class="stage pop" data-tone="good">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Sleep</span><span class="sub">Last 7 nights</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">117%</span></span></div>
+  <div class="hero56 num">8<span>h</span> 09<span>m</span></div>
+  <div class="verd">Holding above the seven-hour floor.</div>
+  <div class="pch"><div class="prule" style="bottom:62px"><b>7h</b></div><i class="hit" style="height:70px"></i><i class="miss" style="height:60px"></i><i class="gap"></i><i class="hit" style="height:66px"></i><i class="hit" style="height:72px"></i><i class="hit" style="height:67px"></i><i class="hit" style="height:64px"></i><i class="miss" style="height:57px"></i><i class="hit" style="height:74px"></i><i class="hit" style="height:69px"></i><i class="miss" style="height:52px"></i><i class="hit" style="height:63px"></i><i class="hit" style="height:71px"></i><i class="hit" style="height:66px"></i></div>
+  <div class="pax"><span>14 nights ago</span><span>last night</span></div>
+  <div class="pstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
+  <div class="pfoot">Apple Health · through yesterday · rule is the 7h floor</div>
 </div>
 
-<div class="vh">R2</div><div class="vt">Apple Health page</div><div class="vd">Left-aligned 56px number, full-bleed chart with the target rule, windows as an inset list, and the old .more prose living openly as an About foot — the ruling made visible.</div>
-<div class="stage pop">
-  <div class="r2head"><div class="cap">Average · last 7 nights</div><div class="r2v num">8<span>h</span> 09<span>m</span></div></div>
-  <div class="bleed">
-    <div class="rch"><div class="rrule" style="bottom:70px"><span style="right:16px">7h</span></div><i style="height:79px"></i><i class="lo" style="height:68px"></i><i class="gap"></i><i style="height:74px"></i><i style="height:81px"></i><i style="height:76px"></i><i style="height:72px"></i><i class="lo" style="height:64px"></i><i style="height:83px"></i><i style="height:78px"></i><i class="lo" style="height:59px"></i><i style="height:71px"></i><i style="height:80px"></i><i class="now" style="height:74px"></i></div>
-    <div class="rax"><span>14 nights ago</span><span>last night</span></div>
-  </div>
-  <div class="rins"><div class="rinrow"><span>28 nights</span><b class="num">8h 10m</b></div><div class="rinrow"><span>90 nights</span><b class="num">7h 50m</b></div><div class="rinrow"><span>Under seven hours</span><b class="num">5 of 22</b></div></div>
-  <div class="rabout">Seven hours is the AASM consensus floor, not a derived target — deriving one from bad sleep would ratify the problem. Nights are Apple Watch records; a missing night is a gap, never a zero.</div>
+<div class="stage pop" data-tone="red">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 13l3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Steps</span><span class="sub">Last 7 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="49" transform="rotate(-90 24 24)"/></svg><span class="pv num">59%</span></span></div>
+  <div class="hero56 num">3,096</div>
+  <div class="verd">1,754 short of the 5,250 rung yesterday. Two of seven days hit it.</div>
+  <div class="pch"><div class="prule" style="bottom:60px"><b>5,250</b></div><i class="miss" style="height:48px"></i><i class="hit" style="height:66px"></i><i class="miss" style="height:41px"></i><i class="miss" style="height:52px"></i><i class="hit" style="height:71px"></i><i class="miss" style="height:44px"></i><i class="miss" style="height:35px"></i></div>
+  <div class="pax"><span>7 days ago</span><span>yesterday</span></div>
+  <div class="pstrip"><div class="first"><b class="num">4,581</b><span>7-day avg</span></div><div><b class="num">2 of 7</b><span>days at rung</span></div><div><b class="num">5,250</b><span>the rung</span></div></div>
+  <div class="pfoot">Apple Health · through yesterday · the rung climbs itself, 28-day median × 1.15</div>
 </div>
 
-<div class="vh">R3</div><div class="vt">Oura contributors</div><div class="vd">Number left, target arc right, then the WHY as three named contributors with their own small bars — the coaching rendered as data rows, not a paragraph.</div>
-<div class="stage pop">
-  <div class="cap">Sleep · last 7 nights</div>
-  <div class="r3top">
-    <div class="r3v num">8<span>h</span> 09<span>m</span></div>
-    <div class="r3ring"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="var(--surface-2)" stroke-width="7"/><circle cx="36" cy="36" r="30" fill="none" stroke="var(--good)" stroke-width="7" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="0" transform="rotate(-90 36 36)"/></svg><div class="r3in num">117%</div></div>
-  </div>
-  <div class="r3rows">
-    <div class="r3row"><div class="r3rt"><span>Seven-hour nights</span><b class="num">17 of 22</b></div><div class="r3bar"><i style="width:77%"></i></div></div>
-    <div class="r3row"><div class="r3rt"><span>Consistency, night to night</span><b class="num">±48m</b></div><div class="r3bar"><i class="am" style="width:55%"></i></div></div>
-    <div class="r3row"><div class="r3rt"><span>Weekends vs weekdays</span><b class="num">−22m</b></div><div class="r3bar"><i style="width:82%"></i></div></div>
-  </div>
-  <div class="rfoot">Apple Health · through yesterday</div>
-</div>
-
-<div class="vh">R4</div><div class="vt">Chart carries it</div><div class="vd">The area chart is the hero at 120px with the shadcn gradient; the number sits at 48px beside the label. For when the shape of the fortnight is the answer.</div>
-<div class="stage pop">
-  <div class="r4top"><div class="cap">Sleep · last 7 nights</div><div class="r4v num">8:09<span>avg</span></div></div>
-  <div class="bleed"><svg class="r4area" viewBox="0 0 320 120" preserveAspectRatio="none">
-    <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="var(--good)" stop-opacity=".32"/><stop offset="95%" stop-color="var(--good)" stop-opacity=".04"/></linearGradient></defs>
-    <line x1="0" y1="50" x2="320" y2="50" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
-    <path d="M0,41 L24,52 L48,46 L72,39 L96,44 L120,48 L144,56 L168,37 L192,42 L216,61 L240,49 L264,40 L288,46 L320,44 L320,120 L0,120 Z" fill="url(#g1)"/>
-    <path d="M0,41 L24,52 L48,46 L72,39 L96,44 L120,48 L144,56 L168,37 L192,42 L216,61 L240,49 L264,40 L288,46 L320,44" fill="none" stroke="var(--good)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="316" cy="44" r="3.5" fill="var(--good)"/>
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2.5-6 4 12L16 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Weight</span><span class="sub">Trend, last 28 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="89.5" transform="rotate(-90 24 24)"/></svg><span class="pv num">25%</span></span></div>
+  <div class="hero56 toned num">+1.9<span> lb/wk</span></div>
+  <div class="verd">Trending up on a cut. Trend 189.9, scale 191.2 this morning.</div>
+  <svg class="wchart" viewBox="0 0 320 88" preserveAspectRatio="none">
+    <line x1="0" y1="72" x2="320" y2="72" stroke="var(--good)" stroke-width="1" stroke-dasharray="4 4" opacity=".55"/>
+    <circle cx="12" cy="38" r="2" fill="var(--faint)" opacity=".55"/><circle cx="44" cy="46" r="2" fill="var(--faint)" opacity=".55"/><circle cx="78" cy="30" r="2" fill="var(--faint)" opacity=".55"/><circle cx="112" cy="44" r="2" fill="var(--faint)" opacity=".55"/><circle cx="150" cy="36" r="2" fill="var(--faint)" opacity=".55"/><circle cx="186" cy="26" r="2" fill="var(--faint)" opacity=".55"/><circle cx="222" cy="34" r="2" fill="var(--faint)" opacity=".55"/><circle cx="258" cy="22" r="2" fill="var(--faint)" opacity=".55"/><circle cx="294" cy="18" r="2" fill="var(--faint)" opacity=".55"/>
+    <path d="M12,40 L60,38 L120,36 L180,31 L240,26 L308,20" fill="none" stroke="var(--amber)" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round"/>
+    <circle cx="308" cy="20" r="3.5" fill="var(--amber)"/>
+    <text x="316" y="68" text-anchor="end" font-size="10" fill="var(--good)">180</text>
   </svg>
-  <div class="rax"><span>14 nights ago</span><span>last night</span></div></div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-  <div class="rfoot">Dashed rule is the 7h floor · Apple Health, through yesterday</div>
+  <div class="pax"><span>28 days ago</span><span>today</span></div>
+  <div class="pstrip"><div class="first"><b class="num">191.2</b><span>scale, today</span></div><div><b class="num">189.9</b><span>trend</span></div><div><b class="num">180</b><span>goal</span></div></div>
+  <button class="logbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Log today's weight</button>
+  <div class="pfoot">Your scale, Sunday habit · dots are readings, the line is the 2-week trend</div>
 </div>
 
-<div class="vh">R5</div><div class="vt">Number and the week</div><div class="vd">Tremor's status strip instead of a chart: 64px number, seven squares for seven nights, amber marking the two short ones. Categorical, no y-axis to argue with.</div>
-<div class="stage pop">
-  <div class="cap">Sleep · last 7 nights</div>
-  <div class="r5">
-    <div class="r5v num">8<span>h</span> 09<span>m</span></div>
-    <div class="r5days"><i></i><i class="lo"></i><i></i><i></i><i class="lo"></i><i></i><i></i><u>F</u><u>S</u><u>S</u><u>M</u><u>T</u><u>W</u><u>T</u></div>
+<div class="vh">Family B</div><div class="vt">The goal ledger</div><div class="vd">The gap to target IS the number, in state colour, then one uniform seven-square week strip: did each day hit, partly hit or miss. Windows as an inset list. The most did-I-or-didn't-I of the three.</div>
+
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v7M11 3v7M9 3v18M16 3c-1.5 1.5-2 4-2 6 0 2 .8 3 2 3v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Calories</span><span class="sub">vs maintenance, 2,300</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">108%</span></span></div>
+  <div class="hero56 toned num">+185</div>
+  <div class="verd">Daily average over maintenance, last 14 days.</div>
+  <div class="gweek"><span class="gd"><i class="hit"></i><u>F</u></span><span class="gd"><i></i><u>S</u></span><span class="gd"><i class="part"></i><u>S</u></span><span class="gd"><i class="part"></i><u>M</u></span><span class="gd"><i class="hit"></i><u>T</u></span><span class="gd"><i class="part"></i><u>W</u></span><span class="gd"><i></i><u>T</u></span></div>
+  <div class="gik"><span><i></i>deficit day</span><span><i class="part"></i>over</span><span><i class="off"></i>not logged</span></div>
+  <div class="pins"><div class="pinrow"><span>Daily average</span><b class="num">2,485 kcal</b></div><div class="pinrow"><span>Days logged</span><b class="num">9 of 14</b></div><div class="pinrow"><span>Deficit days</span><b class="num">3 of 9</b></div></div>
+  <div class="pfoot">Cal AI via Apple Health · through yesterday</div>
+</div>
+
+<div class="stage pop" data-tone="good">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Sleep</span><span class="sub">vs the 7h floor</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">117%</span></span></div>
+  <div class="hero56 toned num">+1<span>h</span> 09<span>m</span></div>
+  <div class="verd">Above the floor on the week. Average 8h 09m.</div>
+  <div class="gweek"><span class="gd"><i class="hit"></i><u>F</u></span><span class="gd"><i class="part"></i><u>S</u></span><span class="gd"><i class="hit"></i><u>S</u></span><span class="gd"><i class="hit"></i><u>M</u></span><span class="gd"><i class="part"></i><u>T</u></span><span class="gd"><i class="hit"></i><u>W</u></span><span class="gd"><i class="hit"></i><u>T</u></span></div>
+  <div class="gik"><span><i></i>7h or more</span><span><i class="part"></i>under</span><span><i class="off"></i>no record</span></div>
+  <div class="pins"><div class="pinrow"><span>7 nights</span><b class="num">8h 09m</b></div><div class="pinrow"><span>28 nights</span><b class="num">8h 10m</b></div><div class="pinrow"><span>Under seven</span><b class="num">5 of 22</b></div></div>
+  <div class="pfoot">Apple Health · through yesterday</div>
+</div>
+
+<div class="stage pop" data-tone="red">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 13l3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Steps</span><span class="sub">vs the 5,250 rung</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="49" transform="rotate(-90 24 24)"/></svg><span class="pv num">59%</span></span></div>
+  <div class="hero56 toned num">&minus;1,754</div>
+  <div class="verd">Short of the rung yesterday. Two of seven days hit it.</div>
+  <div class="gweek"><span class="gd"><i class="part"></i><u>F</u></span><span class="gd"><i class="hit"></i><u>S</u></span><span class="gd"><i class="part"></i><u>S</u></span><span class="gd"><i class="part"></i><u>M</u></span><span class="gd"><i class="hit"></i><u>T</u></span><span class="gd"><i class="part"></i><u>W</u></span><span class="gd"><i class="part"></i><u>T</u></span></div>
+  <div class="gik"><span><i></i>rung hit</span><span><i class="part"></i>short</span><span><i class="off"></i>no record</span></div>
+  <div class="pins"><div class="pinrow"><span>7-day average</span><b class="num">4,581</b></div><div class="pinrow"><span>Days at the rung</span><b class="num">2 of 7</b></div><div class="pinrow"><span>The rung</span><b class="num">5,250</b></div></div>
+  <div class="pfoot">Apple Health · through yesterday · rung = 28-day median × 1.15</div>
+</div>
+
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2.5-6 4 12L16 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Weight</span><span class="sub">vs the plan, &minus;1.3 lb/wk</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="89.5" transform="rotate(-90 24 24)"/></svg><span class="pv num">25%</span></span></div>
+  <div class="hero56 toned num">+1.9<span> lb/wk</span></div>
+  <div class="verd">Moving the wrong way for a cut. Trend 189.9.</div>
+  <div class="gweek"><span class="gd"><i class="hit"></i><u>F</u></span><span class="gd"><i class="off"></i><u>S</u></span><span class="gd"><i class="hit"></i><u>S</u></span><span class="gd"><i class="off"></i><u>M</u></span><span class="gd"><i class="off"></i><u>T</u></span><span class="gd"><i class="off"></i><u>W</u></span><span class="gd"><i class="hit"></i><u>T</u></span></div>
+  <div class="gik"><span><i></i>weighed in</span><span><i class="off"></i>no reading</span></div>
+  <div class="pins"><div class="pinrow"><span>Scale, today</span><b class="num">191.2 lb</b></div><div class="pinrow"><span>Trend</span><b class="num">189.9 lb</b></div><div class="pinrow"><span>Next milestone</span><b class="num">189</b></div></div>
+  <button class="logbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Log today's weight</button>
+  <div class="pfoot">Your scale · squares are weigh-in days</div>
+</div>
+
+<div class="vh">Family C</div><div class="vt">The contributors</div><div class="vd">The R3 shape you flagged, worn by all four: header with the ring, the answer at 56px, then the WHY as three named contributor rows with their own bars. The most explanatory of the three.</div>
+
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3v7M11 3v7M9 3v18M16 3c-1.5 1.5-2 4-2 6 0 2 .8 3 2 3v9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Calories</span><span class="sub">Last 14 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">108%</span></span></div>
+  <div class="hero56 toned num">185<span> over</span></div>
+  <div class="verd">Over maintenance. The scale agrees.</div>
+  <div class="crows">
+    <div class="crow2"><div class="crt"><span>Deficit days</span><b class="num">3 of 9</b></div><div class="cbar"><i style="width:33%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>Coverage, days logged</span><b class="num">9 of 14</b></div><div class="cbar"><i style="width:64%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>Worst day</span><b class="num">+710</b></div><div class="cbar"><i style="width:85%"></i></div></div>
   </div>
-  <div class="rverd" style="text-align:left;margin-bottom:16px">Two nights under seven this week, both mid-week.</div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-  <div class="rfoot">Apple Health · through yesterday</div>
+  <div class="pfoot">Cal AI via Apple Health · through yesterday</div>
 </div>
 
-<div class="vh">R6</div><div class="vt">Verdict band</div><div class="vd">The state tints a full-bleed band behind the number — WHOOP's green/amber/red vocabulary at the surface level. Below the band, neutral evidence.</div>
-<div class="stage pop">
-  <div class="r6band"><div class="cap">Sleep · last 7 nights</div><div class="r6v num">8<span>h</span> 09<span>m</span></div><div class="r6verd">Holding above seven hours.</div></div>
-  <div class="rch"><div class="rrule" style="bottom:70px"><span>7h</span></div><i style="height:79px"></i><i class="lo" style="height:68px"></i><i class="gap"></i><i style="height:74px"></i><i style="height:81px"></i><i style="height:76px"></i><i style="height:72px"></i><i class="lo" style="height:64px"></i><i style="height:83px"></i><i style="height:78px"></i><i class="lo" style="height:59px"></i><i style="height:71px"></i><i style="height:80px"></i><i class="now" style="height:74px"></i></div>
-  <div class="rax"><span>14 nights ago</span><span>last night</span></div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-</div>
-
-<div class="vh">R7</div><div class="vt">Dataword</div><div class="vd">Tufte's sparkline discipline: the trend is word-sized, set at the number's baseline with a grey normal band behind it. Everything else is a list.</div>
-<div class="stage pop">
-  <div class="cap">Sleep · last 7 nights</div>
-  <div class="r7row">
-    <div class="r7v num">8<span>h</span> 09<span>m</span></div>
-    <svg class="r7spark" viewBox="0 0 120 40" preserveAspectRatio="none"><rect x="0" y="12" width="120" height="14" fill="var(--surface-2)"/><polyline points="0,15 9,20 18,17 27,13 36,16 45,18 54,22 63,11 72,15 81,26 90,18 99,13 108,16 120,15" fill="none" stroke="var(--good)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/><circle cx="120" cy="15" r="2.5" fill="var(--good)"/></svg>
+<div class="stage pop" data-tone="good">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Sleep</span><span class="sub">Last 7 nights</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="0" transform="rotate(-90 24 24)"/></svg><span class="pv num">117%</span></span></div>
+  <div class="hero56 num">8<span>h</span> 09<span>m</span></div>
+  <div class="verd">Holding above the seven-hour floor.</div>
+  <div class="crows">
+    <div class="crow2"><div class="crt"><span>Seven-hour nights</span><b class="num">17 of 22</b></div><div class="cbar"><i style="width:77%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>Consistency, night to night</span><b class="num">±48m</b></div><div class="cbar"><i style="width:55%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>Weekends vs weekdays</span><b class="num">&minus;22m</b></div><div class="cbar"><i style="width:82%"></i></div></div>
   </div>
-  <div class="rverd" style="text-align:left">Holding above seven hours.</div>
-  <div class="rins"><div class="rinrow"><span>28 nights</span><b class="num">8h 10m</b></div><div class="rinrow"><span>90 nights</span><b class="num">7h 50m</b></div><div class="rinrow"><span>Under seven hours</span><b class="num">5 of 22</b></div></div>
-  <div class="rfoot">Grey band is your usual range · Apple Health, through yesterday</div>
+  <div class="pfoot">Apple Health · through yesterday</div>
 </div>
 
-<div class="vh">R8</div><div class="vt">The gap is the number</div><div class="vd">Answers "am I on track" directly: the hero is the distance from the floor, in state colour. The average demotes to the subline. Same frame the Calories tile already uses.</div>
-<div class="stage pop">
-  <div class="cap rlab">Sleep · vs the 7h floor</div>
-  <div class="r8v num">+1<span>h</span> 09<span>m</span></div>
-  <div class="r8sub">avg 8h 09m over the last 7 nights</div>
-  <div class="rch"><div class="rrule" style="bottom:70px"><span>7h</span></div><i style="height:79px"></i><i class="lo" style="height:68px"></i><i class="gap"></i><i style="height:74px"></i><i style="height:81px"></i><i style="height:76px"></i><i style="height:72px"></i><i class="lo" style="height:64px"></i><i style="height:83px"></i><i style="height:78px"></i><i class="lo" style="height:59px"></i><i style="height:71px"></i><i style="height:80px"></i><i class="now" style="height:74px"></i></div>
-  <div class="rax"><span>14 nights ago</span><span>last night</span></div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-</div>
-
-<div class="vh">R9</div><div class="vt">The month as heat</div><div class="vd">GitHub's quantized grid: 30 nights in two rows, four levels, a legend that teaches the encoding in 40px. Honest that 7.4 vs 7.6 does not matter.</div>
-<div class="stage pop">
-  <div class="cap">Sleep · last 7 nights</div>
-  <div class="r9v num">8<span>h</span> 09<span>m</span></div>
-  <div class="r9grid">
-    <i data-l="2"></i><i data-l="3"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="0"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="1"></i><i data-l="2"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i>
-    <i data-l="3"></i><i data-l="1"></i><i data-l="0"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="2"></i><i data-l="1"></i><i data-l="3"></i><i data-l="2"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="2"></i><i data-l="2"></i>
+<div class="stage pop" data-tone="red">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M12 13l3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+    <span class="pl"><span class="cap">Steps</span><span class="sub">Last 7 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="49" transform="rotate(-90 24 24)"/></svg><span class="pv num">59%</span></span></div>
+  <div class="hero56 num">3,096</div>
+  <div class="verd">1,754 short of the rung yesterday.</div>
+  <div class="crows">
+    <div class="crow2"><div class="crt"><span>Days at the rung</span><b class="num">2 of 7</b></div><div class="cbar"><i style="width:29%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>7-day average vs rung</span><b class="num">4,581 / 5,250</b></div><div class="cbar"><i style="width:87%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>vs last month</span><b class="num">&minus;12%</b></div><div class="cbar"><i style="width:40%"></i></div></div>
   </div>
-  <div class="r9leg"><span>less</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><span>more · grey is a gap night</span></div>
-  <div class="rstrip"><div class="first"><b class="num">8:09</b><span>7 nights</span></div><div><b class="num">8:10</b><span>28 nights</span></div><div><b class="num">7:50</b><span>90 nights</span></div></div>
-  <div class="rfoot">Apple Health · through yesterday</div>
+  <div class="pfoot">Apple Health · through yesterday · rung = 28-day median × 1.15</div>
 </div>
 
-<div class="vh">R10</div><div class="vt">Windows as the hierarchy</div><div class="vd">Size does the window comparison: 56px for the week, 22px for the month and quarter. No chart chrome except one sparkline. The most typographic option.</div>
-<div class="stage pop">
-  <div class="cap">Sleep</div>
-  <div class="r10a">
-    <div><div class="r10v num">8<span>h</span> 09<span>m</span></div><div class="cap" style="margin-top:6px">Last 7 nights</div></div>
-    <svg class="r10spark" viewBox="0 0 110 36" preserveAspectRatio="none"><polyline points="0,14 8,19 16,16 25,12 33,15 41,17 49,21 58,10 66,14 74,25 82,17 90,12 99,15 110,14" fill="none" stroke="var(--good)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"/><circle cx="110" cy="14" r="2.5" fill="var(--good)"/></svg>
+<div class="stage pop" data-tone="amber">
+  <div class="phead"><span class="pic"><svg viewBox="0 0 24 24" fill="none"><path d="M3 12h4l2.5-6 4 12L16 12h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span class="pl"><span class="cap">Weight</span><span class="sub">Trend, last 28 days</span></span>
+    <span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/><circle cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="89.5" transform="rotate(-90 24 24)"/></svg><span class="pv num">25%</span></span></div>
+  <div class="hero56 toned num">+1.9<span> lb/wk</span></div>
+  <div class="verd">Trending up on a cut. Trend 189.9, scale 191.2.</div>
+  <div class="crows">
+    <div class="crow2"><div class="crt"><span>To the next milestone, 189</span><b class="num">0.9 lb</b></div><div class="cbar"><i style="width:70%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>Weigh-in coverage, 28 days</span><b class="num">9 readings</b></div><div class="cbar"><i style="width:32%"></i></div></div>
+    <div class="crow2"><div class="crt"><span>To goal, 180</span><b class="num">9.9 lb</b></div><div class="cbar"><i style="width:25%"></i></div></div>
   </div>
-  <div class="r10rows">
-    <div class="r10row"><b class="num">8:10</b><span>28 nights</span></div>
-    <div class="r10row dim"><b class="num">7:50</b><span>90 nights</span></div>
-    <div class="r10row dim"><b class="num">5 of 22</b><span>under seven hours</span></div>
-  </div>
-  <div class="rfoot">Apple Health · through yesterday</div>
+  <button class="logbtn"><svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>Log today's weight</button>
+  <div class="pfoot">Your scale, Sunday habit</div>
 </div>
 
+<script>
+/* C9 demo state machine. Forward: count bumps per tick; at 4 the count crossfades to the done
+   badge, holds 900ms, then the column collapses and the ledger summary line takes over the
+   counting job. Backward: unchecking from complete expands the column first, then the badge
+   yields to the count. Every transition is a CSS class; the JS only sequences them. */
+var MOVES=[["Push-ups","x8 clean"],["Bodyweight squats","x10"],["Standing hamstring reach","x10"],["Chin tucks","x10"]];
+var done=[true,true,false,false];
+var wrap=document.getElementById("d-wrap"),num=document.getElementById("d-num"),rowsEl=document.getElementById("d-rows");
+var t1=null;
+function tickSVG(){return '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.2 4.2L19 7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
+function rows(){
+  rowsEl.innerHTML=MOVES.map(function(m,i){
+    return '<button class="c9row'+(done[i]?" on":"")+(i===0?" first":"")+'" onclick="flip('+i+')">'+
+      '<span class="tickc">'+tickSVG()+'</span><span class="c9m"><span class="cn">'+m[0]+'</span><span class="cd">'+m[1]+'</span></span></button>';
+  }).join("");
+}
+function count(){return done.filter(Boolean).length;}
+function flip(i){
+  var was=count();
+  done[i]=!done[i];
+  var now=count();
+  rows();
+  num.textContent=now;
+  num.classList.remove("bump");void num.offsetWidth;num.classList.add("bump");
+  if(t1){clearTimeout(t1);t1=null;}
+  if(now===4){
+    wrap.classList.add("celebrate");
+    t1=setTimeout(function(){wrap.classList.add("collapsed");},900);
+  }else if(was===4){
+    /* reverse: expand first so the count is visible the moment the badge fades */
+    wrap.classList.remove("collapsed");
+    t1=setTimeout(function(){wrap.classList.remove("celebrate");},450);
+  }else{
+    wrap.classList.remove("celebrate","collapsed");
+  }
+}
+rows();num.textContent=count();
+</script>
 </div></body></html>
