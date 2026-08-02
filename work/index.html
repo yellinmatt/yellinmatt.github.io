@@ -345,8 +345,13 @@ html.js .plate.rv{transition-delay:calc(var(--i,0) * 90ms)}
   try{
     if(!('IntersectionObserver' in window)){revealAll();}
     else{
+      var t0=Date.now();
       var io=new IntersectionObserver(function(es){
-        es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+        es.forEach(function(e){
+          if(!e.isIntersecting)return;
+          if(Date.now()-t0>800)e.target.style.setProperty('--i',0);
+          e.target.classList.add('in');io.unobserve(e.target);
+        });
       },{threshold:.1,rootMargin:'0px 0px -5% 0px'});
       [].forEach.call(document.querySelectorAll('.rv'),function(e){io.observe(e);});
     }
