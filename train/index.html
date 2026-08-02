@@ -1645,7 +1645,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.79d";
+var VERSION="v7.79e";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4090,9 +4090,6 @@ function deleteDay(k){
   if(date){delete S.done[date];purgeDerived(date);}
   save();closeSheet();refreshCurrent();toast("Entry deleted",null);}
 
-var TRACKDEEP=true;   /* v7.39: the report is the tab, not a thing you go and find */
-function toggleDeep(){TRACKDEEP=!TRACKDEEP;renderTrack();
-  if(TRACKDEEP){var e=document.getElementById("trackdeep");if(e)setTimeout(function(){e.scrollIntoView({behavior:"smooth",block:"start"});},40);}}
 function nextMove(){
   var rows=kpiRows(),st=weightStats();
   var f=freshness(),deadSync=syncHealth();
@@ -4221,10 +4218,9 @@ function trackDashHTML(){
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
       trackGlanceHTML()+
       '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
-    '<div class="dband"><div class="bandlbl">This week<span class="bx">'+(green?(green+' above your usual'):(hold?(hold+' holding'):'running light'))+'</span></div>'+measureRowsHTML()+'</div>'+
+    '<div class="dband"><div class="bandlbl">Last 7 days<span class="bx">'+(green?(green+' above your usual'):(hold?(hold+' holding'):'running light'))+'</span></div>'+measureRowsHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Levels</div>'+levelPairHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
-    '<div class="dband"><div class="bandlbl">Data<span class="bx">'+(stale?stale+' stale':'all current')+'</span></div>'+dataHealthHTML()+'</div>'+
     '</div>';
 }
 function sparkStrip(vals,tone){
@@ -4302,27 +4298,45 @@ function trMilesRow(){
     val:wkMi.toFixed(1)+'<small> mi</small>',series:miS,
     sub:mr?mr.word:"this week"});
 }
+function trackGroupChip(k){
+  var rows=kpiRows();
+  function r(key){for(var i=0;i<rows.length;i++)if(rows[i].k===key)return rows[i];return null;}
+  var st=weightStats();
+  if(k==="changing"){
+    if(!st||st.rate==null)return {t:"no weigh-in yet",tone:""};
+    return {t:(st.rate<=-0.25?"coming off":st.rate>=0.25?"creeping up":"holding"),
+            tone:(st.rate<=-0.25?"good":st.rate>=0.25?"amber":"")};
+  }
+  if(k==="recovering"){
+    var sl=sleepStats(7);
+    return {t:(sl&&sl.med)?hrsTxt(sl.med)+" a night":"no data yet",tone:""};
+  }
+  if(k==="training"){
+    var m=weekMetrics(0),v=weekVerdict("moved",m.moved,m.days);
+    return {t:m.moved+" day"+(m.moved===1?"":"s")+" moved",tone:v.tone==="good"?"good":""};
+  }
+  var stale=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
+  return {t:stale?(stale+" stale"):"all current",tone:stale?"amber":"good"};
+}
 function deepHTML(){
-  var h='<div class="grouphd"><span class="gn">Changing</span><span class="gl"></span><span class="gc">what the body is doing</span></div>';
-  h+=trWeightRow();
-  h+=trCalRow();
-  h+=drawerize(bodyTilesHTML(),I.flame,"");
-  h+='<div class="grouphd"><span class="gn">Recovering</span><span class="gl"></span><span class="gc"></span></div>';
-  h+=trSleepRow();
-  h+=trRhrRow();
-  h+='<div class="grouphd"><span class="gn">Training</span><span class="gl"></span><span class="gc"></span></div>';
-  h+=trStepsRow();
-  h+=trMilesRow();
-  h+=scorecardHTML();
-  h+=drawerize(heatmapHTML("6m"),I.cal,"");
-  h+=patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
-      '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,"");
-  h+=sessionLengthHTML();
-  h+=progressHTML();
-  h+='<div class="grouphd"><span class="gn">Provenance</span><span class="gl"></span><span class="gc">where the numbers come from</span></div>';
-  h+=freshnessHTML();
-  h+=backupBlockHTML();
-  h+='<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>';
+  var c1=trackGroupChip("changing"),c2=trackGroupChip("recovering"),
+      c3=trackGroupChip("training"),c4=trackGroupChip("provenance");
+  var h=collapsible("Changing",c1.t,
+      trWeightRow()+trCalRow()+drawerize(bodyTilesHTML(),I.flame,""),
+      true,I.spark,c1.tone);
+  h+=collapsible("Recovering",c2.t,
+      trSleepRow()+trRhrRow(),
+      false,I.moon||I.rest,c2.tone);
+  h+=collapsible("Training",c3.t,
+      trStepsRow()+trMilesRow()+scorecardHTML()+drawerize(heatmapHTML("6m"),I.cal,"")+
+      (patternVolumeHTML(I.dumbbell)||collapsible("Sets per pattern","nothing this week",
+        '<div class="emptyd">No completed sets this week, so there is nothing to hold against the maintenance floors. <b>Log a lift</b> and eight pattern rows appear.</div>',false,I.dumbbell,""))+
+      sessionLengthHTML()+progressHTML(),
+      false,I.dumbbell,c3.tone);
+  h+=collapsible("Where the numbers come from",c4.t,
+      freshnessHTML()+backupBlockHTML()+
+      '<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>',
+      false,I.bolt,c4.tone);
   return h;
 }
 function renderTrack(){
@@ -4330,10 +4344,7 @@ function renderTrack(){
     '<div class="tools"><button class="iconbtn" onclick="weighSheet()" aria-label="Log weight">'+I.plus+'</button>'+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+=trackDashHTML();
-  h+='<div id="trackdeep" class="deepwrap'+(TRACKDEEP?" on":"")+'">'+(TRACKDEEP?deepHTML():"")+'</div>';
-  h+='<button class="deeper'+(TRACKDEEP?" on":"")+'" onclick="toggleDeep()" aria-expanded="'+TRACKDEEP+'">'+
-     (TRACKDEEP?"Collapse the report":"Show the report")+'<span class="dcount">'+(TRACKDEEP?"back to the summary":"all the data")+'</span>'+
-     '<span class="dchev">'+I.chevD+'</span></button>';
+  h+='<div id="trackdeep">'+deepHTML()+'</div>';
   h+='<button class="deeper" style="margin-top:14px" onclick="show(\'library\')">'+I.play+
      ' Video library<span class="dcount">'+VID.length+' clips</span><span class="dchev">'+I.arrow+'</span></button>';
   document.getElementById("v-track").innerHTML=h;
@@ -6986,7 +6997,7 @@ function cardioWeekHTML(){
   var cells=cweekCell("Miles run",mi,weekVerdict("miles",mi,el),miBest,f1,"mi","show('cardio')");
   if(sw.days||stBest>0)
     cells+=cweekCell("Steps",sw.sum,weekVerdict("steps",sw.sum,sw.days),stBest,fk,"","show('track')");
-  return '<div class="cweek"><div class="cwl">This week</div><div class="cwpair">'+cells+'</div></div>';
+  return '<div class="cweek"><div class="cwl">Last 7 days</div><div class="cwpair">'+cells+'</div></div>';
 }
 function paceZonesParts(srcRuns,winLabel){
   var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
