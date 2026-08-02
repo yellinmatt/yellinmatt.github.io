@@ -80,9 +80,9 @@ a{color:inherit;text-decoration:none}
 .chip sup{font-size:8px;letter-spacing:0;margin-left:5px;vertical-align:super}
 
 .index{position:relative}
-.row{position:relative;display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:clamp(16px,3vw,48px);
+.row{--o:1;position:relative;display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:clamp(16px,3vw,48px);
   padding:clamp(22px,2.6vw,34px) 0;border-bottom:1px solid var(--hair);
-  transition:opacity .5s var(--ease)}
+  opacity:var(--o);transition:opacity .5s var(--ease)}
 .row .num{font-family:var(--sans);font-size:10px;letter-spacing:.16em;color:var(--faint);
   transition:color .4s var(--ease)}
 .row .name{font-family:var(--display);font-weight:300;font-size:clamp(27px,4.4vw,58px);line-height:.98;
@@ -100,8 +100,8 @@ a{color:inherit;text-decoration:none}
 .index[hidden],.row[hidden]{display:none}
 
 @media (hover:hover) and (pointer:fine){
-  .index:hover .row{opacity:.3}
-  .index:hover .row:hover{opacity:1}
+  .index:hover .row{--o:.3}
+  .index:hover .row:hover{--o:1}
   .row:hover .name{transform:translateX(18px);color:var(--tone,var(--ink))}
   .row:hover .num{color:var(--tone,var(--accent))}
   .row:hover .desc{opacity:1;max-height:120px}
@@ -149,6 +149,8 @@ a{color:inherit;text-decoration:none}
 .rv{transition:opacity .9s var(--ease),transform .9s var(--ease)}
 html.js .rv{opacity:0;transform:translateY(22px)}
 html.js .rv.in{opacity:1;transform:none}
+html.js .row.rv{opacity:0}
+html.js .row.rv.in{opacity:var(--o)}
 
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -375,11 +377,12 @@ html.js .rv.in{opacity:1;transform:none}
       document.addEventListener('mousemove',function(e){tx=e.clientX;ty=e.clientY;if(!raf)loop();},{passive:true});
 
       rows.forEach(function(row){
-        row.addEventListener('mouseenter',function(){
+        row.addEventListener('mouseenter',function(e){
           var p=pane(row);
           if(active&&active!==p)active.classList.remove('live');
           p.classList.add('live'); active=p;
           tag.textContent=row.querySelector('.name').textContent;
+          if(!shown){cx=tx=e.clientX;cy=ty=e.clientY;if(!raf)loop();}
           float.classList.add('on'); shown=true;
         });
         row.addEventListener('mouseleave',function(){
