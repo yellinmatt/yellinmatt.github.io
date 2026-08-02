@@ -362,6 +362,12 @@ html.js .rv.d2{transition-delay:.16s}
   var wide=window.matchMedia&&window.matchMedia('(min-width:1001px)').matches;
   function revealAll(){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
 
+  function revealVisible(){
+    [].forEach.call(document.querySelectorAll('.rv'),function(e){
+      var r=e.getBoundingClientRect();
+      if(r.top<window.innerHeight&&r.bottom>0)e.classList.add('in');
+    });
+  }
   try{
     if(!('IntersectionObserver' in window)){revealAll();}
     else{
@@ -369,6 +375,8 @@ html.js .rv.d2{transition-delay:.16s}
         es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
       },{threshold:.05,rootMargin:'0px 0px -4% 0px'});
       [].forEach.call(document.querySelectorAll('.rv'),function(e){io.observe(e);});
+      revealVisible();
+      window.addEventListener('load',revealVisible);
     }
   }catch(err){revealAll();}
 
@@ -411,22 +419,25 @@ html.js .rv.d2{transition-delay:.16s}
   var panes=[],active=null;
   try{
     if(wide){
-      var stage=document.getElementById('stage'),screen=document.getElementById('screen');
+      var stage=document.getElementById('stage'),screenEl=document.getElementById('screen');
       var capName=document.getElementById('capName'),capKind=document.getElementById('capKind');
 
-      rows.forEach(function(row){
-        var p=buildPane(row,screen,0.625);
-        screen.appendChild(p);
+      function paneFor(row){
+        if(row._pane)return row._pane;
+        var p=buildPane(row,screenEl,0.625);
+        screenEl.appendChild(p);
         panes.push(p);
         row._pane=p;
-      });
+        return p;
+      }
 
       function show(row){
-        if(!row||!row._pane||row.classList.contains('hide'))return;
-        if(active===row._pane)return;
+        if(!row||row.classList.contains('hide'))return;
+        var pane=paneFor(row);
+        if(active===pane)return;
         if(active)active.classList.remove('live');
-        row._pane.classList.add('live');
-        active=row._pane;
+        pane.classList.add('live');
+        active=pane;
         rows.forEach(function(r){r.classList.remove('on');});
         row.classList.add('on');
         capName.textContent=row.querySelector('.name').textContent;
@@ -456,7 +467,7 @@ html.js .rv.d2{transition-delay:.16s}
       function refit(){
         rows.forEach(function(r){
           var f=r._pane&&r._pane.querySelector('iframe');
-          if(f)fit(screen,f,0.625);
+          if(f)fit(screenEl,f,0.625);
         });
       }
       window.addEventListener('resize',function(){refit();pick();},{passive:true});
