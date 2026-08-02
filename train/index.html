@@ -980,8 +980,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .deeper>svg{width:18px;height:18px;flex:none}
 .plday{border-top:1px solid var(--line);margin:0 -2px}
 .plday:first-of-type{border-top:0}
-.plday>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:11px;
+.plday>summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;gap:11px;
   min-height:56px;padding:11px 4px}
+.plday>summary .pdi,.plday>summary .ptag,.plday>summary .pdchev,.plday>summary .pdchip{margin-top:2px}
 .plday>summary::-webkit-details-marker{display:none}
 .plday .pdi{display:flex;width:32px;height:32px;border-radius:10px;flex:none;align-items:center;
   justify-content:center;background:var(--surface-2);color:var(--sub)}
@@ -1045,6 +1046,9 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .rfold{border-top:1px solid var(--line);margin:0}
 .rfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;min-height:46px;padding:9px 2px}
 .rfold>summary::-webkit-details-marker{display:none}
+.rfold .rfi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);
+  align-items:center;justify-content:center;color:var(--sub);flex:none}
+.rfold .rfi svg{width:14px;height:14px;flex:none}
 .rfold .rfn{font-size:13.5px;font-weight:800;color:var(--ink);flex:none}
 .rfold .rfc{font-size:11px;font-weight:800;color:var(--sub);background:var(--surface-2);border-radius:5px;padding:2px 6px;flex:none}
 .rfold .rfv{font-size:11.5px;font-weight:700;color:var(--faint);flex:1;min-width:0;text-align:right;
@@ -1261,7 +1265,9 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 14px 12px}
 .mcard{position:relative;text-align:left;background:var(--surface-2);border:1px solid transparent;border-radius:13px;padding:12px 12px 11px;display:block}
 .mcard.untrained{opacity:.72}
-.mcard .mcn{display:block;font-size:13.5px;font-weight:750;color:var(--ink);line-height:1.25;margin-bottom:6px;padding-right:22px}
+.mcard .mcn{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  font-size:13.5px;font-weight:750;color:var(--ink);line-height:1.25;margin-bottom:6px;
+  padding-right:22px;min-height:2.5em}
 .mcard .mcw{display:block;font-size:15px;font-weight:800;color:var(--accent);font-variant-numeric:tabular-nums}
 .mcard .mcl{display:block;font-size:11.5px;color:var(--faint);margin-top:3px;line-height:1.35}
 .mcard .mcp{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.03em;color:var(--good);background:var(--good-tint);border-radius:5px;padding:2px 6px;margin-top:6px}
@@ -1639,7 +1645,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.79c";
+var VERSION="v7.79d";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4186,15 +4192,18 @@ function trackDashHTML(){
   var rows=kpiRows();
   var green=rows.filter(function(r){return !r.outcome&&r.dir==="up";}).length;
   var hold=rows.filter(function(r){return !r.outcome&&(r.dir==="up"||r.dir==="flat");}).length;
-  var scored=rows.filter(function(r){return !r.outcome&&r.dir!=="none";}).length||1;
+  var scored=rows.filter(function(r){return !r.outcome&&r.dir!=="none";}).length;
+  var quorum=(scored>=3);
+  var scoredSafe=scored||1;
   var st=weightStats(),t=trendState(),s=syncHealth();
   var stale=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
   var head,tone;
   if(s.rag==="red"){head="These numbers are stale.";tone="red";}
   else if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(hold>=scored){head="Everything is at or above your usual.";tone="good";}
-  else if(hold>=Math.ceil(scored/2)){head="Most of it is holding.";tone="good";}
+  else if(!quorum){head=scored?"Not much logged yet to read a direction.":"Nothing logged yet this week.";tone="none";}
+  else if(hold>=scoredSafe){head="Everything is at or above your usual.";tone="good";}
+  else if(hold>=Math.ceil(scoredSafe/2)){head="Most of it is holding.";tone="good";}
   else if(hold>0){head="Some of it is holding.";tone="flat";}
   else {head="A lighter week than usual.";tone="flat";}
   var mv=nextMove();
@@ -4388,6 +4397,8 @@ var WEEK_FLOOR={lifts:1,moved:1,protein:1,anchor:1,miles:0.5,walkMi:0.5};
 function weekBase(k){
   var vs=weekSeries(k).slice(0,11);            /* eleven COMPLETED weeks; this week is excluded */
   if(!vs.length)return null;
+  var any=false;for(var i=0;i<vs.length;i++)if(vs[i]>0){any=true;break;}
+  if(!any)return null;
   function ewma(a){var c=0;a.forEach(function(v){var tau=(v>c)?3:6;c=c+(v-c)*(1-Math.exp(-1/tau));});return c;}
   var cap=ewma(vs),cap4=ewma(vs.slice(0,Math.max(1,vs.length-4)));
   var med=tMed(vs.slice());
@@ -7053,9 +7064,8 @@ function paceZonesParts(srcRuns,winLabel){
     '<div class="pzr2 hd"><span class="pzd" style="visibility:hidden"></span><span class="pzn">Band</span>'+
       '<span class="pzp">pace /mi</span><span class="pzmph">treadmill</span><span class="pzc">runs</span></div>'+
     '<div class="pzrows">'+extra+rows+'</div>'+
-    '<div class="ksub" style="margin:10px 0 0">Set the treadmill to the mph beside each band. Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
-      (paced.length>runs.length?(', of '+paced.length+' on record'):'')+
-      '. The bands are base-building targets, not a percentage of a test result.</div>';
+    '<div class="ksub" style="margin:10px 0 0">Set the treadmill to the mph beside each band.'+
+      (srcRuns?'':(' Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+'.'))+'</div>';
   return {inner:inner,chip:(n?(easyish+" of "+n+" easy"):"per mile"),tone:tone};
 }
 function paceZonesInner(srcRuns,winLabel){return paceZonesParts(srcRuns,winLabel).inner;}
@@ -8057,7 +8067,7 @@ function odoBodyHTML(){
   var yrows=ys.reverse().map(function(y){
     return '<div class="yrow"><span class="yy">'+y+'</span>'+
       '<span class="yb"><i style="width:'+Math.max(2,Math.round(yr[y]/ymax*100))+'%"></i></span>'+
-      '<span class="ym num">'+yr[y].toFixed(0)+'<small> mi</small></span>'+
+      '<span class="ym num">'+yr[y].toFixed(1)+'<small> mi</small></span>'+
       '<span class="yn">'+yn[y]+' run'+(yn[y]===1?'':'s')+'</span></div>';
   }).join("");
   var foot='<div class="odosplit"></div><div class="odoct">By calendar year</div>'+yrows+
@@ -8076,14 +8086,13 @@ function odoBodyHTML(){
   }).join(""):"";
   var folds="";
   if(rs2.length){
-    folds+='<details class="rfold"><summary><span class="rfn">Every run</span>'+
+    folds+='<details class="rfold"><summary><span class="rfi">'+I.run+'</span><span class="rfn">Every run</span>'+
       '<span class="rfc">'+rs2.length+'</span><span class="rfv">'+(best?mmss(best)+"/mi best":"")+'</span>'+
       '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+runList+'</div></details>';
-    folds+='<details class="rfold"><summary><span class="rfn">Pace zones</span>'+
-      '<span class="rfc">'+rs2.filter(function(r){return r.paceSecPerMi>0;}).length+'</span>'+
-      '<span class="rfv">how hard they were</span>'+
-      '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+
-      paceZonesInner(rs2,(d.ctx||"this window").toLowerCase())+'</div></details>';
+    var pzp=paceZonesParts(rs2,(d.ctx||"this window").toLowerCase());
+    folds+='<details class="rfold"><summary><span class="rfi">'+I.bolt+'</span><span class="rfn">Pace zones</span>'+
+      '<span class="rfv">'+esc(pzp.chip)+'</span>'+
+      '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+pzp.inner+'</div></details>';
   }
   return body+chart+folds+foot;
 }
