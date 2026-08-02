@@ -6,7 +6,7 @@
 <!-- frame-src is youtube-nocookie only, and img-src deliberately does NOT include i.ytimg.com:
      remote thumbnails would ping Google on every library render. The facades are drawn locally,
      so nothing reaches YouTube until you actually tap play on a specific video. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; connect-src https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube.com https://www.youtube-nocookie.com; connect-src https://train-sync.yellinmatt.workers.dev; media-src https://train-sync.yellinmatt.workers.dev blob:; form-action 'none'; base-uri 'none'">
 <meta name="robots" content="noindex,nofollow">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -71,7 +71,7 @@ input,select{border:0;background:none}
 @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.14)}100%{transform:scale(1)}}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (prefers-reduced-motion:no-preference){
+
   #v-today.on>.head{animation:tRise .42s cubic-bezier(.22,1,.36,1) both}
   #v-today.on>.hero{animation:tRise .46s .05s cubic-bezier(.22,1,.36,1) both}
   #v-today.on>.dots-card{animation:tRise .46s .1s cubic-bezier(.22,1,.36,1) both}
@@ -99,7 +99,7 @@ input,select{border:0;background:none}
     background:rgba(255,255,255,.17);transform-origin:left center;transform:scaleX(0);
     animation:fillTo .8s .25s cubic-bezier(.22,1,.36,1) forwards;pointer-events:none}
   @keyframes fillTo{to{transform:scaleX(var(--fill,0))}}
-}
+
 .big-start{position:relative;overflow:hidden}
 .big-start.hasfill>*{position:relative;z-index:1}
 
@@ -430,9 +430,9 @@ input,select{border:0;background:none}
 .chev{display:flex;color:var(--faint);transition:transform .2s ease}
 .chev svg{width:16px;height:16px}
 details[open]>summary .chev{transform:rotate(180deg)}
-@media (prefers-reduced-motion:no-preference){
+
   details:not([open])>summary .chev{animation:nudge 2.4s ease-in-out 3}
-}
+
 @keyframes nudge{0%,88%,100%{transform:translateY(0)}92%{transform:translateY(2px)}96%{transform:translateY(0)}}
 .dot.ahead .dl{opacity:.7}
 .dot .dl{font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
@@ -1293,7 +1293,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .d3f b{color:var(--ink);font-weight:700}
 .d3f.miss{color:var(--faint);font-style:italic}
 .d3{min-height:104px}
-@media (prefers-reduced-motion:no-preference){
+
   .d3wrap .d3{animation:d3in .46s cubic-bezier(.22,1,.36,1) both}
   .d3wrap .d3:nth-child(1){animation-delay:.04s}
   .d3wrap .d3:nth-child(2){animation-delay:.095s}
@@ -1306,7 +1306,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
   @keyframes d3bump{0%{box-shadow:var(--shadow)}28%{box-shadow:0 0 0 3px var(--rag-tint),var(--shadow)}100%{box-shadow:var(--shadow)}}
   .d3.bump .d3w{animation:d3pop2 .62s .5s cubic-bezier(.34,1.5,.5,1) both}
   @keyframes d3pop2{0%{opacity:0;transform:translateY(6px) scale(.9)}60%{transform:translateY(0) scale(1.07)}100%{opacity:1;transform:none}}
-}
+
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:11px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1373,7 +1373,7 @@ details.dcard[open]>.dbody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 @keyframes dopen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:no-preference){
+
   details.hanchor.closing>.abody{animation:aFoldOut .42s cubic-bezier(.4,0,.6,1) both;overflow:hidden}
   @keyframes aFoldOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-10px) scaleY(.93);transform-origin:top}}
   details.hanchor.closing .abody .arow{animation:aRowOut .28s cubic-bezier(.4,0,.6,1) both}
@@ -1385,8 +1385,8 @@ details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
   @keyframes aRowOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(-7px)}}
   details.hanchor.closing>summary svg{transform:rotate(0)}
   details.hanchor.closing>summary .acount{display:inline;opacity:1;transform:none;transition-delay:.2s}
-}
-@media (prefers-reduced-motion:no-preference){
+
+
   details.hanchor>.abody{overflow:hidden}
   details.hanchor[open]>.abody{animation:aFold .34s cubic-bezier(.22,1,.36,1) both}
   @keyframes aFold{from{opacity:0;transform:translateY(-8px) scaleY(.96);transform-origin:top}to{opacity:1;transform:none}}
@@ -1404,7 +1404,7 @@ details.hanchor[open]>.abody{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
   .hanchor[open]>summary .acount{display:inline;opacity:0;transform:translateX(8px);pointer-events:none}
   .arow.checked .an{animation:aTick .42s cubic-bezier(.34,1.4,.5,1) both}
   @keyframes aTick{0%{transform:translateX(0)}40%{transform:translateX(4px)}100%{transform:translateX(0)}}
-}
+
 .woprog .wpd i{transition:width .5s cubic-bezier(.22,1,.36,1)}
 .miniring circle:last-child{transition:stroke-dashoffset .5s cubic-bezier(.22,1,.36,1)}
 .runsegs i{transition:background .3s ease}
@@ -1476,13 +1476,12 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
   <button data-nav="lift" onclick="show('lift')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Lift</span></button>
   <button data-nav="cardio" onclick="show('cardio')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Cardio</span></button>
-  <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h5a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4V5ZM20 5h-5a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h5V5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Library</span></button>
   <button data-nav="track" onclick="show('track')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Track</span></button>
 </nav>
 
 <script>
 "use strict";
-var VERSION="v7.70";
+var VERSION="v7.71";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2710,6 +2709,11 @@ var woTimer=null;var openEx={};
 function AW(){return S.activeMode==="gen"?S.genWk:S.wk[TODAY];}
 var RETV="today";
 function startActive(){var w=AW();if(w.accum==null)w.accum=0;openEx={};FOCUS=null;w.paused=false;w.start=Date.now();RETV=(CURV==="lift"||CURV==="cardio"||CURV==="track")?CURV:"today";save();renderWorkout();show("workout");startWoTick();}
+function finisherDue(w){
+  w=w||AW(); if(!w||!w.order)return false;
+  if(w.order.some(function(o){var e=LIB[o.exId];return e&&e.pattern==="core";}))return false;
+  return vidsForSlot("finisher").length>0;
+}
 function exComplete(o){return o.sets.length>0&&o.sets.every(function(s){return s.on;});}
 function elapsedSec(){var w=AW();if(!w)return 0;return Math.floor((w.accum||0)+((w.start&&!w.paused)?(Date.now()-w.start)/1000:0));}
 function startWoTick(){if(woTimer)clearInterval(woTimer);function t(){var e=document.getElementById("wo-elapsed");if(e)e.textContent=mmss(elapsedSec());}t();woTimer=setInterval(t,1000);updatePico();}
@@ -2781,8 +2785,9 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
   var hero=(FOCUS!=null&&active.indexOf(FOCUS)>=0)?FOCUS:(active.length?active[0]:null);
   if(hero===null||hero!==FOCUS)FOCUS=null;
   var movesDone=w.order.length-active.length;
-  var total=w.order.length+2;
-  var doneN=movesDone+(w.warmDone?1:0)+(w.coolDone?1:0);
+  var fin=finisherDue(w)?1:0;
+  var total=w.order.length+2+fin;
+  var doneN=movesDone+(w.warmDone?1:0)+(w.coolDone?1:0)+(fin&&w.finDone?1:0);
   var h='<div class="woprog"><span class="wpn">'+doneN+' of '+total+' done</span>'+
     '<span class="wpd"><i style="width:'+Math.round(doneN/Math.max(1,total)*100)+'%"></i></span></div>';
   if(!w.warmDone){
@@ -2804,6 +2809,14 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
       h+='<div class="doneband">Still to come ('+rest.length+')</div>';
       rest.forEach(function(oi){h+=exUpNextHTML(oi);});
     }
+  }else if(finisherDue(w)&&!w.finDone){
+    var fv=pickForSlot("finisher",0);
+    h+='<div class="exeyebrow">Now &middot; finisher</div>';
+    h+='<div class="ex active hero"><div class="exhead"><div class="exname">Core finisher</div></div>'+
+      '<div class="aim">No core in today\'s session, so this is where it goes.'+(fv&&fv.m?(' About '+fv.m+' minutes.'):'')+'</div>'+
+      (fv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(fv,true)+'</div>'):'')+
+      '<div class="setbtns"><button class="setbtn" style="flex:2;padding:13px" onclick="AW().finDone=true;save();renderWorkout()">Done</button>'+
+      '<button class="setbtn" style="padding:13px" onclick="AW().finDone=true;save();renderWorkout()">Skip</button></div></div>';
   }else if(!w.coolDone){
     h+='<div class="exeyebrow">Now &middot; last step</div>';
     var cv=pickForSlot("cooldown",0);
@@ -3980,6 +3993,8 @@ function renderTrack(){
   h+='<button class="deeper'+(TRACKDEEP?" on":"")+'" onclick="toggleDeep()" aria-expanded="'+TRACKDEEP+'">'+
      (TRACKDEEP?"Collapse the report":"Show the report")+'<span class="dcount">'+(TRACKDEEP?"back to the summary":"all the data")+'</span>'+
      '<span class="dchev">'+I.chevD+'</span></button>';
+  h+='<button class="deeper" style="margin-top:14px" onclick="show(\'library\')">'+I.play+
+     ' Video library<span class="dcount">'+VID.length+' clips</span><span class="dchev">'+I.arrow+'</span></button>';
   document.getElementById("v-track").innerHTML=h;
 }
 function trackStatusHTML(){
@@ -5526,15 +5541,13 @@ function renderLibrary(){
   var total=VID.length, onn=VID.filter(function(v){return v.src==="onnit";}).length;
   var h='<div class="head"><div><div class="date">'+total+' clips &middot; '+onn+' Onnit, '+(total-onn)+' YouTube</div>'+
     '<div class="title">Library</div></div>'+
-    '<div class="tools"><button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
+    '<div class="tools"><button class="iconbtn" onclick="show(\'track\')" aria-label="Back to Track">'+I.chevD+'</button></div></div>';
   var tiles="";
   LIBGROUPS.forEach(function(g){
     var n=libCount(g[0]);if(!n)return;
-    var vs=libSlotVids(g[0]),done=0;
-    vs.forEach(function(v){if(vDone(v.id))done++;});
     tiles+='<button class="libtile2'+(LIBOPEN===g[0]?" on":"")+'" onclick="libOpen(\''+g[0]+'\')">'+
       '<span class="ltn">'+g[1]+'</span><span class="ltd">'+g[2]+'</span>'+
-      '<span class="ltc'+(done?" gd":"")+'">'+(done?done+' of '+n+' done':n+' clips')+'</span></button>';
+      '<span class="ltc">'+n+'</span></button>';
   });
   h+='<div class="libgrid2">'+tiles+'</div><div id="libbody">'+(LIBOPEN?libBody(LIBOPEN):"")+'</div>';
   document.getElementById("v-library").innerHTML=h;
