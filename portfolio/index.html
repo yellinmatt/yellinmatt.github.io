@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#0e0e0f">
 <meta name="format-detection" content="telephone=no">
 <title>Portfolio &middot; Matthew Yellin</title>
-<meta name="description" content="Twelve things I have built. Four of them publish themselves every morning.">
+<meta name="description" content="Twelve things I have built, each one shown as the real product.">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Portfolio &middot; Matthew Yellin">
 <meta property="og:description" content="Twelve things I have built.">
@@ -87,77 +87,95 @@ img{display:block;max-width:100%}
 .mast p{margin:clamp(20px,2.6vw,32px) 0 0;font-size:clamp(16px,1.6vw,20px);line-height:1.5;
   color:var(--mute);max-width:34ch}
 
-/* Frame is 1px at 12px radius with overflow hidden. No bezel, no gloss, no
-   angle: that is the entire treatment on rauno.me/craft. */
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2.4vw,34px);
-  padding-bottom:clamp(40px,6vw,90px)}
-@media (max-width:900px){.grid{grid-template-columns:1fr}}
-.tile{--tone:var(--accent);position:relative;display:block;border:1px solid var(--line);
-  border-radius:12px;overflow:hidden;background:var(--g3);isolation:isolate;
-  transition:border-color .2s}
-.tile:hover{border-color:color-mix(in srgb,var(--tone) 46%,transparent)}
-.tile.wide{grid-column:1/-1}
-.tile .win{display:block;position:relative;overflow:hidden;background:var(--g4);aspect-ratio:16/10}
-.tile.wide .win{aspect-ratio:21/9}
-/* TWO systems write a transform here: a slow parallax drift at rest, and the
-   long scroll on hover. They get SEPARATE elements rather than fighting over
-   one, which is rule 11 in CLAUDE.md applied before it bites. */
-.tile .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
-.tile .par img{position:absolute;top:0;left:0;width:100%;height:auto;
+/* ============================ THE ROSTER ============================
+   Read off the saved code of luxcapital.com/companies, a16z American
+   Dynamism and 8vc.com.
+
+   THE STRUCTURAL MOVE, taken verbatim because it is the one thing that
+   transfers with no modification: a16z sets
+       .box-a { border: 1px solid #d0d0ce; margin: -1px 0 0 -1px; }
+   with NO gap and NO border-radius, so adjacent borders collapse into one
+   hairline and 66 tiles read as a single ledger rather than 66 cards.
+
+   ONE CELL SHAPE, REPEATED. Lux aspect-ratio:1/1, a16z min-height:223px in
+   repeat(5,1fr), 8VC padding-top:120%. Never a mixed-size grid: the
+   authority is in the repetition. Three-up rather than five-up, because at
+   twelve entries a16z's five-up leaves three empty cells, which is exactly
+   why they had to invent .grid-item-filler to hide it.
+
+   WHERE I DELIBERATELY DEPART. Lux hides the product photograph at
+   opacity:0 and reveals it to only .33 on hover, because a famous WORDMARK
+   is its payload and the photo is atmosphere. Here the screenshot IS the
+   payload, so it shows at rest and hover adds rather than reveals. Twelve
+   unknown names at Lux's zero visible words would be an empty grid, so each
+   cell keeps a name in real type and one line of metadata. And no filters:
+   a filter bar over twelve entries advertises that you expected more.  */
+.roster{display:grid;grid-template-columns:repeat(3,1fr);
+  margin:0 0 clamp(40px,6vw,88px);padding-top:1px;padding-left:1px}
+@media (max-width:1000px){.roster{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:620px){.roster{grid-template-columns:1fr}}
+
+.cell{--tone:var(--accent);position:relative;display:block;overflow:hidden;
+  aspect-ratio:4/3;background:var(--g2);
+  border:1px solid var(--line);margin:-1px 0 0 -1px;
+  transition:border-color .25s linear,z-index 0s}
+.cell:hover{border-color:color-mix(in srgb,var(--tone) 52%,transparent);z-index:2}
+
+/* two writers, two elements: the drift owns .par, the hover scroll owns img */
+.cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
+.cell .par img{position:absolute;top:0;left:0;width:100%;height:auto;
   will-change:transform;transform:translate3d(0,0,0);transition:transform 9s linear}
 @media (hover:hover) and (pointer:fine){
-  .tile:hover .par img,.tile:focus-visible .par img{transform:translate3d(0,var(--travel,-58%),0)}
+  .cell:hover .par img,.cell:focus-visible .par img{transform:translate3d(0,var(--travel,-55%),0)}
 }
-.tile.play .par img{transform:translate3d(0,var(--travel,-58%),0)}
-/* the project's own colour, held back to a wash so it tints rather than shouts */
-.tile .tint{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s var(--ease);
-  background:radial-gradient(78% 120% at 50% 100%,color-mix(in srgb,var(--tone) 24%,transparent),transparent 70%)}
-.tile:hover .tint{opacity:1}
+.cell.play .par img{transform:translate3d(0,var(--travel,-55%),0)}
+.cell .par img.crop{width:100%;height:100%;object-fit:cover;object-position:50% 0}
 
-/* Train is a phone, so the frame is phone-shaped and its four real tabs
-   cross-fade rather than scroll. */
-.tile.tall .win{aspect-ratio:1/1}
-.tile.app .win{display:grid;place-items:center;
-  background:radial-gradient(70% 100% at 50% 0%,var(--g5),var(--g3))}
-.phone{position:relative;height:90%;aspect-ratio:390/844;border-radius:26px;overflow:hidden;
-  border:1px solid var(--line2);background:var(--g12);box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.phone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  opacity:0;transition:opacity .7s var(--ease)}
-.phone img.on{opacity:1}
+/* 8VC carries the colour on the ITEM and holds it back until hover. At rest
+   twelve cells are identical; on hover one of them becomes itself. */
+.cell .tone{position:absolute;inset:0;pointer-events:none;opacity:0;
+  transition:opacity .6s cubic-bezier(.215,.61,.355,1);
+  background:radial-gradient(120% 100% at 50% 100%,color-mix(in srgb,var(--tone) 30%,transparent),transparent 72%)}
+.cell:hover .tone{opacity:1}
+/* type-only cells: no screenshot exists, so the name is the mark */
+.cell.type{background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 11%,transparent),var(--g2))}
 
-/* The caption sits INSIDE the frame over a scrim, flush left and right, which
-   is exactly how rauno.me/craft labels a tile. It removes a horizontal rule
-   from every card and lets the media run to the edge. */
-.tile .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:baseline;
-  justify-content:space-between;gap:16px;padding:76px 18px 16px;
-  background:linear-gradient(transparent,rgba(6,6,7,.55) 30%,rgba(6,6,7,.88) 62%,rgba(6,6,7,.97))}
-.tile .cap b{font-weight:400;font-size:clamp(17px,1.7vw,22px);letter-spacing:-.025em;
-  color:var(--ink);transition:color .2s}
-.tile:hover .cap b{color:var(--tone)}
-.tile .cap span{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--g11);
-  white-space:nowrap}
-/* An index numeral, small, top-left. Editorial rather than decorative: it
-   tells you how many there are without a sentence saying so. */
-.tile .no{position:absolute;top:14px;left:18px;z-index:2;font-size:10px;letter-spacing:.2em;
+.cell .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:64px 18px 16px;
+  background:linear-gradient(transparent,rgba(6,6,7,.5) 26%,rgba(6,6,7,.88) 62%,rgba(6,6,7,.97))}
+/* A cell with no screenshot must not look like a cell whose screenshot
+   failed. Its type moves to the TOP, under the numeral, so it reads as a
+   deliberate typographic entry in the ledger rather than an empty frame with
+   a caption stuck to the floor. */
+.cell.type .cap{background:none;top:0;bottom:auto;padding:46px 18px 18px}
+.cell.type .cap b{font-size:clamp(20px,2.1vw,28px)}
+.cell .cap b{display:block;font-weight:400;font-size:clamp(19px,1.9vw,25px);line-height:1.1;
+  letter-spacing:-.03em;color:var(--ink);transition:color .25s linear}
+.cell:hover .cap b{color:var(--tone)}
+/* ONE label register for every piece of metadata on the page, which is what
+   all three firms do: Lux .text-style-mono-caps, a16z .note, 8VC .section-tag.
+   Fraunces has no mono cut, so uppercase at +.2em does the same job and keeps
+   the site on one family. */
+.cell .cap i{display:block;margin-top:7px;font-style:normal;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--g11)}
+.cell .no{position:absolute;top:14px;left:18px;z-index:2;font-size:10px;letter-spacing:.2em;
   color:var(--g11);mix-blend-mode:difference}
 
-/* No badges and no explanation of absence. A row with no arrow is a row you
-   cannot open, which says private without spending a word on it. */
-.rest{border-top:1px solid var(--line);padding:clamp(34px,5vw,70px) 0 clamp(50px,7vw,96px)}
-/* Right-aligned meta so this reads as a continuation of the same ledger as the
-   tiles above, not an afterthought list. */
-/* The last track is a FIXED width, not auto. Each .row is its own grid, so an
-   auto track sizes to that row's own content and every row lands on different
-   column edges. Caught in the render: the middle column was ragged. */
-.rest .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) 136px;
-  gap:clamp(14px,2.4vw,34px);align-items:baseline;padding:15px 0;border-top:1px solid var(--line)}
-.rest .row:first-of-type{border-top:0}
-.rest .row b{font-weight:400;font-size:clamp(16px,1.6vw,21px);letter-spacing:-.025em}
-.rest .row span{font-size:14px;line-height:1.5;color:var(--mute)}
-.rest .row i{font-style:normal;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--g11);white-space:nowrap;text-align:right}
-@media (max-width:700px){.rest .row{grid-template-columns:1fr auto;gap:5px 14px}
-  .rest .row span{grid-column:1/-1}}
+/* Train is a phone, so its cell shows a close crop of real UI rather than a
+   whole device floating in empty ground, and it cycles the four real tabs. */
+.cell.app .par img{object-position:50% 2%;opacity:0;
+  transition:opacity .75s cubic-bezier(.215,.61,.355,1)}
+.cell.app .par img.on{opacity:1}
+
+/* a16z drops a full-width cell INSIDE the grid at position ten that states
+   something declarative in the roster's own voice. Their line works because
+   66 and 1,989 are large numbers; "twelve" is not a flex, so this carries the
+   thesis instead of the inventory. */
+.cell.say{aspect-ratio:auto;display:flex;align-items:center;grid-column:1/-1;
+  background:var(--g1);padding:clamp(30px,4.4vw,58px) 18px}
+.cell.say:hover{border-color:var(--line)}
+.cell.say p{margin:0;font-size:clamp(19px,2.3vw,31px);line-height:1.28;letter-spacing:-.028em;
+  color:var(--ink);max-width:30ch;font-weight:200}
+.cell.say p em{font-style:normal;color:var(--accent)}
 
 .next{display:block;border-top:1px solid var(--line);padding:clamp(40px,5.5vw,80px) 0}
 .next h2{margin:12px 0 0;font-weight:200;font-size:clamp(34px,6vw,84px);line-height:.9;
@@ -175,8 +193,8 @@ html.js .rv.in{opacity:1;transform:none}
   /* Gentled, never frozen. Matthew's phone runs Reduce Motion, so this is the
      path he actually sees: the capture still travels, slowly, and the tabs
      still change. A frozen fallback reads as broken. */
-  .tile .win img{transition-duration:16s}
-  .phone img{transition-duration:1.1s}
+  .cell .par img{transition-duration:16s}
+  .cell.app .par img{transition-duration:1.1s}
   html.js .rv{transform:none}
   .rv{transition-duration:.3s}
   .next h2{transition-duration:.2s}
@@ -195,57 +213,83 @@ html.js .rv.in{opacity:1;transform:none}
   <header class="mast">
     <p class="lab rv">Twelve things &middot; Miami</p>
     <h1 class="rv">Portfolio</h1>
-    <p class="rv">Four of them publish themselves every morning. Everything below is the real page, recorded.</p>
+    <p class="rv">Every screen below is the real product, recorded.</p>
   </header>
 
-  <section class="grid">
-
-    <a class="tile wide rv" href="../news/" target="_blank" rel="noopener" style="--travel:-62%;--tone:#d4604f">
-      <span class="win"><span class="par"><img src="../assets/shots/brief.jpg" width="1100" height="2921" alt="The Morning Brief, a recent edition" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+  <section class="roster">
+    <a class="cell rv" href="../news/" target="_blank" rel="noopener" style="--tone:#d4604f;--travel:-58%">
+      <span class="par"><img src="../assets/shots/brief.jpg" alt="The Morning Brief, a recent edition" loading="lazy" decoding="async"></span>
+      <span class="tone" aria-hidden="true"></span>
       <span class="no">01</span>
-      <span class="cap"><b>The Morning Brief</b><span>Daily 6:04 &middot; Vol. I No. 75</span></span>
+      <span class="cap"><b>The Morning Brief</b><i>Vol. I No. 75 &middot; Daily</i></span>
     </a>
-
-    <a class="tile rv" href="../well-versed/" target="_blank" rel="noopener" style="--travel:-60%;--tone:#dd7d63">
-      <span class="win"><span class="par"><img src="../assets/shots/versed.jpg" width="1100" height="2921" alt="Well-Versed, the lesson library" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+    <a class="cell rv" href="../well-versed/" target="_blank" rel="noopener" style="--tone:#dd7d63;--travel:-56%">
+      <span class="par"><img src="../assets/shots/versed.jpg" alt="Well-Versed, the lesson library" loading="lazy" decoding="async"></span>
+      <span class="tone" aria-hidden="true"></span>
       <span class="no">02</span>
-      <span class="cap"><b>Well-Versed</b><span>Daily 6:14</span></span>
+      <span class="cap"><b>Well-Versed</b><i>Daily &middot; every lesson kept</i></span>
     </a>
-
-    <a class="tile rv" href="../dealcraft/" target="_blank" rel="noopener" style="--travel:-58%;--tone:#dcb47e">
-      <span class="win"><span class="par"><img src="../assets/shots/deal.jpg" width="1100" height="2921" alt="Dealcraft, the corporate law desk" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+    <a class="cell rv" href="../dealcraft/" target="_blank" rel="noopener" style="--tone:#dcb47e;--travel:-54%">
+      <span class="par"><img src="../assets/shots/deal.jpg" alt="Dealcraft, the corporate law desk" loading="lazy" decoding="async"></span>
+      <span class="tone" aria-hidden="true"></span>
       <span class="no">03</span>
-      <span class="cap"><b>Dealcraft</b><span>Lesson 016</span></span>
+      <span class="cap"><b>Dealcraft</b><i>Lesson 016 &middot; two-year build</i></span>
     </a>
-
-    <div class="tile app tall rv" id="train" style="--tone:#6f9e8c">
-      <span class="win"><span class="phone">
-        <img class="on" src="../assets/shots/train-today.jpg" width="760" height="1644" alt="Train, the Today tab" loading="lazy" decoding="async">
-        <img src="../assets/shots/train-lift.jpg" width="760" height="1644" alt="Train, the Lift tab" loading="lazy" decoding="async">
-        <img src="../assets/shots/train-cardio.jpg" width="760" height="1644" alt="Train, the Cardio tab" loading="lazy" decoding="async">
-        <img src="../assets/shots/train-track.jpg" width="760" height="1644" alt="Train, the Track tab" loading="lazy" decoding="async">
-      </span><span class="tint" aria-hidden="true"></span></span>
+    <a class="cell rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--tone:#7da3c2;--travel:-52%">
+      <span class="par"><img src="../assets/shots/bits.jpg" alt="Greatest Bits, the comedy archive" loading="lazy" decoding="async"></span>
+      <span class="tone" aria-hidden="true"></span>
       <span class="no">04</span>
-      <span class="cap"><b>Train</b><span>v7.77 &middot; no number you can fail</span></span>
-    </div>
-
-    <a class="tile tall rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--travel:-70%;--tone:#7da3c2">
-      <span class="win"><span class="par"><img src="../assets/shots/bits.jpg" width="1100" height="2921" alt="Greatest Bits, the comedy archive" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
-      <span class="no">05</span>
-      <span class="cap"><b>Greatest Bits</b><span>459 comics</span></span>
+      <span class="cap"><b>Greatest Bits</b><i>459 comics catalogued</i></span>
     </a>
-
-  </section>
-
-  <section class="rest">
-    <p class="lab rv" style="margin:0 0 22px">Also built</p>
-    <div class="row rv"><b>The Desk</b><span>The board I start every morning from, rebuilt while I am asleep.</span><i>Daily</i></div>
-    <div class="row rv"><b>The Claude OS Kit</b><span>The system I run everything from, shipped in four editions.</span><i>Four editions</i></div>
-    <div class="row rv"><b>A Personal University</b><span>Re-teaching a finished degree by writing the encyclopedia of it.</span><i>48 pages</i></div>
-    <div class="row rv"><b>The Listening Record</b><span>Twelve years of listening, rebuilt into something you can question.</span><i>66,253 plays</i></div>
-    <div class="row rv"><b>The Finance Desk</b><span>A weekly letter about my own money, written the way an analyst would.</span><i>Weekly</i></div>
-    <div class="row rv"><b>The Film Library</b><span>A shelf that decides what I am watching tonight.</span><i>Top 100</i></div>
-    <div class="row rv"><b>The Reading Log</b><span>Every book finished, so the year has a shape.</span><i>Self-running</i></div>
+    <div class="cell app rv" id="train" style="--tone:#6f9e8c">
+      <span class="par" id="tabs">
+        <img class="crop on" src="../assets/shots/train-today.jpg" alt="Train, the Today tab" loading="lazy" decoding="async">
+        <img class="crop" src="../assets/shots/train-lift.jpg" alt="Train, the Lift tab" loading="lazy" decoding="async">
+        <img class="crop" src="../assets/shots/train-cardio.jpg" alt="Train, the Cardio tab" loading="lazy" decoding="async">
+        <img class="crop" src="../assets/shots/train-track.jpg" alt="Train, the Track tab" loading="lazy" decoding="async">
+      </span>
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">05</span>
+      <span class="cap"><b>Train</b><i>v7.77 &middot; no number you can fail</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#e0654f">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">06</span>
+      <span class="cap"><b>The Desk</b><i>Rebuilt each morning &middot; one writer</i></span>
+    </div>
+    <div class="cell say rv">
+      <p>Twelve things, built one at a time. <em>Four of them run without me.</em></p>
+    </div>
+    <div class="cell type rv" style="--tone:#9a8fb0">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">07</span>
+      <span class="cap"><b>The Claude OS Kit</b><i>Four editions shipped</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#c99a6a">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">08</span>
+      <span class="cap"><b>A Personal University</b><i>48 pages &middot; a fourth building</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#7fa89b">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">09</span>
+      <span class="cap"><b>The Listening Record</b><i>5,068 artists &middot; 66,253 plays</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#c2a15e">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">10</span>
+      <span class="cap"><b>The Finance Desk</b><i>A letter every Monday</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#8fa6c4">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">11</span>
+      <span class="cap"><b>The Film Library</b><i>A running top hundred</i></span>
+    </div>
+    <div class="cell type rv" style="--tone:#b08a5e">
+      <span class="tone" aria-hidden="true"></span>
+      <span class="no">12</span>
+      <span class="cap"><b>The Reading Log</b><i>Every book, shelved and counted</i></span>
+    </div>
   </section>
 
   <a class="next rv" href="../about/">
@@ -292,7 +336,7 @@ html.js .rv.in{opacity:1;transform:none}
       var po=new IntersectionObserver(function(es){
         es.forEach(function(e){e.target.classList.toggle('play',e.isIntersecting&&e.intersectionRatio>.55);});
       },{threshold:[0,.55,1]});
-      [].forEach.call(document.querySelectorAll('.tile[style*="travel"]'),function(t){po.observe(t);});
+      [].forEach.call(document.querySelectorAll('.cell[style*="travel"]'),function(t){po.observe(t);});
     }
   }catch(e){}
 
@@ -301,7 +345,7 @@ html.js .rv.in{opacity:1;transform:none}
      travel writes transform on the img inside it. One writer per property. */
   try{
     var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var pars=[].slice.call(document.querySelectorAll('.tile .par'));
+    var pars=[].slice.call(document.querySelectorAll('.cell .par'));
     if(pars.length){
       var K=reduce?7:16, ticking=false;
       var drift=function(){
@@ -322,7 +366,7 @@ html.js .rv.in{opacity:1;transform:none}
 
   /* Train: the four real tabs, in order, while the tile is on screen. */
   try{
-    var ph=document.querySelector('#train .phone');
+    var ph=document.getElementById('tabs');
     if(ph){
       var shots=[].slice.call(ph.querySelectorAll('img')),i=0,timer=null;
       var step=function(){
