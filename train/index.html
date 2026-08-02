@@ -111,6 +111,31 @@ input,select{border:0;background:none}
 .iconbtn:active{background:var(--surface-2)}
 .iconbtn,.calnav,.hero .chg{position:relative}
 .iconbtn::after,.calnav::after,.hero .chg::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;min-width:44px;min-height:44px}
+.sesday{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.sdl{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.sdrow{display:flex;align-items:center;gap:11px;width:100%;min-height:44px;padding:10px 12px;text-align:left;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:12px}
+.sdrow .sdi{display:flex;width:30px;height:30px;flex:none;border-radius:9px;background:var(--surface);color:var(--accent);align-items:center;justify-content:center}
+.sdrow .sdi svg{width:15px;height:15px}
+.sdrow .sdt{flex:1;min-width:0}
+.sdrow .sdt b{display:block;font-size:13.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdrow .sdt span{display:block;font-size:11.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdrow .sda{flex:none;color:var(--faint);display:flex}
+.sesday.gd .sdrow{border-color:var(--good);background:var(--good-tint)}
+
+.mrow2{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n v" "b b" "w w";gap:2px 10px;
+  padding:12px 0;min-height:44px;text-align:left}
+.mrow2 .m2n{grid-area:n;font-size:14.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mrow2 .m2v{grid-area:v;font-size:15px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.mrow2 .m2v small{font-size:11px;font-weight:600;color:var(--faint)}
+.mrow2 .m2b{grid-area:b;display:block;height:4px;border-radius:2px;background:var(--line);overflow:hidden;margin:5px 0 3px}
+.mrow2 .m2b i{display:block;height:100%;border-radius:2px;background:var(--sub)}
+.mrow2 .m2w{grid-area:w;font-size:11.5px;font-weight:700;color:var(--faint)}
+.mrow2[data-dir="up"] .m2b i{background:var(--good)}
+.mrow2[data-dir="up"] .m2w{color:var(--good)}
+.mrow2[data-dir="down"] .m2b i{background:var(--amber)}
+.mrow2[data-dir="down"] .m2w{color:var(--amber)}
+
 .pband{margin:14px 0 4px}
 .pbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
 .pbbar{position:relative;height:30px}
@@ -1491,7 +1516,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.72";
+var VERSION="v7.73";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2582,7 +2607,8 @@ function renderToday(){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
       '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
-      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+heroTailHTML()+'</div>';
+      (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
+      sessionDayHTML()+heroTailHTML()+'</div>';
   }
   // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
@@ -2804,7 +2830,7 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
     h+='<div class="exeyebrow">Now &middot; step 1 of '+total+'</div>';
     var wv=pickForSlot("warmup",0)||pickVid(warmCat("lift"),0);
     h+='<div class="ex active hero"><div class="exhead"><div class="exname">Warm up</div></div>'+
-      '<div class="aim">'+(wv&&wv.m?(wv.m+' min &middot; '):'')+WARM+'</div>'+
+      '<div class="aim">'+(vidMinsTxt(wv)?(vidMinsTxt(wv)+' &middot; '):'')+WARM+'</div>'+
       (wv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(wv,true)+'</div>'):'')+
       '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().warmDone=true;save();renderWorkout()">Done, first movement</button></div></div>';
     if(active.length){
@@ -2823,7 +2849,7 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
     var fv=pickForSlot("finisher",0);
     h+='<div class="exeyebrow">Now &middot; finisher</div>';
     h+='<div class="ex active hero"><div class="exhead"><div class="exname">Core finisher</div></div>'+
-      '<div class="aim">No core in today\'s session, so this is where it goes.'+(fv&&fv.m?(' About '+fv.m+' minutes.'):'')+'</div>'+
+      '<div class="aim">No core in today\'s session, so this is where it goes.'+(vidMinsTxt(fv)?(' About '+vidMinsTxt(fv)+'.'):'')+'</div>'+
       (fv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(fv,true)+'</div>'):'')+
       '<div class="setbtns"><button class="setbtn" style="flex:2;padding:13px" onclick="AW().finDone=true;save();renderWorkout()">Done</button>'+
       '<button class="setbtn" style="padding:13px" onclick="AW().finDone=true;save();renderWorkout()">Skip</button></div></div>';
@@ -3806,12 +3832,20 @@ function syncHealth(){
 function measureRowsHTML(){
   return kpiRows().map(function(r){
     if(r.outcome)return "";
-    var pct=r.target>0?Math.min(100,(r.val/r.target)*100):0;
+    var prev=r.prev==null?null:r.prev;
+    var top=Math.max(r.val,prev==null?0:prev,0.001);
+    var pct=Math.min(100,(r.val/top)*100);
     var v=r.fmt?r.fmt(r.val):r.val;
-    return '<button class="mrow" data-rag="'+r.rag+'" onclick="'+r.act+'" style="width:100%;background:none;border:0;border-top:1px solid var(--line)">'+
-      '<span class="md"></span><span class="mn">'+esc(r.label)+'</span>'+
-      '<span class="mtr"><i style="width:'+pct.toFixed(0)+'%"></i></span>'+
-      '<span class="mv">'+v+'<small> / '+((r.k==="miles"||r.k==="walkMi")?r.target.toFixed(1):r.target)+'</small></span></button>';
+    var word,tone;
+    if(prev==null){word="first week on record";tone="flat";}
+    else if(r.val>prev+0.001){word="more than last week";tone="up";}
+    else if(r.val<prev-0.001){word="less than last week";tone="down";}
+    else {word="same as last week";tone="flat";}
+    return '<button class="mrow2" data-dir="'+tone+'" onclick="'+r.act+'" style="width:100%;background:none;border:0;border-top:1px solid var(--line)">'+
+      '<span class="m2n">'+esc(r.label)+'</span>'+
+      '<span class="m2v num">'+v+(r.unit&&r.unit.indexOf("/")<0?('<small> '+esc(r.unit)+'</small>'):'')+'</span>'+
+      '<span class="m2b"><i style="width:'+pct.toFixed(0)+'%"></i></span>'+
+      '<span class="m2w">'+word+'</span></button>';
   }).join("");
 }
 function levelPairHTML(){
@@ -3890,7 +3924,7 @@ function trackDashHTML(){
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
       trackGlanceHTML()+
       '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
-    '<div class="dband"><div class="bandlbl">This week<span class="bx">'+green+' of '+scored+' green</span></div>'+measureRowsHTML()+'</div>'+
+    '<div class="dband"><div class="bandlbl">This week<span class="bx">'+(green?(green+' climbing'):'nothing up yet')+'</span></div>'+measureRowsHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Levels</div>'+levelPairHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
     '<div class="dband"><div class="bandlbl">Data<span class="bx">'+(stale?stale+' stale':'all current')+'</span></div>'+dataHealthHTML()+'</div>'+
@@ -4018,11 +4052,12 @@ function trackStatusHTML(){
   else if(green>=Math.ceil(scored/2)){head="Most of it is moving.";tone="amber";}
   else {head="Quiet week so far.";tone="red";}
   var sub;
+  var climb=green+" measure"+(green===1?"":"s")+" climbing";
   if(!st)sub="Nothing to measure against yet.";
-  else if(t.state==="down")sub="Weight is coming down and "+green+" of "+scored+" measures are green.";
-  else if(t.state==="up")sub="Weight is up and "+green+" of "+scored+" measures are green.";
-  else if(t.state==="flat")sub="Weight is holding and "+green+" of "+scored+" measures are green.";
-  else sub=green+" of "+scored+" measures are green.";
+  else if(t.state==="down")sub="Weight is coming down, "+climb+".";
+  else if(t.state==="up")sub="Weight is up, "+climb+".";
+  else if(t.state==="flat")sub="Weight is holding, "+climb+".";
+  else sub=climb.charAt(0).toUpperCase()+climb.slice(1)+".";
   var lights=rows.map(function(r){
     return '<button class="light" data-rag="'+r.rag+'" onclick="'+r.act+'" title="'+esc(r.label)+'"><span class="ldot"></span><span class="llab">'+esc(r.label.split(" ")[0])+'</span></button>';
   }).join("");
@@ -4079,6 +4114,9 @@ function kpiRows(){
     {k:"anchor",label:"Morning anchor",val:m.anchor,target:6,unit:"/ 7",fmt:function(v){return v;},
      tag:{good:"On track",amber:"Slipping",red:"Behind"},act:"show('today')"}
   ];
+  var pm=weekMetrics(1),pMi=Math.round((pm.miles||0)*10)/10,pWk=Math.round((pm.walkMi||0)*10)/10;
+  var PREV={lifts:pm.lifts,moved:pm.moved,protein:pm.protein,miles:pMi,walkMi:pWk,anchor:pm.anchor};
+  rows.forEach(function(r){r.prev=(PREV[r.k]==null?null:PREV[r.k]);});
   var elapsed=Math.max(m.days,1);
   rows.forEach(function(r){
     r.pace=r.target*(elapsed/7);
@@ -4168,7 +4206,7 @@ function scorecardHTML(){
   });
   var m=weekMetrics(0),green=rows.filter(function(r){return r.rag==="good";}).length;
   var scored=rows.filter(function(r){return r.rag!=="none";}).length||1;
-  return collapsible("This week",green+" of "+scored+" green",
+  return collapsible("This week",(green?(green+" climbing"):"nothing up yet"),
     '<div class="ksub">Green is at or above target. Amber is within 30 percent below it. Tap any row to act on it.</div>'+
     h+'<div class="klegend"><span>12 weeks</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>on target</span></div>',false,I.check,green>=scored?"good":green<=2?"red":"amber");
 }
@@ -5600,6 +5638,11 @@ function toggleVDone(id,btn){
     var card=btn.closest(".vcard");if(card)card.classList.toggle("vdone",on);
   }
 }
+function vidMinsTxt(v){
+  var m=String(v&&v.m||"").trim();
+  if(!m)return "";
+  return /^\d+$/.test(m) ? (m+" min") : m;
+}
 function vidCardHTML(v,wide){
   var slot="vp-"+(++vseq);
   var on=vDone(v.id);
@@ -5607,7 +5650,7 @@ function vidCardHTML(v,wide){
     '<div class="vratio"><button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
       '<span class="vplay">'+I.play+'</span><span class="vfl">'+(vpnOn()?"Opens in YouTube":"Tap to play")+'</span></button></div>'+
     '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
-    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m+' min':'')+
+    '<div class="va">'+esc(v.a)+(vidMinsTxt(v)?(' &middot; '+vidMinsTxt(v)):'')+
       (v.src==="onnit"
         ? (' &middot; '+esc(v.prog||"onnit")+(v.needs?(' &middot; <b>needs a '+esc(v.needs)+'</b>'):''))
         : (' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a>'))+
@@ -5903,6 +5946,17 @@ function levelSheet(kind){
 }
 function levelRowHTML(){
   return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
+}
+function sessionDayHTML(){
+  var v=pickForSlot("session",0);
+  if(!v)return "";
+  var on=vDone(v.id);
+  return '<div class="sesday'+(on?" gd":"")+'">'+
+    '<div class="sdl">Or make it a session</div>'+
+    '<button class="sdrow" onclick="sessionVidSheet(\''+v.id+'\')">'+
+      '<span class="sdi">'+I.play+'</span>'+
+      '<span class="sdt"><b>'+esc(v.t)+'</b><span>'+esc(v.a)+(vidMinsTxt(v)?(' &middot; '+vidMinsTxt(v)):'')+'</span></span>'+
+      '<span class="sda">'+I.arrow+'</span></button></div>';
 }
 function heroTailHTML(){return levelRowHTML()+anchorHTML();}
 function movementHTML(){
