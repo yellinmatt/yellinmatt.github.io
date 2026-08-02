@@ -656,6 +656,11 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard>summary .dsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
 .dcard>summary .dsi svg{width:14px;height:14px}
 .dcard>summary .dleft{display:flex;align-items:center;min-width:0;flex:1}
+.dcard>summary .dleft{flex:0 0 auto}
+.dcard>summary .aright{display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  min-width:0;flex:0 1 auto;overflow:hidden}
+.dcard>summary .aright .acount{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dcard>summary .aright .chev{flex:none;width:auto;display:flex;align-items:center}
 .dcard[data-tone="good"]{--rag:var(--good);--rag-tint:var(--good-tint)}
 .dcard[data-tone="amber"],.dcard[data-tone="warn"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
 .dcard[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
@@ -727,7 +732,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .light[data-rag="none"]{--rag:var(--line-2)}
 .light .ldot{width:9px;height:9px;border-radius:50%;background:var(--rag)}
 .light .llab{font-size:8.5px;font-weight:700;color:var(--faint);text-align:center;line-height:1.1}
-.dcard.rpt>summary{display:grid;grid-template-columns:1fr auto 16px;grid-template-areas:"l v c" "k s c";
+.dcard.rpt>summary{display:grid;grid-template-columns:max-content minmax(0,1fr) 16px;grid-template-areas:"l v c" "k s c";
   column-gap:12px;row-gap:7px;align-items:center;padding:13px 15px 12px}
 .dcard.rpt>summary .chev{grid-area:c;display:flex;align-items:center;justify-content:flex-end;opacity:.3}
 .dcard.rpt>summary .rl{grid-area:l;display:flex;align-items:center;gap:8px;min-width:0}
@@ -968,6 +973,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .deeper{width:100%;height:48px;border-radius:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:14.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:12px;box-shadow:var(--shadow)}
 .deeper .dchev{display:inline-flex;transition:transform .18s ease;color:var(--sub)}
 .deeper .dchev svg{width:18px;height:18px}
+.deeper>svg{width:18px;height:18px;flex:none}
 .deeper.on .dchev{transform:rotate(180deg)}
 .deeper .dcount{font-size:12px;font-weight:700;color:var(--faint)}
 .deepwrap{display:none}
@@ -983,6 +989,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .odo2body .oseg button{flex:1;height:44px;border:0;border-radius:999px;background:transparent;color:var(--sub);font-size:13px;font-weight:700}
 .odo2body .oseg button.on{background:var(--accent);color:var(--white)}
 .odo2body .octx{font-size:14.5px;font-weight:650;color:var(--ink);margin-bottom:6px}
+.odo2body .ospan{font-size:12.5px;font-weight:500;color:var(--sub);letter-spacing:0}
 .odo2body .oN{font-size:52px;font-weight:800;letter-spacing:-.045em;line-height:.92;color:var(--ink);font-variant-numeric:tabular-nums}
 .odo2body .oU{font-size:13px;font-weight:500;color:var(--sub);margin-top:3px}
 .odo2body .orow{display:flex;gap:30px;margin-top:17px}
@@ -1550,7 +1557,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.76";
+var VERSION="v7.77a";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2737,11 +2744,9 @@ function renderToday(){
       '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(ds.metPlan?I.check:ic)+'</div>'+
       '<span class="dl">'+lab+'</span>'+
       '<span class="dan'+(anch?" on":"")+'" aria-label="morning anchor"></span></button>';}
-  var guided=(plan.type==="rest")?guidedHTML(DOW===0?"recovery":"mobility","Guided session","Twenty quiet minutes. Put it on and follow."):"";
   document.getElementById("v-today").innerHTML=h+hero+
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
     movementHTML()+
-    guided+
     todayMetricsHTML()+
     (isFresh()?emptyStateHTML():"")+
     drawerize(todayLogHTML(),I.check,"");
@@ -3643,25 +3648,27 @@ function daysMoved(n){
 function weekHTML(withRing){
   refreshDate();
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
-  var doneLifts=0,totLifts=0,miDone=0,totMi=0,list="";
+  var doneLifts=0,totLifts=0,miDone=0,list="";
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k)||{type:"none"},dn=isDone(k),isT=(k===TODAY);
     var didLift=S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
     if(pl.type==="lift"){totLifts++;if(didLift)doneLifts++;}
-    if(pl.type==="run"){totMi+=(pl.dist||0);
-      S.sessions.forEach(function(x){if(x.date===k&&(x.type==="run"||x.distanceMi))miDone+=(x.distanceMi||0);});}
+    if(pl.type==="run"){
+      S.sessions.forEach(function(x){if(x.date===k&&isRealRun(x))miDone+=(x.distanceMi||0);});}
     var _ds=dayStatus(k),metPlan=_ds.metPlan,partial=_ds.partial;
     var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
     var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
     var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
     list+='<button class="wl'+(metPlan?" done":"")+(isT?" today":"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
-  var pct=totLifts?doneLifts/totLifts:0,C=2*Math.PI*45,off=C*(1-pct),complete=(totLifts>0&&doneLifts>=totLifts);
-  var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
-    '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
-    '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
+  var liftHist=[],mvi;for(mvi=1;mvi<=12;mvi++)liftHist.push(weekMetrics(mvi).lifts);
+  var liftBest=Math.max.apply(null,liftHist.concat([1]));
+  var pct=Math.min(1,doneLifts/liftBest),C=2*Math.PI*45,off=C*(1-pct),complete=(doneLifts>=liftBest);
+  var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'</b><span>'+(doneLifts===1?"session":"sessions")+'</span></div></div>'+
+    '<div class="rmeta"><div class="rt">'+(complete?"Your strongest week yet":"Building the week")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
+    '<div style="margin-top:8px"><div class="rd" style="margin:0">'+(complete?("Best of your last twelve weeks was "+liftBest+"."):("Your best twelve-week stretch had "+liftBest+" in a week."))+(miDone>0?(" Running &middot; "+miDone.toFixed(1)+" mi."):"")+'</div></div></div></div>';
   var wnote=doneLifts?(doneLifts+' lift'+(doneLifts===1?'':'s')+' this week'):'no lift yet this week';
   return (withRing===false?'':ring)+
     collapsible("This week",wnote,'<div class="ksub">Tap a day to view or edit it.</div><div class="weeklist">'+list+'</div>',
-      false,I.cal,(totLifts&&doneLifts>=totLifts)?"good":kpiDir("lifts"));
+      false,I.cal,kpiDir("lifts"));
 }
 function dayPatternSummary(L){
   var tpl=DAYS[L];if(!tpl)return "";
@@ -3924,12 +3931,12 @@ function nextMove(){
   var f=freshness(),deadSync=syncHealth();
   if(deadSync.rag==="red")return {t:"Fix sync",a:"settingsSheet()",why:"the record on this device is "+deadSync.txt};
   if(!st)return {t:"Log a weigh-in",a:"weighSheet()",why:"nothing here can be scored until there is a weight"};
-  var red=rows.filter(function(r){return !r.outcome&&r.dir==="down";})
-    .sort(function(x,y){return ((y.prev||0)-y.val)-((x.prev||0)-x.val);});
-  if(!red.length)return {t:"Log today",a:"show('today')",why:"nothing has slipped against last week"};
+  var red=rows.filter(function(r){return !r.outcome&&r.dir==="down"&&r.base;})
+    .sort(function(x,y){return ((y.base.cap-y.val)/y.base.band)-((x.base.cap-x.val)/x.base.band);});
+  if(!red.length)return {t:"Log today",a:"show('today')",why:"everything is at or above your usual level"};
   var k=red[0].k;
-  if(k==="lifts")return {t:"Start a lift",a:"show('lift')",why:"it is the weakest measure this week"};
-  if(k==="miles")return {t:"Start a run",a:"show('cardio')",why:"you are short of the week's run miles"};
+  if(k==="lifts")return {t:"Start a lift",a:"show('lift')",why:"the lightest thing this week against your usual"};
+  if(k==="miles")return {t:"Start a run",a:"show('cardio')",why:"running is where this week is quietest"};
   if(k==="walkMi")return {t:"Log a walk",a:"actSheet('walk')",why:"walking miles are the cheapest ones to bank"};
   if(k==="protein")return {t:"Tick protein",a:"toggleProtein()",why:"one tap closes the day"};
   return {t:"Open Today",a:"show('today')",why:"the morning anchor is the cheapest day to close"};
@@ -3948,8 +3955,8 @@ function syncHealth(){
 function measureRowsHTML(){
   return kpiRows().map(function(r){
     if(r.outcome)return "";
-    var prev=r.prev==null?0:r.prev;
-    var top=Math.max(r.val,prev,0.001);
+    var ref=r.base?r.base.cap:(r.prev==null?0:r.prev);
+    var top=Math.max(r.val,ref,0.001);
     var pct=Math.min(100,(r.val/top)*100);
     var v=r.fmt?r.fmt(r.val):r.val;
     return '<button class="mrow2" data-dir="'+r.dir+'" onclick="'+r.act+'" style="width:100%;background:none;border:0;border-top:1px solid var(--line)">'+
@@ -4017,6 +4024,7 @@ function trackGlanceHTML(){
 function trackDashHTML(){
   var rows=kpiRows();
   var green=rows.filter(function(r){return !r.outcome&&r.dir==="up";}).length;
+  var hold=rows.filter(function(r){return !r.outcome&&(r.dir==="up"||r.dir==="flat");}).length;
   var scored=rows.filter(function(r){return !r.outcome&&r.dir!=="none";}).length||1;
   var st=weightStats(),t=trendState(),s=syncHealth();
   var stale=freshness().filter(function(f){return !f.pending&&(f.age==null||f.age>=f.warn);}).length;
@@ -4024,14 +4032,15 @@ function trackDashHTML(){
   if(s.rag==="red"){head="These numbers are stale.";tone="red";}
   else if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(green>=scored-1){head="Everything is moving.";tone="good";}
-  else if(green>=Math.ceil(scored/2)){head="Most of it is moving.";tone="good";}
-  else if(green>0){head="Some of it is moving.";tone="flat";}
-  else {head="Quiet week so far.";tone="flat";}
+  else if(hold>=scored){head="Everything is at or above your usual.";tone="good";}
+  else if(hold>=Math.ceil(scored/2)){head="Most of it is holding.";tone="good";}
+  else if(hold>0){head="Some of it is holding.";tone="flat";}
+  else {head="A lighter week than usual.";tone="flat";}
   var mv=nextMove();
   var m=weekMetrics(0);
   var sub='<b>'+m.moved+'</b> day'+(m.moved===1?'':'s')+' moved, '+
-    (green?('<b>'+green+'</b> measure'+(green===1?'':'s')+' up on last week'):'nothing up on last week yet')+
+    (green?('<b>'+green+'</b> measure'+(green===1?'':'s')+' above your usual'):
+      (hold?('<b>'+hold+'</b> measure'+(hold===1?'':'s')+' holding at your usual'):'everything running light this week'))+
     (stale?(', <b>'+stale+'</b> input'+(stale===1?'':'s')+' stale'):'')+'.';
   var wl=lastW(),goal=S.profile.goalLb;
   var body=wl?('<div class="bodyb"><div><div class="bn">'+wl.toFixed(1)+'</div><div class="bu">'+wLbl()+', '+(st&&st.ageDays===0?"today":"latest")+'</div></div>'+
@@ -4042,7 +4051,7 @@ function trackDashHTML(){
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
       trackGlanceHTML()+
       '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
-    '<div class="dband"><div class="bandlbl">This week<span class="bx">'+(green?(green+' up on last week'):'nothing up yet')+'</span></div>'+measureRowsHTML()+'</div>'+
+    '<div class="dband"><div class="bandlbl">This week<span class="bx">'+(green?(green+' above your usual'):(hold?(hold+' holding'):'running light'))+'</span></div>'+measureRowsHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Levels</div>'+levelPairHTML()+'</div>'+
     '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
     '<div class="dband"><div class="bandlbl">Data<span class="bx">'+(stale?stale+' stale':'all current')+'</span></div>'+dataHealthHTML()+'</div>'+
@@ -4095,8 +4104,8 @@ function trSleepRow(){
   var nights=[],d=new Date(NOW);d.setDate(d.getDate()-27);
   for(var i=0;i<28;i++){var r=(S.sleep||{})[keyOf(d)];var t=r?((r.total!=null?r.total:(r.asleep!=null?r.asleep:r.inBed))||0):0;
     nights.push(t>=3?t:0);d.setDate(d.getDate()+1);}
-  return reportize(sleepCardHTML(),{title:"Sleep",tone:sv.tone,val:hrsTxt(s7.mean),series:nights,
-    sub:s28.short+" of "+s28.n+" under seven hours"});
+  return reportize(sleepCardHTML(),{title:"Sleep",tone:sv.tone,val:hrsTxt(s7.med),series:nights,
+    sub:s28.short?(s28.short+" night"+(s28.short===1?"":"s")+" under seven in the last month"):"nothing under seven in the last month"});
 }
 function trRhrRow(){
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
@@ -4121,7 +4130,7 @@ function trMilesRow(){
   var mr=kpiRows().filter(function(r){return r.k==="miles";})[0];
   return reportize(odoCardHTML(),{title:"Miles run",tone:kpiDir("miles")||"flat",
     val:wkMi.toFixed(1)+'<small> mi</small>',series:miS,
-    sub:mr?("this week, "+mr.word):"this week"});
+    sub:mr?mr.word:"this week"});
 }
 function deepHTML(){
   var h='<div class="grouphd"><span class="gn">Changing</span><span class="gl"></span><span class="gc">what the body is doing</span></div>';
@@ -4162,17 +4171,19 @@ function renderTrack(){
 function trackStatusHTML(){
   var rows=kpiRows();
   var up=rows.filter(function(r){return !r.outcome&&r.dir==="up";}).length;
+  var hold=rows.filter(function(r){return !r.outcome&&(r.dir==="up"||r.dir==="flat");}).length;
   var known=rows.filter(function(r){return !r.outcome&&r.dir!=="none";}).length||1;
   var st=weightStats(),t=trendState();
   var head,tone;
   if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(up>=known-1){head="Everything is moving.";tone="good";}
-  else if(up>=Math.ceil(known/2)){head="Most of it is moving.";tone="good";}
-  else if(up>0){head="Some of it is moving.";tone="flat";}
-  else {head="Quiet week so far.";tone="flat";}
+  else if(hold>=known){head="Everything is at or above your usual.";tone="good";}
+  else if(hold>=Math.ceil(known/2)){head="Most of it is holding.";tone="good";}
+  else if(hold>0){head="Some of it is holding.";tone="flat";}
+  else {head="A lighter week than usual.";tone="flat";}
   var sub;
-  var climb=up?(up+" measure"+(up===1?"":"s")+" up on last week"):"nothing up on last week yet";
+  var climb=up?(up+" measure"+(up===1?"":"s")+" above your usual"):
+    (hold?(hold+" measure"+(hold===1?"":"s")+" holding"):"everything running light");
   if(!st)sub="Nothing to measure against yet.";
   else if(t.state==="down")sub="Weight is coming down, "+climb+".";
   else if(t.state==="up")sub="Weight is up, "+climb+".";
@@ -4212,6 +4223,28 @@ function kpiDir(k){
   var r=kpiRows().filter(function(x){return x.k===k;})[0];
   return (r&&r.tone&&r.tone!=="none")?r.tone:"";
 }
+var WEEK_FLOOR={lifts:1,moved:1,protein:1,anchor:1,miles:0.5,walkMi:0.5};
+function weekBase(k){
+  var vs=weekSeries(k).slice(0,11);            /* eleven COMPLETED weeks; this week is excluded */
+  if(!vs.length)return null;
+  function ewma(a){var c=0;a.forEach(function(v){var tau=(v>c)?3:6;c=c+(v-c)*(1-Math.exp(-1/tau));});return c;}
+  var cap=ewma(vs),cap4=ewma(vs.slice(0,Math.max(1,vs.length-4)));
+  var med=tMed(vs.slice());
+  var mad=tMed(vs.map(function(v){return Math.abs(v-med);}));
+  var band=Math.max(0.6*1.4826*mad,0.10*cap,WEEK_FLOOR[k]||0.5);
+  return {cap:cap,cap4:cap4,med:med,band:band,n:vs.length,rising:cap>cap4*1.06};
+}
+function weekVerdict(k,val,elapsed){
+  var b=weekBase(k);
+  if(!b||b.n<3)return {base:null,dir:"none",tone:"flat",word:"first weeks on record"};
+  var f=(elapsed==null?7:Math.max(1,Math.min(7,elapsed)))/7;
+  var R=b.cap*f,B=b.band*f;
+  if(val>=R+B)  return {base:b,dir:"up",  tone:"good",word:b.rising?"building on a strong run":"a big week for you"};
+  if(val>R-B)   return {base:b,dir:"flat",tone:b.rising?"good":"flat",
+                        word:b.rising?"holding a level you have raised":"right at your usual"};
+  if(val>0)     return {base:b,dir:"down",tone:"flat",word:b.rising?"lighter, on top of a strong run":"a lighter week"};
+  return {base:b,dir:"down",tone:"flat",word:"nothing logged yet this week"};
+}
 function kpiRows(){
   var m=weekMetrics(0),st=weightStats();
   var rows=[
@@ -4225,11 +4258,9 @@ function kpiRows(){
   var pm=weekMetrics(1,m.days),pMi=Math.round((pm.miles||0)*10)/10,pWk=Math.round((pm.walkMi||0)*10)/10;
   var PREV={lifts:pm.lifts,moved:pm.moved,protein:pm.protein,miles:pMi,walkMi:pWk,anchor:pm.anchor};
   rows.forEach(function(r){
-    r.prev=(PREV[r.k]==null?null:PREV[r.k]);
-    if(r.prev==null){r.dir="none";r.tone="flat";r.word="first week on record";}
-    else if(r.val>r.prev+0.001){r.dir="up";r.tone="good";r.word="more than last week";}
-    else if(r.val<r.prev-0.001){r.dir="down";r.tone="flat";r.word="less than last week";}
-    else {r.dir="flat";r.tone="flat";r.word="same as last week";}
+    r.prev=(PREV[r.k]==null?null:PREV[r.k]);   /* kept for the footnote; no longer the comparator */
+    var v=weekVerdict(r.k,r.val,m.days);
+    r.base=v.base;r.dir=v.dir;r.tone=v.tone;r.word=v.word;
   });
   var w={k:"weight",label:"Weight trend",outcome:true,act:"weighSheet()"};
   if(!st||st.rate==null){w.rag="none";w.status=st?"No recent data":"Not logged";w.val=null;}
@@ -4242,6 +4273,7 @@ function kpiRows(){
 function weekSeries(k){
   var out=[];
   for(var i=11;i>=0;i--){
+    if(k==="steps"){out.push(weekSteps(i).sum);continue;}
     var m=weekMetrics(i);
     out.push(k==="lifts"?m.lifts:k==="moved"?m.moved:k==="protein"?m.protein:
              k==="anchor"?m.anchor:k==="miles"?m.miles:k==="walkMi"?m.walkMi:0);
@@ -4307,7 +4339,8 @@ function scorecardHTML(){
        kpiStrip(r.k)+'</button>';
   });
   var up=rows.filter(function(r){return !r.outcome&&r.dir==="up";}).length;
-  return collapsible("The last twelve weeks",(up?(up+" up on last week"):"nothing up yet"),
+  var hold=rows.filter(function(r){return !r.outcome&&(r.dir==="up"||r.dir==="flat");}).length;
+  return collapsible("The last twelve weeks",(up?(up+" above your usual"):(hold?(hold+" holding"):"running light")),
     '<div class="ksub">Each strip is twelve weeks, oldest on the left, shaded against your own best week rather than a target. Tap any row to act on it.</div>'+
     h+'<div class="klegend"><span>12 weeks ago</span><i data-l="0"></i><i data-l="1"></i><i data-l="2"></i><i data-l="3"></i><i data-l="4"></i><span>this week</span></div>',false,I.cal,"");
 }
@@ -4826,10 +4859,20 @@ function progressHTML(){
     return Math.round(t);
   }
   var thisLoad=weekLoad(0),prevLoad=weekLoad(1);
-  var volCls=prevVol?(lastVol>=prevVol?"":" flat"):" flat";
-  var loadCls=prevLoad?(thisLoad>=prevLoad?"":" flat"):" flat";
-  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+volCls+'">'+(prevVol?((lastVol>=prevVol?"up":"down")+" vs last wk"):"no week to compare")+'</div></div>'+
-    '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+loadCls+'">'+(prevLoad?((thisLoad>=prevLoad?"up":"down")+" vs last wk"):"effort x time")+'</div></div></div>';
+  function tileVs(now,series){
+    if(!series||series.length<3)return {cls:" flat",txt:"first weeks on record"};
+    var c=0;series.forEach(function(v){var tau=(v>c)?3:6;c=c+(v-c)*(1-Math.exp(-1/tau));});
+    var med=tMed(series.slice());
+    var band=Math.max(0.6*1.4826*tMed(series.map(function(v){return Math.abs(v-med);})),0.10*c,1);
+    if(now>=c+band)return {cls:"",txt:"above your usual"};
+    if(now>c-band) return {cls:"",txt:"right at your usual"};
+    return {cls:" flat",txt:"a lighter week"};
+  }
+  var volHist=[],loadHist=[],vi;
+  for(vi=11;vi>=1;vi--){var vd=new Date(NOW);vd.setDate(NOW.getDate()-7*vi);volHist.push(volByWk[isoWeek(keyOf(vd))]||0);loadHist.push(weekLoad(vi));}
+  var vT=tileVs(lastVol,volHist),lT=tileVs(thisLoad,loadHist);
+  var volTile='<div class="stattiles"><div class="stat"><div class="sl">Week volume</div><div class="sv num">'+(lastVol/1000).toFixed(lastVol>=10000?0:1)+'<small>k '+wLbl()+'</small></div><div class="st'+vT.cls+'">'+vT.txt+'</div></div>'+
+    '<div class="stat"><div class="sl">Training load</div><div class="sv num">'+thisLoad+' <small>AU</small></div><div class="st'+lT.cls+'">'+lT.txt+'</div></div></div>';
   var exIds=Object.keys(LIB).filter(function(id){return prFor(id);}).sort(function(a,b){return prFor(b).date<prFor(a).date?-1:1;});
   var prHtml="";exIds.slice(0,12).forEach(function(id){var p=prFor(id);prHtml+='<div class="pr"><span class="pn">'+esc(LIB[id].name)+'</span><span class="pv">'+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x"+p.r)+'</span><span class="pd">'+shortDate(p.date)+'</span></div>';});
   return lifetimeHTML()+rpeTrendHTML()+volChart()+volTile;
@@ -4899,18 +4942,18 @@ function patternVolumeHTML(icon){
   var wk=setsByPattern(0),prev=setsByPattern(1),any=0;
   Object.keys(wk).forEach(function(p){any+=wk[p];});
   if(!any)return "";
+  var pvMax=Math.max.apply(null,Object.keys(PATTERNS).map(function(p){return wk[p]||0;}).concat([1]));
   var rows=Object.keys(PATTERNS).map(function(p){
-    var v=wk[p]||0,floor=PATTERN_FLOOR[p]||8,pv=prev[p]||0;
-    var ragv=(v>=floor)?"good":(v>=floor*0.6)?"amber":"red";
+    var v=wk[p]||0,pv=prev[p]||0;
     var delta=v-pv;
-    return '<div class="pvrow" data-rag="'+ragv+'"><span class="pvn">'+PATTERNS[p]+'</span>'+
-      '<span class="pvbar"><i style="width:'+Math.min(100,(v/floor)*100).toFixed(0)+'%"></i></span>'+
-      '<span class="pvv num">'+v+'<small>/'+floor+'</small></span>'+
+    return '<div class="pvrow"><span class="pvn">'+PATTERNS[p]+'</span>'+
+      '<span class="pvbar"><i style="width:'+Math.min(100,(v/pvMax)*100).toFixed(0)+'%"></i></span>'+
+      '<span class="pvv num">'+v+'<small> sets</small></span>'+
       '<span class="pvd">'+(pv?((delta>0?"+":"")+delta):"new")+'</span></div>';
   }).join("");
-  var under=Object.keys(PATTERNS).filter(function(p){return (wk[p]||0)<(PATTERN_FLOOR[p]||8);}).length;
-  return collapsible("Sets per pattern",(under?under+" under":"all met"),
-    '<div class="ksub">These are maintenance floors for a cut, not growth targets. In a deficit the job is keeping the muscle you have.</div>'+rows,false,icon||I.dumbbell,under?"warn":"good");
+  var pvTot=Object.keys(PATTERNS).reduce(function(a,p){return a+(wk[p]||0);},0);
+  return collapsible("Sets per pattern",pvTot+" set"+(pvTot===1?"":"s")+" this week",
+    '<div class="ksub">What the week actually contained, by movement pattern. No target: the useful read is whether one pattern has gone quiet while the others carried on.</div>'+rows,false,icon||I.dumbbell,"");
 }
 function rpeTrendHTML(){
   var pts=[];
@@ -5263,10 +5306,10 @@ var VID=[
  {id:"onnit/durability/windmill-lv1.mp4",t:"Windmill · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
  {id:"onnit/durability/windmill-lv2.mp4",t:"Windmill · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
  {id:"onnit/durability/windmill-lv3.mp4",t:"Windmill · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
- {id:"onnit/bodyweight/workout/warmup-1.mp4",t:"Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
- {id:"onnit/bodyweight/workout/warmup-2.mp4",t:"Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
- {id:"onnit/bodyweight/workout/cooldown-1.mp4",t:"Cooldown 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
- {id:"onnit/bodyweight/workout/cooldown-2.mp4",t:"Cooldown 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
+ {id:"onnit/bodyweight/workout/warmup-1.mp4",t:"Bodyweight Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
+ {id:"onnit/bodyweight/workout/warmup-2.mp4",t:"Bodyweight Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
+ {id:"onnit/bodyweight/workout/cooldown-1.mp4",t:"Bodyweight Cool-down 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
+ {id:"onnit/bodyweight/workout/cooldown-2.mp4",t:"Bodyweight Cool-down 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
  {id:"onnit/bodyweight/workout/prime-the-pump-1.mp4",t:"Prime the Pump 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
  {id:"onnit/bodyweight/workout/prime-the-pump-2.mp4",t:"Prime the Pump 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
  {id:"onnit/bodyweight/workout/blasted-by-the-basics-1.mp4",t:"Blasted by the Basics 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
@@ -5275,10 +5318,10 @@ var VID=[
  {id:"onnit/bodyweight/workout/speed-kills-2.mp4",t:"Speed Kills 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
  {id:"onnit/bodyweight/workout/yoga-1.mp4",t:"Yoga 1",a:"Onnit",c:"onnit-yoga",m:"",src:"onnit",prog:"bodyweight",s:"calm,session"},
  {id:"onnit/bodyweight/workout/yoga-2.mp4",t:"Yoga 2",a:"Onnit",c:"onnit-yoga",m:"",src:"onnit",prog:"bodyweight",s:"calm,session"},
- {id:"onnit/durability/workout/warmup-1.mp4",t:"Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
- {id:"onnit/durability/workout/warmup-2.mp4",t:"Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
- {id:"onnit/durability/workout/cooldown-1.mp4",t:"Cooldown 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
- {id:"onnit/durability/workout/cooldown-2.mp4",t:"Cooldown 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
+ {id:"onnit/durability/workout/warmup-1.mp4",t:"Durability Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
+ {id:"onnit/durability/workout/warmup-2.mp4",t:"Durability Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
+ {id:"onnit/durability/workout/cooldown-1.mp4",t:"Durability Cool-down 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
+ {id:"onnit/durability/workout/cooldown-2.mp4",t:"Durability Cool-down 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
  {id:"onnit/durability/workout/restore-and-strengthen-1.mp4",t:"Restore and Strengthen 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
  {id:"onnit/durability/workout/restore-and-strengthen-2.mp4",t:"Restore and Strengthen 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
  {id:"onnit/durability/workout/refine-with-density-1.mp4",t:"Refine with Density 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
@@ -5528,6 +5571,12 @@ var SLOTS={
 var SHORT_BY_NATURE={warmup:1,runwarm:1};
 var LADDER_TRACKS={mobility:1,recovery:1,pilates:1,morning:1};
 var PRE_SLOTS={anchor:1,warmup:1,runwarm:1,session:1};
+var SERVED_SLOTS={warmup:1,runwarm:1,cooldown:1,session:1,calm:1,finisher:1};
+var SLOT_PREFER={
+  warmup  : function(v){return v.c==="onnit-warmup";},
+  runwarm : function(v){return v.c==="onnit-warmup";},
+  cooldown: function(v){return v.c==="onnit-cooldown";}
+};
 function vidDaypart(v){
   var ov=((S.vidTags||{})[v.id]||{}).day;
   if(ov)return ov;
@@ -5569,7 +5618,10 @@ function vidSlots(v){
   var spec=v.s||SLOT_BY_CAT[v.c]||"";
   if(!spec)return [];
   var out=spec.split(",").filter(Boolean);
-  if(v.lv&&LADDER_TRACKS[v.c]&&out.indexOf("course")<0)out.push("course");
+  if(v.lv&&LADDER_TRACKS[v.c]){
+    out=out.filter(function(k){return !SERVED_SLOTS[k];});
+    if(out.indexOf("course")<0)out.push("course");
+  }
   if(!vidKitOK(v))return out.indexOf("library")>=0?["library"]:["library"];
   if(vidDaypart(v)==="night")out=out.filter(function(k){return !PRE_SLOTS[k];});
   return out;
@@ -5607,6 +5659,10 @@ function pickForSlot(slot,offset){
   if(!vs.length)return null;
   var good=vs.filter(function(v){return vidVerdict(v.id)==="good";});
   var pool=good.length>=3?good:vs;
+  if(good.length<3&&SLOT_PREFER[slot]){
+    var pref=vs.filter(SLOT_PREFER[slot]);
+    if(pref.length)pool=pref;
+  }
   pool=pool.slice().sort(function(a,b){
     var la=((S.vidSeen||{})[a.id])||"",lb=((S.vidSeen||{})[b.id])||"";
     return la<lb?-1:la>lb?1:0;
@@ -5661,7 +5717,7 @@ function vidHealthSheet(){
   }).join(""):'<div class="srow"><span class="srl" style="color:var(--sub)">Nothing reported broken.</span></div>';
   openSheet('<div class="grab"></div><h3>Library health</h3>'+
     '<div class="ssub">'+r.total+' clips. A slot with nothing in it is the failure that matters, because that is when the app serves the wrong length or nothing at all.</div>'+
-    sgroup("Slots",slotRows,"Each slot has a hard cap. The morning anchor is capped at twelve minutes, which is what stops a thirty-minute routine being offered before breakfast.")+
+    sgroup("Slots",slotRows,"A slot is a purpose, and a clip is assigned to one rather than measured into it. The caps this used to describe were deleted in v7.70; what keeps a thirty-minute routine out of the morning now is that nobody assigned it there. Two guards survive on top: nothing that announces itself as an ending is served before effort, and a numbered course session is only ever served in order, from its own card.")+
     sgroup("Reported broken",brokenRows,"Marked from a video card with &ldquo;Won&rsquo;t play&rdquo;. Broken clips leave every rotation until restored.")+
     sgroup("Your verdicts",
       '<div class="srow"><span class="srl">Marked good</span><span class="src"><span class="snv">'+r.good+'</span></span></div>'+
@@ -6129,8 +6185,9 @@ function movementHTML(){
   });
   if(!cols)return "";
   var doneN=0;tracks.forEach(function(t){var l=ladderList(t[0]);if(!l.length)return;var v=l[ladderPos(t[0])%l.length];if(v&&vDone(v.id))doneN++;});
+  var msn=doneN?(doneN===1?"1 done today":doneN+" done today"):"three courses";
   return '<section class="msect"><div class="msecth"><span class="mst">Movement</span>'+
-    '<span class="msn'+(doneN?" gd":"")+'">'+doneN+' of 3 today</span></div>'+
+    '<span class="msn'+(doneN?" gd":"")+'">'+msn+'</span></div>'+
     '<div class="pcols">'+cols+'</div></section>';
 }
 function anchorHTML(){
@@ -6233,12 +6290,6 @@ function moveSheet(i){
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
 function toggleAnchorFrom(i){toggleAnchor(i,null);closeSheet();renderToday();}
-function guidedHTML(cat,label,note,offset){
-  var v=pickVid(cat,offset);if(!v)return "";
-  return '<div class="card"><h3><span>'+label+'</span><span class="t">plays here</span></h3>'+
-    (note?'<div class="ssub" style="text-align:left;margin:0 0 10px">'+note+'</div>':'')+
-    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div></div>';
-}
 function openLibCat(cat,btn){
   var pane=document.getElementById("libpane-"+cat);if(!pane)return;
   var open=!pane.hidden;
@@ -6744,16 +6795,13 @@ function bestWeek(read){
   for(var i=1;i<=12;i++){var v=read(i);if(v>best)best=v;}
   return best;
 }
-function cweekCell(label,val,prev,best,fmt,unit,act){
-  var top=Math.max(best,val,prev,0.0001);
+function cweekCell(label,val,v,best,fmt,unit,act){
+  var ref=(v&&v.base)?v.base.cap:0;
+  var top=Math.max(best,val,ref,0.0001);
   var fill=Math.max(0,Math.min(100,(val/top)*100));
-  var tick=(prev>0)?Math.max(0,Math.min(100,(prev/top)*100)):null;
-  var word,dir;
-  if(prev<=0&&val<=0){word="nothing yet this week";dir="flat";}
-  else if(val>prev*1.02){word="more than last week";dir="up";}
-  else if(val<prev*0.98){word="less than last week";dir="down";}
-  else {word="same as last week";dir="flat";}
-  var sub=(best>0)?("best week "+fmt(best)):"first weeks on record";
+  var tick=(ref>0)?Math.max(0,Math.min(100,(ref/top)*100)):null;
+  var word=v?v.word:"first weeks on record",dir=v?v.dir:"flat";
+  var sub=(best>0)?("best week "+fmt(best)+(ref>0?(" · usual "+fmt(ref)):"")):"first weeks on record";
   return '<button class="cwc" onclick="'+act+'">'+
     '<span class="cwk">'+esc(label)+'</span>'+
     '<span class="cwv num">'+fmt(val)+(unit?('<small>'+esc(unit)+'</small>'):'')+'</span>'+
@@ -6764,15 +6812,15 @@ function cweekCell(label,val,prev,best,fmt,unit,act){
 }
 function cardioWeekHTML(){
   var el=weekMetrics(0).days;
-  var mi=weekMetrics(0).miles,miPrev=weekMetrics(1,el).miles;
+  var mi=weekMetrics(0).miles;
   var miBest=bestWeek(function(i){return weekMetrics(i).miles;});
-  var sw=weekSteps(0),swPrev=weekSteps(1,el);
+  var sw=weekSteps(0);
   var stBest=bestWeek(function(i){return weekSteps(i).sum;});
   var f1=function(v){return (Math.round(v*10)/10).toFixed(1);};
   var fk=function(v){return v>=10000?((v/1000).toFixed(0)+"k"):v>=1000?((v/1000).toFixed(1)+"k"):String(Math.round(v));};
-  var cells=cweekCell("Miles run",mi,miPrev,miBest,f1,"mi","show('cardio')");
-  if(sw.days||swPrev.days||stBest>0)
-    cells+=cweekCell("Steps",sw.sum,swPrev.sum,stBest,fk,"","show('track')");
+  var cells=cweekCell("Miles run",mi,weekVerdict("miles",mi,el),miBest,f1,"mi","show('cardio')");
+  if(sw.days||stBest>0)
+    cells+=cweekCell("Steps",sw.sum,weekVerdict("steps",sw.sum,sw.days),stBest,fk,"","show('track')");
   return '<div class="cweek"><div class="cwl">This week</div><div class="cwpair">'+cells+'</div></div>';
 }
 function paceZonesHTML(){
@@ -7068,11 +7116,14 @@ function levelTier(n){
   if(n>=20)return {k:"built",w:"Built"};
   return {k:"base",w:"Base"};
 }
+function levelScore(m,cwm){
+  return cwm*m.rhythm*(1+(m.paceBonus||0)+(m.longBonus||0));
+}
 function levelLvSeries(kind){
-  var s,lv;
-  if(kind==="lift"){var lm=liftModel();s=lm.series;lv=s.map(function(x){return milesLevelFor(x.cwm*lm.rhythm);});}
-  else{var m=cardioModel();s=m.series;lv=s.map(function(x){return milesLevelFor(x.cwm*m.rhythm);});}
-  return {s:s,lv:lv};
+  var m=(kind==="lift")?liftModel():cardioModel();
+  var s=m.series;
+  var lv=s.map(function(x){return milesLevelFor(levelScore(m,x.cwm));});
+  return {s:s,lv:lv,model:m};
 }
 function levelHeroHTML(kind,L,stWord){
   var q=levelLvSeries(kind),lv=q.lv;
@@ -7492,7 +7543,7 @@ function cardioModel(){
     if(daysBetween(r.date,TODAY)<=56&&r.distanceMi>long8)long8=r.distanceMi;
   });
   var longBonus=Math.min(0.15,long8/40);
-  var score=cwm*rhythm*(1+paceBonus+longBonus);
+  var score=levelScore({rhythm:rhythm,paceBonus:paceBonus,longBonus:longBonus},cwm);
   return {cwm:cwm,peak:peak,rhythm:rhythm,weeksRun:weeksRun,paceBonus:paceBonus,longBonus:longBonus,
           long8:long8,score:score,series:series,weekly:ws,medRecent:mr,medOlder:mo};
 }
@@ -7709,21 +7760,26 @@ function levelMechanicsHTML(kind,L){
   var isLift=(kind==="lift");
   var unit=isLift?"lb":"mi";
   var raw=isLift?(L.cwt||0)*1000:(L.cwm||0);
-  var rhythm=L.rhythm||0, scored=raw*rhythm;
+  var rhythm=L.rhythm||0;
+  var mult=1+((L.paceBonus||0)+(L.longBonus||0));
+  var scored=L.score*(isLift?1000:1);
   function fmt(v){return isLift?(v>=1000?(Math.round(v/100)/10)+"k":Math.round(v)+""):(Math.round(v*10)/10)+"";}
-  var need=rhythm>0?(L.hi/rhythm)*(isLift?1000:1):null;
-  var missed=Math.max(0,Math.round((1-rhythm)*8));
+  var need=(rhythm>0&&mult>0)?(L.hi/(rhythm*mult))*(isLift?1000:1):null;
+  var weeksOn=Math.round(rhythm>0?((rhythm-0.55)/0.45)*8:0);
   return '<div class="lmech">'+
     '<div class="lmr"><span class="lmk">Weekly '+(isLift?"tonnage":"mileage")+'</span><span class="lmv num">'+fmt(raw)+'<small> '+unit+'</small></span></div>'+
-    '<div class="lmr"><span class="lmk">Rhythm</span><span class="lmv num">&times;'+rhythm.toFixed(2)+'<small> '+(missed?(missed+" of 8 wks missed"):"every week")+'</small></span></div>'+
+    '<div class="lmr"><span class="lmk">Rhythm</span><span class="lmv num">&times;'+rhythm.toFixed(2)+'<small> '+(weeksOn>=8?"trained every week":("trained "+weeksOn+" of the last 8 weeks"))+'</small></span></div>'+
+    (mult>1.005?('<div class="lmr"><span class="lmk">Pace and long run</span><span class="lmv num">&times;'+mult.toFixed(2)+'<small> earned</small></span></div>'):'')+
     '<div class="lmr tot"><span class="lmk">Level '+L.lvl+'</span><span class="lmv num">'+fmt(scored)+'<small> scored</small></span></div>'+
     (need!=null?('<div class="lmr next"><span class="lmk">Level '+(L.lvl+1)+' needs</span><span class="lmv num">'+fmt(need)+'<small> '+unit+' a week</small></span></div>'):'')+
     '</div>'+
-    (missed?('<div class="ksub" style="margin-top:9px">Training all 8 weeks instead of '+(8-missed)+' closes most of that gap without adding a single '+(isLift?'pound':'mile')+'.</div>'):'');
+    (weeksOn<8?('<div class="ksub" style="margin-top:9px">Every extra week you run raises the multiplier, so consistency moves this faster than any single long run does.</div>'):'');
 }
 function levelToneOf(L,dl){
   if(!dl)return "flat";
-  return dl.dir==="up"?"good":dl.dir==="down"?"amber":"flat";
+  if(dl.dir==="up")return "good";
+  if(dl.dir==="down"){var st=levelStatus(L);return (st&&st.k==="warn")?"amber":"flat";}
+  return "flat";
 }
 function levelDetailHTML(){
   var L=cardioLevel(),st=levelStatus(L),ep=easyPaceTrend();
@@ -7738,27 +7794,32 @@ function levelDetailHTML(){
 
 var ODOP="w";
 function odoWindow(p){
-  if(p==="d"){var dd=new Date(NOW);dd.setDate(dd.getDate()-13);var kk=keyOf(dd);
-    return {test:function(x){return x.date>=kk;},ctx:"Last 14 days"};}
-  if(p==="w"){var d=new Date(NOW);d.setDate(d.getDate()-((d.getDay()+6)%7));var k=keyOf(d);
-    return {test:function(x){return x.date>=k;},ctx:"This week"};}
-  if(p==="m")return {test:function(x){return x.date.slice(0,7)===TODAY.slice(0,7);},ctx:"This month"};
-  if(p==="y")return {test:function(x){return x.date.slice(0,4)===TODAY.slice(0,4);},ctx:"This year"};
-  return {test:function(){return true;},ctx:"All time"};
+  function back(n){var d=new Date(NOW);d.setDate(d.getDate()-n);return keyOf(d);}
+  var W={
+    d  :{days:1,   ctx:"Today"},
+    w  :{days:7,   ctx:"Last 7 days"},
+    m  :{days:30,  ctx:"Last 30 days"},
+    y  :{days:365, ctx:"Last 365 days"}
+  }[p];
+  if(!W)return {test:function(){return true;},ctx:"All time",from:null,to:TODAY,days:0};
+  var from=back(W.days-1);
+  return {test:function(x){return x.date>=from&&x.date<=TODAY;},
+          ctx:W.ctx,from:from,to:TODAY,days:W.days};
+}
+function odoDay(k,withYear){
+  var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],p=k.split("-");
+  return M[+p[1]-1]+" "+(+p[2])+(withYear?(" "+p[0]):"");
+}
+function odoSpan(w){
+  if(!w.from)return "";
+  if(w.days===1)return odoDay(TODAY);
+  var cross=w.from.slice(0,4)!==w.to.slice(0,4);
+  return odoDay(w.from,cross)+" to "+odoDay(w.to,cross);
 }
 function odoPeriod(p){
   var w=odoWindow(p);
-  return {runs:allRuns().filter(w.test),ctx:w.ctx,test:w.test};
+  return {runs:allRuns().filter(w.test),ctx:w.ctx,test:w.test,from:w.from,to:w.to,days:w.days};
 }
-function setOdo(p){
-  ODOP=p;
-  var e=document.getElementById("odoslot");if(!e)return;
-  var tmp=document.createElement("div");tmp.innerHTML=odoCardHTML();
-  var fresh=tmp.querySelector("#odoslot");
-  if(fresh)e.innerHTML=fresh.innerHTML;
-}
-function hms(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
-  return h?(h+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)):(m+":"+("0"+x).slice(-2));}
 function odoWalkMiles(period){
   var test=odoWindow(period).test,t=0,n=0;
   S.sessions.forEach(function(x){
@@ -7771,74 +7832,81 @@ function odoWalkMiles(period){
 function odoSeries(p){
   var runs=allRuns();
   function sum(from,to){var t=0;runs.forEach(function(x){if(x.date>=from&&x.date<=to)t+=(x.distanceMi||0);});return t;}
-  var vals=[],i,d;
+  function back(n){var d=new Date(NOW);d.setDate(d.getDate()-n);return keyOf(d);}
+  var vals=[],i;
   if(p==="d"){
-    d=new Date(NOW);d.setDate(d.getDate()-13);
-    for(i=0;i<14;i++){var k=keyOf(d);vals.push(sum(k,k));d.setDate(d.getDate()+1);}
-    return {vals:vals,label:"Last 14 days",first:"14d ago"};
+    for(i=13;i>=0;i--){var k=back(i);vals.push(sum(k,k));}
+    return {vals:vals,label:"Last 14 days, one bar a day",first:"14d ago"};
+  }
+  if(p==="w"){
+    for(i=11;i>=0;i--)vals.push(sum(back(i*7+6),back(i*7)));
+    return {vals:vals,label:"Last 12 weeks, one bar a rolling week",first:"12w ago"};
   }
   if(p==="m"){
-    d=new Date(NOW.getFullYear(),NOW.getMonth()-11,1);
-    var lbl=null;
-    for(i=0;i<12;i++){
-      var y=d.getFullYear(),mo=("0"+(d.getMonth()+1)).slice(-2);
-      if(i===0)lbl=monthShort(y+"-"+mo);
-      vals.push(sum(y+"-"+mo+"-01",y+"-"+mo+"-31"));
-      d.setMonth(d.getMonth()+1);
-    }
-    return {vals:vals,label:"Last 12 months",first:lbl};
+    for(i=11;i>=0;i--)vals.push(sum(back(i*30+29),back(i*30)));
+    return {vals:vals,label:"Last 12 months, one bar a rolling 30 days",first:"12m ago"};
   }
-  if(p==="y"||p==="all"){
-    var yr={};runs.forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
-    var ys=Object.keys(yr).sort();
-    if(ys.length<2)return null;
-    return {vals:ys.map(function(y){return yr[y];}),label:"By year",first:ys[0]};
-  }
-  var h=weeklyMiHistory();
-  return {vals:h,label:"Last "+h.length+" weeks",first:h.length+"w ago"};
+  var yr={};runs.forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
+  var ys=Object.keys(yr).sort();
+  if(ys.length<2)return null;
+  return {vals:ys.map(function(y){return yr[y];}),label:"By calendar year",first:ys[0]};
 }
-function odoCardHTML(){
+function setOdo(p){
+  ODOP=p;
+  var html=odoBodyHTML(),sum=odoSummary();
+  [].forEach.call(document.querySelectorAll(".odowrap"),function(e){e.innerHTML=html;});
+  [].forEach.call(document.querySelectorAll(".odosum"),function(e){e.textContent=sum;});
+}
+function hms(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
+  return h?(h+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)):(m+":"+("0"+x).slice(-2));}
+function odoSummary(){
+  var d=odoPeriod(ODOP);
+  var mi=d.runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
+  return mi.toFixed(1)+" mi "+(ODOP==="all"?"all time":d.ctx.toLowerCase());
+}
+function odoBodyHTML(){
   var d=odoPeriod(ODOP),rs=d.runs;
-  if(!allRuns().length)return "";
   var mi=rs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
   var secs=rs.reduce(function(a,x){return a+(x.durationSec||0);},0);
   var pace=(mi>0&&secs>0)?Math.round(secs/mi):0;
   var seg=["d","w","m","y","all"].map(function(k){
     return '<button class="'+(k===ODOP?"on":"")+'" onclick="setOdo(\''+k+'\')">'+(k==="all"?"All":k.toUpperCase())+'</button>';}).join("");
-  var body='<div class="odo2body" id="odoslot">'+
-    '<div class="oseg">'+seg+'</div>'+
-    '<div class="octx">'+d.ctx+'</div>'+
+  var span=odoSpan(d);
+  var body='<div class="oseg">'+seg+'</div>'+
+    '<div class="octx">'+d.ctx+(span?' <span class="ospan">'+span+'</span>':'')+'</div>'+
     '<div class="oN">'+mi.toFixed(1)+'</div><div class="oU">Miles run</div>'+
     '<div class="orow">'+
-      '<div><b>'+rs.length+'</b><span>Runs</span></div>'+
+      '<div><b>'+rs.length+'</b><span>Run'+(rs.length===1?'':'s')+'</span></div>'+
       '<div><b>'+(pace?mmss(pace):"--")+'</b><span>Avg. Pace</span></div>'+
       '<div><b>'+(secs?hms(secs):"--")+'</b><span>Time</span></div>'+
     '</div>'+
     (function(){var w=odoWalkMiles(ODOP);
-      if(!w.n)return "";
+      if(!w.n)return mi===0?'<div class="ksub" style="margin:8px 0 0">Nothing on foot in this window. Try a longer one.</div>':"";
       return '<div class="owalk"><span class="owl">Walked as well</span>'+
         '<span class="owv num">'+w.mi.toFixed(1)+'<small> mi across '+w.n+' walk'+(w.n===1?'':'s')+'</small></span></div>'+
         (mi===0?'<div class="ksub" style="margin:8px 0 0">No RUNS in this window, which is why the number above is zero. The miles you covered walking are counted here and on the weekly card, just not as running.</div>':'');
-    })()+'</div>';
-  var wkMi=odoPeriod("w").runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
-  var total=allRuns().reduce(function(a,x){return a+(x.distanceMi||0);},0);
+    })();
   var ch=odoSeries(ODOP);
   var chart=(ch&&ch.vals.length>1)?('<div class="odosplit"></div><div class="odoct">'+ch.label+'</div>'+
       barBody(ch.vals,function(v){return v.toFixed(1);},"mi",ch.first)):"";
-  var yr={};allRuns().forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);});
+  var runs=allRuns(),total=runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
+  var yr={},yn={};runs.forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);yn[y]=(yn[y]||0)+1;});
   var ys=Object.keys(yr).sort(),ymax=Math.max.apply(null,ys.map(function(y){return yr[y];}))||1;
   var yrows=ys.reverse().map(function(y){
-    var n=allRuns().filter(function(x){return x.date.slice(0,4)===y;}).length;
     return '<div class="yrow"><span class="yy">'+y+'</span>'+
       '<span class="yb"><i style="width:'+Math.max(2,Math.round(yr[y]/ymax*100))+'%"></i></span>'+
       '<span class="ym num">'+yr[y].toFixed(0)+'<small> mi</small></span>'+
-      '<span class="yn">'+n+' run'+(n===1?'':'s')+'</span></div>';
+      '<span class="yn">'+yn[y]+' run'+(yn[y]===1?'':'s')+'</span></div>';
   }).join("");
-  var foot='<div class="odosplit"></div><div class="odoct">By year</div>'+yrows+
-    '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+allRuns().length+' runs.</div>';
-  return collapsible("Miles run",wkMi.toFixed(1)+" mi this week",body+chart+foot,false,I.gauge,kpiDir("miles"));
+  var foot='<div class="odosplit"></div><div class="odoct">By calendar year</div>'+yrows+
+    '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+runs.length+' runs.</div>';
+  return body+chart+foot;
 }
-
+function odoCardHTML(){
+  if(!allRuns().length)return "";
+  return collapsible("Miles run",'<span class="odosum">'+odoSummary()+'</span>',
+    '<div class="odo2body odowrap">'+odoBodyHTML()+'</div>',false,I.gauge,kpiDir("miles"));
+}
 function renderCardio(){
   refreshDate();
   var rr=runRhythm(),tgt=nextRunTarget(),runs=allRuns();
