@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0c0a09">
+<meta name="format-detection" content="telephone=no">
+<title>Work · Matthew Yellin</title>
+<meta name="description" content="Everything I have built: four daily publications, a training system, an encyclopedia, and the private tools I run my days from.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Work · Matthew Yellin">
+<meta property="og:description" content="Everything I have built, published and private, each one shown running.">
+<meta property="og:url" content="https://mattyellin.com/work/">
+<meta property="og:site_name" content="mattyellin.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=Fraunces:opsz,wght@9..144,300..500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0a09;--bg2:#100d0b;
+  --ink:#f3ede1;--soft:#cdc7ba;--muted:#9a958a;--faint:#6c685f;
+  --accent:#d4604f;--accent-2:#e0935a;
+  --p-news:#d4604f;--p-versed:#dd7d63;--p-deal:#dcb47e;--p-bits:#7da3c2;
+  --p-train:#6f9e8c;--p-desk:#e0654f;--p-uni:#c99a6a;--p-film:#8fa6c4;
+  --p-read:#b08a5e;--p-novel:#9a8fb0;--p-venture:#7fa89b;
+  --line:rgba(243,237,225,.1);--line2:rgba(243,237,225,.2);
+  --plinth-a:rgba(243,237,225,.05);
+  --serif:'Spectral',Georgia,'Times New Roman',serif;
+  --display:'Fraunces','Spectral',Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+  -webkit-font-smoothing:antialiased;text-size-adjust:100%;-webkit-text-size-adjust:100%}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:#150a08}
+:focus-visible{outline:2px solid var(--accent);outline-offset:4px;border-radius:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 32px}
+
+/* ---------- ambient layers ---------- */
+.grain{position:fixed;inset:0;z-index:80;pointer-events:none;opacity:.05;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.spot{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .6s ease;
+  background:radial-gradient(620px circle at var(--mx,50%) var(--my,40%),rgba(212,96,79,.11),transparent 72%)}
+.spot.on{opacity:1}
+.prog{position:fixed;top:0;left:0;height:2px;width:0;z-index:95;background:var(--accent);
+  box-shadow:0 0 14px rgba(212,96,79,.6);transition:width .12s linear}
+.cur,.cur-d{position:fixed;top:0;left:0;z-index:90;pointer-events:none;border-radius:50%;mix-blend-mode:difference}
+.cur{width:34px;height:34px;border:1px solid rgba(243,237,225,.7);transform:translate(-50%,-50%);
+  transition:width .22s,height .22s,background .22s,border-color .22s}
+.cur-d{width:5px;height:5px;background:var(--ink);transform:translate(-50%,-50%)}
+.cur.big{width:74px;height:74px;background:rgba(243,237,225,.12);border-color:transparent}
+@media (pointer:coarse){.cur,.cur-d{display:none}}
+
+/* ---------- nav ---------- */
+.topnav{position:sticky;top:0;z-index:85;backdrop-filter:blur(11px);
+  border-bottom:1px solid transparent;transition:border-color .3s,background .3s}
+.topnav.stuck{border-color:var(--line);background:rgba(12,10,9,.72)}
+.topnav .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+.topnav .home,.topnav .here{font-family:var(--sans);font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.topnav .home{color:var(--soft);display:inline-flex;align-items:center;gap:9px;transition:color .2s}
+.topnav .home:hover{color:var(--accent)}
+.topnav .here{font-size:11px;letter-spacing:.22em;color:var(--faint)}
+
+/* ---------- header ---------- */
+.head{position:relative;z-index:1;padding:88px 0 0}
+.kick{font-family:var(--sans);font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin:0 0 26px}
+.head h1{font-family:var(--display);font-weight:300;font-size:clamp(52px,11vw,132px);line-height:.92;
+  letter-spacing:-.04em;margin:0}
+.head h1 em{font-style:normal;color:var(--accent)}
+.lede{max-width:60ch;font-size:clamp(19px,2.1vw,25px);font-weight:300;line-height:1.55;color:var(--soft);margin:34px 0 0}
+.tally{display:flex;flex-wrap:wrap;gap:34px;margin:44px 0 0;padding:26px 0 0;border-top:1px solid var(--line)}
+.tally .t .v{font-family:var(--display);font-size:38px;font-weight:400;line-height:1}
+.tally .t .l{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-top:9px}
+
+/* ---------- filters ---------- */
+.filters{position:relative;z-index:1;display:flex;flex-wrap:wrap;gap:10px;margin:54px 0 30px}
+.chip{font-family:var(--sans);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
+  background:none;border:1px solid var(--line);border-radius:999px;padding:11px 20px;cursor:pointer;
+  transition:color .25s,border-color .25s,background .25s}
+.chip:hover{color:var(--ink);border-color:var(--line2)}
+.chip[aria-pressed="true"]{color:var(--accent);border-color:rgba(212,96,79,.45);background:rgba(212,96,79,.07)}
+.chip .n{color:var(--faint);margin-left:8px;font-size:10.5px}
+
+/* ---------- the index ---------- */
+.index{position:relative;z-index:1;display:grid;grid-template-columns:repeat(12,1fr);gap:26px;padding-bottom:20px}
+.plate{grid-column:span 6;position:relative;display:flex;flex-direction:column;
+  transition:opacity .4s ease,transform .5s cubic-bezier(.2,.7,.15,1)}
+.plate[data-span="12"]{grid-column:span 12}
+.plate[data-span="4"]{grid-column:span 4}
+.index.filtered .plate[hidden]{display:none}
+
+/* stage */
+.stage{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/10;
+  border:1px solid var(--line);background:linear-gradient(150deg,var(--plate,var(--accent)),var(--bg2) 76%);
+  transition:border-color .45s ease,box-shadow .45s ease,transform .55s cubic-bezier(.2,.7,.15,1)}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(12,10,9,.06),rgba(12,10,9,.42));
+  transition:opacity .45s ease}
+.plate[data-span="12"] .stage{aspect-ratio:21/9}
+.frame{position:absolute;inset:0;overflow:hidden;opacity:0;transition:opacity .9s ease}
+.stage.ready .frame{opacity:1}
+.frame iframe{position:absolute;top:0;left:0;width:1440px;height:900px;border:0;
+  transform:scale(var(--s,.4));transform-origin:0 0;pointer-events:none;background:var(--bg)}
+.plate[data-span="12"] .frame iframe{height:617px}
+
+/* the no-door mark for private, undemoed work */
+.mono{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:30px}
+.mono .g{font-family:var(--display);font-size:clamp(46px,7vw,78px);font-weight:300;line-height:1;
+  color:rgba(243,237,225,.16);letter-spacing:-.03em}
+.mono .m{font-family:var(--sans);font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(243,237,225,.3);margin-top:16px}
+
+/* scrim: prose on demand */
+.scrim{position:absolute;inset:0;z-index:2;display:flex;align-items:flex-end;padding:28px 30px;
+  background:linear-gradient(180deg,rgba(10,8,7,.1),rgba(10,8,7,.88));
+  opacity:0;transition:opacity .38s ease}
+.scrim p{margin:0;font-size:17px;line-height:1.5;color:var(--ink);max-width:52ch;
+  transform:translateY(12px);transition:transform .45s cubic-bezier(.2,.7,.15,1)}
+html.hov .plate:hover .scrim{opacity:1}
+html.hov .plate:hover .scrim p{transform:none}
+html.hov .plate:hover .stage{border-color:var(--line2);box-shadow:0 30px 80px rgba(0,0,0,.55)}
+html.hov .plate:hover .stage::after{opacity:.4}
+/* dim the siblings, hold the one you point at */
+html.hov .index:hover .plate{opacity:.42}
+html.hov .index:hover .plate:hover{opacity:1}
+
+/* meta block */
+.meta{display:flex;align-items:baseline;gap:14px;padding:18px 2px 0}
+.no{font-family:var(--sans);font-size:11px;letter-spacing:.14em;color:var(--faint);padding-top:5px}
+.meta h2{font-family:var(--display);font-size:clamp(23px,2.4vw,32px);font-weight:400;letter-spacing:-.022em;margin:0;line-height:1.12}
+.plate[data-span="4"] .meta h2{font-size:clamp(20px,2vw,24px)}
+.tagline{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin:8px 0 0;padding-left:25px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0 0;padding-left:25px}
+.chips span{font-family:var(--sans);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.chips span.live{color:var(--plate,var(--accent));border-color:currentColor;opacity:.85}
+.hit{position:absolute;inset:0;z-index:3;border-radius:12px}
+.hit span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.plate.shut .hit{cursor:default}
+.arrow{font-family:var(--sans);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--plate,var(--accent));
+  margin-left:auto;opacity:0;transform:translateX(-8px);transition:opacity .35s ease,transform .35s ease;white-space:nowrap}
+html.hov .plate:hover .arrow{opacity:1;transform:none}
+
+/* ---------- footer ---------- */
+.foot{position:relative;z-index:1;border-top:1px solid var(--line);margin-top:76px;padding:52px 0 68px;text-align:center}
+.foot .mk{font-family:var(--display);font-size:27px;font-weight:300;letter-spacing:-.02em}
+.foot .cl{font-family:var(--sans);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:14px}
+.foot .cl a{color:var(--muted);text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
+.foot .cl a:hover{color:var(--accent)}
+
+/* ---------- entrance ---------- */
+.rv{transition:opacity .8s cubic-bezier(.2,.7,.15,1),transform .8s cubic-bezier(.2,.7,.15,1),filter .8s ease}
+html.js .rv{opacity:0;transform:translateY(24px);filter:blur(6px)}
+html.js .rv.in{opacity:1;transform:none;filter:none}
+html.js .plate.rv{transition-delay:calc(var(--i,0) * 70ms)}
+
+@media (max-width:980px){
+  .plate,.plate[data-span="12"],.plate[data-span="4"]{grid-column:span 6}
+  .plate[data-span="12"] .stage{aspect-ratio:16/10}
+}
+@media (max-width:640px){
+  .wrap{padding:0 20px}
+  .plate,.plate[data-span="12"],.plate[data-span="4"]{grid-column:span 12}
+  .index{gap:34px}
+  .tally{gap:24px}
+  .scrim{opacity:1;background:linear-gradient(180deg,rgba(10,8,7,.05),rgba(10,8,7,.8))}
+  .scrim p{transform:none;font-size:15px}
+}
+/* Reduced motion gentles the page, it never freezes it. */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rv{transition-duration:1.5s}
+  html.js .rv{transform:none;filter:none}
+  .stage,.scrim,.scrim p,.plate,.arrow{transition-duration:.9s}
+  .spot{transition-duration:1.2s}
+}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<div class="spot" id="spot" aria-hidden="true"></div>
+<div class="prog" id="prog" aria-hidden="true"></div>
+<div class="cur" id="cur" aria-hidden="true"></div>
+<div class="cur-d" id="curd" aria-hidden="true"></div>
+
+<nav class="topnav" id="nav">
+  <div class="wrap">
+    <a class="home" href="../">&larr; Matthew Yellin</a>
+    <span class="here">Work</span>
+  </div>
+</nav>
+
+<header class="head wrap">
+  <p class="kick rv">Selected work</p>
+  <h1 class="rv">Things I have<br>built, and keep<br><em>building</em>.</h1>
+  <p class="lede rv">Four of these publish themselves every morning and anyone can open them. The rest are tools I made because I wanted them to exist, and those are shown here running on invented data rather than my own.</p>
+  <div class="tally rv">
+    <div class="t"><div class="v" id="tAll">11</div><div class="l">Projects</div></div>
+    <div class="t"><div class="v" id="tLive">4</div><div class="l">Published daily</div></div>
+    <div class="t"><div class="v">May 2026</div><div class="l">First morning</div></div>
+    <div class="t"><div class="v">Miami</div><div class="l">Written from</div></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="filters rv" role="group" aria-label="Filter the index">
+    <button class="chip" type="button" data-f="all" aria-pressed="true">Everything<span class="n">11</span></button>
+    <button class="chip" type="button" data-f="live" aria-pressed="false">Published<span class="n">4</span></button>
+    <button class="chip" type="button" data-f="private" aria-pressed="false">The workshop<span class="n">7</span></button>
+  </div>
+
+  <div class="index" id="index">
+
+    <!-- ============ PUBLISHED ============ -->
+    <article class="plate rv" data-span="12" data-tier="live" style="--plate:var(--p-news);--i:0">
+      <div class="stage" data-src="../news/">
+        <div class="frame"></div>
+        <div class="scrim"><p>Written and published before six every morning: what actually happened, why it matters, and the one line you would want if you only read one line.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">01</span>
+        <h2>The Morning Brief</h2>
+        <span class="arrow">Open &rarr;</span>
+      </div>
+      <p class="tagline">A daily brief of the news worth knowing.</p>
+      <div class="chips"><span class="live">Published</span><span>Daily since May 2026</span><span>Writing &middot; Automation</span></div>
+      <a class="hit" href="../news/" target="_blank" rel="noopener"><span>Open The Morning Brief</span></a>
+    </article>
+
+    <article class="plate rv" data-span="6" data-tier="live" style="--plate:var(--p-versed);--i:1">
+      <div class="stage" data-src="../well-versed/">
+        <div class="frame"></div>
+        <div class="scrim"><p>One lesson a day toward a general education, from how a bond works to how a table is set, each written to stand on its own and kept forever.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">02</span>
+        <h2>Well-Versed</h2>
+        <span class="arrow">Open &rarr;</span>
+      </div>
+      <p class="tagline">A daily lesson, archived in full.</p>
+      <div class="chips"><span class="live">Published</span><span>Daily</span><span>Teaching</span></div>
+      <a class="hit" href="../well-versed/" target="_blank" rel="noopener"><span>Open Well-Versed</span></a>
+    </article>
+
+    <article class="plate rv" data-span="6" data-tier="live" style="--plate:var(--p-deal);--i:2">
+      <div class="stage" data-src="../dealcraft/">
+        <div class="frame"></div>
+        <div class="scrim"><p>A working desk for corporate law: an encyclopedia of the concepts, a toolkit of the moves, and breakdowns of real transactions taken apart clause by clause.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">03</span>
+        <h2>Dealcraft</h2>
+        <span class="arrow">Open &rarr;</span>
+      </div>
+      <p class="tagline">Corporate law, learned by taking deals apart.</p>
+      <div class="chips"><span class="live">Published</span><span>In build</span><span>Research</span></div>
+      <a class="hit" href="../dealcraft/" target="_blank" rel="noopener"><span>Open Dealcraft</span></a>
+    </article>
+
+    <article class="plate rv" data-span="6" data-tier="live" style="--plate:var(--p-bits);--i:3">
+      <div class="stage" data-src="../greatest-bits/">
+        <div class="frame"></div>
+        <div class="scrim"><p>The stand-up worth keeping, catalogued by comic and by bit, so a routine you half remember from years ago can actually be found again.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">04</span>
+        <h2>Greatest Bits</h2>
+        <span class="arrow">Open &rarr;</span>
+      </div>
+      <p class="tagline">An archive of the best stand-up, bit by bit.</p>
+      <div class="chips"><span class="live">Published</span><span>Archive</span><span>Collections</span></div>
+      <a class="hit" href="../greatest-bits/" target="_blank" rel="noopener"><span>Open Greatest Bits</span></a>
+    </article>
+
+    <!-- ============ THE WORKSHOP (private; previews run on invented data) ============ -->
+    <article class="plate rv shut" data-span="6" data-tier="private" style="--plate:var(--p-train);--i:4">
+      <div class="stage" data-src="demo/train.html">
+        <div class="frame"></div>
+        <div class="scrim"><p>A training system I built for myself after realising the problem was never the diet: sessions, load over time, and the numbers that actually move, in one place I will open every day.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">05</span>
+        <h2>Train</h2>
+        <span class="arrow">Preview</span>
+      </div>
+      <p class="tagline">The training system I run on. Preview uses sample data.</p>
+      <div class="chips"><span>Private</span><span>Web app</span><span>Sample preview</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="6" data-tier="private" style="--plate:var(--p-desk);--i:5">
+      <div class="stage" data-src="demo/desk.html">
+        <div class="frame"></div>
+        <div class="scrim"><p>The board I start every morning from: one thing on fire, the first move, every project and where it actually stands, and the day laid out beside it.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">06</span>
+        <h2>The Command Center</h2>
+        <span class="arrow">Preview</span>
+      </div>
+      <p class="tagline">A private daily operating board. Preview uses sample data.</p>
+      <div class="chips"><span>Private</span><span>Dashboard</span><span>Sample preview</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="4" data-tier="private" style="--plate:var(--p-uni);--i:6">
+      <div class="stage" data-src="demo/encyclopedia.html">
+        <div class="frame"></div>
+        <div class="scrim"><p>An encyclopedia I am writing for myself, one subject at a time, because explaining a thing properly is the only way I ever find out whether I understood it.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">07</span>
+        <h2>A Personal University</h2>
+        <span class="arrow">Preview</span>
+      </div>
+      <p class="tagline">Self-written, one subject at a time.</p>
+      <div class="chips"><span>Private</span><span>Sample preview</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="4" data-tier="private" style="--plate:var(--p-film);--i:7">
+      <div class="stage" data-src="demo/film.html">
+        <div class="frame"></div>
+        <div class="scrim"><p>Everything worth watching, with a running top hundred and an engine that reads the shelf and simply decides what I am watching tonight.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">08</span>
+        <h2>The Film Library</h2>
+        <span class="arrow">Preview</span>
+      </div>
+      <p class="tagline">A tracker that picks the next one for me.</p>
+      <div class="chips"><span>Private</span><span>Sample preview</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="4" data-tier="private" style="--plate:var(--p-read);--i:8">
+      <div class="stage" data-src="demo/reading.html">
+        <div class="frame"></div>
+        <div class="scrim"><p>Every book I have finished, shelved and counted, so the year has a shape I can see rather than a vague sense that I have not been reading enough.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">09</span>
+        <h2>The Reading Log</h2>
+        <span class="arrow">Preview</span>
+      </div>
+      <p class="tagline">Every book, tracked and shelved.</p>
+      <div class="chips"><span>Private</span><span>Sample preview</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="6" data-tier="private" style="--plate:var(--p-novel);--i:9">
+      <div class="stage">
+        <div class="mono"><div class="g">Not yet</div><div class="m">Nothing to show</div></div>
+        <div class="scrim"><p>A book, still in the part where it is outlines and arguments with myself rather than chapters. There is genuinely nothing worth showing, so there is nothing here.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">10</span>
+        <h2>The Novel</h2>
+      </div>
+      <p class="tagline">In the outline and develop phase.</p>
+      <div class="chips"><span>Private</span><span>Writing</span></div>
+    </article>
+
+    <article class="plate rv shut" data-span="6" data-tier="private" style="--plate:var(--p-venture);--i:10">
+      <div class="stage">
+        <div class="mono"><div class="g">Under wraps</div><div class="m">Not mine to show</div></div>
+        <div class="scrim"><p>Brand and a homepage for a venture still early enough that showing it would be somebody else's decision as much as mine. Listed because it is real work, shown because it would not be fair to.</p></div>
+      </div>
+      <div class="meta">
+        <span class="no">11</span>
+        <h2>A Venture in the Works</h2>
+      </div>
+      <p class="tagline">Brand and homepage, early stage.</p>
+      <div class="chips"><span>Private</span><span>Identity</span></div>
+    </article>
+
+  </div>
+</main>
+
+<footer class="foot">
+  <div class="mk">Matthew Yellin</div>
+  <div class="cl"><a href="../">Home</a> &middot; <a href="../about/">About</a> &middot; mattyellin.com &middot; Est. May 2026</div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  document.documentElement.classList.add('js');
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var coarse=window.matchMedia&&window.matchMedia('(pointer:coarse)').matches;
+  var fine=window.matchMedia&&window.matchMedia('(hover:hover)').matches;
+  if(fine&&!coarse)document.documentElement.classList.add('hov');
+
+  function revealAll(){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
+
+  /* ---- entrance reveal (staggered by --i, gentled under reduced motion, never frozen) ---- */
+  try{
+    if(!('IntersectionObserver' in window)){revealAll();}
+    else{
+      var io=new IntersectionObserver(function(es){
+        es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+      },{threshold:.12,rootMargin:'0px 0px -6% 0px'});
+      [].forEach.call(document.querySelectorAll('.rv'),function(e){io.observe(e);});
+    }
+  }catch(err){revealAll();}
+
+  /* ---- live previews: real pages, framed, attached on approach not on arrival ---- */
+  try{
+    var stages=[].slice.call(document.querySelectorAll('.stage[data-src]'));
+
+    function fit(st){
+      var w=st.clientWidth; if(!w)return;
+      var base=st.querySelector('iframe')?parseFloat(st.querySelector('iframe').getAttribute('data-w')||1440):1440;
+      st.style.setProperty('--s',(w/base).toFixed(4));
+    }
+    function mount(st){
+      if(st.dataset.mounted)return; st.dataset.mounted='1';
+      var box=st.querySelector('.frame'); if(!box)return;
+      var f=document.createElement('iframe');
+      f.setAttribute('data-w','1440');
+      f.setAttribute('scrolling','no');
+      f.setAttribute('loading','lazy');
+      f.setAttribute('tabindex','-1');
+      f.setAttribute('aria-hidden','true');
+      f.setAttribute('title','Preview');
+      f.setAttribute('referrerpolicy','same-origin');
+      f.addEventListener('load',function(){st.classList.add('ready');});
+      f.src=st.getAttribute('data-src');
+      box.appendChild(f);
+      fit(st);
+      /* a frame that never fires load still gets its plinth, so nothing sits blank forever */
+      setTimeout(function(){st.classList.add('ready');},4000);
+    }
+
+    if(!('IntersectionObserver' in window)){stages.forEach(mount);}
+    else{
+      var io2=new IntersectionObserver(function(es){
+        es.forEach(function(e){if(e.isIntersecting){mount(e.target);io2.unobserve(e.target);}});
+      },{rootMargin:'55% 0px 55% 0px'});
+      stages.forEach(function(st){io2.observe(st);});
+    }
+
+    var rt;
+    window.addEventListener('resize',function(){
+      clearTimeout(rt);rt=setTimeout(function(){stages.forEach(fit);},120);
+    },{passive:true});
+  }catch(err){}
+
+  /* ---- filters: the whole catalogue stays in the DOM, attributes do the curating ---- */
+  try{
+    var chips=[].slice.call(document.querySelectorAll('.chip'));
+    var index=document.getElementById('index');
+    var plates=[].slice.call(document.querySelectorAll('.plate'));
+    chips.forEach(function(c){
+      c.addEventListener('click',function(){
+        var f=c.getAttribute('data-f');
+        chips.forEach(function(o){o.setAttribute('aria-pressed',String(o===c));});
+        index.classList.add('filtered');
+        var n=0;
+        plates.forEach(function(p){
+          var show=(f==='all')||(p.getAttribute('data-tier')===f);
+          p.hidden=!show;
+          if(show){p.style.setProperty('--i',n);n++;}
+        });
+      });
+    });
+  }catch(err){}
+
+  /* ---- cursor, spotlight, scroll progress ---- */
+  try{
+    if(!coarse&&fine){
+      var cur=document.getElementById('cur'),curd=document.getElementById('curd'),spot=document.getElementById('spot');
+      var tx=innerWidth/2,ty=innerHeight/2,cx=tx,cy=ty;
+      document.addEventListener('mousemove',function(e){
+        tx=e.clientX;ty=e.clientY;
+        curd.style.transform='translate('+tx+'px,'+ty+'px) translate(-50%,-50%)';
+        spot.style.setProperty('--mx',tx+'px');spot.style.setProperty('--my',ty+'px');
+        if(!spot.classList.contains('on'))spot.classList.add('on');
+      },{passive:true});
+      (function loop(){
+        cx+=(tx-cx)*0.16;cy+=(ty-cy)*0.16;
+        cur.style.transform='translate('+cx+'px,'+cy+'px) translate(-50%,-50%)';
+        requestAnimationFrame(loop);
+      })();
+      [].forEach.call(document.querySelectorAll('.plate'),function(p){
+        p.addEventListener('mouseenter',function(){cur.classList.add('big');});
+        p.addEventListener('mouseleave',function(){cur.classList.remove('big');});
+      });
+    }
+  }catch(err){}
+
+  try{
+    var nav=document.getElementById('nav'),prog=document.getElementById('prog');
+    function onScroll(){
+      var y=window.scrollY||0;
+      nav.classList.toggle('stuck',y>16);
+      var h=document.documentElement.scrollHeight-innerHeight;
+      prog.style.width=(h>0?Math.min(100,(y/h)*100):0)+'%';
+    }
+    onScroll();window.addEventListener('scroll',onScroll,{passive:true});
+  }catch(err){}
+})();
+</script>
+</body>
+</html>
