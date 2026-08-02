@@ -659,7 +659,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard>summary .dsi{display:flex;width:26px;height:26px;border-radius:8px;background:var(--surface-2);align-items:center;justify-content:center;color:var(--sub);flex:none;margin-right:10px}
 .dcard>summary .dsi svg{width:14px;height:14px}
 .dcard>summary .dleft{display:flex;align-items:center;min-width:0;flex:1}
-.dcard>summary .dleft{flex:0 0 auto}
+.dcard>summary .dleft{flex:1 1 auto;min-width:min(9ch,100%)}
+.dcard>summary .dleft .dsum{overflow:hidden;text-overflow:ellipsis}
 .dcard>summary .aright{display:flex;align-items:center;justify-content:flex-end;gap:8px;
   min-width:0;flex:0 1 auto;overflow:hidden}
 .dcard>summary .aright .acount{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -668,7 +669,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .dcard[data-tone="amber"],.dcard[data-tone="warn"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
 .dcard[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
 .dcard[data-tone="flat"]{--rag:var(--ink);--rag-tint:var(--surface-2)}
-.dcard .acount{font-size:13.5px;font-weight:700;line-height:1.35;background:var(--surface-2);color:var(--sub);border-radius:7px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62%}
+.dcard .acount{font-size:13.5px;font-weight:700;line-height:1.35;background:var(--surface-2);color:var(--sub);border-radius:7px;padding:3px 9px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .dcard .acount.gd,.dcard .acount.wn{color:var(--rag,var(--sub));background:var(--rag-tint,var(--surface-2))}
 .dcard[data-tone]>summary .dsi{background:var(--rag-tint,var(--surface-2));color:var(--rag,var(--sub))}
 .dcard[data-tone] .bcol i.on{background:var(--rag,var(--accent))}
@@ -977,6 +978,38 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .deeper .dchev{display:inline-flex;transition:transform .18s ease;color:var(--sub)}
 .deeper .dchev svg{width:18px;height:18px}
 .deeper>svg{width:18px;height:18px;flex:none}
+.plday{border-top:1px solid var(--line);margin:0 -2px}
+.plday:first-of-type{border-top:0}
+.plday>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:11px;
+  min-height:56px;padding:11px 4px}
+.plday>summary::-webkit-details-marker{display:none}
+.plday .pdi{display:flex;width:32px;height:32px;border-radius:10px;flex:none;align-items:center;
+  justify-content:center;background:var(--surface-2);color:var(--sub)}
+.plday .pdi svg{width:15px;height:15px}
+.plday.next .pdi{background:var(--accent-tint);color:var(--accent)}
+.plday .pll{font-size:14px;font-weight:800}
+.plday .pdm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.plday .pdn{font-size:15px;font-weight:800;color:var(--ink)}
+.plday .pdd{font-size:12px;font-weight:600;color:var(--faint);line-height:1.35}
+.plday .ptag{flex:none;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--accent);background:var(--accent-tint);border-radius:999px;padding:4px 9px}
+.plday .pdchip{flex:none;font-size:11.5px;font-weight:700;color:var(--faint);white-space:nowrap}
+.plday .pdchev{flex:none;display:flex;color:var(--faint);transition:transform .18s ease}
+.plday .pdchev svg{width:16px;height:16px}
+.plday[open] .pdchev{transform:rotate(180deg)}
+.plbuild{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;
+  margin:4px 0 12px;border:1px solid var(--line);border-radius:12px;background:transparent;
+  color:var(--sub);font-size:13px;font-weight:700}
+.plweek{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:11px 12px;margin:0 0 10px;
+  border-radius:12px;background:var(--surface-2)}
+.plweek .plwn{font-size:24px;font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--ink)}
+.plweek .plwl{font-size:12.5px;font-weight:600;color:var(--sub);flex:1;min-width:0}
+.plweek .plww{font-size:12px;font-weight:700;color:var(--faint);width:100%}
+.plweek[data-t="good"] .plww{color:var(--good)}
+.mcard{min-width:0}
+.mcard .mctr{display:block;min-width:0;margin-top:5px;font-size:11px;font-weight:700;color:var(--faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mcard .mctr[data-t="good"]{color:var(--good)}
 .swgrp{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
   padding:14px 2px 6px;margin-top:2px;border-top:1px solid var(--line)}
 .swgrp:first-of-type{border-top:0;padding-top:4px;margin-top:0}
@@ -1558,7 +1591,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.78";
+var VERSION="v7.79";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3291,7 +3324,7 @@ function liftLevelDetailHTML(){
     levelMechanicsHTML("lift",L)+
     (dl2.due?'<button class="wbtn" style="width:100%;margin-top:11px" onclick="startDeload()">Take a deload week</button>':'')+
     '<div class="foot" style="margin-top:11px">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>';
-  return collapsible("Where the lift level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,levelToneOf(L,dl));
+  return collapsible("Where the level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,levelToneOf(L,dl));
 }
 function liftDelta(L){
   var ser=L.series||[];if(ser.length<8)return null;
@@ -3694,31 +3727,6 @@ function daysMoved(n){
   return m;
 }
 
-function weekHTML(withRing){
-  refreshDate();
-  var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
-  var doneLifts=0,totLifts=0,miDone=0,list="";
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay(),pl=planFor(k)||{type:"none"},dn=isDone(k),isT=(k===TODAY);
-    var didLift=S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
-    if(pl.type==="lift"){totLifts++;if(didLift)doneLifts++;}
-    if(pl.type==="run"){
-      S.sessions.forEach(function(x){if(x.date===k&&isRealRun(x))miDone+=(x.distanceMi||0);});}
-    var _ds=dayStatus(k),metPlan=_ds.metPlan,partial=_ds.partial;
-    var ic=pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest;
-    var nm=pl.type==="lift"?"Full-body strength":pl.type==="run"?((pl.label||"Easy")+" run"):pl.type==="rest"?"Recover":"Open";
-    var tt=pl.type==="lift"?"~30 min":pl.type==="run"?((pl.dist||0)+" mi"):pl.type==="rest"?(pl.weigh?"walk + weigh-in":"walk + mobility"):"";
-    list+='<button class="wl'+(metPlan?" done":"")+(isT?" today":"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"><div class="wd">'+DFULL[dw]+'</div><div class="ic">'+(metPlan?I.check:ic)+'</div><div class="wn">'+nm+'</div><div class="wt">'+tt+'</div></button>';}
-  var liftHist=[],mvi;for(mvi=1;mvi<=12;mvi++)liftHist.push(weekMetrics(mvi).lifts);
-  var liftBest=Math.max.apply(null,liftHist.concat([1]));
-  var pct=Math.min(1,doneLifts/liftBest),C=2*Math.PI*45,off=C*(1-pct),complete=(doneLifts>=liftBest);
-  var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'</b><span>'+(doneLifts===1?"session":"sessions")+'</span></div></div>'+
-    '<div class="rmeta"><div class="rt">'+(complete?"Your strongest week yet":"Building the week")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
-    '<div style="margin-top:8px"><div class="rd" style="margin:0">'+(complete?("Best of your last twelve weeks was "+liftBest+"."):("Your best twelve-week stretch had "+liftBest+" in a week."))+(miDone>0?(" Running &middot; "+miDone.toFixed(1)+" mi."):"")+'</div></div></div></div>';
-  var wnote=doneLifts?(doneLifts+' lift'+(doneLifts===1?'':'s')+' this week'):'no lift yet this week';
-  return (withRing===false?'':ring)+
-    collapsible("This week",wnote,'<div class="ksub">Tap a day to view or edit it.</div><div class="weeklist">'+list+'</div>',
-      false,I.cal,kpiDir("lifts"));
-}
 function dayPatternSummary(L){
   var tpl=DAYS[L];if(!tpl)return "";
   var seen=[],order=["squat","hinge","h-push","v-push","h-pull","v-pull","core","isolation"];
@@ -3732,29 +3740,6 @@ function dayPatternSummary(L){
   if(words.length<=3)return words.join(", ").replace(/, ([^,]*)$/," and $1");
   return words.slice(0,3).join(", ")+" and "+(words.length-3)+" more";
 }
-function cycleHTML(){
-  var next=letterFor();
-  var rows=LETTERS.map(function(L){
-    var tpl=DAYS[L],isNext=(L===next);
-    var last=null;
-    for(var i=S.sessions.length-1;i>=0;i--){var s=S.sessions[i];if(s.type==="lift"&&s.dayLetter===L){last=s;break;}}
-    var when=last?("last "+shortDate(last.date)):"not yet run";
-    var pat=dayPatternSummary(L);
-    return '<div class="prow'+(isNext?" next":"")+'"><div class="pl'+(isNext?" on":"")+'">'+
-      (isNext?I.play:'<span class="pll">'+L+'</span>')+'</div>'+
-      '<div class="pm"><div class="pn">'+esc(tpl.name)+'</div>'+
-      '<div class="pd">'+(pat||(tpl.slots.length+' movements'))+'</div>'+
-      '<div class="pd2">Day '+L+' &middot; '+tpl.slots.length+' movements &middot; '+when+'</div></div>'+
-      (isNext?'<span class="ptag">Next</span>':'')+'</div>';
-  }).join("");
-  var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
-  var lastLift=null;for(var li=S.sessions.length-1;li>=0;li--){if(S.sessions[li].type==="lift"){lastLift=S.sessions[li].date;break;}}
-  var rotTone=lastLift?(daysBetween(lastLift,TODAY)<=3?"good":daysBetween(lastLift,TODAY)<=7?"amber":"red"):"";
-  return collapsible("The rotation",esc(DAYS[next]?DAYS[next].name:("Day "+next))+" next",'<div>'+
-    '<div class="ksub">Three sessions on a loop. The next one is whatever you have not done, not whatever day of the week it is.</div>'+
-    rows+
-    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div></div>',false,I.swap,rotTone);
-}
 function movementDayGroups(){
   var g={A:[],B:[],C:[]},seen={};
   ["A","B","C"].forEach(function(L){
@@ -3767,18 +3752,95 @@ function movementDayGroups(){
   var other=Object.keys(LIB).filter(function(id){return !inDay[id]&&(lastEntry(id)||S.progress[id]);});
   return {A:g.A,B:g.B,C:g.C,other:other};
 }
+function liftPlanHTML(){
+  var g=movementDayGroups(),L=letterFor(),m=weekMetrics(0);
+  var lv=weekVerdict("lifts",m.lifts,m.days);
+  var next=letterFor();
+  var days=["A","B","C"].map(function(k){
+    var tpl=DAYS[k];if(!tpl)return "";
+    var ids=g[k]||[],isNext=(k===next);
+    var pat=dayPatternSummary(k)||(tpl.slots.length+" movements");
+    var scored=0,upish=0;
+    ids.forEach(function(id){var t=exerciseTrend(id);if(t.dir==="none")return;scored++;if(t.tone==="good")upish++;});
+    var chip=scored?(upish+" of "+scored+" moving well"):"";
+    return '<details class="plday'+(isNext?" next":"")+'" name="plday"'+(isNext?" open":"")+'>'+
+      '<summary><span class="pdi">'+(isNext?I.play:'<span class="pll">'+k+'</span>')+'</span>'+
+      '<span class="pdm"><span class="pdn">'+esc(tpl.name)+'</span>'+
+      '<span class="pdd">Day '+k+' &middot; '+pat+'</span></span>'+
+      (isNext?'<span class="ptag">Next</span>':(chip?'<span class="pdchip">'+chip+'</span>':''))+
+      '<span class="pdchev">'+I.chevD+'</span></summary>'+
+      '<div class="mgrid">'+ids.map(movementRowHTML).join("")+'</div>'+
+      '<button class="plbuild" onclick="event.preventDefault();openBuild()">Edit or swap what is in Day '+k+'</button>'+
+      '</details>';
+  }).join("");
+  if(g.other.length)days+='<details class="plday" name="plday"><summary><span class="pdi"><span class="pll">+</span></span>'+
+    '<span class="pdm"><span class="pdn">Outside the rotation</span><span class="pdd">'+g.other.length+' movement'+(g.other.length===1?'':'s')+' you have trained</span></span>'+
+    '<span class="pdchev">'+I.chevD+'</span></summary><div class="mgrid">'+g.other.map(movementRowHTML).join("")+'</div></details>';
+  var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
+  var body='<div class="plweek" data-t="'+lv.tone+'">'+
+      '<span class="plwn num">'+m.lifts+'</span>'+
+      '<span class="plwl">session'+(m.lifts===1?'':'s')+' logged in the last '+m.days+' day'+(m.days===1?'':'s')+'</span>'+
+      '<span class="plww">'+esc(lv.word)+'</span></div>'+
+    '<div class="ksub">Three sessions on a loop. The next one is whatever you have not done, not whatever day of the week it is. Open a day to see what is in it, tap any movement for its history, its form video and what to do next time.</div>'+
+    days+
+    '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div>';
+  var lastLift=null;for(var li=S.sessions.length-1;li>=0;li--){if(S.sessions[li].type==="lift"){lastLift=S.sessions[li].date;break;}}
+  var tone=lastLift?(daysBetween(lastLift,TODAY)<=3?"good":daysBetween(lastLift,TODAY)<=7?"amber":"red"):"";
+  return collapsible("The plan","Day "+next,body,true,I.dumbbell,tone);
+}
+function exerciseSeries(id){
+  var e=LIB[id];if(!e)return [];
+  var out=[];
+  S.sessions.forEach(function(s){
+    if(s.type!=="lift"||!s.entries)return;
+    s.entries.forEach(function(en){
+      if(en.exerciseId!==id)return;
+      var best=null;
+      (en.sets||[]).forEach(function(st){
+        if(!st.completed)return;
+        var v=e.bw?(st.reps||0):e1rm(st.weightLb||0,st.reps||0);
+        if(best==null||v>best)best=v;
+      });
+      if(best!=null&&best>0)out.push({d:s.id,v:best});
+    });
+  });
+  out.sort(function(a,b){return a.d<b.d?1:a.d>b.d?-1:0;});   /* newest first */
+  return out;
+}
+function exerciseTrend(id){
+  var ser=exerciseSeries(id);
+  if(ser.length<3)return {dir:"none",tone:"flat",word:"not enough sessions yet",n:ser.length};
+  var vs=ser.map(function(x){return x.v;}).slice(0,12);
+  var latest=vs[0],prior=vs.slice(1);                        /* judge the last session against the level built BEFORE it */
+  if(prior.length<2)return {dir:"none",tone:"flat",word:"not enough sessions yet",n:ser.length};
+  function ewma(a){var c=0;a.forEach(function(v){var tau=(v>c)?3:6;c=c+(v-c)*(1-Math.exp(-1/tau));});return c;}
+  var older=prior.slice().reverse();                         /* oldest first, as weekBase walks it */
+  var cap=ewma(older),cap4=ewma(older.slice(0,Math.max(1,older.length-3)));
+  var med=tMed(prior.slice());
+  var mad=tMed(prior.map(function(v){return Math.abs(v-med);}));
+  var band=Math.max(0.6*1.4826*mad,0.06*cap);
+  var rising=cap>cap4*1.04;
+  if(latest>=cap+band)return {dir:"up",tone:"good",n:ser.length,
+    word:rising?"climbing on a strong run":"a strong session for you",short:"climbing",cap:cap};
+  if(latest>cap-band)return {dir:"flat",tone:rising?"good":"flat",n:ser.length,
+    word:rising?"holding a level you have raised":"right at your usual",
+    short:rising?"holding":"at your usual",cap:cap};
+  return {dir:"down",tone:"flat",n:ser.length,
+    word:rising?"lighter, on top of a strong run":"a lighter session",short:"lighter",cap:cap};
+}
 function movementRowHTML(id){
   var e=LIB[id],le=lastEntry(id),t=S.progress[id]||{},pr=prFor(id);
   var best=null;
   if(le)le.e.sets.forEach(function(x){if(!x.completed)return;var w=x.weightLb||0,r=x.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
   var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
   var lastTxt=le&&best?(shortDate(le.date)+" &middot; "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"not trained yet";
-  var sg=suggestWeight(id);
+  var sg=suggestWeight(id),tr=exerciseTrend(id);
   return '<button class="mcard'+(le?"":" untrained")+(sg?" prop":"")+'" onclick="movementSheet(\''+id+'\')">'+
     '<span class="mcn">'+esc(e.name)+'</span>'+
     '<span class="mcw num">'+now+(sg?'<em class="mcup" data-d="'+sg.dir+'">'+(sg.dir==="up"?"&uarr;":"&darr;")+' '+sg.to+wLbl()+'</em>':'')+'</span>'+
     '<span class="mcl">'+lastTxt+'</span>'+
     (pr?'<span class="mcp">PR '+(e.bw?"x"+pr.r:pr.w+wLbl()+" x"+pr.r)+'</span>':'')+
+    (tr.dir!=="none"?'<span class="mctr" data-d="'+tr.dir+'" data-t="'+tr.tone+'">'+esc(tr.short||tr.word)+"</span>":"")+
     '<span class="mcplay">'+I.play+'</span></button>';
 }
 function suggestWeight(id){
@@ -3844,32 +3906,6 @@ function sessionLengthHTML(){
     '<div class="foot" style="margin-top:10px">Prescribed time is derived from the day template, about three working sets a movement at a minute and a half with rest, so it follows the template rather than being a number typed once. Consistency first, volume second, intensity third: this will never raise volume and frequency in the same step.</div>',
     false,I.clock||I.cal,tone);
 }
-function movementRows(){
-  var g=movementDayGroups(),L=letterFor(),inner="",total=0,prs=0;
-  ["A","B","C"].forEach(function(k){
-    if(!g[k].length)return;
-    total+=g[k].length;
-    g[k].forEach(function(id){if(prFor(id))prs++;});
-    var trained=g[k].filter(function(id){return lastEntry(id);}).length;
-    inner+='<details class="libsub" name="mvgrp"><summary>'+
-      '<span>Day '+k+' &middot; '+esc(DAYS[k]?DAYS[k].name:"")+'</span>'+
-      '<span class="lcount'+(trained===g[k].length?" gd":"")+'">'+g[k].length+' movements</span></summary>'+
-      '<div class="mgrid">'+g[k].map(movementRowHTML).join("")+'</div></details>';
-  });
-  if(g.other.length){
-    total+=g.other.length;
-    inner+='<details class="libsub" name="mvgrp"><summary><span>Outside the rotation</span>'+
-      '<span class="lcount">'+g.other.length+'</span></summary>'+
-      '<div class="mgrid">'+g.other.map(movementRowHTML).join("")+'</div></details>';
-  }
-  if(!inner)return "";
-  var trainedAll=0;["A","B","C"].forEach(function(k){g[k].forEach(function(id){if(lastEntry(id))trainedAll++;});});
-  var props=0;["A","B","C"].forEach(function(k){(g[k]||[]).forEach(function(id){if(suggestWeight(id))props++;});});
-  var mvTone=props?"amber":(total&&trainedAll===total?"good":"");
-  return collapsible("Your movements","Day "+L+" &middot; "+(g[L]?g[L].length:0)+" to train",
-    '<div class="ksub" style="padding:0 4px 10px">Grouped by the day you train them. <b>'+trainedAll+' of '+total+'</b> have a session behind them'+(prs?(', '+prs+' with a record'):'')+'. Tap any movement for its form video, its history and what to do next time.</div>'+inner,
-    false,I.dumbbell,mvTone);
-}
 function movementSheet(id){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
   var hist=[];
@@ -3929,9 +3965,7 @@ function renderLift(){
     '<div class="herorow"><button class="wbtn" onclick="equipSheet()">Change kit</button><button class="wbtn" onclick="openBuild()">Build custom</button></div>'+
     '</div>';
   h+=liftLevelDetailHTML();
-  h+=cycleHTML();
-  h+=movementRows();
-  h+=weekHTML(false);
+  h+=liftPlanHTML();
   h+=badgeList(false,"lift");
   document.getElementById("v-lift").innerHTML=h;
 }
