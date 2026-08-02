@@ -111,6 +111,17 @@ input,select{border:0;background:none}
 .iconbtn:active{background:var(--surface-2)}
 .iconbtn,.calnav,.hero .chg{position:relative}
 .iconbtn::after,.calnav::after,.hero .chg::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;min-width:44px;min-height:44px}
+.libgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 14px}
+.libtile2{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:80px;padding:13px 14px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left}
+.libtile2.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.libtile2 .ltn{font-size:14.5px;font-weight:700;color:var(--ink)}
+.libtile2 .ltd{font-size:11.5px;color:var(--faint);line-height:1.3}
+.libtile2 .ltc{margin-top:auto;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--sub)}
+.libtile2 .ltc.gd{color:var(--good)}
+.vgrid{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:520px){.vgrid{grid-template-columns:1fr 1fr}}
+
 .tapfix{position:relative}
 .tapfix::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
   width:100%;height:100%;min-width:44px;min-height:44px}
@@ -1443,6 +1454,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
   <section class="view" id="v-lift"></section>
   <section class="view" id="v-cardio"></section>
   <section class="view" id="v-track"></section>
+  <section class="view" id="v-library"></section>
   <section class="view" id="v-generate"></section>
 </div>
 
@@ -1464,12 +1476,13 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
   <button data-nav="today" class="on" onclick="show('today')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9h12v-9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Today</span></button>
   <button data-nav="lift" onclick="show('lift')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Lift</span></button>
   <button data-nav="cardio" onclick="show('cardio')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14" cy="5" r="2" fill="currentColor"/><path d="M13 9l-3 3 3 2 1 5M13 9l4 2M10 12l-4 1M11 16l-3 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Cardio</span></button>
+  <button data-nav="library" onclick="show('library')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h5a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4V5ZM20 5h-5a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h5V5Z" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Library</span></button>
   <button data-nav="track" onclick="show('track')"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V5M5 19h14M8 16l3-4 3 2 4-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Track</span></button>
 </nav>
 
 <script>
 "use strict";
-var VERSION="v7.68";
+var VERSION="v7.70";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2239,6 +2252,7 @@ function show(v){
   if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
   if(v==="track")renderTrack();
+  if(v==="library")renderLibrary();
   if(v==="generate")renderGenerate();
   if(!full)CURV=v;
   window.scrollTo(0,0);
@@ -2775,7 +2789,7 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
     h+='<div class="exeyebrow">Now &middot; step 1 of '+total+'</div>';
     var wv=pickForSlot("warmup",0)||pickVid(warmCat("lift"),0);
     h+='<div class="ex active hero"><div class="exhead"><div class="exname">Warm up</div></div>'+
-      '<div class="aim">About 3 minutes. '+WARM+'</div>'+
+      '<div class="aim">'+(wv&&wv.m?(wv.m+' min &middot; '):'')+WARM+'</div>'+
       (wv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(wv,true)+'</div>'):'')+
       '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().warmDone=true;save();renderWorkout()">Done, first movement</button></div></div>';
     if(active.length){
@@ -2792,8 +2806,10 @@ function renderWorkout(){var w=AW();if(!w){show(RETV||"today");return;}
     }
   }else if(!w.coolDone){
     h+='<div class="exeyebrow">Now &middot; last step</div>';
+    var cv=pickForSlot("cooldown",0);
     h+='<div class="ex active hero"><div class="exhead"><div class="exname">Cool down</div></div>'+
-      '<div class="aim">2 to 3 minutes. '+COOL+'</div>'+
+      '<div class="aim">'+COOL+'</div>'+
+      (cv?('<div class="vrow" style="grid-template-columns:1fr;margin:10px 0 2px">'+vidCardHTML(cv,true)+'</div>'):'')+
       '<div class="setbtns"><button class="setbtn" style="width:100%;padding:13px" onclick="AW().coolDone=true;save();renderWorkout()">Done cooling down</button></div></div>';
   }else{
     h+='<div class="exeyebrow">Every step done &middot; tap Finish</div>';
@@ -4914,6 +4930,202 @@ function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;t
 function ytSearch(q){return "https://www.youtube.com/results?search_query="+encodeURIComponent(q);}
 function ytWatch(id){return "https://www.youtube.com/watch?v="+id;}
 var VID=[
+ {id:"onnit/bodyweight/intro-to-bodyweight-training.mp4",t:"Intro to Bodyweight Training",a:"Onnit",c:"onnit-move",m:"2",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/base-switch-lv1.mp4",t:"Base Switch · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/base-switch-lv2.mp4",t:"Base Switch · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/base-switch-lv3.mp4",t:"Base Switch · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/bear-squat-lv1.mp4",t:"Bear Squat · level 1",a:"Onnit",c:"onnit-move",m:"4",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/bear-squat-lv2.mp4",t:"Bear Squat · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/bear-squat-lv3.mp4",t:"Bear Squat · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/cossack-squat.mp4",t:"Cossack Squat",a:"Onnit",c:"onnit-move",m:"3",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/cossack-squat-lv1.mp4",t:"Cossack Squat · level 1",a:"Onnit",c:"onnit-move",m:"4",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/cossack-squat-lv2.mp4",t:"Cossack Squat · level 2",a:"Onnit",c:"onnit-move",m:"3",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/cossack-squat-lv3.mp4",t:"Cossack Squat · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/frog.mp4",t:"Frog",a:"Onnit",c:"onnit-move",m:"3",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/frog-lv1.mp4",t:"Frog · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/frog-lv2.mp4",t:"Frog · level 2",a:"Onnit",c:"onnit-move",m:"3",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/frog-lv3.mp4",t:"Frog · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/kick-through.mp4",t:"Kick Through",a:"Onnit",c:"onnit-move",m:"4",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/kick-through-lv1.mp4",t:"Kick Through · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/kick-through-lv2.mp4",t:"Kick Through · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/kick-through-lv3.mp4",t:"Kick Through · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lever-push-up-lv1.mp4",t:"Lever Push Up · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lever-push-up-lv2.mp4",t:"Lever Push Up · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lever-push-up-lv3.mp4",t:"Lever Push Up · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lunge.mp4",t:"Lunge",a:"Onnit",c:"onnit-move",m:"2",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lunge-lv1.mp4",t:"Lunge · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lunge-lv2.mp4",t:"Lunge · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/lunge-lv3.mp4",t:"Lunge · level 3",a:"Onnit",c:"onnit-move",m:"1",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/mountain-climber.mp4",t:"Mountain Climber",a:"Onnit",c:"onnit-move",m:"2",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/mountain-climber-lv1.mp4",t:"Mountain Climber · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/mountain-climber-lv2.mp4",t:"Mountain Climber · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/mountain-climber-lv3.mp4",t:"Mountain Climber · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/push-up.mp4",t:"Push Up",a:"Onnit",c:"onnit-move",m:"4",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/push-up-lv1.mp4",t:"Push Up · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/push-up-lv2.mp4",t:"Push Up · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/push-up-lv3.mp4",t:"Push Up · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/rotary-lunge-lv1.mp4",t:"Rotary Lunge · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/rotary-lunge-lv2.mp4",t:"Rotary Lunge · level 2",a:"Onnit",c:"onnit-move",m:"3",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/rotary-lunge-lv3.mp4",t:"Rotary Lunge · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sprawl-lv1.mp4",t:"Sprawl · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sprawl-lv2.mp4",t:"Sprawl · level 2",a:"Onnit",c:"onnit-move",m:"4",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sprawl-lv3.mp4",t:"Sprawl · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/squat.mp4",t:"Squat",a:"Onnit",c:"onnit-move",m:"4",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/squat-lv1.mp4",t:"Squat · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/squat-lv2.mp4",t:"Squat · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/squat-lv3.mp4",t:"Squat · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sumo-squat.mp4",t:"Sumo Squat",a:"Onnit",c:"onnit-move",m:"4",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sumo-squat-lv1.mp4",t:"Sumo Squat · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sumo-squat-lv2.mp4",t:"Sumo Squat · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/sumo-squat-lv3.mp4",t:"Sumo Squat · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/table.mp4",t:"Table",a:"Onnit",c:"onnit-move",m:"3",src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/table-lv1.mp4",t:"Table · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/table-lv2.mp4",t:"Table · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/table-lv3.mp4",t:"Table · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/tripod-lv1.mp4",t:"Tripod · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/tripod-lv2.mp4",t:"Tripod · level 2",a:"Onnit",c:"onnit-move",m:"3",lv:2,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/bodyweight/tripod-lv3.mp4",t:"Tripod · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"bodyweight",s:"study,course"},
+ {id:"onnit/durability/intro-to-durability-training.mp4",t:"Intro to Durability Training",a:"Onnit",c:"onnit-move",m:"2",src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/backward-circle-lv1.mp4",t:"Backward Circle · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/backward-circle-lv2.mp4",t:"Backward Circle · level 2",a:"Onnit",c:"onnit-move",m:"3",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/backward-circle-lv3.mp4",t:"Backward Circle · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bear-squat-lv1.mp4",t:"Bear Squat · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bear-squat-lv2.mp4",t:"Bear Squat · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bear-squat-lv3.mp4",t:"Bear Squat · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bridge-lv1.mp4",t:"Bridge · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bridge-lv2.mp4",t:"Bridge · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/bridge-lv3.mp4",t:"Bridge · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/climbing-spinal-roll-flow-lv1.mp4",t:"Climbing Spinal Roll Flow · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/climbing-spinal-roll-flow-lv2.mp4",t:"Climbing Spinal Roll Flow · level 2",a:"Onnit",c:"onnit-move",m:"4",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/climbing-spinal-roll-flow-lv3.mp4",t:"Climbing Spinal Roll Flow · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/curl-and-press-lv1.mp4",t:"Curl and Press · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/curl-and-press-lv2.mp4",t:"Curl and Press · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/curl-and-press-lv3.mp4",t:"Curl and Press · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/frog-lv1.mp4",t:"Frog · level 1",a:"Onnit",c:"onnit-move",m:"1",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/frog-lv2.mp4",t:"Frog · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/frog-lv3.mp4",t:"Frog · level 3",a:"Onnit",c:"onnit-move",m:"1",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-press-lv1.mp4",t:"Front Press · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-press-lv2.mp4",t:"Front Press · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-press-lv3.mp4",t:"Front Press · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-pullover-lv1.mp4",t:"Front Pullover · level 1",a:"Onnit",c:"onnit-move",m:"1",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-pullover-lv2.mp4",t:"Front Pullover · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-pullover-lv3.mp4",t:"Front Pullover · level 3",a:"Onnit",c:"onnit-move",m:"1",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-swing-lv1.mp4",t:"Front Swing · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-swing-lv2.mp4",t:"Front Swing · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/front-swing-lv3.mp4",t:"Front Swing · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-hinge-fly-lv1.mp4",t:"High Hinge Fly · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-hinge-fly-lv2.mp4",t:"High Hinge Fly · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-hinge-fly-lv3.mp4",t:"High Hinge Fly · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-lunge-hinge-flow-lv1.mp4",t:"High Lunge Hinge Flow · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-lunge-hinge-flow-lv2.mp4",t:"High Lunge Hinge Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/high-lunge-hinge-flow-lv3.mp4",t:"High Lunge Hinge Flow · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-flexor-lv1.mp4",t:"Hip Flexor · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-flexor-lv2.mp4",t:"Hip Flexor · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-flexor-lv3.mp4",t:"Hip Flexor · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-pry-squat-lv1.mp4",t:"Hip Pry Squat · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-pry-squat-lv2.mp4",t:"Hip Pry Squat · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/hip-pry-squat-lv3.mp4",t:"Hip Pry Squat · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/iron-cross-lunge-lv1.mp4",t:"Iron Cross Lunge · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/iron-cross-lunge-lv2.mp4",t:"Iron Cross Lunge · level 2",a:"Onnit",c:"onnit-move",m:"1",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/iron-cross-lunge-lv3.mp4",t:"Iron Cross Lunge · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/leg-driver-lv1.mp4",t:"Leg Driver · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/leg-driver-lv2.mp4",t:"Leg Driver · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/leg-driver-lv3.mp4",t:"Leg Driver · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mill-pullover-lv1.mp4",t:"Mill Pullover · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mill-pullover-lv2.mp4",t:"Mill Pullover · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mill-pullover-lv3.mp4",t:"Mill Pullover · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mountain-climber-lv1.mp4",t:"Mountain Climber · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mountain-climber-lv2.mp4",t:"Mountain Climber · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/mountain-climber-lv3.mp4",t:"Mountain Climber · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-row-lv1.mp4",t:"Quadruped Row · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-row-lv2.mp4",t:"Quadruped Row · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-row-lv3.mp4",t:"Quadruped Row · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-side-leg-lift-lv1.mp4",t:"Quadruped Side Leg Lift · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-side-leg-lift-lv2.mp4",t:"Quadruped Side Leg Lift · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/quadruped-side-leg-lift-lv3.mp4",t:"Quadruped Side Leg Lift · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-childs-flow-lv1.mp4",t:"Rising Childs Flow · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-childs-flow-lv2.mp4",t:"Rising Childs Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-childs-flow-lv3.mp4",t:"Rising Childs Flow · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-pigeon-lv1.mp4",t:"Rising Pigeon · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-pigeon-lv2.mp4",t:"Rising Pigeon · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/rising-pigeon-lv3.mp4",t:"Rising Pigeon · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-lv1.mp4",t:"Shinbox · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-lv2.mp4",t:"Shinbox · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-lv3.mp4",t:"Shinbox · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-table-flow-lv1.mp4",t:"Shinbox Table Flow · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-table-flow-lv2.mp4",t:"Shinbox Table Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shinbox-table-flow-lv3.mp4",t:"Shinbox Table Flow · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shoulder-circle-flow-lv1.mp4",t:"Shoulder Circle Flow · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shoulder-circle-flow-lv2.mp4",t:"Shoulder Circle Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/shoulder-circle-flow-lv3.mp4",t:"Shoulder Circle Flow · level 3",a:"Onnit",c:"onnit-move",m:"4",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/snatch-flow-lv1.mp4",t:"Snatch Flow · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/snatch-flow-lv2.mp4",t:"Snatch Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/snatch-flow-lv3.mp4",t:"Snatch Flow · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/spinal-roll-lv1.mp4",t:"Spinal Roll · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/spinal-roll-lv2.mp4",t:"Spinal Roll · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/spinal-roll-lv3.mp4",t:"Spinal Roll · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/swipe-lv1.mp4",t:"Swipe · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/swipe-lv2.mp4",t:"Swipe · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/swipe-lv3.mp4",t:"Swipe · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/table-lv1.mp4",t:"Table · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/table-lv2.mp4",t:"Table · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/table-lv3.mp4",t:"Table · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/t-spine-twist-lv1.mp4",t:"T-Spine Twist · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/t-spine-twist-lv2.mp4",t:"T-Spine Twist · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/t-spine-twist-lv3.mp4",t:"T-Spine Twist · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twist-and-sit-lv1.mp4",t:"Twist and Sit · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twist-and-sit-lv2.mp4",t:"Twist and Sit · level 2",a:"Onnit",c:"onnit-move",m:"1",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twist-and-sit-lv3.mp4",t:"Twist and Sit · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-frog-flow-lv1.mp4",t:"Twisting Frog Flow · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-frog-flow-lv2.mp4",t:"Twisting Frog Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-frog-flow-lv3.mp4",t:"Twisting Frog Flow · level 3",a:"Onnit",c:"onnit-move",m:"3",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-iron-cross-lv1.mp4",t:"Twisting Iron Cross · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-iron-cross-lv2.mp4",t:"Twisting Iron Cross · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-iron-cross-lv3.mp4",t:"Twisting Iron Cross · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-lunge-flow-lv1.mp4",t:"Twisting Lunge Flow · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-lunge-flow-lv2.mp4",t:"Twisting Lunge Flow · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-lunge-flow-lv3.mp4",t:"Twisting Lunge Flow · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-pullover-lv1.mp4",t:"Twisting Pullover · level 1",a:"Onnit",c:"onnit-move",m:"2",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-pullover-lv2.mp4",t:"Twisting Pullover · level 2",a:"Onnit",c:"onnit-move",m:"1",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/twisting-pullover-lv3.mp4",t:"Twisting Pullover · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/windmill-lv1.mp4",t:"Windmill · level 1",a:"Onnit",c:"onnit-move",m:"3",lv:1,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/windmill-lv2.mp4",t:"Windmill · level 2",a:"Onnit",c:"onnit-move",m:"2",lv:2,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/durability/windmill-lv3.mp4",t:"Windmill · level 3",a:"Onnit",c:"onnit-move",m:"2",lv:3,src:"onnit",prog:"durability",s:"study,course"},
+ {id:"onnit/bodyweight/workout/warmup-1.mp4",t:"Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
+ {id:"onnit/bodyweight/workout/warmup-2.mp4",t:"Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"bodyweight",s:"warmup,runwarm"},
+ {id:"onnit/bodyweight/workout/cooldown-1.mp4",t:"Cooldown 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
+ {id:"onnit/bodyweight/workout/cooldown-2.mp4",t:"Cooldown 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"bodyweight",s:"cooldown"},
+ {id:"onnit/bodyweight/workout/prime-the-pump-1.mp4",t:"Prime the Pump 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/prime-the-pump-2.mp4",t:"Prime the Pump 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/blasted-by-the-basics-1.mp4",t:"Blasted by the Basics 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/blasted-by-the-basics-2.mp4",t:"Blasted by the Basics 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/speed-kills-1.mp4",t:"Speed Kills 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/speed-kills-2.mp4",t:"Speed Kills 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"bodyweight",s:"session"},
+ {id:"onnit/bodyweight/workout/yoga-1.mp4",t:"Yoga 1",a:"Onnit",c:"onnit-yoga",m:"",src:"onnit",prog:"bodyweight",s:"calm,session"},
+ {id:"onnit/bodyweight/workout/yoga-2.mp4",t:"Yoga 2",a:"Onnit",c:"onnit-yoga",m:"",src:"onnit",prog:"bodyweight",s:"calm,session"},
+ {id:"onnit/durability/workout/warmup-1.mp4",t:"Warmup 1",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
+ {id:"onnit/durability/workout/warmup-2.mp4",t:"Warmup 2",a:"Onnit",c:"onnit-warmup",m:"",src:"onnit",prog:"durability",s:"warmup,runwarm"},
+ {id:"onnit/durability/workout/cooldown-1.mp4",t:"Cooldown 1",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
+ {id:"onnit/durability/workout/cooldown-2.mp4",t:"Cooldown 2",a:"Onnit",c:"onnit-cooldown",m:"",src:"onnit",prog:"durability",s:"cooldown"},
+ {id:"onnit/durability/workout/restore-and-strengthen-1.mp4",t:"Restore and Strengthen 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/restore-and-strengthen-2.mp4",t:"Restore and Strengthen 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/refine-with-density-1.mp4",t:"Refine with Density 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/refine-with-density-2.mp4",t:"Refine with Density 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/feel-the-flow-1.mp4",t:"Feel the Flow 1",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/feel-the-flow-2.mp4",t:"Feel the Flow 2",a:"Onnit",c:"onnit-session",m:"",src:"onnit",prog:"durability",needs:"club",s:"library"},
+ {id:"onnit/durability/workout/foam-roller-intro.mp4",t:"Foam Roller Intro",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"roller",s:"library"},
+ {id:"onnit/durability/workout/foam-roller-decompression-1.mp4",t:"Foam Roller Decompression 1",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"roller",s:"library"},
+ {id:"onnit/durability/workout/foam-roller-decompression-2.mp4",t:"Foam Roller Decompression 2",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"roller",s:"library"},
+ {id:"onnit/durability/workout/foam-roller-decompression-3.mp4",t:"Foam Roller Decompression 3",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"roller",s:"library"},
+ {id:"onnit/durability/workout/ball-intro.mp4",t:"Ball Intro",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"ball",s:"library"},
+ {id:"onnit/durability/workout/ball-decompression-1.mp4",t:"Ball Decompression 1",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"ball",s:"library"},
+ {id:"onnit/durability/workout/ball-decompression-2.mp4",t:"Ball Decompression 2",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"ball",s:"library"},
+ {id:"onnit/durability/workout/ball-decompression-3.mp4",t:"Ball Decompression 3",a:"Onnit",c:"onnit-decomp",m:"",src:"onnit",prog:"durability",needs:"ball",s:"library"},
+ {id:"onnit/shared/knowledge/lifestyle-knowledge-bestpractices.mp4",t:"Lifestyle Knowledge BestPractices",a:"Onnit",c:"onnit-learn",m:"",src:"onnit",prog:"shared",s:"learn"},
+ {id:"onnit/shared/knowledge/lifestyle-knowledge-mindset.mp4",t:"Lifestyle Knowledge Mindset",a:"Onnit",c:"onnit-learn",m:"",src:"onnit",prog:"shared",s:"learn"},
+ {id:"onnit/shared/knowledge/lifestyle-knowledge-nutritionprinciples.mp4",t:"Lifestyle Knowledge NutritionPrinciples",a:"Onnit",c:"onnit-learn",m:"",src:"onnit",prog:"shared",s:"learn"},
+ {id:"onnit/shared/knowledge/lifestyle-knowledge-musclegain.mp4",t:"Lifestyle Knowledge MuscleGain",a:"Onnit",c:"onnit-learn",m:"",src:"onnit",prog:"shared",s:"learn"},
+ {id:"onnit/shared/knowledge/lifestyle-knowledge-weightloss.mp4",t:"Lifestyle Knowledge WeightLoss",a:"Onnit",c:"onnit-learn",m:"",src:"onnit",prog:"shared",s:"learn"},
  {id:"cacwri2wio4",t:"5 Minute Morning Mobility Routine! (FOLLOW ALONG)",a:"Tom Merrick",c:"morning",m:"5m",lv:1},
  {id:"5H4MWQEe1Z0",t:"5 Minute Morning Mobility Routine (FULL BODY)",a:"FitnessFAQs",c:"morning",m:"5m",lv:2},
  {id:"DaHH--jJBtg",t:"5-Minute Guided Meditation: Morning Energy",a:"SELF",c:"morning",m:"5m",lv:3},
@@ -4921,9 +5133,9 @@ var VID=[
  {id:"nRiu7fcrJ0w",t:"A Powerful 5 Minute Morning Meditation",a:"Great Meditation",c:"morning",m:"5m",lv:5},
  {id:"n9ja1Wqkp1U",t:"5 Minute Guided Morning Mindfulness Meditation",a:"MindfulPeace",c:"morning",m:"5m",lv:6},
  {id:"0VrLgzwTmTg",t:"10 Minute Morning Mobility Routine",a:"Tom Merrick",c:"mobility",m:"10m"},
- {id:"1u30bEkE2dE",t:"15 Minute Relaxed Stretching Routine",a:"Tom Merrick",c:"mobility",m:"15m"},
+ {id:"1u30bEkE2dE",t:"15 Minute Relaxed Stretching Routine",a:"Tom Merrick",c:"mobility",m:"15m",s:"cooldown,calm"},
  {id:"XIXjdireZzE",t:"Morning Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m"},
- {id:"u_eBTabTA0M",t:"Evening Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m"},
+ {id:"u_eBTabTA0M",t:"Evening Flexibility Routine",a:"Vivobarefoot, with Tom Merrick",c:"mobility",m:"12m",s:"cooldown,calm"},
  {id:"QfMlHzgzBwQ",t:"10 Min Intense Abs, No Equipment",a:"MadFit",c:"core",m:"10m"},
  {id:"iMmMK_8BfcU",t:"10 Min Unbroken Ab Workout",a:"Caroline Girvan",c:"core",m:"10m"},
  {id:"0DWkbOGQQXA",t:"20 Min Bodyweight Strength, Low Impact",a:"Sydney Cummings Houdyshell",c:"strength",m:"20m"},
@@ -5087,8 +5299,8 @@ VID=VID.concat([
  {id:"TIHs5EQ2KYw",t:"10 minute foam roller routine for runners | Runna",a:"Runna",c:"recovery",m:"10m"},
  {id:"m2zKKJmdExg",t:"20 minute core workout for runners | Runna",a:"Runna",c:"strength",m:""},
  {id:"6LB__vPvaaE",t:"20 minute leg strength workout for runners | Runna",a:"Runna",c:"strength",m:""},
- {id:"6-tZaV4W_mI",t:"30 minute pilates for running session | Runna",a:"Runna",c:"strength",m:""},
- {id:"elOy2I6yp9w",t:"30 minute full body stretching and mobility session for runners | Runna",a:"Runna",c:"strength",m:""},
+ {id:"6-tZaV4W_mI",t:"30 minute pilates for running session | Runna",a:"Runna",c:"pilates",m:""},
+ {id:"elOy2I6yp9w",t:"30 minute full body stretching and mobility session for runners | Runna",a:"Runna",c:"recovery",m:""},
 ]);
 VID=VID.concat([
  {id:"6Xr8EOWJrvY",t:"30 Minute Full Body Dumbbell Workout (Guided Audio Cues + Modifications)",a:"Juice & Toya",c:"wk",m:"30m",day:"A"},
@@ -5104,6 +5316,30 @@ VID=VID.concat([
 ]);
 VCAT.wk="Replace the lift";VCAT.pilates="Pilates";VCAT.warmup="Warm up";VCAT.runwarm="Before a run";VCAT.core="Core finishers";VCAT.form="How to";
 
+var SLOT_BY_CAT = {
+  warmup:      "warmup,runwarm",
+  runwarm:     "runwarm",
+  recovery:    "cooldown,calm",
+  mobility:    "course,warmup,cooldown",
+  pilates:     "course",
+  morning:     "anchor",
+  form:        "study",
+  core:        "finisher",     /* 5-10 min. Browsable, never auto-served. Whether to offer them is his call. */
+  strength:    "session",
+  wk:          "session",
+  yoga:        "calm,session",
+  meditation:  "calm",
+  "onnit-move":     "study,course",
+  "onnit-warmup":   "warmup,runwarm",
+  "onnit-cooldown": "cooldown",
+  "onnit-session":  "session",
+  "onnit-yoga":     "calm,session",
+  "onnit-decomp":   "calm",
+  "onnit-learn":    "learn"
+};
+var OWNED_KIT = {bodyweight:1, band:1, DB:1, bench:1};
+function vidKitOK(v){return !v.needs || !!OWNED_KIT[v.needs];}
+
 var SLOTS={
   anchor  :{n:"Morning anchor", max:12, cats:["mobility","yoga","pilates"],            day:"pre",  note:"under ten minutes, joint-friendly, before anything else"},
   warmup  :{n:"Lift warm-up",   max:12, cats:["warmup","mobility"],   untimedOK:true,  day:"pre",  note:"short, raises temperature, no fatigue"},
@@ -5111,10 +5347,15 @@ var SLOTS={
   cooldown:{n:"Cool-down",      max:20, cats:["recovery","yoga","mobility"],           day:"post", note:"after a session, slow"},
   session :{n:"Replaces a session", min:15, max:60, cats:["wk","strength","core","pilates"], note:"stands in for the day's workout"},
   study   :{n:"Form reference", max:60, cats:["form"],                                             note:"how a movement should look"},
-  calm    :{n:"Wind-down",      max:60, cats:["meditation","yoga","recovery","mobility"], day:"night",note:"evening, low effort"}
+  calm    :{n:"Wind-down",      max:60, cats:["meditation","yoga","recovery","mobility"], day:"night",note:"evening, low effort"},
+  course  :{n:"Numbered course", note:"a progression you walk up, one session at a time"},
+  learn   :{n:"Learn",           note:"knowledge, not a workout"},
+  finisher:{n:"Core finisher",   note:"ten minutes at the end; browsed, not offered"},
+  library :{n:"Library only",    note:"browsable; never auto-served"}
 };
 var SHORT_BY_NATURE={warmup:1,runwarm:1};
 var LADDER_TRACKS={mobility:1,recovery:1,pilates:1,morning:1};
+var PRE_SLOTS={anchor:1,warmup:1,runwarm:1,session:1};
 function vidDaypart(v){
   var ov=((S.vidTags||{})[v.id]||{}).day;
   if(ov)return ov;
@@ -5153,19 +5394,12 @@ function vidEquip(v){
 function vidSlots(v){
   var ov=((S.vidTags||{})[v.id]||{}).slots;
   if(ov)return ov;
-  var mins=vidMins(v),day=vidDaypart(v),out=[];
-  Object.keys(SLOTS).forEach(function(k){
-    var s=SLOTS[k];
-    if(s.cats.indexOf(v.c)<0)return;
-    if(s.day&&!DAY_OK[s.day][day])return;
-    if(mins!=null){
-      if(s.max!=null&&mins>s.max)return;
-      if(s.min!=null&&mins<s.min)return;
-    }else if(s.max!=null&&s.max<=12){
-      if(!(s.untimedOK&&SHORT_BY_NATURE[v.c]))return;
-    }
-    out.push(k);
-  });
+  var spec=v.s||SLOT_BY_CAT[v.c]||"";
+  if(!spec)return [];
+  var out=spec.split(",").filter(Boolean);
+  if(v.lv&&LADDER_TRACKS[v.c]&&out.indexOf("course")<0)out.push("course");
+  if(!vidKitOK(v))return out.indexOf("library")>=0?["library"]:["library"];
+  if(vidDaypart(v)==="night")out=out.filter(function(k){return !PRE_SLOTS[k];});
   return out;
 }
 function vidTag(v){
@@ -5268,6 +5502,63 @@ function vidHealthSheet(){
       "A clip with no known length is deliberately kept out of every short slot rather than guessed at. That is why those two numbers matter more than they look.")+
     '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
 }
+var LIBGROUPS=[
+  ["study",   "Movements",     "how a lift or a flow should look"],
+  ["course",  "Courses",       "numbered progressions you walk up"],
+  ["warmup",  "Warm-ups",      "before you lift"],
+  ["runwarm", "Run warm-ups",  "before you run"],
+  ["cooldown","Cool-downs",    "after a session"],
+  ["session", "Full sessions", "stand in for the day"],
+  ["calm",    "Wind-down",     "evening, low effort"],
+  ["anchor",  "Morning prep",  "the anchor's own course"],
+  ["finisher","Core finishers","ten minutes at the end"],
+  ["learn",   "Learn",         "knowledge, not a workout"],
+  ["library", "Needs kit",     "waiting on a roller, a ball or a club"]
+];
+var LIBOPEN=null;
+function libSlotVids(slot){
+  return (slot==="library")
+    ? VID.filter(function(v){return !vidKitOK(v);})
+    : vidsForSlot(slot);
+}
+function libCount(slot){return libSlotVids(slot).length;}
+function renderLibrary(){
+  var total=VID.length, onn=VID.filter(function(v){return v.src==="onnit";}).length;
+  var h='<div class="head"><div><div class="date">'+total+' clips &middot; '+onn+' Onnit, '+(total-onn)+' YouTube</div>'+
+    '<div class="title">Library</div></div>'+
+    '<div class="tools"><button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
+  var tiles="";
+  LIBGROUPS.forEach(function(g){
+    var n=libCount(g[0]);if(!n)return;
+    var vs=libSlotVids(g[0]),done=0;
+    vs.forEach(function(v){if(vDone(v.id))done++;});
+    tiles+='<button class="libtile2'+(LIBOPEN===g[0]?" on":"")+'" onclick="libOpen(\''+g[0]+'\')">'+
+      '<span class="ltn">'+g[1]+'</span><span class="ltd">'+g[2]+'</span>'+
+      '<span class="ltc'+(done?" gd":"")+'">'+(done?done+' of '+n+' done':n+' clips')+'</span></button>';
+  });
+  h+='<div class="libgrid2">'+tiles+'</div><div id="libbody">'+(LIBOPEN?libBody(LIBOPEN):"")+'</div>';
+  document.getElementById("v-library").innerHTML=h;
+}
+function libOpen(slot){
+  LIBOPEN=(LIBOPEN===slot)?null:slot;
+  stopAllVideo();renderLibrary();
+  if(LIBOPEN){var el=document.getElementById("libbody");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
+}
+function libBody(slot){
+  var vs=libSlotVids(slot);
+  var g=LIBGROUPS.filter(function(x){return x[0]===slot;})[0]||[slot,slot,""];
+  var onn=vs.filter(function(v){return v.src==="onnit";});
+  var yt=vs.filter(function(v){return v.src!=="onnit";});
+  function sect(label,list){
+    if(!list.length)return "";
+    var inner="";list.slice(0,60).forEach(function(v){inner+=vidCardHTML(v);});
+    return '<div class="sectlbl" style="margin:16px 2px 8px">'+label+' &middot; '+list.length+'</div>'+
+      '<div class="vgrid">'+inner+'</div>'+
+      (list.length>60?'<div class="pfoot" style="margin-top:8px">Showing the first 60 of '+list.length+'.</div>':'');
+  }
+  return '<div class="card"><h3>'+esc(g[1])+'</h3><div class="ssub">'+esc(g[2])+'</div>'+
+    sect("Onnit",onn)+sect("YouTube",yt)+'</div>';
+}
 function vidsBy(c){return VID.filter(function(v){return v.c===c;});}
 function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i];return null;}
 var vseq=0;
@@ -5294,7 +5585,11 @@ function vidCardHTML(v,wide){
     '<div class="vratio"><button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
       '<span class="vplay">'+I.play+'</span><span class="vfl">'+(vpnOn()?"Opens in YouTube":"Tap to play")+'</span></button></div>'+
     '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
-    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m:'')+' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a></div></div>'+
+    '<div class="va">'+esc(v.a)+(v.m?' &middot; '+v.m+' min':'')+
+      (v.src==="onnit"
+        ? (' &middot; '+esc(v.prog||"onnit")+(v.needs?(' &middot; <b>needs a '+esc(v.needs)+'</b>'):''))
+        : (' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a>'))+
+    '</div></div>'+
     '<button class="vtick'+(on?" on":"")+'" aria-pressed="'+(on?"true":"false")+'" onclick="toggleVDone(\''+v.id+'\',this)">'+
       '<span class="vtb">'+I.check+'</span><span class="vdt">'+(on?"Done":"Mark done")+'</span></button>'+
     '<div class="vvet"><button class="vvb'+(vidVerdict(v.id)==="good"?" good":"")+'" onclick="rateVid(\''+v.id+'\',\'good\',this)" aria-label="Good one">Good</button>'+
@@ -5464,9 +5759,22 @@ function openVid(id){
   if(v&&!vDone(id)){/* opening is not doing it; the tick stays his */}
   try{window.open(ytWatch(id),"_blank","noopener");}catch(e){location.href=ytWatch(id);}
 }
+function ONNIT_URL(key){return "https://train-sync.yellinmatt.workers.dev/media/"+key;}
 function playVid(id,slot){
+  var v=vidById(id);
+  if(v&&v.src==="onnit"){playOnnit(v,slot);return;}
   if(vidRoute()==="app"){openVid(id);return;}
   playVidInline(id,slot);
+}
+function playOnnit(v,slot){
+  var host=document.getElementById(slot);if(!host)return;
+  var face=host.querySelector(".vratio")||host.querySelector(".vface");if(!face)return;
+  var el=document.createElement("video");
+  el.className="vframe";el.setAttribute("playsinline","");el.setAttribute("controls","");
+  el.setAttribute("preload","metadata");el.setAttribute("title",v.t);
+  el.src=ONNIT_URL(v.id);
+  face.parentNode.replaceChild(el,face);
+  try{el.play();}catch(e){}
 }
 function playVidInline(id,slot){
   var v=vidById(id),host=document.getElementById(slot);if(!v||!host)return;
@@ -5813,6 +6121,8 @@ function closeSheet(){
 }
 function stopAllVideo(){
   document.querySelectorAll("iframe.vframe").forEach(function(f){try{f.src="about:blank";}catch(e){}f.remove();});
+  document.querySelectorAll("video.vframe").forEach(function(f){
+    try{f.pause();f.removeAttribute("src");f.load();}catch(e){}f.remove();});
 }
 document.getElementById("scrim").addEventListener("click",function(e){if(e.target===this)closeSheet();});
 document.addEventListener("keydown",function(e){if(e.key==="Escape")closeSheet();});
