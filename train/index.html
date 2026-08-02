@@ -1042,6 +1042,22 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .mcard .mctr{display:block;min-width:0;margin-top:5px;font-size:11px;font-weight:700;color:var(--faint);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mcard .mctr[data-t="good"]{color:var(--good)}
+.rfold{border-top:1px solid var(--line);margin:0}
+.rfold>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;min-height:46px;padding:9px 2px}
+.rfold>summary::-webkit-details-marker{display:none}
+.rfold .rfn{font-size:13.5px;font-weight:800;color:var(--ink);flex:none}
+.rfold .rfc{font-size:11px;font-weight:800;color:var(--sub);background:var(--surface-2);border-radius:5px;padding:2px 6px;flex:none}
+.rfold .rfv{font-size:11.5px;font-weight:700;color:var(--faint);flex:1;min-width:0;text-align:right;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rfold .rfx{flex:none;display:flex;color:var(--faint);transition:transform .18s ease}
+.rfold .rfx svg{width:16px;height:16px}
+.rfold[open] .rfx{transform:rotate(180deg)}
+.rfold .rfb{padding:2px 0 12px}
+.rfold.rvl .rfb>*{animation:mcIn .32s cubic-bezier(.22,.61,.36,1) both}
+.rfold.rvl .rfb>*:nth-child(2){animation-delay:.04s}
+.rfold.rvl .rfb>*:nth-child(3){animation-delay:.07s}
+.rfold.rvl .rfb>*:nth-child(4){animation-delay:.1s}
+.rfold.rvl .rfb>*:nth-child(n+5){animation-delay:.13s}
 .swgrp{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
   padding:14px 2px 6px;margin-top:2px;border-top:1px solid var(--line)}
 .swgrp:first-of-type{border-top:0;padding-top:4px;margin-top:0}
@@ -1623,7 +1639,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.79b";
+var VERSION="v7.79c";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2478,7 +2494,7 @@ document.addEventListener("toggle",function(e){
   if(!d||d.tagName!=="DETAILS"||!d.open)return;
   var body=d.querySelector(":scope>.dbody, :scope>.abody");
   if(body)replayAnim(body);
-  if(d.classList&&d.classList.contains("plday"))replayAnim(d,"rvl");
+  if(d.classList&&(d.classList.contains("plday")||d.classList.contains("rfold")))replayAnim(d,"rvl");
 },true);
 
 function isFresh(){return !S.sessions.length&&!S.weigh.length;}
@@ -6961,11 +6977,15 @@ function cardioWeekHTML(){
     cells+=cweekCell("Steps",sw.sum,weekVerdict("steps",sw.sum,sw.days),stBest,fk,"","show('track')");
   return '<div class="cweek"><div class="cwl">This week</div><div class="cwpair">'+cells+'</div></div>';
 }
-function paceZonesHTML(){
+function paceZonesParts(srcRuns,winLabel){
   var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
-  var paced=allRuns().filter(function(r){return r.paceSecPerMi>0;});
-  var runs=paced.filter(function(r){return daysBetween(r.date,TODAY)<=365;}),winW="the last year";
-  if(runs.length<8){runs=paced;winW="every run on record";}
+  var paced=(srcRuns||allRuns()).filter(function(r){return r.paceSecPerMi>0;});
+  var runs,winW;
+  if(srcRuns){runs=paced;winW=winLabel||"this window";}
+  else{
+    runs=paced.filter(function(r){return daysBetween(r.date,TODAY)<=365;});winW="the last year";
+    if(runs.length<8){runs=paced;winW="every run on record";}
+  }
   function zoneOf(p){
     for(var i=0;i<zs.length;i++)if(p<=zs[i].hi)return zs[i].k;
     return "long";
@@ -7019,8 +7039,7 @@ function paceZonesHTML(){
       '<span class="pzp num">&lt;'+mmss(zs[0].lo)+'</span>'+
       '<span class="pzmph num">&gt;'+mphTxt(zs[0].lo)+'<small>mph</small></span>'+
       '<span class="pzc num">'+faster+'</span></div>'):"";
-  return collapsible("Pace zones",(n?(easyish+" of "+n+" easy"):"per mile"),
-    '<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
+  var inner='<div class="pzhead" data-tone="'+tone+'">'+head+'</div>'+
     '<div class="pzline">'+line+'</div>'+
     (n?'<div class="pzbar">'+bar+'</div>':'')+
     (n?('<div class="pznow"><span class="pznl">Where your running actually sits</span>'+
@@ -7036,8 +7055,13 @@ function paceZonesHTML(){
     '<div class="pzrows">'+extra+rows+'</div>'+
     '<div class="ksub" style="margin:10px 0 0">Set the treadmill to the mph beside each band. Reading '+runs.length+' run'+(runs.length===1?'':'s')+' from '+winW+
       (paced.length>runs.length?(', of '+paced.length+' on record'):'')+
-      '. The bands are base-building targets, not a percentage of a test result.</div>',
-    false,I.bolt,tone);
+      '. The bands are base-building targets, not a percentage of a test result.</div>';
+  return {inner:inner,chip:(n?(easyish+" of "+n+" easy"):"per mile"),tone:tone};
+}
+function paceZonesInner(srcRuns,winLabel){return paceZonesParts(srcRuns,winLabel).inner;}
+function paceZonesHTML(srcRuns,winLabel){
+  var pz=paceZonesParts(srcRuns,winLabel);
+  return collapsible("Pace zones",pz.chip,pz.inner,false,I.bolt,pz.tone);
 }
 var BADGE_ICON={Distance:"gauge","One run":"run",Speed:"bolt",Consistency:"cal",Volume:"chart",Level:"spark",Grit:"flame",Lifting:"dumbbell",Tonnage:"chart",Strength:"bolt"};
 function bsvg(d){return '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="'+d+'" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';}
@@ -8038,12 +8062,35 @@ function odoBodyHTML(){
   }).join("");
   var foot='<div class="odosplit"></div><div class="odoct">By calendar year</div>'+yrows+
     '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+runs.length+' runs.</div>';
-  return body+chart+foot;
+  var rs2=rs.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
+  var best=rs2.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+  var runList=rs2.length?rs2.map(function(r){
+    var pace=r.paceSecPerMi?mmss(r.paceSecPerMi):null;
+    var isBest=(pace&&r.paceSecPerMi===best);
+    var m2=r.distanceMi||0,w2=Math.max(6,Math.min(100,(m2/5)*100));
+    return '<button class="rrow" onclick="sessionSheet(\''+r.id+'\')">'+
+      '<span class="rdate">'+runDate(r.date)+'</span>'+
+      '<span class="rbar"><i style="width:'+w2.toFixed(0)+'%"></i></span>'+
+      '<span class="rmi num">'+m2.toFixed(1)+'<small> mi</small></span>'+
+      '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
+  }).join(""):"";
+  var folds="";
+  if(rs2.length){
+    folds+='<details class="rfold"><summary><span class="rfn">Every run</span>'+
+      '<span class="rfc">'+rs2.length+'</span><span class="rfv">'+(best?mmss(best)+"/mi best":"")+'</span>'+
+      '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+runList+'</div></details>';
+    folds+='<details class="rfold"><summary><span class="rfn">Pace zones</span>'+
+      '<span class="rfc">'+rs2.filter(function(r){return r.paceSecPerMi>0;}).length+'</span>'+
+      '<span class="rfv">how hard they were</span>'+
+      '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+
+      paceZonesInner(rs2,(d.ctx||"this window").toLowerCase())+'</div></details>';
+  }
+  return body+chart+folds+foot;
 }
 function odoCardHTML(){
   if(!allRuns().length)return "";
-  return collapsible("Miles run",'<span class="odosum">'+odoSummary()+'</span>',
-    '<div class="odo2body odowrap">'+odoBodyHTML()+'</div>',false,I.gauge,kpiDir("miles"));
+  return collapsible("Your running",'<span class="odosum">'+odoSummary()+'</span>',
+    '<div class="odo2body odowrap">'+odoBodyHTML()+'</div>',true,I.gauge,kpiDir("miles"));
 }
 function renderCardio(){
   refreshDate();
@@ -8068,23 +8115,6 @@ function renderCardio(){
     '<div class="herorow"><button class="wbtn" onclick="runSheet('+tgt.mi+')">Log a run</button>'+
     '<button class="wbtn" onclick="actSheet(\'walk\')">Log a walk</button></div></div>';
   h+=levelDetailHTML();
-  h+=paceZonesHTML();
-  if(runs.length){
-    var best=runs.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
-    var rec=runs.slice(-6).reverse().map(function(r){
-      var pace=r.paceSecPerMi?mmss(r.paceSecPerMi):null;
-      var isBest=(pace&&r.paceSecPerMi===best);
-      var mi=r.distanceMi||0,w=Math.max(6,Math.min(100,(mi/5)*100));
-      return '<button class="rrow" onclick="sessionSheet(\''+r.id+'\')">'+
-        '<span class="rdate">'+runDate(r.date)+'</span>'+
-        '<span class="rbar"><i style="width:'+w.toFixed(0)+'%"></i></span>'+
-        '<span class="rmi num">'+mi.toFixed(1)+'<small> mi</small></span>'+
-        '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
-    }).join("");
-    var lastRun=runs[runs.length-1].date;
-    var runTone=daysBetween(lastRun,TODAY)<=3?"good":daysBetween(lastRun,TODAY)<=7?"amber":"red";
-    h+=collapsible("Recent runs",(best?("best "+mmss(best)+"/mi"):("last "+Math.min(6,runs.length))),rec,false,I.run,runTone);}
-
   h+=odoCardHTML();
   h+=badgeList(false,"run");
   document.getElementById("v-cardio").innerHTML=h;
