@@ -122,6 +122,9 @@ input,select{border:0;background:none}
 .head{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 12px;gap:10px}
 .head .date{font-size:13.5px;font-weight:600;color:var(--sub)}
 .head .title{font-size:28px;font-weight:800;letter-spacing:-.02em;margin-top:1px}
+.head>div:first-child{min-width:0;flex:1}
+.head .title{font-size:clamp(19px,5.4vw,28px)}
+.head .tools{flex:none}
 .head .tools{display:flex;align-items:center;gap:8px}
 .iconbtn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--sub)}
 .iconbtn:active{background:var(--surface-2)}
@@ -974,6 +977,13 @@ details[open]>summary .chev{transform:rotate(180deg)}
 .deeper .dchev{display:inline-flex;transition:transform .18s ease;color:var(--sub)}
 .deeper .dchev svg{width:18px;height:18px}
 .deeper>svg{width:18px;height:18px;flex:none}
+.swgrp{font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
+  padding:14px 2px 6px;margin-top:2px;border-top:1px solid var(--line)}
+.swgrp:first-of-type{border-top:0;padding-top:4px;margin-top:0}
+.recwalk{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;
+  margin-top:9px;border:1px solid var(--line);border-radius:13px;background:transparent;
+  color:var(--sub);font-size:13.5px;font-weight:700}
+.recwalk svg{width:17px;height:17px}
 .deeper.on .dchev{transform:rotate(180deg)}
 .deeper .dcount{font-size:12px;font-weight:700;color:var(--faint)}
 .deepwrap{display:none}
@@ -1286,15 +1296,6 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .hanchor[open]>summary{border-bottom:1px solid var(--line)}
 .hanchor[open]>summary .acount{display:none}
 .hanchor .abody{padding:4px 20px 16px}
-.avidrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;margin:2px 0 2px}
-.avidrow:active{background:var(--surface-2)}
-.avplay{display:flex;width:30px;height:30px;border-radius:9px;align-items:center;justify-content:center;background:var(--accent-tint);color:var(--accent);flex:none}
-.avplay svg{width:14px;height:14px}
-.avtxt{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
-.avtxt b{font-size:14px;font-weight:700;color:var(--ink)}
-.avtxt span{font-size:12px;font-weight:600;color:var(--faint)}
-.avarr{color:var(--faint);display:flex;flex:none}
-.avarr svg{width:16px;height:16px}
 .ahow{display:flex;width:44px;height:44px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin:-11px -14px -11px -11px}
 .ahow svg{width:16px;height:16px}
 .ahow:active{color:var(--accent)}
@@ -1557,7 +1558,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.77a";
+var VERSION="v7.78";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2712,7 +2713,7 @@ function renderToday(){
   // hero
   var hero='';
   if(plan.type==="lift"){
-    var L=(S.wk[TODAY]?S.wk[TODAY].letter:letterFor());
+    var L=(S.wk[TODAY]?S.wk[TODAY].letter:(plan.letter&&LETTERS.indexOf(plan.letter)>=0?plan.letter:letterFor()));
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div><h2>'+esc((S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name))+'</h2>'+
       '<div class="meta"><b>'+(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length)+' exercises</b> &middot; '+(trainMode()==="db"?"dumbbell":"bodyweight")+' &middot; ~30 min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
@@ -2726,11 +2727,24 @@ function renderToday(){
   }else{
     var recDone=S.sessions.some(function(s){return s.date===TODAY&&(s.type==="activity"||s.type==="run");});
     var wk=plan.walk||15;
+    var rv=plan.vid?vidById(plan.vid):null;
+    if(rv){
+      var rvDone=vDone(rv.id)||recDone;
+      hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
+        '<div class="lbl">Today &middot; Recover</div><h2>'+esc(vidShortTitle(rv))+'</h2>'+
+        '<div class="meta">'+(rv.lv?('<b>Session '+rv.lv+'</b> of '+ladderList(rv.c).length):'<b>'+esc(rv.a||"Guided session")+'</b>')+
+          (vidMinsTxt(rv)?(' &middot; '+vidMinsTxt(rv)):'')+' &middot; you swapped into this today</div>'+
+        (rvDone?'<div class="done-pill">'+I.check+' Session complete</div>':
+          '<button class="big-start" onclick="sessionVidSheet(\''+esc(rv.id)+'\',1)">'+I.play+' Start session</button>')+
+        '<button class="recwalk" onclick="logWalkQuick('+wk+')">'+I.run+' Or log a '+wk+'-minute walk</button>'+
+        heroTailHTML()+'</div>';
+    }else{
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
       '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
       (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
       heroTailHTML()+'</div>';
+    }
   }
   // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
@@ -2834,19 +2848,54 @@ function toggleAnchor(i,btn){
 
 
 
+function swapGroupHTML(t){return '<div class="swgrp">'+t+'</div>';}
 function changeSheet(){
-  var o='<div class="grab"></div><h3>Change today</h3><div class="ssub">Life happens. Pick what today actually is.</div>';
-  o+=optRow(I.dumbbell,"Lift &mdash; next day ("+letterFor()+")","Full-body strength session","setToday(\'lift\')");
-  o+=optRow(I.run,"Easy run &middot; 2 mi","Zone-2 base","setToday(\'run2\')");
-  o+=optRow(I.run,"Easy run &middot; 3 mi","The longer one","setToday(\'run3\')");
-  o+=optRow(I.rest,"Recover day","Walk + mobility","setToday(\'rest\')");
-  o+=optRow(I.bolt,"Never-zero &middot; 5-min minimum","Rough day? Keep the streak alive","setToday(\'min\')");
-  if(S.override[TODAY])o+=optRow(I.swap,"Back to the plan","Use the scheduled session","setToday(\'clear\')");
+  var o='<div class="grab"></div><h3>Change today</h3>'+
+    '<div class="ssub">Pick what today actually is. Whatever you choose, the rotation waits: the day you swap out is next, not lost.</div>';
+
+  o+=swapGroupHTML("Lift");
+  var nextL=letterFor();
+  LETTERS.forEach(function(L){
+    o+=optRow(I.dumbbell,"Day "+L+" &middot; "+esc(DAYS[L].name)+(L===nextL?" &middot; next up":""),
+      DAYS[L].slots.length+" movements &middot; ~30 min","setToday('lift:"+L+"')");
+  });
+
+  o+=swapGroupHTML("Cardio");
+  o+=optRow(I.run,"Easy run &middot; 2 mi","Zone-2 base","setToday('run2')");
+  o+=optRow(I.run,"Easy run &middot; 3 mi","The longer one","setToday('run3')");
+
+  o+=swapGroupHTML("Recover, guided");
+  [["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]].forEach(function(t){
+    var l=ladderList(t[0]);if(!l.length)return;
+    var v=l[ladderPos(t[0])%l.length];if(!v)return;
+    o+=optRow(I.play,esc(t[1])+" &middot; session "+v.lv,
+      esc(vidShortTitle(v))+(vidMinsTxt(v)?(" &middot; "+vidMinsTxt(v)):""),
+      "setToday('rec:"+esc(v.id)+"')");
+  });
+  var calm=pickForSlot("calm",0)||pickForSlot("cooldown",0);
+  if(calm)o+=optRow(I.play,"Deep stretch &middot; "+esc(vidShortTitle(calm)),
+    esc(calm.a||"")+(vidMinsTxt(calm)?(" &middot; "+vidMinsTxt(calm)):""),
+    "setToday('rec:"+esc(calm.id)+"')");
+
+  o+=swapGroupHTML("Lighter");
+  o+=optRow(I.rest,"Recover day &middot; walk only","A 15-minute walk and the morning anchor","setToday('rest')");
+  o+=optRow(I.bolt,"Never-zero &middot; 5-min minimum","Rough day? Keep the streak alive","setToday('min')");
+  if(S.override[TODAY])o+=optRow(I.swap,"Back to the plan","Use the scheduled session","setToday('clear')");
   openSheet(o);
 }
 function optRow(ic,title,cap,fn,danger){return '<button class="opt'+(danger?" danger":"")+'" onclick="'+fn+'"><span class="oi">'+ic+'</span><span><div class="on2">'+title+'</div>'+(cap?'<div class="oc">'+cap+'</div>':'')+'</span><span class="oar">'+I.arrow+'</span></button>';}
 function setToday(w){
   if(w==="clear")delete S.override[TODAY];
+  else if(w.indexOf("lift:")===0){
+    var L=w.slice(5);
+    if(LETTERS.indexOf(L)<0)L=letterFor();
+    S.override[TODAY]={type:"lift",letter:L};
+    if(S.wk[TODAY]&&S.wk[TODAY].letter!==L)delete S.wk[TODAY];
+  }
+  else if(w.indexOf("rec:")===0){
+    var vid=w.slice(4),vv=vidById(vid);
+    S.override[TODAY]=vv?{type:"rest",recover:true,walk:15,vid:vv.id}:{type:"rest",recover:true,walk:15};
+  }
   else if(w==="lift")S.override[TODAY]={type:"lift"};
   else if(w==="run2")S.override[TODAY]={type:"run",dist:2,label:"Easy"};
   else if(w==="run3")S.override[TODAY]={type:"run",dist:3,label:"Easy, longer"};
@@ -5787,6 +5836,14 @@ function libBody(slot){
 }
 function vidsBy(c){return VID.filter(function(v){return v.c===c;});}
 function vidById(id){for(var i=0;i<VID.length;i++)if(VID[i].id===id)return VID[i];return null;}
+function vidShortTitle(v){
+  if(!v||!v.t)return "";
+  var t=String(v.t).split("|")[0].trim();
+  t=t.split(" – ")[0].split(" - ")[0].trim();
+  var c=t.indexOf(": ");
+  if(c>0&&t.length-c>18)t=t.slice(0,c).trim();
+  return t||String(v.t).trim();
+}
 var vseq=0;
 function vDone(id){return !!(((S.progress||{}).vdone||{})[id]);}
 function toggleVDone(id,btn){
@@ -6114,6 +6171,8 @@ function levelRowHTML(){
   return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
 }
 function sessionDayHTML(){
+  var tp=todayPlan();
+  if(tp&&tp.vid&&vidById(tp.vid))return "";
   var sw=vidSwapToday();
   var v=sw?vidById(sw.vid):pickForSlot("session",vidSwapOffset());
   if(!v)return "";
@@ -6199,7 +6258,7 @@ function anchorHTML(){
       '<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>'+
       '</div>';});
   var C=2*Math.PI*13,off=C*(1-ac/list.length);
-  return '<details class="hanchor'+(ac>=list.length?" alldone":"")+'"><summary onclick="anchorToggle(this,event)">'+
+  return '<details class="hanchor'+(ac>=list.length?" alldone":"")+'"'+(ac>=list.length?"":" open")+'><summary onclick="anchorToggle(this,event)">'+
     '<span class="asum">Morning anchor</span>'+
     '<span class="aright"><span class="acount">'+ac+' of '+list.length+'</span>'+
     '<span class="chev">'+I.chevD+'</span>'+
@@ -6207,7 +6266,6 @@ function anchorHTML(){
     '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
     '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/>'+
     '</svg></span></span></summary><div class="abody">'+
-    anchorVidHTML()+
     '<div class="c9a'+(ac>=list.length?' collapsed':'')+'" id="anch-c9">'+
       '<div class="c9al"><div class="c9acount"><span class="c9abig num" id="anch-num" data-v="'+ac+'">'+ac+'</span>'+
         '<div class="c9aof num">of '+list.length+'</div><div class="c9acap">anchor</div></div>'+
@@ -6260,22 +6318,6 @@ function undoVidDay(){
   var s=vidSwapToday();if(!s)return;
   if(S.progress&&S.progress.vdone)delete S.progress.vdone[s.vid];
   closeSheet();delSession(s.id);
-}
-function anchorVidHTML(){
-  var v=ladderVid("morning")||pickVid("morning",0);
-  if(!v)return "";
-  var n=ladderList("morning").length;
-  var mins=vidMins(v);
-  var note=v.lv
-    ? 'Session '+v.lv+' of '+n+' in the morning course. It moves on when you finish the anchor, so the morning develops you rather than repeating.'
-    : 'Rotates each day. Tap for a different one in the library below.';
-  note+=mins?(' About '+mins+' minutes.')
-            :(' <b>Length unknown</b> - no duration is on file for any clip in the library, so the morning slot cannot promise you a ten-minute session. Check the runtime before you start.');
-  return '<button class="avidrow" onclick="sessionVidSheet(\''+v.id+'\')">'+
-    '<span class="avplay">'+I.play+'</span>'+
-    '<span class="avtxt"><b>Morning prep</b><span>'+(v.lv?('Session '+v.lv+' of '+n):'Wake-up session')+
-    (mins?(' &middot; '+mins+' min'):'')+'</span></span>'+
-    '<span class="avarr">'+I.arrow+'</span></button>';
 }
 function moveSheet(i){
   var m=anchorList()[i];if(!m)return;
