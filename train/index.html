@@ -1516,7 +1516,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.73";
+var VERSION="v7.74";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2461,7 +2461,8 @@ function famA(kind){
       (function(){var tc=trendCal(),yv=((S.nutrition[yKey()]||{}).c)||0;
         return '<div class="hero56 toned num">'+(yv>0?yv.toLocaleString():heroN.toLocaleString())+'<span>'+(yv>0?(" kcal "+tDay().toLowerCase()):heroU)+'</span></div>'+
         '<div class="verd">'+esc(tc.word)+'. '+(v.gap!=null?(Math.abs(v.gap).toLocaleString()+(v.gap>=0?" under":" over")+" maintenance on average. "):"")+
-        (v.stale?"Last log "+v.age+" days ago.":(v.conf?"":"Thin read: under "+CAL_MIN_CONF+" days logged."))+'</div>';})()+
+        (v.stale?("Last log "+v.age+" days ago.")
+   :(v.conf?"":("Reading "+v.n+" logged day"+(v.n===1?"":"s")+" out of the last "+CAL_DAYS+", so treat the rate as rough.")))+'</div>';})()+
       famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days",axR:"yesterday",fmt:function(x){return Math.round(x).toLocaleString()+" kcal";}})+
       famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[defDays,"deficit days"]])+
       '<div class="pfoot">Cal AI via Apple Health &middot; through yesterday &middot; rule is maintenance, '+maintenanceBasis()+'</div></div>';
@@ -3883,13 +3884,17 @@ function trackGlanceHTML(){
   var out="";
   var sl=(typeof sleepStats==="function")?sleepStats(7):null, sl28=(typeof sleepStats==="function")?sleepStats(28):null;
   var slv=sleepVerdict();
-  out+=glanceChip("Sleep",sl?hrsTxt(sl.mean):null,sl28?("28n "+hrsTxt(sl28.mean)):"7 nights",slv.tone||"none");
+  var slTr=trendSleep(), slLast=(S.sleep||{})[yKey()];
+  var slLastV=slLast?((slLast.total!=null?slLast.total:slLast.asleep)||0):null;
+  out+=glanceChip("Sleep",slLastV?hrsTxt(slLastV):null,
+    slLastV?(hrsTxt(tMed(tWin(function(k){var v=(S.sleep||{})[k];return v?(v.total!=null?v.total:v.asleep):null;},6,0)))+" typical"):"no reading yet",
+    slTr.tone||"none");
   var stv=stepsVerdict(),w=stepsAvgOver(7);
   out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
     (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none");
   var cv=calVerdict();
   out+=glanceChip("Calories",calStat(),
-    cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of "+cv.windowDays+"d"):("needs "+CAL_MIN+" days in "+CAL_DAYS),cv.tone||"none");
+    cv.enough?(cv.avg.toLocaleString()+" a day"):("log a few days and this reads a rate"),cv.tone||"none");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",
     (rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none");
@@ -4324,7 +4329,7 @@ function calVerdict(){
 function calTone(){return calVerdict().tone;}
 function calStat(){
   var v=calVerdict();
-  if(!v.enough)return v.n?(v.n+(v.n===1?" day":" days")):null;
+  if(!v.enough)return v.n?("logged "+v.n+" of the last "+CAL_DAYS):null;
   if(v.gap==null)return v.avg.toLocaleString();
   if(Math.abs(v.gap)<CAL_BAND)return "at maintenance";
   return Math.abs(v.gap)+(v.gap>0?" under":" over");
