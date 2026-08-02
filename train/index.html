@@ -123,6 +123,19 @@ input,select{border:0;background:none}
 .sdrow .sda{flex:none;color:var(--faint);display:flex}
 .sesday.gd .sdrow{border-color:var(--good);background:var(--good-tint)}
 
+.sorerow{display:flex;align-items:center;gap:9px;width:100%;min-height:44px;margin-top:16px;padding-top:13px;
+  border-top:1px solid var(--line);text-align:left;font-size:12px;color:var(--faint);background:none}
+.sorerow .sdot{width:7px;height:7px;border-radius:50%;background:var(--line-2);flex:none}
+.sorerow .stx{flex:1;min-width:0;line-height:1.35}
+.sorerow .stx b{font-weight:700}
+.sorerow .sarr{flex:none;display:flex;color:var(--faint)}
+.sorerow .sarr svg{width:14px;height:14px}
+.sorerow.on{color:var(--amber)}
+.sorerow.on .sdot{background:var(--amber)}
+.sorerow.lapsed{color:var(--sub)}
+.sorerow.lapsed .sdot{background:var(--good)}
+.opt.sorepick.sel .oi{background:var(--accent);color:var(--white)}
+
 .mrow2{display:grid;grid-template-columns:1fr auto;grid-template-areas:"n v" "b b" "w w";gap:2px 10px;
   padding:12px 0;min-height:44px;text-align:left}
 .mrow2 .m2n{grid-area:n;font-size:14.5px;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1516,7 +1529,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.74";
+var VERSION="v7.75";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1624,7 +1637,7 @@ function defaultEquip(){var e=(S.profile.equip||["BW"]).slice();if(!e.length)e=[
 function sessionEquip(w){w=w||S.wk[TODAY];return (w&&w.equip&&w.equip.length)?w.equip:defaultEquip();}
 function hasDB(eq){return (eq||[]).indexOf("DB")>=0;}
 function trainMode(w){return hasDB(sessionEquip(w))?"db":"bw";}
-function slotEx(sl,eq){
+function slotCandidates(sl,eq){
   eq=eq||defaultEquip();
   var order=[];
   if(hasDB(eq)&&sl.db)order.push(sl.db);
@@ -1632,14 +1645,27 @@ function slotEx(sl,eq){
   if(eq.indexOf("band")>=0&&sl.band)order.push(sl.band);
   if(sl.none)order.push(sl.none);
   order.push(sl.bw);
-  function ok(id){
+  return order.filter(function(id){
     var e=LIB[id];if(!e)return false;
     if(e.equip==="band")return eq.indexOf("band")>=0;
     if(e.equip==="bar")return eq.indexOf("bar")>=0;
     if(e.equip==="DB"||e.equip==="dumbbell")return hasDB(eq);
     return true; /* "none" or pure bodyweight */
-  }
-  for(var i=0;i<order.length;i++){if(ok(order[i]))return order[i];}
+  });
+}
+function slotEx(sl,eq){
+  return slotCandidates(sl,eq)[0]||null;
+}
+function slotExSore(sl,eq,avoid){
+  var cands=slotCandidates(sl,eq);
+  for(var i=0;i<cands.length;i++)if(!avoid[cands[i]])return {id:cands[i],sl:sl};
+  if(!cands.length)return null;
+  var to=null;
+  soreActive().forEach(function(k){var d=(SORE[k].demote||{})[sl.pat];if(d&&!to)to=d;});
+  var fb=to?SORE_FALLBACK[to]:null;
+  if(!fb)return null;
+  var alt=slotCandidates(fb,eq);
+  for(var j=0;j<alt.length;j++)if(!avoid[alt[j]])return {id:alt[j],sl:fb};
   return null;
 }
 function equipLabel(eq){
@@ -1792,8 +1818,9 @@ function planFor(k){
   if(k===TODAY){ensureTodaySlot();return resolveSlot(CYCLE[S.daySlot[TODAY]%cycleLen()]);}
   if(k>TODAY){
     ensureTodaySlot();
-    var base=S.daySlot[TODAY]||0,ahead=daysBetween(TODAY,k);
-    var pl=resolveSlot(CYCLE[(base+ahead)%cycleLen()]);
+    var ahead=daysBetween(TODAY,k),n=cycleLen();
+    var next=isDone(TODAY)?((S.cycleNext||0)%n):(((S.daySlot[TODAY]||0)+1)%n);
+    var pl=resolveSlot(CYCLE[(next+ahead-1)%n]);
     if(pl)pl.projected=true;
     return pl;
   }
@@ -1813,7 +1840,7 @@ if(!S.daySlot)S.daySlot={};
 if(!S.vetted)S.vetted={};
 if(S.cycleNext==null)S.cycleNext=0;
 function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{},anchor:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null};}
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{},anchor:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null,sore:{},swapSkip:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -1869,19 +1896,71 @@ function activeDayKeys(){
 }
 function letterFor(){return LETTERS[(S.planPos||0)%3];}
 
+var SORE_DAYS=3;
+var SORE={
+  shoulder:{n:"Shoulder", avoid:["kneelpress","neutralpress","bandpress","pikepush","latraise","inclinepress"], demote:{"v-push":"h-push"},
+            why:"Overhead and incline pressing are off. Flat pressing and the pulls stay."},
+  back:    {n:"Low back",  avoid:["rdl","slrdl","hipthrust","suitcase","row1"],
+            why:"Loaded hinging and bent-over rowing are off. Floor glute work stays."},
+  knee:    {n:"Knee",      avoid:["bulgarian","stepup","bwsplit","bwlunge","revlunge"], demote:{"squat":"hinge"},
+            why:"Lunging and split work are off. The hips still work."},
+  neck:    {n:"Neck",      avoid:["kneelpress","neutralpress","bandpress","pikepush","ytw","deadhang"], demote:{"v-push":"h-push"},
+            why:"Overhead and face-down neck work are off."},
+  elbow:   {n:"Elbow",     avoid:["dbcurl","hammercurl","latraise","pullup","deadhang","invrow","tablerow","suitcase"],
+            why:"Curls, hanging and grip-heavy rows are off. Pressing stays."},
+  hip:     {n:"Hip",       avoid:["bulgarian","slrdl","revlunge","bwlunge","stepup","hipthrust"],
+            why:"Single-leg and loaded hip work are eased back."}
+};
+var SORE_FALLBACK={
+  "h-push":{pat:"h-push",bw:"pushup",     db:"floorpress",sets:3,low:6,high:12},
+  "hinge" :{pat:"hinge", bw:"glutebridge",db:"hipthrust", sets:3,low:10,high:15}
+};
+function soreAge(k){var e=(S.sore||{})[k];return e&&e.on?daysBetween(e.on,TODAY):null;}
+function soreActive(){
+  var out=[];for(var k in (S.sore||{})){var a=soreAge(k);if(a!=null&&a>=0&&a<SORE_DAYS)out.push(k);}
+  return out.sort();
+}
+function soreLapsedToday(){
+  var out=[],dirty=false;
+  for(var k in (S.sore||{})){
+    var a=soreAge(k),e=S.sore[k];
+    if(a==null||a<0){delete S.sore[k];dirty=true;continue;}
+    if(a<SORE_DAYS)continue;
+    if(!e.told){e.told=TODAY;dirty=true;out.push(k);}
+    else if(e.told<TODAY){delete S.sore[k];dirty=true;}
+    else out.push(k);
+  }
+  if(dirty)save();
+  return out.sort();
+}
+function soreAvoid(){
+  var set={};soreActive().forEach(function(k){(SORE[k].avoid||[]).forEach(function(id){set[id]=true;});});
+  return set;
+}
+function soreSet(k){
+  if(!SORE[k])return;
+  S.sore=S.sore||{};
+  if(soreActive().indexOf(k)>=0)delete S.sore[k]; else S.sore[k]={on:TODAY};
+  var w=S.wk[TODAY];
+  if(w&&!wkProgress(w).done)delete S.wk[TODAY];
+  save();
+}
+
 function workDay(){
   if(S.wk[TODAY])return S.wk[TODAY];
-  var L=letterFor(),tpl=DAYS[L],eq=defaultEquip();
+  var L=letterFor(),tpl=DAYS[L],eq=defaultEquip(),avoid=soreAvoid(),seen={};
   var order=tpl.slots.map(function(sl){
-    var id=slotEx(sl,eq);if(!id)return null;
+    var pick=slotExSore(sl,eq,avoid);if(!pick)return null;
+    var id=pick.id,src=pick.sl;
+    if(seen[id])return null;seen[id]=true;
     var e=LIB[id],t=S.progress[id]||{};
     var w=e.bw?0:(t.weight!=null?t.weight:15);
-    var low=(t.low!=null?t.low:sl.low),high=(t.high!=null?t.high:sl.high);
-    var nSets=rampSets(sl.sets);
+    var low=(t.low!=null?t.low:src.low),high=(t.high!=null?t.high:src.high);
+    var nSets=rampSets(src.sets);
     var sets=[];for(var i=0;i<nSets;i++)sets.push({w:w,reps:low,on:false});
     return {exId:id,unit:e.unit||"reps",side:!!e.side,bw:!!e.bw,low:low,high:high,weight:w,sets:sets};
   }).filter(Boolean);
-  if(L==="C"&&hasDB(eq)&&LIB.latraise&&levelTier(liftLevel().lvl).k!=="base"){
+  if(L==="C"&&hasDB(eq)&&LIB.latraise&&!avoid.latraise&&!seen.latraise&&levelTier(liftLevel().lvl).k!=="base"){
     var lt=S.progress.latraise||{};var lw=(lt.weight!=null?lt.weight:10);
     order.push({exId:"latraise",unit:"reps",side:false,bw:false,low:12,high:15,weight:lw,
       sets:[{w:lw,reps:12,on:false},{w:lw,reps:12,on:false}]});
@@ -2609,7 +2688,7 @@ function renderToday(){
       '<div class="lbl">Today &middot; Recover</div><h2>Move a little, recover a lot</h2>'+
       '<div class="meta"><b>'+wk+'-min walk</b> + the morning anchor. Never a zero day.'+(plan.weigh?' &middot; <b>Sunday weigh-in</b>':'')+'</div>'+
       (recDone?'<div class="done-pill">'+I.check+' Recovery logged</div>':'<button class="big-start" onclick="logWalkQuick('+wk+')">'+I.run+' Log '+wk+'-min walk</button>')+
-      sessionDayHTML()+heroTailHTML()+'</div>';
+      heroTailHTML()+'</div>';
   }
   // week strip: each day says what it is, so the plan is readable at a glance
   var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
@@ -5648,7 +5727,7 @@ function vidMinsTxt(v){
   if(!m)return "";
   return /^\d+$/.test(m) ? (m+" min") : m;
 }
-function vidCardHTML(v,wide){
+function vidCardHTML(v,wide,hideTick){
   var slot="vp-"+(++vseq);
   var on=vDone(v.id);
   return '<div class="vcard'+(wide?" wide":"")+(on?" vdone":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
@@ -5660,8 +5739,8 @@ function vidCardHTML(v,wide){
         ? (' &middot; '+esc(v.prog||"onnit")+(v.needs?(' &middot; <b>needs a '+esc(v.needs)+'</b>'):''))
         : (' &middot; <a href="'+ytWatch(v.id)+'" target="_blank" rel="noopener">YouTube</a>'))+
     '</div></div>'+
-    '<button class="vtick'+(on?" on":"")+'" aria-pressed="'+(on?"true":"false")+'" onclick="toggleVDone(\''+v.id+'\',this)">'+
-      '<span class="vtb">'+I.check+'</span><span class="vdt">'+(on?"Done":"Mark done")+'</span></button>'+
+    (hideTick?"":'<button class="vtick'+(on?" on":"")+'" aria-pressed="'+(on?"true":"false")+'" onclick="toggleVDone(\''+v.id+'\',this)">'+
+      '<span class="vtb">'+I.check+'</span><span class="vdt">'+(on?"Done":"Mark done")+'</span></button>')+
     '<div class="vvet"><button class="vvb'+(vidVerdict(v.id)==="good"?" good":"")+'" onclick="rateVid(\''+v.id+'\',\'good\',this)" aria-label="Good one">Good</button>'+
       '<button class="vvb'+(vidVerdict(v.id)==="bad"?" bad":"")+'" onclick="rateVid(\''+v.id+'\',\'bad\',this)" aria-label="Not for me">Not for me</button>'+
       '<button class="vvb'+(vidHealth(v.id).status==="broken"?" bad":"")+'" onclick="reportVid(\''+v.id+'\',this)">Won\'t play</button></div>'+
@@ -5953,17 +6032,61 @@ function levelRowHTML(){
   return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
 }
 function sessionDayHTML(){
-  var v=pickForSlot("session",0);
+  var sw=vidSwapToday();
+  var v=sw?vidById(sw.vid):pickForSlot("session",vidSwapOffset());
   if(!v)return "";
-  var on=vDone(v.id);
-  return '<div class="sesday'+(on?" gd":"")+'">'+
-    '<div class="sdl">Or make it a session</div>'+
-    '<button class="sdrow" onclick="sessionVidSheet(\''+v.id+'\')">'+
-      '<span class="sdi">'+I.play+'</span>'+
-      '<span class="sdt"><b>'+esc(v.t)+'</b><span>'+esc(v.a)+(vidMinsTxt(v)?(' &middot; '+vidMinsTxt(v)):'')+'</span></span>'+
+  return '<div class="sesday'+(sw?" gd":"")+'">'+
+    '<div class="sdl">'+(sw?"Today was a session":"Or make it a session")+'</div>'+
+    '<button class="sdrow" onclick="sessionVidSheet(\''+esc(v.id)+'\',1)">'+
+      '<span class="sdi">'+(sw?I.check:I.play)+'</span>'+
+      '<span class="sdt"><b>'+esc(v.t)+'</b><span>'+
+        (sw?"Counted as today":(esc(v.a)+(vidMinsTxt(v)?(' &middot; '+vidMinsTxt(v)):'')))+'</span></span>'+
       '<span class="sda">'+I.arrow+'</span></button></div>';
 }
-function heroTailHTML(){return levelRowHTML()+anchorHTML();}
+function vidSwapOffset(){return (S.swapSkip&&S.swapSkip.d===TODAY)?(S.swapSkip.n||0):0;}
+function vidSwapToday(){
+  for(var i=S.sessions.length-1;i>=0;i--){var s=S.sessions[i];
+    if(s.date===TODAY&&s.notes==="video-swap")return s;}
+  return null;
+}
+function soreRowHTML(){
+  var act=soreActive(),lap=soreLapsedToday(),txt,cls="";
+  if(act.length){
+    cls="on";
+    var left=SORE_DAYS-soreAge(act[0]);
+    var names=act.map(function(k){return SORE[k].n.toLowerCase();}).join(" and ");
+    txt='<b>Sore '+esc(names)+'</b> &middot; '+(left>1?(left+" days left"):"last day");
+  }else if(lap.length){
+    cls="lapsed";
+    txt='<b>'+esc(SORE[lap[0]].n)+' flag lapsed.</b> The full session is back.';
+  }else{
+    txt='Something sore?';
+  }
+  return '<button class="sorerow '+cls+'" onclick="soreSheet()" aria-label="Sore areas">'+
+    '<span class="sdot"></span><span class="stx">'+txt+'</span><span class="sarr">'+I.arrow+'</span></button>';
+}
+function soreSheet(){
+  var act=soreActive();
+  var rows=Object.keys(SORE).map(function(k){
+    var on=act.indexOf(k)>=0,left=on?(SORE_DAYS-soreAge(k)):0;
+    return '<button class="opt sorepick'+(on?" sel":"")+'" onclick="soreTap(\''+k+'\')">'+
+      '<span class="oi">'+(on?I.check:"")+'</span>'+
+      '<span><div class="on2">'+esc(SORE[k].n)+(on?(' &middot; '+(left>1?(left+" days left"):"last day")):"")+'</div>'+
+      '<div class="oc">'+(on?esc(SORE[k].why):"Tap if it hurts")+'</div></span>'+
+      '</button>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>Anything sore?</h3>'+
+    '<div class="ssub">The next session leans away from what you name here, for '+SORE_DAYS+
+    ' days, then it clears itself. Nothing comes off your level.</div>'+
+    rows+'<button class="sheet-cta ghost" onclick="closeSheet()">Done</button>');
+}
+function soreTap(k){
+  soreSet(k);
+  var on=soreActive().indexOf(k)>=0;
+  toast(on?(SORE[k].n+" flagged. Clears itself in "+SORE_DAYS+" days."):(SORE[k].n+" cleared."),null);
+  soreSheet();refreshCurrent();
+}
+function heroTailHTML(){return sessionDayHTML()+levelRowHTML()+soreRowHTML()+anchorHTML();}
 function movementHTML(){
   var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],cols="",anyLeft=false;
   tracks.forEach(function(t){
@@ -6010,19 +6133,56 @@ function anchorHTML(){
     '</div>'+
     '</div></details>';
 }
-function sessionVidSheet(id){
+function sessionVidSheet(id,asDay){
   var v=vidById(id);if(!v)return;
+  var swapped=vidSwapToday(),mine=(swapped&&swapped.vid===id);
+  var sub=v.lv?("Session "+v.lv+" of "+ladderList(v.c).length+". Tick it when you have done it and the course moves on.")
+    :(asDay?(mine?"This is logged as today. The rotation did not move, so the day you swapped out is still next."
+              :"Doing this instead counts as today. The rotation does not move, so the day you swapped out is next rather than lost.")
+          :"Put it on and follow.");
+  var cta="";
+  if(asDay&&!v.lv){
+    cta=mine
+      ? '<button class="sheet-cta ghost dang" onclick="undoVidDay()">Undo, this was not today</button>'
+      : ('<button class="sheet-cta" onclick="countVidAsDay(\''+esc(id)+'\')">'+I.check+' Count this as today</button>'+
+         (swapped?"":'<button class="sheet-cta ghost" onclick="anotherSessionVid()">'+I.swap+' Pick another</button>'));
+  }
   openSheet('<div class="grab"></div><h3>'+esc(VCAT[v.c]||v.c)+'</h3>'+
-    '<div class="ssub">'+(v.lv?("Session "+v.lv+" of "+ladderList(v.c).length+". Tick it when you have done it and the course moves on."):"Put it on and follow.")+'</div>'+
-    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true)+'</div>'+
+    '<div class="ssub">'+sub+'</div>'+
+    '<div class="vrow" style="grid-template-columns:1fr">'+vidCardHTML(v,true,!!(asDay&&!v.lv))+'</div>'+
+    cta+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
-function vidMinutes(v){var n=(v&&v.m!==""&&v.m!=null)?+v.m:NaN;return (isFinite(n)&&n>0)?n:null;}
+function anotherSessionVid(){
+  var n=vidSwapOffset()+1;
+  S.swapSkip={d:TODAY,n:n};save();
+  var v=pickForSlot("session",n);
+  if(v)sessionVidSheet(v.id,1);
+  refreshCurrent();
+}
+var VID_MINS_ASSUMED=25;
+function countVidAsDay(id){
+  var v=vidById(id);if(!v)return;
+  if(vidSwapToday())return;
+  var mins=vidMins(v)||VID_MINS_ASSUMED;
+  S.sessions.push({id:TODAY+"-v"+Date.now(),date:TODAY,type:"activity",activity:"Video session",
+    vid:id,title:v.t,durationSec:Math.round(mins*60),notes:"video-swap",advancedRotation:false});
+  S.done[TODAY]=true;
+  S.progress=S.progress||{};S.progress.vdone=S.progress.vdone||{};S.progress.vdone[id]=TODAY;
+  markVidSeen(id);save();closeSheet();
+  toast("Logged as today. "+(letterFor()==="Gen"?"Your build":("Day "+letterFor()))+" is still next.",null);
+  refreshCurrent();
+}
+function undoVidDay(){
+  var s=vidSwapToday();if(!s)return;
+  if(S.progress&&S.progress.vdone)delete S.progress.vdone[s.vid];
+  closeSheet();delSession(s.id);
+}
 function anchorVidHTML(){
   var v=ladderVid("morning")||pickVid("morning",0);
   if(!v)return "";
   var n=ladderList("morning").length;
-  var mins=vidMinutes(v);
+  var mins=vidMins(v);
   var note=v.lv
     ? 'Session '+v.lv+' of '+n+' in the morning course. It moves on when you finish the anchor, so the morning develops you rather than repeating.'
     : 'Rotates each day. Tap for a different one in the library below.';
