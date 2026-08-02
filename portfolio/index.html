@@ -92,49 +92,72 @@ img{display:block;max-width:100%}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2.4vw,34px);
   padding-bottom:clamp(40px,6vw,90px)}
 @media (max-width:900px){.grid{grid-template-columns:1fr}}
-.tile{position:relative;display:block;border:1px solid var(--line);border-radius:12px;
-  overflow:hidden;background:var(--g3);isolation:isolate}
+.tile{--tone:var(--accent);position:relative;display:block;border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;background:var(--g3);isolation:isolate;
+  transition:border-color .2s}
+.tile:hover{border-color:color-mix(in srgb,var(--tone) 46%,transparent)}
 .tile.wide{grid-column:1/-1}
 .tile .win{display:block;position:relative;overflow:hidden;background:var(--g4);aspect-ratio:16/10}
 .tile.wide .win{aspect-ratio:21/9}
-.tile .win img{position:absolute;top:0;left:0;width:100%;height:auto;
+/* TWO systems write a transform here: a slow parallax drift at rest, and the
+   long scroll on hover. They get SEPARATE elements rather than fighting over
+   one, which is rule 11 in CLAUDE.md applied before it bites. */
+.tile .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
+.tile .par img{position:absolute;top:0;left:0;width:100%;height:auto;
   will-change:transform;transform:translate3d(0,0,0);transition:transform 9s linear}
 @media (hover:hover) and (pointer:fine){
-  .tile:hover .win img,.tile:focus-visible .win img{transform:translate3d(0,var(--travel,-58%),0)}
+  .tile:hover .par img,.tile:focus-visible .par img{transform:translate3d(0,var(--travel,-58%),0)}
 }
-.tile.play .win img{transform:translate3d(0,var(--travel,-58%),0)}
+.tile.play .par img{transform:translate3d(0,var(--travel,-58%),0)}
+/* the project's own colour, held back to a wash so it tints rather than shouts */
+.tile .tint{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .45s var(--ease);
+  background:radial-gradient(78% 120% at 50% 100%,color-mix(in srgb,var(--tone) 24%,transparent),transparent 70%)}
+.tile:hover .tint{opacity:1}
 
 /* Train is a phone, so the frame is phone-shaped and its four real tabs
    cross-fade rather than scroll. */
+.tile.tall .win{aspect-ratio:1/1}
 .tile.app .win{display:grid;place-items:center;
   background:radial-gradient(70% 100% at 50% 0%,var(--g5),var(--g3))}
-.phone{position:relative;height:86%;aspect-ratio:390/844;border-radius:26px;overflow:hidden;
+.phone{position:relative;height:90%;aspect-ratio:390/844;border-radius:26px;overflow:hidden;
   border:1px solid var(--line2);background:var(--g12);box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .phone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
   opacity:0;transition:opacity .7s var(--ease)}
 .phone img.on{opacity:1}
 
-.tile .cap{display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-  padding:14px 16px;border-top:1px solid var(--line);background:var(--g2)}
+/* The caption sits INSIDE the frame over a scrim, flush left and right, which
+   is exactly how rauno.me/craft labels a tile. It removes a horizontal rule
+   from every card and lets the media run to the edge. */
+.tile .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:baseline;
+  justify-content:space-between;gap:16px;padding:76px 18px 16px;
+  background:linear-gradient(transparent,rgba(6,6,7,.55) 30%,rgba(6,6,7,.88) 62%,rgba(6,6,7,.97))}
 .tile .cap b{font-weight:400;font-size:clamp(17px,1.7vw,22px);letter-spacing:-.025em;
   color:var(--ink);transition:color .2s}
-.tile:hover .cap b{color:var(--accent)}
-/* --mute, not --faint. The caption bar sits on --g2 rather than the page
-   ground, and --faint against it measures 4.46:1 at this size, just under the
-   4.5 floor. Measured in the rendered page, because the contrast gate cannot
-   resolve chained var() inside space-separated hsl() and passes it silently. */
-.tile .cap span{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute);
+.tile:hover .cap b{color:var(--tone)}
+.tile .cap span{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--g11);
   white-space:nowrap}
+/* An index numeral, small, top-left. Editorial rather than decorative: it
+   tells you how many there are without a sentence saying so. */
+.tile .no{position:absolute;top:14px;left:18px;z-index:2;font-size:10px;letter-spacing:.2em;
+  color:var(--g11);mix-blend-mode:difference}
 
 /* No badges and no explanation of absence. A row with no arrow is a row you
    cannot open, which says private without spending a word on it. */
 .rest{border-top:1px solid var(--line);padding:clamp(34px,5vw,70px) 0 clamp(50px,7vw,96px)}
-.rest .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr);
+/* Right-aligned meta so this reads as a continuation of the same ledger as the
+   tiles above, not an afterthought list. */
+/* The last track is a FIXED width, not auto. Each .row is its own grid, so an
+   auto track sizes to that row's own content and every row lands on different
+   column edges. Caught in the render: the middle column was ragged. */
+.rest .row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) 136px;
   gap:clamp(14px,2.4vw,34px);align-items:baseline;padding:15px 0;border-top:1px solid var(--line)}
 .rest .row:first-of-type{border-top:0}
 .rest .row b{font-weight:400;font-size:clamp(16px,1.6vw,21px);letter-spacing:-.025em}
 .rest .row span{font-size:14px;line-height:1.5;color:var(--mute)}
-@media (max-width:700px){.rest .row{grid-template-columns:1fr;gap:5px}}
+.rest .row i{font-style:normal;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--g11);white-space:nowrap;text-align:right}
+@media (max-width:700px){.rest .row{grid-template-columns:1fr auto;gap:5px 14px}
+  .rest .row span{grid-column:1/-1}}
 
 .next{display:block;border-top:1px solid var(--line);padding:clamp(40px,5.5vw,80px) 0}
 .next h2{margin:12px 0 0;font-weight:200;font-size:clamp(34px,6vw,84px);line-height:.9;
@@ -177,33 +200,38 @@ html.js .rv.in{opacity:1;transform:none}
 
   <section class="grid">
 
-    <a class="tile wide rv" href="../news/" target="_blank" rel="noopener" style="--travel:-62%">
-      <span class="win"><img src="../assets/shots/brief.jpg" width="1100" height="2921" alt="The Morning Brief, a recent edition" loading="lazy" decoding="async"></span>
+    <a class="tile wide rv" href="../news/" target="_blank" rel="noopener" style="--travel:-62%;--tone:#d4604f">
+      <span class="win"><span class="par"><img src="../assets/shots/brief.jpg" width="1100" height="2921" alt="The Morning Brief, a recent edition" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+      <span class="no">01</span>
       <span class="cap"><b>The Morning Brief</b><span>Daily 6:04 &middot; Vol. I No. 75</span></span>
     </a>
 
-    <a class="tile rv" href="../well-versed/" target="_blank" rel="noopener" style="--travel:-60%">
-      <span class="win"><img src="../assets/shots/versed.jpg" width="1100" height="2921" alt="Well-Versed, the lesson library" loading="lazy" decoding="async"></span>
+    <a class="tile rv" href="../well-versed/" target="_blank" rel="noopener" style="--travel:-60%;--tone:#dd7d63">
+      <span class="win"><span class="par"><img src="../assets/shots/versed.jpg" width="1100" height="2921" alt="Well-Versed, the lesson library" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+      <span class="no">02</span>
       <span class="cap"><b>Well-Versed</b><span>Daily 6:14</span></span>
     </a>
 
-    <a class="tile rv" href="../dealcraft/" target="_blank" rel="noopener" style="--travel:-58%">
-      <span class="win"><img src="../assets/shots/deal.jpg" width="1100" height="2921" alt="Dealcraft, the corporate law desk" loading="lazy" decoding="async"></span>
+    <a class="tile rv" href="../dealcraft/" target="_blank" rel="noopener" style="--travel:-58%;--tone:#dcb47e">
+      <span class="win"><span class="par"><img src="../assets/shots/deal.jpg" width="1100" height="2921" alt="Dealcraft, the corporate law desk" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+      <span class="no">03</span>
       <span class="cap"><b>Dealcraft</b><span>Lesson 016</span></span>
     </a>
 
-    <div class="tile app wide rv" id="train">
+    <div class="tile app tall rv" id="train" style="--tone:#6f9e8c">
       <span class="win"><span class="phone">
         <img class="on" src="../assets/shots/train-today.jpg" width="760" height="1644" alt="Train, the Today tab" loading="lazy" decoding="async">
         <img src="../assets/shots/train-lift.jpg" width="760" height="1644" alt="Train, the Lift tab" loading="lazy" decoding="async">
         <img src="../assets/shots/train-cardio.jpg" width="760" height="1644" alt="Train, the Cardio tab" loading="lazy" decoding="async">
         <img src="../assets/shots/train-track.jpg" width="760" height="1644" alt="Train, the Track tab" loading="lazy" decoding="async">
-      </span></span>
+      </span><span class="tint" aria-hidden="true"></span></span>
+      <span class="no">04</span>
       <span class="cap"><b>Train</b><span>v7.77 &middot; no number you can fail</span></span>
     </div>
 
-    <a class="tile wide rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--travel:-56%">
-      <span class="win"><img src="../assets/shots/bits.jpg" width="1100" height="2921" alt="Greatest Bits, the comedy archive" loading="lazy" decoding="async"></span>
+    <a class="tile tall rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--travel:-70%;--tone:#7da3c2">
+      <span class="win"><span class="par"><img src="../assets/shots/bits.jpg" width="1100" height="2921" alt="Greatest Bits, the comedy archive" loading="lazy" decoding="async"></span><span class="tint" aria-hidden="true"></span></span>
+      <span class="no">05</span>
       <span class="cap"><b>Greatest Bits</b><span>459 comics</span></span>
     </a>
 
@@ -211,13 +239,13 @@ html.js .rv.in{opacity:1;transform:none}
 
   <section class="rest">
     <p class="lab rv" style="margin:0 0 22px">Also built</p>
-    <div class="row rv"><b>The Desk</b><span>The board I start every morning from, rebuilt while I am asleep.</span></div>
-    <div class="row rv"><b>The Claude OS Kit</b><span>The system I run everything from, shipped in four editions.</span></div>
-    <div class="row rv"><b>A Personal University</b><span>Re-teaching a finished degree by writing the encyclopedia of it.</span></div>
-    <div class="row rv"><b>The Listening Record</b><span>Twelve years of listening, rebuilt into something you can question.</span></div>
-    <div class="row rv"><b>The Finance Desk</b><span>A weekly letter about my own money, written the way an analyst would.</span></div>
-    <div class="row rv"><b>The Film Library</b><span>A shelf that decides what I am watching tonight.</span></div>
-    <div class="row rv"><b>The Reading Log</b><span>Every book finished, so the year has a shape.</span></div>
+    <div class="row rv"><b>The Desk</b><span>The board I start every morning from, rebuilt while I am asleep.</span><i>Daily</i></div>
+    <div class="row rv"><b>The Claude OS Kit</b><span>The system I run everything from, shipped in four editions.</span><i>Four editions</i></div>
+    <div class="row rv"><b>A Personal University</b><span>Re-teaching a finished degree by writing the encyclopedia of it.</span><i>48 pages</i></div>
+    <div class="row rv"><b>The Listening Record</b><span>Twelve years of listening, rebuilt into something you can question.</span><i>66,253 plays</i></div>
+    <div class="row rv"><b>The Finance Desk</b><span>A weekly letter about my own money, written the way an analyst would.</span><i>Weekly</i></div>
+    <div class="row rv"><b>The Film Library</b><span>A shelf that decides what I am watching tonight.</span><i>Top 100</i></div>
+    <div class="row rv"><b>The Reading Log</b><span>Every book finished, so the year has a shape.</span><i>Self-running</i></div>
   </section>
 
   <a class="next rv" href="../about/">
@@ -265,6 +293,30 @@ html.js .rv.in{opacity:1;transform:none}
         es.forEach(function(e){e.target.classList.toggle('play',e.isIntersecting&&e.intersectionRatio>.55);});
       },{threshold:[0,.55,1]});
       [].forEach.call(document.querySelectorAll('.tile[style*="travel"]'),function(t){po.observe(t);});
+    }
+  }catch(e){}
+
+  /* A slow parallax drift so the page breathes at rest rather than being a
+     grid of frozen screenshots. It writes --drift on .par ONLY; the hover
+     travel writes transform on the img inside it. One writer per property. */
+  try{
+    var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var pars=[].slice.call(document.querySelectorAll('.tile .par'));
+    if(pars.length){
+      var K=reduce?7:16, ticking=false;
+      var drift=function(){
+        ticking=false;
+        var vh=window.innerHeight;
+        for(var i=0;i<pars.length;i++){
+          var r=pars[i].getBoundingClientRect();
+          if(r.bottom<-200||r.top>vh+200)continue;
+          var t=((r.top+r.height/2)-vh/2)/vh;      /* -1 above, +1 below */
+          pars[i].style.setProperty('--drift',(t*K).toFixed(1)+'px');
+        }
+      };
+      window.addEventListener('scroll',function(){if(!ticking){ticking=true;requestAnimationFrame(drift);}},{passive:true});
+      window.addEventListener('resize',drift,{passive:true});
+      drift();
     }
   }catch(e){}
 
