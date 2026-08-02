@@ -111,6 +111,16 @@ input,select{border:0;background:none}
 .iconbtn:active{background:var(--surface-2)}
 .iconbtn,.calnav,.hero .chg{position:relative}
 .iconbtn::after,.calnav::after,.hero .chg::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;min-width:44px;min-height:44px}
+.pband{margin:14px 0 4px}
+.pbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.pbbar{position:relative;height:30px}
+.pbtrack{position:absolute;left:0;right:0;top:9px;height:12px;border-radius:6px;background:var(--surface-2)}
+.pbeasy{position:absolute;top:4px;bottom:4px;border-radius:7px;background:var(--accent-tint);display:flex;align-items:center;justify-content:center}
+.pbeasy b{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.pbmarks{position:absolute;inset:0;pointer-events:none}
+.pbmarks u{position:absolute;bottom:-2px;width:3px;height:13px;background:var(--ink);border-radius:2px;transform:translateX(-1.5px)}
+.pbfoot{display:flex;justify-content:space-between;margin-top:6px;font-size:10.5px;font-weight:600;color:var(--faint)}
+
 .libgrid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:2px 0 14px}
 .libtile2{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:80px;padding:13px 14px;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left}
@@ -1481,7 +1491,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.71";
+var VERSION="v7.72";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3507,7 +3517,7 @@ function weekHTML(withRing){
   var ring='<div class="ringcard'+(complete?" complete":"")+'"><div class="ringwrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-2)" stroke-width="9"/><circle cx="50" cy="50" r="45" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg><div class="ctr"><b class="num">'+doneLifts+'/'+totLifts+'</b><span>workouts</span></div></div>'+
     '<div class="rmeta"><div class="rt">'+(complete?"Week complete":"Keep going")+'</div><div class="rd">'+computeStreak()+'-day streak &middot; consistency is the whole game.</div>'+
     '<div style="margin-top:8px"><div class="rd" style="margin:0">Running &middot; '+miDone.toFixed(1)+' / '+totMi+' mi</div><div class="mibar"><i style="width:'+(totMi?Math.min(100,miDone/totMi*100):0)+'%"></i></div></div></div></div>';
-  var wnote=totLifts?(doneLifts+' of '+totLifts+' lifts'):'nothing scheduled';
+  var wnote=doneLifts?(doneLifts+' lift'+(doneLifts===1?'':'s')+' this week'):'no lift yet this week';
   return (withRing===false?'':ring)+
     collapsible("This week",wnote,'<div class="ksub">Tap a day to view or edit it.</div><div class="weeklist">'+list+'</div>',
       false,I.cal,(totLifts&&doneLifts>=totLifts)?"good":kpiRag("lifts"));
@@ -3726,7 +3736,6 @@ function renderLift(){
   h+=movementRows();
   h+=weekHTML(false);
   h+=badgeList(false,"lift");
-  h+=libraryHTML("lift");
   document.getElementById("v-lift").innerHTML=h;
 }
 function dayDetail(k){
@@ -3865,12 +3874,12 @@ function trackDashHTML(){
   if(s.rag==="red"){head="These numbers are stale.";tone="red";}
   else if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(green>=scored-1){head="On plan.";tone="good";}
-  else if(green>=Math.ceil(scored/2)){head="Mostly on plan.";tone="amber";}
-  else {head="Off plan this week.";tone="red";}
+  else if(green>=scored-1){head="Everything is moving.";tone="good";}
+  else if(green>=Math.ceil(scored/2)){head="Most of it is moving.";tone="amber";}
+  else {head="Quiet week so far.";tone="red";}
   var mv=nextMove();
   var m=weekMetrics(0);
-  var sub='<b>'+m.moved+'</b> of '+m.days+' day'+(m.days===1?'':'s')+' moved, <b>'+green+'</b> of '+scored+' green'+
+  var sub='<b>'+m.moved+'</b> day'+(m.moved===1?'':'s')+' moved, <b>'+green+'</b> measure'+(green===1?'':'s')+' climbing'+
     (stale?(', <b>'+stale+'</b> input'+(stale===1?'':'s')+' stale'):'')+'.';
   var wl=lastW(),goal=S.profile.goalLb;
   var body=wl?('<div class="bodyb"><div><div class="bn">'+wl.toFixed(1)+'</div><div class="bu">'+wLbl()+', '+(st&&st.ageDays===0?"today":"latest")+'</div></div>'+
@@ -4005,9 +4014,9 @@ function trackStatusHTML(){
   var head,tone;
   if(!st){head="Log a weigh-in and this switches on.";tone="none";}
   else if(t.state==="thin"||t.state==="stale"){head="Running on old numbers.";tone="amber";}
-  else if(green>=scored-1){head="On plan.";tone="good";}
-  else if(green>=Math.ceil(scored/2)){head="Mostly on plan.";tone="amber";}
-  else {head="Off plan this week.";tone="red";}
+  else if(green>=scored-1){head="Everything is moving.";tone="good";}
+  else if(green>=Math.ceil(scored/2)){head="Most of it is moving.";tone="amber";}
+  else {head="Quiet week so far.";tone="red";}
   var sub;
   if(!st)sub="Nothing to measure against yet.";
   else if(t.state==="down")sub="Weight is coming down and "+green+" of "+scored+" measures are green.";
@@ -5998,66 +6007,9 @@ function frAdjSw(btn){
   S.profile.adjustable=!S.profile.adjustable;save();
   if(btn){btn.classList.toggle("on",!!S.profile.adjustable);btn.setAttribute("aria-checked",S.profile.adjustable?"true":"false");}
 }
-function libSection(cat,label){
-  var vs=vidsBy(cat);if(!vs.length)return "";
-  var lad=ladderList(cat),inner="",note="";
-  if(lad.length>6){
-    var pos=ladderPos(cat),cur=lad[pos%lad.length],curBlock=Math.floor((pos%lad.length)/6);
-    note='You are on session '+(cur?cur.lv:1)+' of '+lad.length+'.';
-    for(var b=0;b*6<lad.length;b++){
-      var chunk=lad.slice(b*6,b*6+6);
-      var dn=0;chunk.forEach(function(v){if(vDone(v.id))dn++;});
-      inner+='<details class="libsub"'+(b===curBlock?' open':'')+'><summary><span>Sessions '+chunk[0].lv+' to '+chunk[chunk.length-1].lv+'</span>'+
-        '<span class="lcount'+(dn===chunk.length?' gd':'')+'">'+dn+' of '+chunk.length+'</span></summary><div class="vrow">';
-      chunk.forEach(function(v){inner+=vidCardHTML(v);});
-      inner+='</div></details>';
-    }
-    var extra=vs.filter(function(v){return !v.lv;});
-    if(extra.length){
-      inner+='<details class="libsub"><summary><span>Standalone</span><span class="lcount">'+extra.length+'</span></summary><div class="vrow">';
-      extra.forEach(function(v){inner+=vidCardHTML(v);});
-      inner+='</div></details>';
-    }
-  }else{
-    inner='<div class="vrow">';
-    vs.forEach(function(v){inner+=vidCardHTML(v);});
-    inner+='</div>';
-  }
-  var done=0;vs.forEach(function(v){if(vDone(v.id))done++;});
-  return '<details class="libsub top"><summary><span>'+(label||VCAT[cat]||cat)+'</span>'+
-    '<span class="lcount'+(done?' gd':'')+'">'+(done?done+' of '+vs.length:vs.length)+'</span></summary>'+
-    (note?'<div class="libnote">'+note+'</div>':'')+inner+'</details>';
-}
-function vidRowHTML(cat,label){
-  var vs=vidsBy(cat);if(!vs.length)return "";
-  var h='<div class="sectlbl">'+(label||VCAT[cat])+'</div><div class="vrow">';
-  vs.forEach(function(v){h+=vidCardHTML(v);});
-  return h+'</div>';
-}
-function libraryHTML(cat){
-  cat=cat||"lift";
-  var groups=(cat==="lift")
-    ? [["warmup","Warm up","before you lift"],["strength","Full sessions","stand in for a lift day"],
-       ["pilates","Pilates","a numbered course"],["mobility","Mobility","a numbered course"],
-       ["core","Core finishers","ten minutes at the end"],["yoga","Yoga","longer, slower"]]
-    : [["runwarm","Warm up","before you run"],["mobility","Mobility","a numbered course"],
-       ["recovery","Stretch and recover","after a run"],["pilates","Pilates","a numbered course"],
-       ["meditation","Wind down","evening, low effort"]];
-  var n=0,tiles="",panes="";
-  groups.forEach(function(g){
-    var vs=vidsBy(g[0]);if(!vs.length)return;
-    n+=vs.length;
-    var done=0;vs.forEach(function(v){if(vDone(v.id))done++;});
-    tiles+='<button class="libtile" onclick="openLibCat(\''+g[0]+'\',this)">'+
-      '<span class="ltn">'+g[1]+'</span><span class="ltd">'+g[2]+'</span>'+
-      '<span class="ltc'+(done?" gd":"")+'">'+(done?done+' of '+vs.length+' done':vs.length+' clips')+'</span></button>';
-    panes+='<div class="libpane" id="libpane-'+g[0]+'" hidden>'+libSection(g[0],g[1])+'</div>';
-  });
-  var h='<details class="card dcard"><summary><span class="dleft"><span class="dsi">'+I.play+'</span><span class="dsum">Library</span></span>'+
-    '<span class="aright"><span class="acount">'+n+' videos</span><span class="chev">'+I.chevD+'</span></span></summary>'+
-    '<div class="dbody"><div class="libgrid">'+tiles+'</div>'+panes+'</div></details>';
-  return h;
-}
+
+
+
 function setUnits(u,b){S.profile.units=u;save();segSel(b);toast("Units set to "+u,null);}
 function setLoc(l,b){S.profile.loc=l;save();segSel(b);}
 function setEquip(e,b){var a=(S.profile.equip||[]).slice();var i=a.indexOf(e);if(i>=0){if(a.length>1)a.splice(i,1);else return;}else a.push(e);S.profile.equip=a;save();b.classList.toggle("on");}
@@ -6532,6 +6484,29 @@ var ZONES=[
 ];
 function mph(secPerMi){return secPerMi>0?(3600/secPerMi):0;}
 function mphTxt(secPerMi){var v=mph(secPerMi);return v?(Math.round(v*10)/10).toFixed(1):"--";}
+function paceBandHTML(){
+  var zs=ZONES.slice().sort(function(a,b){return b.hi-a.hi;});
+  var easy=ZONES.filter(function(z){return z.k==="easy";})[0]||zs[0];
+  var lo=zs[0].hi, hi=zs[zs.length-1].lo, span=Math.max(1,lo-hi);
+  var pct=function(sec){return Math.max(0,Math.min(100,(lo-sec)/span*100));};
+  var el=pct(easy.hi), er=pct(easy.lo);
+  var paced=allRuns().filter(function(r){return r.paceSecPerMi>0&&daysBetween(r.date,TODAY)<=90;});
+  var shown=paced.slice(-6);
+  var marks=shown.map(function(r,i){
+    return '<u style="left:'+pct(r.paceSecPerMi).toFixed(1)+'%;opacity:'+(0.45+0.55*(i+1)/shown.length).toFixed(2)+'"></u>';
+  }).join("");
+  var inEasy=shown.filter(function(r){return r.paceSecPerMi<=easy.hi&&r.paceSecPerMi>=easy.lo;}).length;
+  var foot=!shown.length?"No paced runs in the last 90 days"
+    :(inEasy===shown.length?("Last "+shown.length+", all in the easy band")
+      :("Last "+shown.length+", "+inEasy+" in the easy band"));
+  return '<div class="pband"><div class="pbl">Your pace scale</div>'+
+    '<div class="pbbar">'+
+      '<i class="pbtrack"></i>'+
+      '<i class="pbeasy" style="left:'+el.toFixed(1)+'%;width:'+Math.max(6,er-el).toFixed(1)+'%"><b>Easy</b></i>'+
+      '<div class="pbmarks">'+marks+'</div>'+
+    '</div>'+
+    '<div class="pbfoot"><span>'+mmss(lo)+'/mi</span><span>'+foot+'</span><span>'+mmss(hi)+'/mi</span></div></div>';
+}
 function paceZonesHTML(){
   var zs=ZONES.slice().sort(function(a,b){return a.lo-b.lo;});
   var paced=allRuns().filter(function(r){return r.paceSecPerMi>0;});
@@ -7606,9 +7581,10 @@ function renderCardio(){
   h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L)+'</div>'+
     '<div class="cheroR" data-tier="'+levelTier(L.lvl).k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+levelTier(L.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'+
-    '<div class="lvlp">'+(LS.k==="base"?(allRuns().length+' of 4 runs logged'):('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1)))+'</div>'+
+    '<div class="lvlp">'+(LS.k==="base"?(allRuns().length===1?'1 run on record':(allRuns().length+' runs on record')):('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1)))+'</div>'+
     '</div></div>'+
     '<div class="chsplit"></div>'+
+    paceBandHTML()+
     '<div class="lbl">Next run</div>'+
     '<h2 style="padding-right:0">'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":runStatusLine(rr))+'</div>'+
@@ -7635,7 +7611,6 @@ function renderCardio(){
 
   h+=odoCardHTML();
   h+=badgeList(false,"run");
-  h+=libraryHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
 }
 
