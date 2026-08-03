@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Public-Key Cryptography &mdash; Well-Versed</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<meta name="description" content="Every secret you have sent over the internet was arranged with a stranger, out loud, in front of anyone who cared to listen.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Public-Key Cryptography &mdash; Well-Versed">
+<meta property="og:description" content="Every secret you have sent over the internet was arranged with a stranger, out loud, in front of anyone who cared to listen.">
+<meta property="og:url" content="https://mattyellin.com/well-versed/public-key-cryptography.html">
+<meta property="og:site_name" content="Well-Versed">
+<meta property="og:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/Whitfield%20Diffie%20Royal%20Society%20(cropped).jpg?width=1200">
+<meta property="article:published_time" content="2026-08-03">
+<meta property="article:author" content="Matthew Yellin">
+<meta property="article:section" content="Technology">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Public-Key Cryptography &mdash; Well-Versed">
+<meta name="twitter:description" content="Every secret you have sent over the internet was arranged with a stranger, out loud, in front of anyone who cared to listen.">
+<meta name="twitter:image" content="https://commons.wikimedia.org/wiki/Special:FilePath/Whitfield%20Diffie%20Royal%20Society%20(cropped).jpg?width=1200">
+<style>
+:root { color-scheme: light dark; --ink: #1d1a16; --muted: #6e6557; --accent: #9c3b2f; --rule: #d9cdb6; --rule-soft: #e4dccb; --bg: #f4eee2; --soft: #ece3d2; --plate: #241f17; --serif: 'Spectral', Georgia, "Times New Roman", serif; --sans: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; --mono: "IBM Plex Mono", "SF Mono", Menlo, Consolas, monospace; }
+@media (prefers-color-scheme: dark) { :root { --ink: #ece4d4; --muted: #9a8f7e; --accent: #d6775f; --rule: #322a20; --rule-soft: #262019; --bg: #15120d; --soft: #1d1912; --plate: #241f17; } }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--serif); -webkit-font-smoothing: antialiased; }
+.site-head { max-width: 1140px; margin: 0 auto; padding: 22px 28px 0; display: flex; justify-content: space-between; align-items: baseline; font-family: var(--sans); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.site-head .sh-nav{display:flex;gap:16px;flex-wrap:wrap}
+.site-head .sh-nav a:first-child{font-weight:600}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+.site-head a { color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--accent); padding-bottom: 1px; }
+.folio { max-width: 960px; margin: 0 auto; padding: 64px 28px 88px; }
+.kicker { text-align: center; font-family: var(--sans); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+h1 { font-family: var(--serif); font-size: 54px; font-weight: 500; line-height: 1.06; letter-spacing: -0.014em; text-align: center; margin: 0 0 14px; }
+.deck { font-style: italic; font-size: 19px; color: var(--muted); text-align: center; max-width: 600px; margin: 0 auto 24px; line-height: 1.45; }
+.rule { width: 64px; height: 0; border-top: 0.5px solid var(--rule); margin: 0 auto 36px; }
+.body p { font-size: 18px; line-height: 1.8; margin: 0 auto 18px; max-width: 700px; text-align: justify; hyphens: auto; }
+.body > :not(figure) { max-width: 700px; margin-left: auto; margin-right: auto; }
+.dingbat { text-align: center; color: var(--muted); letter-spacing: 0.8em; margin: 28px 0; font-size: 16px; }
+figure { margin: 32px auto; }
+figure.plate { max-width: 540px; }
+figure.plate.narrow { max-width: 430px; }
+figure.plate.wide { max-width: 960px; }
+figure.plate .frame { padding: 10px; background: var(--plate); }
+figure.plate img { display: block; width: 100%; height: auto; }
+figcaption { font-style: italic; font-size: 13.5px; color: var(--muted); text-align: center; margin: 12px 8px 0; line-height: 1.55; }
+.read { max-width: 700px; margin: 40px auto; padding: 28px 0; border-top: 0.5px solid var(--rule); border-bottom: 0.5px solid var(--rule); }
+.read-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--serif); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--muted); margin: 0 0 22px; }
+.read-head .who { font-style: italic; letter-spacing: 0.04em; text-transform: none; font-size: 13px; }
+.read-body { font-family: var(--serif); font-size: 18px; line-height: 1.7; color: var(--ink); padding: 0 24px; }
+.read-body p { margin: 0; }
+.read-source { font-style: italic; font-size: 12.5px; color: var(--muted); text-align: right; margin: 14px 4px 0 0; }
+.watch { max-width: 700px; margin: 40px auto; padding: 22px 0 0; border-top: 0.5px solid var(--rule); }
+.watch-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+.watch-label { font-family: var(--serif); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+.watch-who { font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--muted); }
+.watch-embed { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; background: var(--plate); }
+.watch-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+.watch-cap { font-style: italic; font-size: 13.5px; color: var(--muted); margin: 12px 2px 0; line-height: 1.55; }
+.endmatter { max-width: 700px; margin: 56px auto 0; padding-top: 26px; border-top: 0.5px solid var(--rule); }
+.em-label { font-family: var(--serif); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 500; }
+.learn-more { font-size: 16.5px; margin: 0 0 32px; }
+.learn-more a { color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--accent); }
+table.index { width: 100%; border-collapse: collapse; }
+table.index td { padding: 12px 0; border-bottom: 0.5px solid var(--rule-soft); font-size: 15px; vertical-align: top; }
+table.index tr:last-child td { border-bottom: none; }
+table.index td:first-child { width: 56%; padding-right: 18px; }
+table.index td:last-child { color: var(--muted); }
+table.index a { color: var(--ink); text-decoration: none; border-bottom: 0.5px dotted var(--accent); }
+.page-foot { max-width: 1140px; margin: 0 auto; padding: 24px 28px 60px; font-family: var(--sans); font-size: 13px; color: var(--muted); text-align: center; }
+.page-foot a { color: var(--ink); text-decoration: none; border-bottom: 0.5px solid var(--accent); }
+em { font-style: italic; }
+</style>
+<style id="upnext-style">
+.upnext { max-width: 700px; margin: 8px auto 0; }
+.upnext-label { font-family: var(--serif); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+.upnext-card { display: flex; align-items: center; gap: 18px; padding: 16px; border: 0.5px solid var(--rule); border-radius: 8px; text-decoration: none; color: inherit; transition: border-color 0.15s; }
+.upnext-card:hover { border-color: var(--accent); }
+.upnext-card img { width: 72px; height: 72px; object-fit: cover; object-position: top center; border-radius: 4px; flex: 0 0 auto; background: var(--soft); }
+.upnext-body { flex: 1; }
+.upnext-title { font-family: var(--serif); font-size: 21px; font-weight: 500; line-height: 1.1; margin: 0 0 5px; }
+.upnext-pitch { font-family: var(--serif); font-style: italic; font-size: 14px; color: var(--muted); margin: 0; line-height: 1.45; }
+.upnext-arrow { font-family: var(--sans); font-size: 13px; color: var(--accent); flex: 0 0 auto; }
+.upnext-surprise { text-align: center; margin: 14px 0 0; }
+.upnext-surprise button { background: none; border: none; padding: 0; cursor: pointer; font-family: var(--serif); font-style: italic; font-size: 13.5px; color: var(--muted); border-bottom: 0.5px solid var(--rule); }
+.upnext-surprise button:hover { color: var(--accent); border-bottom-color: var(--accent); }
+</style>
+</head>
+<body>
+<header class="site-head">
+  <span class="sh-nav"><a href="index.html">Well-Versed</a><a href="library.html">Library</a><a href="coverage.html">Coverage</a><a href="about.html">About</a></span>
+  <div>2026-08-03 &middot; Technology</div>
+</header>
+
+<article class="folio">
+  <div class="kicker">Technology &middot; Cryptography</div>
+  <h1>Public-Key Cryptography</h1>
+  <p class="deck">Every secret you have sent over the internet was arranged with a stranger, out loud, in front of anyone who cared to listen.</p>
+  <div class="rule"></div>
+
+  <figure class="plate">
+    <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Whitfield%20Diffie%20Royal%20Society%20(cropped).jpg?width=1024" alt="Studio portrait of Whitfield Diffie, an older man with long grey hair and a full white beard, in a dark pinstriped suit and patterned tie, smiling against a pale grey background."></div>
+    <figcaption>Whitfield Diffie, photographed at the Royal Society, London, in 2017. He had neither a doctorate nor a university post when he took up the problem below, and the people who had both held it to be unsolvable. Photograph by Duncan Hull, CC BY-SA 4.0.</figcaption>
+  </figure>
+
+  <div class="body">
+
+    <p>For most of the history of secret writing the key gave more trouble than the cipher. Two people who wanted to speak privately had first to agree, privately, on the setting they would both use, which meant meeting in a room, or trusting a courier, or weighting a codebook so that it would sink with the boat before anyone could fish it out. Diffie and Hellman put the commercial version of this plainly in 1976, observing that keys travelled by private courier or registered mail and that nobody opening a relationship with a stranger was going to wait for the briefcase. Cryptographers called it the key distribution problem and mostly treated it as a fact of nature, because it reads as a contradiction. To share a secret you need a private channel. To open a private channel you need to have already shared a secret.</p>
+
+    <p>Whitfield Diffie refused to accept that, and he eventually found his way to the one other person taking the question as seriously as he did: Martin Hellman, a young professor of electrical engineering at Stanford. With Ralph Merkle, who had been circling the same idea, they broke it open in November 1976 in a paper for the <em>IEEE Transactions on Information Theory</em>. Forty years later the ACM gave Diffie and Hellman the Turing Award for it, and the IEEE had already put Merkle's name beside theirs on the 2010 Hamming Medal. The paper wastes no time getting to its claim.</p>
+
+    <div class="read">
+      <div class="read-head"><span>Read</span><span class="who">Diffie and Hellman, 1976</span></div>
+      <div class="read-body">
+        <p>We stand today on the brink of a revolution in cryptography. The development of cheap digital hardware has freed it from the design limitations of mechanical computing and brought the cost of high grade cryptographic devices down to where they can be used in such commercial applications as remote cash dispensers and computer terminals. In turn, such applications create a need for new types of cryptographic systems which minimize the necessity of secure key distribution channels and supply the equivalent of a written signature.</p>
+      </div>
+      <p class="read-source">Whitfield Diffie and Martin E. Hellman, &ldquo;New Directions in Cryptography,&rdquo; <em>IEEE Transactions on Information Theory</em> IT-22, no. 6 (November 1976), opening lines.</p>
+    </div>
+
+    <p>Their first idea is easier to follow in paint than in numbers. Two strangers announce a common colour in the open, and each privately stirs in a secret colour of their own. They then swap the resulting mixtures across a channel everyone can watch. Each adds their own secret colour a second time, and both end up holding the identical muddy result, which nobody else can reproduce, because separating paint back into its ingredients is much harder than mixing it. The real version has the same shape. Both sides agree in public on a large prime and a base; each picks a private number and publishes the base raised to that power, reduced modulo the prime; each then raises whatever the other published to their own private number, and the two land on the same value. Anyone listening holds the prime, the base and both published results, and to get further has to run an exponent backwards, the discrete logarithm problem, for which nobody has a fast method.</p>
+
+    <figure class="plate narrow">
+      <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Diffie-Hellman_Key_Exchange.svg?width=800" alt="Diagram showing Alice and Bob each starting with the same yellow common paint, adding different secret colours, exchanging the resulting mixtures over a public channel, adding their own secret colour again, and both arriving at the same dark green common secret." loading="lazy"></div>
+      <figcaption>The Diffie&ndash;Hellman exchange in paint. The two mixtures cross in the open and an eavesdropper sees both; the shared colour at the bottom is never transmitted at all. Diagram after A. J. Han Vinck, University of Duisburg-Essen; public domain.</figcaption>
+    </figure>
+
+    <div class="watch">
+      <div class="watch-head">
+        <span class="watch-label">Watch</span>
+        <span class="watch-who">Computerphile, &ldquo;Secret Key Exchange (Diffie&ndash;Hellman)&rdquo;</span>
+      </div>
+      <div class="watch-embed">
+        <iframe src="https://www.youtube.com/embed/NmM9HA2MQGI" title="Secret Key Exchange (Diffie-Hellman) - Computerphile" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+      <p class="watch-cap">Nine minutes with Mike Pound of Nottingham, working the exchange through on paper. Watch for the moment he points out that the shared key is never sent, which is the whole trick and the part that sounds impossible until you have seen it done once.</p>
+    </div>
+
+    <p>The paper's second idea was still only a promise. Diffie and Hellman described a cipher with two keys, one published to the world for locking and one kept back for unlocking, each uniquely determining the other while the private one stayed out of computational reach; run the same machine backwards, they noticed, and you get a signature that only the holder could have produced. They could not build it. A year later three researchers at MIT did. Ron Rivest, Adi Shamir and Leonard Adleman had been at it for the better part of a year, the first two proposing schemes and the third breaking them. Then on the night of Passover in April 1977, after a seder and a good deal of wine, Rivest lay awake on a couch with a mathematics textbook and had most of the paper drafted by morning. Their system, RSA, hides the private key behind the product of two enormous primes and invites the world to factor it back. Martin Gardner announced it that August in <em>Scientific American</em> under the headline &ldquo;A new kind of cipher that would take millions of years to break,&rdquo; printed a 129-digit number with a hundred-dollar prize on it, and hedged the title with Poe's line that human ingenuity cannot concoct a cipher which human ingenuity cannot resolve. It took until April 1994.</p>
+
+    <div class="dingbat">&middot; &middot; &middot;</div>
+
+    <p>None of which was first. Reading a wartime Bell Labs paper on the protection of voice communications, a GCHQ mathematician named James Ellis had worked out by 1970 that private conversation without a shared secret ought to be possible. He called it non-secret encryption and spent three years failing to find a method. In 1973 Clifford Cocks, weeks out of Cambridge, had the problem described to him in conversation and, by his own account, wrote out what the world would later call RSA that same evening in about half an hour, without notes. The following year Malcolm Williamson, who had been at school with Cocks and had taken a gold medal at the 1968 International Mathematical Olympiad, produced the key exchange. All of it was classified, none of them could say a word, and GCHQ did not release the story until December 1997. Ellis had died that 25 November, a month short of it.</p>
+
+    <figure class="plate wide">
+      <div class="frame"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/GCHQ-aerial.jpg?width=1280" alt="Aerial photograph of the circular GCHQ headquarters building at Cheltenham, a vast ring of glass and steel around a central garden courtyard, surrounded by concentric car parks." loading="lazy"></div>
+      <figcaption>GCHQ, Cheltenham, from the air in 2004. The ring building, universally known as the Doughnut, opened only in 2003, long after Ellis, Cocks and Williamson did the work; their offices were in the older huts and blocks it replaced. Ministry of Defence, Open Government Licence.</figcaption>
+    </figure>
+
+    <p>You use both halves dozens of times a day. The padlock beside a web address means the browser and the server have run a handshake in which public-key methods let them settle on a session key over an open wire, after which they switch to ordinary shared-key encryption for the traffic itself, because the two-key operations are much too slow to carry a video. The same mathematics run in reverse is what certifies that the site is who it claims to be, and what proves a software update came from its author rather than from someone on the network. All of it stands on two problems being hard: factoring a large number, and running an exponent backwards. Peter Shor showed in 1994 that a sufficiently large quantum computer would dissolve both, which is why encrypted traffic is being recorded today by people content to read it in fifteen years, and why in August 2024 NIST published the first three federal standards built to survive that machine. The migration off Diffie, Hellman and Rivest's arithmetic has already begun.</p>
+
+  </div>
+
+  <footer class="endmatter">
+    <p class="em-label">Learn more</p>
+    <p class="learn-more"><a href="https://cr.yp.to/bib/1976/diffie.pdf">&ldquo;New Directions in Cryptography&rdquo; in full, eleven pages, and readable without the mathematics &rarr;</a></p>
+    <p class="em-label">Index</p>
+    <table class="index">
+      <tr><td>The 1976 paper that started it</td><td><a href="https://cr.yp.to/bib/1976/diffie.pdf">Diffie and Hellman, IEEE &rarr;</a></td></tr>
+      <tr><td>The RSA paper, 1978</td><td><a href="https://people.csail.mit.edu/rivest/Rsapaper.pdf">Rivest, Shamir and Adleman, MIT &rarr;</a></td></tr>
+      <tr><td>Gardner's column that broke the news</td><td><a href="https://www.scientificamerican.com/article/mathematical-games-1977-08/">Scientific American, August 1977 &rarr;</a></td></tr>
+      <tr><td>James Ellis and the GCHQ trio</td><td><a href="https://www.gchq.gov.uk/person/james-ellis">GCHQ &rarr;</a></td></tr>
+      <tr><td>The Turing Award citation, 2015</td><td><a href="https://www.acm.org/media-center/2016/march/turing-award-2015">ACM &rarr;</a></td></tr>
+      <tr><td>How the padlock actually works, layer by layer</td><td><a href="https://www.cloudflare.com/learning/ssl/how-does-public-key-encryption-work/">Cloudflare Learning Center &rarr;</a></td></tr>
+      <tr><td>The post-quantum standards, FIPS 203&ndash;205</td><td><a href="https://csrc.nist.gov/projects/post-quantum-cryptography">NIST &rarr;</a></td></tr>
+    </table>
+  </footer>
+</article>
+
+<section class="upnext">
+    <div class="upnext-label">Up next</div>
+    <a class="upnext-card" href="map-and-compass.html">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Walkers%20compass%20arp.jpg?width=200" alt="">
+      <div class="upnext-body">
+        <div class="upnext-title">The Map and Compass</div>
+        <div class="upnext-pitch">The needle lies, and the map tells you by exactly how much.</div>
+      </div>
+      <div class="upnext-arrow">Read &rarr;</div>
+    </a>
+    <div class="upnext-surprise"><button onclick="wvRandomLesson()">Or open a random lesson &rarr;</button></div>
+  </section>
+
+<footer class="page-foot"><a href="library.html">&larr; Back to the Library</a></footer>
+<script src="lessons.js"></script>
+<script>
+function wvRandomLesson(){
+  var L=(window.WV_LESSONS||[]).filter(function(f){return f!==location.pathname.split("/").pop();});
+  location.href=L.length?L[Math.floor(Math.random()*L.length)]:"library.html";
+}
+</script>
+</body>
+</html>
