@@ -1,91 +1,62 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>The Listening Record (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of a private tool, rendered with invented data.">
-<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>
-:root{
-  --tone:#7fa89b;
-  --bg:hsl(168 10% 6.5%); --ink:hsl(160 6% 93%);
-  --d:'Fraunces',Georgia,serif;
-  --t:'Spectral',Georgia,serif;
-  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
-  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  --line:hsl(0 0% 100% / .11);
-  --line2:hsl(0 0% 100% / .20);
-  --mute:hsl(0 0% 66%);
-  --faint:hsl(0 0% 46%);
-  --sur:hsl(0 0% 100% / .035);
-}
-*{box-sizing:border-box}
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'><style>*{box-sizing:border-box}
+.badge{position:fixed;top:14px;right:14px;z-index:20;font:600 9.5px -apple-system,system-ui,sans-serif;
+ letter-spacing:.2em;text-transform:uppercase;border-radius:99px;padding:7px 13px}
+:root{--s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;--m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif;--bg:#0E1211;--ink:#EDF1EF;--sub:#9EAAA5;--dim:#78847F;
+ --line:rgba(237,241,239,.10);--line2:rgba(237,241,239,.20);--accent:#7FBFA2}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
-  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-/* the grain keeps a flat ground from reading as a slide */
-body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.055;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
-.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
-  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
-.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
-.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+ -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.badge{color:var(--dim);border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
+.lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
-a{color:inherit}
-
 .pg{max-width:1240px;margin:0 auto;padding:0 46px 70px}
-.top{padding:46px 0 24px;border-bottom:1px solid var(--line2);
-  display:flex;align-items:baseline;justify-content:space-between;gap:26px;flex-wrap:wrap}
+.top{padding:46px 0 22px;border-bottom:1px solid var(--line2)}
 .top h1{font-size:clamp(30px,3.6vw,44px)}
-.top .meta{font-family:var(--m);font-size:11.5px;color:var(--faint);letter-spacing:.04em}
-.top .meta b{color:var(--tone);font-weight:400}
-.hist{padding:34px 0 30px;border-bottom:1px solid var(--line)}
-.bars{display:flex;align-items:flex-end;gap:5px;height:132px;margin-top:16px}
-.bars i{flex:1;background:linear-gradient(180deg,var(--tone),color-mix(in srgb,var(--tone) 18%,transparent));
-  position:relative;font-style:normal;transition:filter .2s}
-.bars i:hover{filter:brightness(1.35)}
-.bars i em{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-family:var(--m);
-  font-size:10px;color:var(--faint);font-style:normal;opacity:0;transition:opacity .2s}
-.bars i:hover em{opacity:1}
+.top .meta{margin-top:12px;font-family:var(--m);font-size:11.5px;color:var(--dim);letter-spacing:.04em}
+.top .meta b{color:var(--accent);font-weight:400}
+.honest{margin-top:16px;font-family:var(--t);font-style:italic;font-size:14.4px;line-height:1.6;
+ color:var(--sub);border-left:2px solid var(--accent);padding-left:15px;max-width:78ch}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:30px 0 0}
+.tier{padding:0 22px;border-left:1px solid var(--line)}
+.tier:first-child{padding-left:0;border-left:0}
+.tier h3{font-size:18px;margin:9px 0 8px}
+.tier ol{list-style:none;margin:0;padding:0}
+.tier li{display:flex;justify-content:space-between;gap:10px;padding:6px 0;
+ border-bottom:1px solid var(--line);font-size:13.4px}
+.tier li em{font-style:normal;font-family:var(--m);font-size:11px;color:var(--dim)}
+.tier p{margin:10px 0 0;font-family:var(--t);font-size:13.4px;line-height:1.55;color:var(--sub)}
+.hist{padding:34px 0 28px;border-top:1px solid var(--line);margin-top:32px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:126px;margin-top:16px}
+.bars i{flex:1;background:linear-gradient(180deg,var(--accent),rgba(127,191,162,.16));
+ transition:filter .2s}
+.bars i:hover{filter:brightness(1.4)}
 .yrs{display:flex;gap:5px;margin-top:8px}
-.yrs span{flex:1;text-align:center;font-family:var(--m);font-size:9.5px;color:var(--faint)}
-.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0;padding-top:32px}
-.grid>div+div{border-left:1px solid var(--line);padding-left:38px;margin-left:38px}
-ol.rank{list-style:none;margin:16px 0 0;padding:0;counter-reset:r}
-ol.rank li{counter-increment:r;display:grid;grid-template-columns:26px 1fr 62px;gap:14px;
-  align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
-ol.rank li::before{content:counter(r,decimal-leading-zero);font-family:var(--m);font-size:10.5px;color:var(--faint)}
-ol.rank b{font-family:var(--d);font-weight:400;font-size:16.5px;letter-spacing:-.02em;display:block}
-ol.rank .rail{display:block;height:2px;margin-top:6px;background:var(--tone);opacity:.5}
-ol.rank em{font-style:normal;text-align:right;font-family:var(--m);font-size:12px;color:var(--mute)}
-ol.rank li:hover .rail{opacity:1}
-.sets{list-style:none;margin:16px 0 0;padding:0}
-.sets li{padding:13px 0;border-bottom:1px solid var(--line)}
-.sets b{font-family:var(--d);font-weight:400;font-size:16.5px;letter-spacing:-.02em}
-.sets span{display:block;margin-top:3px;font-family:var(--t);font-size:13.6px;color:var(--mute)}
+.yrs span{flex:1;text-align:center;font-family:var(--m);font-size:9.5px;color:var(--dim)}
+.sets{list-style:none;margin:16px 0 0;padding:0;
+ display:grid;grid-template-columns:repeat(2,1fr);gap:0 34px}
+.sets li{padding:12px 0;border-bottom:1px solid var(--line)}
+.sets b{font-family:var(--d);font-weight:400;font-size:16.4px}
+.sets span{display:block;margin-top:2px;font-family:var(--t);font-size:13.4px;color:var(--sub)}
 .sets u{float:right;text-decoration:none;font-family:var(--m);font-size:10px;letter-spacing:.14em;
-  text-transform:uppercase;color:var(--tone)}
-.foot{margin-top:30px;font-family:var(--t);font-style:italic;font-size:14px;line-height:1.6;
-  color:var(--mute);border-left:2px solid var(--tone);padding-left:15px}
-@media(max-width:900px){.grid{grid-template-columns:1fr}.grid>div+div{border-left:0;padding-left:0;margin-left:0}}
-
-</style>
-</head>
-<body>
-<div class="badge">Sample data</div>
+ text-transform:uppercase;color:var(--accent)}
+@media(max-width:1000px){.tiers{grid-template-columns:repeat(2,1fr);gap:24px 0}
+ .tier{border-left:0;padding-left:0}.sets{grid-template-columns:1fr}}</style></head><body><div class="badge">Sample data</div>
 <div class="pg">
- <div data-cap="Twelve years of exports, rebuilt into one record" class="scene top"><h1>The Listening Record</h1>
-  <div class="meta">Twelve exports, 2015 to 2026 &middot; rebuilt into one queryable record &middot; <b>4,812 artists</b> after the novelty filter</div></div>
- <div data-cap="Qualified plays by year, skips dropped" class="scene hist"><span class="lab">Qualified plays by year &middot; skips under thirty seconds dropped</span>
-  <div class="bars"><i style="height:31%"><em>2294</em></i><i style="height:44%"><em>3256</em></i><i style="height:58%"><em>4292</em></i><i style="height:49%"><em>3626</em></i><i style="height:71%"><em>5254</em></i><i style="height:86%"><em>6364</em></i><i style="height:79%"><em>5846</em></i><i style="height:97%"><em>7178</em></i><i style="height:100%"><em>7400</em></i><i style="height:88%"><em>6512</em></i><i style="height:81%"><em>5994</em></i><i style="height:52%"><em>3848</em></i></div><div class="yrs"><span>2015</span><span>&nbsp;</span><span>&nbsp;</span><span>2018</span><span>&nbsp;</span><span>&nbsp;</span><span>2021</span><span>&nbsp;</span><span>&nbsp;</span><span>2024</span><span>&nbsp;</span><span>2026</span></div></div>
- <div data-cap="Most played, and the sets rebuilt from it" class="scene grid">
-  <div><span class="lab">Most played, all time</span><ol class="rank"><li><div><b>The Vestry Hours</b><span class="rail" style="width:100%"></span></div><em>1,842</em></li><li><div><b>Corva</b><span class="rail" style="width:81%"></span></div><em>1,494</em></li><li><div><b>Harlan Deane</b><span class="rail" style="width:73%"></span></div><em>1,341</em></li><li><div><b>Nightbus Choir</b><span class="rail" style="width:64%"></span></div><em>1,178</em></li><li><div><b>Oona Ferrer</b><span class="rail" style="width:58%"></span></div><em>1,067</em></li><li><div><b>The Long Field</b><span class="rail" style="width:49%"></span></div><em>903</em></li><li><div><b>Sable Motor</b><span class="rail" style="width:43%"></span></div><em>791</em></li><li><div><b>Petra Lund</b><span class="rail" style="width:37%"></span></div><em>688</em></li><li><div><b>Ivo Marchetti</b><span class="rail" style="width:31%"></span></div><em>574</em></li></ol></div>
-  <div><span class="lab">Sets rebuilt from the record</span><ul class="sets"><li><u>Audited</u><b>Rock anthems</b><span>Ranked by repeat rate rather than release date</span></li><li><u>Audited</u><b>Melodic house discovery</b><span>Seeded from the tail of the record, not the head</span></li><li><u>Audited</u><b>Jazz gateway</b><span>Built for someone who does not like jazz yet</span></li><li><u>Audited</u><b>Seventies singer-songwriter</b><span>Deduplicated across four live versions of the same song</span></li><li><u>Audited</u><b>Fresh alt-rock finds</b><span>Nothing played in the last two years</span></li></ul>
-   <p class="foot">Every set was verified by opening it rather than by trusting the write. Nine were rebuilt, nine were opened, and the two that had silently lost a track were the whole reason the check exists.</p>
-  </div>
+ <div data-cap="Twelve exports rebuilt into one queryable record" class="scene top">
+  <h1>The Listening Record</h1>
+  <div class="meta">Twelve years of exports &middot; <b>110,979 plays</b> in, <b>66,253 qualified</b> after skips under thirty seconds are dropped &middot; 5,068 artists</div>
+  <p class="honest">Sourcing honesty, stated up front: the export carries plays, timestamps, names and behaviour. It does not carry genre, release year or tempo. Every grouping below is an editorial reading of named artists, never a label the service supplied, and no per-genre percentage is invented.</p>
  </div>
-</div>
-</body>
-</html>
+ <div data-cap="Four tiers: the spine, the canon, the outer ring, the live edge" class="scene tiers"><div class="tier"><span class="lab">The spine</span><h3>Played in nine of nine tracked years</h3><ol><li><span>The Vestry Hours</span><em>1,842</em></li><li><span>Corva</span><em>1,494</em></li><li><span>Harlan Deane</span><em>1,341</em></li><li><span>Nightbus Choir</span><em>1,178</em></li><li><span>Oona Ferrer</span><em>1,067</em></li></ol><p>Bedrock rather than spikes. If a set has to sound like him with no risk, it is built from this list.</p></div><div class="tier"><span class="lab">The canon</span><h3>Heaviest by hours, the centre of gravity</h3><ol><li><span>The Vestry Hours</span><em>87.6h</em></li><li><span>Corva</span><em>63.0h</em></li><li><span>The Long Field</span><em>40.8h</em></li><li><span>Sable Motor</span><em>25.5h</em></li><li><span>Petra Lund</span><em>23.2h</em></li></ol><p>Hours and plays disagree, and the disagreement is the finding: some artists are played often and briefly.</p></div><div class="tier"><span class="lab">The modern layer</span><h3>The outer ring, threaded through</h3><ol><li><span>Ivo Marchetti</span><em>903</em></li><li><span>Cold Harbour Set</span><em>791</em></li><li><span>Petra Lund</span><em>688</em></li><li><span>Marren</span><em>574</em></li><li><span>Anouk Vale</span><em>502</em></li></ol><p>The old souls and the newer records share one library rather than sitting in separate playlists.</p></div><div class="tier"><span class="lab">Recent rotation</span><h3>Where the taste is actually moving</h3><ol><li><span>dublon-like</span><em>2025</em></li><li><span>berlioz-like</span><em>2025</em></li><li><span>Mild Minds-like</span><em>2025</em></li><li><span>back to guitars</span><em>2026</em></li><li><span>the pendulum</span><em>live</em></li></ol><p>The live edge swung electronic through 2025 and back toward guitars in 2026. That swing is the current dynamic.</p></div></div>
+ <div data-cap="Plays by year, and the sets rebuilt from the record" class="scene hist">
+  <span class="lab">Qualified plays by year</span>
+  <div class="bars"><i style="height:31%"></i><i style="height:44%"></i><i style="height:58%"></i><i style="height:49%"></i><i style="height:71%"></i><i style="height:86%"></i><i style="height:79%"></i><i style="height:97%"></i><i style="height:100%"></i><i style="height:88%"></i><i style="height:81%"></i><i style="height:52%"></i></div><div class="yrs"><span>2015</span><span>&nbsp;</span><span>&nbsp;</span><span>2018</span><span>&nbsp;</span><span>&nbsp;</span><span>2021</span><span>&nbsp;</span><span>&nbsp;</span><span>2024</span><span>&nbsp;</span><span>2026</span></div>
+  <div style="margin-top:30px"><span class="lab">Sets rebuilt from the record</span>
+   <ul class="sets"><li><u>Audited</u><b>Rock anthems</b><span>Ranked by repeat rate rather than release date</span></li><li><u>Audited</u><b>Melodic house discovery</b><span>Seeded from the tail of the record, not the head</span></li><li><u>Audited</u><b>Jazz gateway</b><span>Built for someone who does not like jazz yet</span></li><li><u>Audited</u><b>Seventies singer-songwriter</b><span>Deduplicated across four live versions of one song</span></li><li><u>Audited</u><b>Fresh finds</b><span>Nothing played in the last two years</span></li><li><u>Audited</u><b>The spine, shuffled</b><span>No risk, no discovery, for a long drive</span></li></ul></div>
+ </div>
+</div></body></html>

@@ -1,110 +1,71 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>The Reading Log (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of a private tool, rendered with invented data.">
-<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>
-:root{
-  --tone:#b08a5e;
-  --bg:hsl(32 22% 96%); --ink:hsl(28 14% 14%);
-  --d:'Fraunces',Georgia,serif;
-  --t:'Spectral',Georgia,serif;
-  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
-  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  --line:hsl(30 12% 8% / .13);
-  --line2:hsl(30 12% 8% / .24);
-  --mute:hsl(30 6% 41%);
-  --faint:hsl(30 6% 56%);
-  --sur:hsl(30 12% 8% / .032);
-}
-*{box-sizing:border-box}
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'><style>*{box-sizing:border-box}
+.badge{position:fixed;top:14px;right:14px;z-index:20;font:600 9.5px -apple-system,system-ui,sans-serif;
+ letter-spacing:.2em;text-transform:uppercase;border-radius:99px;padding:7px 13px}
+:root{--s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;--m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif;--bg:#F8F4ED;--ink:#211c16;--sub:#5c5449;--dim:#867d6f;
+ --line:rgba(33,28,22,.13);--line2:rgba(33,28,22,.26);--accent:#9c6f3c}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
-  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-/* the grain keeps a flat ground from reading as a slide */
-body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.035;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
-.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
-  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
-.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
-.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+ -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.badge{color:var(--dim);border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
+.lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
-a{color:inherit}
-
 .pg{max-width:1180px;margin:0 auto;padding:0 46px 72px}
 .top{padding:46px 0 22px;border-bottom:1px solid var(--line2)}
 .top h1{font-size:clamp(31px,3.8vw,46px)}
-.top p{margin:12px 0 0;font-family:var(--t);font-size:16.6px;line-height:1.55;color:var(--mute);max-width:52ch}
-.shelfwrap{padding:36px 0 12px;border-bottom:1px solid var(--line)}
-.shelf{display:flex;align-items:flex-end;gap:3px;height:196px;margin-top:18px;
-  border-bottom:3px solid var(--line2);padding-bottom:0}
-.sp{position:relative;border-radius:2px 2px 0 0;cursor:default;transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.top p{margin:12px 0 0;font-family:var(--t);font-size:16.6px;line-height:1.55;color:var(--sub);max-width:54ch}
+.shelfwrap{padding:34px 0 14px;border-bottom:1px solid var(--line)}
+.shelf{display:flex;align-items:flex-end;gap:3px;height:188px;margin-top:16px;
+ border-bottom:3px solid var(--line2)}
+.sp{border-radius:2px 2px 0 0;transition:transform .3s cubic-bezier(.16,1,.3,1)}
 .sp:hover{transform:translateY(-9px)}
-/* labels live in the tooltip: rotated 8px type on a 20px spine is a smudge, not a label */
-.sp em{display:none;position:absolute;bottom:9px;left:50%;transform:translateX(-50%) rotate(-90deg);
-  transform-origin:center;white-space:nowrap;font-style:normal;font-family:var(--m);
-  font-size:8.4px;color:hsl(38 30% 96% / .62);letter-spacing:.05em}
-.mo{display:flex;gap:3px;margin-top:9px}
-.mo span{text-align:center;font-family:var(--m);font-size:9.5px;color:var(--faint)}
-.two{display:grid;grid-template-columns:minmax(0,1fr) 322px;gap:46px;padding-top:34px}
-.now{border-left:2px solid var(--tone);padding:3px 0 3px 20px}
-.now h3{font-size:24px;margin:7px 0 0}
-.now .au{font-family:var(--t);font-style:italic;font-size:15.5px;color:var(--mute);margin-top:4px}
-.prog{margin-top:16px}
-.prog .t{height:3px;background:var(--line);position:relative}
-.prog .t i{position:absolute;inset:0 auto 0 0;background:var(--tone);font-style:normal}
-.prog .c{margin-top:8px;font-family:var(--m);font-size:11.5px;color:var(--faint)}
-table{width:100%;border-collapse:collapse;margin-top:16px}
-th{text-align:left;font:500 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;
-  color:var(--faint);padding:0 12px 9px 0;border-bottom:1px solid var(--line)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:46px;padding-top:32px}
+.now{border-left:2px solid var(--accent);padding:3px 0 3px 20px}
+.now h3{font-size:23px;margin:7px 0 0}
+.now .au{font-family:var(--t);font-style:italic;font-size:15.4px;color:var(--sub);margin-top:4px}
+.t{height:3px;background:var(--line);position:relative;margin-top:15px}
+.t i{position:absolute;inset:0 auto 0 0;background:var(--accent);display:block}
+.c{margin-top:8px;font-family:var(--m);font-size:11.4px;color:var(--dim)}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th{text-align:left;font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;
+ color:var(--dim);padding:0 12px 9px 0;border-bottom:1px solid var(--line)}
 td{padding:12px 12px 12px 0;border-bottom:1px solid var(--line);font-family:var(--t);font-size:15px}
-td.ti{font-family:var(--d);font-size:16.5px;letter-spacing:-.018em}
-td.au{color:var(--mute);font-style:italic}
-td.dt,th.dt{text-align:right;font-family:var(--m);font-size:11.5px;color:var(--faint)}
-tr:hover td{background:var(--sur)}
+td.ti{font-family:var(--d);font-size:16.4px}
+td.au{color:var(--sub);font-style:italic}
+td.dt,th.dt{text-align:right;font-family:var(--m);font-size:11.4px;color:var(--dim)}
+tr:hover td{background:rgba(33,28,22,.03)}
 .side .blk{border-top:1px solid var(--line);padding:15px 0}
-.side .big{font-family:var(--d);font-weight:300;font-size:40px;letter-spacing:-.035em;line-height:1}
-.side .big small{font-size:15px;color:var(--mute);margin-left:6px;letter-spacing:0}
-.side p{margin:5px 0 0;font-family:var(--t);font-size:13.6px;color:var(--faint);line-height:1.5}
-@media(max-width:900px){.two{grid-template-columns:1fr}}
-
-</style>
-</head>
-<body>
-<div class="badge">Sample data</div>
+.side .big{font-family:var(--d);font-weight:300;font-size:38px;letter-spacing:-.035em;line-height:1}
+.side .big small{font-size:14.6px;color:var(--sub);margin-left:6px;letter-spacing:0}
+.side p{margin:5px 0 0;font-family:var(--t);font-size:13.4px;color:var(--dim);line-height:1.5}
+@media(max-width:900px){.two{grid-template-columns:1fr}}</style></head><body><div class="badge">Sample data</div>
 <div class="pg">
- <div data-cap="Every book finished, so the year has a shape" class="scene top"><h1>The Reading Log</h1>
-  <p>Every book finished, shelved and counted, so the year has a shape you can look at instead of a vague sense that you have not been reading enough.</p></div>
- <div data-cap="Forty-one spines, width by length" class="scene shelfwrap"><span class="lab">Forty-one finished this year, in the order they were finished &middot; width is length, colour is shelf</span>
-  <div class="shelf"><div class="sp" style="flex:27;height:183px;background:#6b4a2f" title="The Ordinary Business of Cities"></div><div class="sp" style="flex:27;height:169px;background:#4a5240" title="A Grammar of Weather"></div><div class="sp" style="flex:29;height:187px;background:#7a4b3a" title="Everything the River Took"></div><div class="sp" style="flex:19;height:135px;background:#3f4a58" title="Notes on a Failing Bridge"></div><div class="sp" style="flex:29;height:172px;background:#5c4257" title="The Auctioneer's Daughter"></div><div class="sp" style="flex:18;height:124px;background:#6d5a30" title="Small Countries, Long Memories"></div><div class="sp" style="flex:27;height:150px;background:#43514c" title="What the Ledger Knew"></div><div class="sp" style="flex:17;height:123px;background:#5a3f38" title="The Glassmaker's Year"></div><div class="sp" style="flex:30;height:117px;background:#6b4a2f" title="Nine Days in Trieste"></div><div class="sp" style="flex:25;height:169px;background:#4a5240" title="The Quiet Part"></div><div class="sp" style="flex:18;height:113px;background:#7a4b3a" title="An Atlas of Debts"></div><div class="sp" style="flex:29;height:120px;background:#3f4a58" title="Letters to a Younger Partner"></div><div class="sp" style="flex:14;height:116px;background:#5c4257" title="The Salt Line"></div><div class="sp" style="flex:19;height:142px;background:#6d5a30" title="Provincial Matters"></div><div class="sp" style="flex:13;height:171px;background:#43514c" title="How the Docks Were Lost"></div><div class="sp" style="flex:23;height:168px;background:#5a3f38" title="A Theory of Small Rooms"></div><div class="sp" style="flex:31;height:137px;background:#6b4a2f" title="The Long Commute"></div><div class="sp" style="flex:29;height:141px;background:#4a5240" title="Inheritance Tax"></div><div class="sp" style="flex:22;height:175px;background:#7a4b3a" title="The Second Draft"></div><div class="sp" style="flex:13;height:122px;background:#3f4a58" title="Cold Harbour"></div><div class="sp" style="flex:27;height:147px;background:#5c4257" title="Ashfield"></div><div class="sp" style="flex:26;height:182px;background:#6d5a30" title="The Tally"></div><div class="sp" style="flex:15;height:144px;background:#43514c" title="Wintering Grounds"></div><div class="sp" style="flex:23;height:141px;background:#5a3f38" title="A Borrowed Language"></div><div class="sp" style="flex:29;height:148px;background:#6b4a2f" title="The Paper Mill"></div><div class="sp" style="flex:13;height:120px;background:#4a5240" title="Nightwork"></div><div class="sp" style="flex:31;height:125px;background:#7a4b3a" title="Two Rivers"></div><div class="sp" style="flex:25;height:125px;background:#3f4a58" title="The Understudy"></div><div class="sp" style="flex:22;height:161px;background:#5c4257" title="Common Ground"></div><div class="sp" style="flex:15;height:114px;background:#6d5a30" title="The Last Tenant"></div><div class="sp" style="flex:13;height:139px;background:#43514c" title="Field Notes"></div><div class="sp" style="flex:19;height:118px;background:#5a3f38" title="The Coastal Survey"></div><div class="sp" style="flex:28;height:160px;background:#6b4a2f" title="An Honest Trade"></div><div class="sp" style="flex:25;height:165px;background:#4a5240" title="The Blue Hour"></div><div class="sp" style="flex:15;height:184px;background:#7a4b3a" title="Remittance"></div><div class="sp" style="flex:19;height:146px;background:#3f4a58" title="The Locksmith"></div><div class="sp" style="flex:23;height:123px;background:#5c4257" title="Half a Harvest"></div><div class="sp" style="flex:22;height:154px;background:#6d5a30" title="The Draughtsman"></div><div class="sp" style="flex:13;height:164px;background:#43514c" title="Passage Work"></div><div class="sp" style="flex:16;height:129px;background:#5a3f38" title="The Reckoning"></div><div class="sp" style="flex:20;height:124px;background:#6b4a2f" title="Slow Water"></div></div></div>
- <div data-cap="What is open now, and what closed recently" class="scene two">
-  <div>
+ <div data-cap="Every book finished, so the year has a shape" class="scene top">
+  <h1>The Reading Log</h1>
+  <p>Shelved and counted, because a shape you can look at beats a vague sense that you have not been reading enough.</p></div>
+ <div data-cap="Forty-one spines, width by length, colour by shelf" class="scene shelfwrap">
+  <span class="lab">Forty-one finished this year, in the order they were finished</span>
+  <div class="shelf"><div class="sp" style="flex:27;height:181px;background:#6b4a2f" title="The Ordinary Business of Cities"></div><div class="sp" style="flex:27;height:167px;background:#4a5240" title="A Grammar of Weather"></div><div class="sp" style="flex:29;height:185px;background:#7a4b3a" title="Everything the River Took"></div><div class="sp" style="flex:19;height:133px;background:#3f4a58" title="Notes on a Failing Bridge"></div><div class="sp" style="flex:29;height:170px;background:#5c4257" title="The Auctioneer's Daughter"></div><div class="sp" style="flex:18;height:122px;background:#6d5a30" title="Small Countries, Long Memories"></div><div class="sp" style="flex:27;height:148px;background:#43514c" title="What the Ledger Knew"></div><div class="sp" style="flex:17;height:121px;background:#5a3f38" title="The Glassmaker's Year"></div><div class="sp" style="flex:30;height:115px;background:#6b4a2f" title="Nine Days in Trieste"></div><div class="sp" style="flex:25;height:167px;background:#4a5240" title="The Quiet Part"></div><div class="sp" style="flex:18;height:111px;background:#7a4b3a" title="An Atlas of Debts"></div><div class="sp" style="flex:29;height:118px;background:#3f4a58" title="Letters to a Younger Partner"></div><div class="sp" style="flex:14;height:114px;background:#5c4257" title="The Salt Line"></div><div class="sp" style="flex:19;height:140px;background:#6d5a30" title="Provincial Matters"></div><div class="sp" style="flex:13;height:169px;background:#43514c" title="How the Docks Were Lost"></div><div class="sp" style="flex:23;height:166px;background:#5a3f38" title="A Theory of Small Rooms"></div><div class="sp" style="flex:31;height:135px;background:#6b4a2f" title="The Long Commute"></div><div class="sp" style="flex:29;height:139px;background:#4a5240" title="Inheritance Tax"></div><div class="sp" style="flex:22;height:173px;background:#7a4b3a" title="The Second Draft"></div><div class="sp" style="flex:13;height:120px;background:#3f4a58" title="Cold Harbour"></div><div class="sp" style="flex:27;height:145px;background:#5c4257" title="Ashfield"></div><div class="sp" style="flex:26;height:180px;background:#6d5a30" title="The Tally"></div><div class="sp" style="flex:15;height:142px;background:#43514c" title="Wintering Grounds"></div><div class="sp" style="flex:23;height:139px;background:#5a3f38" title="A Borrowed Language"></div><div class="sp" style="flex:29;height:146px;background:#6b4a2f" title="The Paper Mill"></div><div class="sp" style="flex:13;height:118px;background:#4a5240" title="Nightwork"></div><div class="sp" style="flex:31;height:123px;background:#7a4b3a" title="Two Rivers"></div><div class="sp" style="flex:25;height:123px;background:#3f4a58" title="The Understudy"></div><div class="sp" style="flex:22;height:159px;background:#5c4257" title="Common Ground"></div><div class="sp" style="flex:15;height:112px;background:#6d5a30" title="The Last Tenant"></div><div class="sp" style="flex:13;height:137px;background:#43514c" title="Field Notes"></div><div class="sp" style="flex:19;height:116px;background:#5a3f38" title="The Coastal Survey"></div><div class="sp" style="flex:28;height:158px;background:#6b4a2f" title="An Honest Trade"></div><div class="sp" style="flex:25;height:163px;background:#4a5240" title="The Blue Hour"></div><div class="sp" style="flex:15;height:182px;background:#7a4b3a" title="Remittance"></div><div class="sp" style="flex:19;height:144px;background:#3f4a58" title="The Locksmith"></div><div class="sp" style="flex:23;height:121px;background:#5c4257" title="Half a Harvest"></div><div class="sp" style="flex:22;height:152px;background:#6d5a30" title="The Draughtsman"></div><div class="sp" style="flex:13;height:162px;background:#43514c" title="Passage Work"></div><div class="sp" style="flex:16;height:127px;background:#5a3f38" title="The Reckoning"></div><div class="sp" style="flex:20;height:122px;background:#6b4a2f" title="Slow Water"></div></div></div>
+ <div class="two">
+  <div data-cap="What is open now, and what closed recently" class="scene">
    <div class="now"><span class="lab">Reading now</span>
-    <h3>The Ordinary Business of Cities</h3>
-    <div class="au">Helena Marsh</div>
-    <div class="prog"><div class="t"><i style="width:61.7%"></i></div>
-     <div class="c">page 248 of 402 &middot; started eleven days ago &middot; about 38 pages a day</div></div>
-   </div>
-   <div style="margin-top:32px"><span class="lab">Recently finished</span>
+    <h3>The Ordinary Business of Cities</h3><div class="au">Helena Marsh</div>
+    <div class="t"><i style="width:61.7%"></i></div>
+    <div class="c">page 248 of 402 &middot; started eleven days ago &middot; about 38 pages a day</div></div>
+   <div style="margin-top:30px"><span class="lab">Recently finished</span>
     <table><thead><tr><th>Title</th><th>Author</th><th class="dt">Finished</th></tr></thead><tbody><tr><td class="ti">A Grammar of Weather</td><td class="au">Tomas Reyner</td><td class="dt">6 May</td></tr><tr><td class="ti">Everything the River Took</td><td class="au">Ada Winslow</td><td class="dt">28 Apr</td></tr><tr><td class="ti">Notes on a Failing Bridge</td><td class="au">Ruth Calderon</td><td class="dt">19 Apr</td></tr><tr><td class="ti">The Auctioneer's Daughter</td><td class="au">Peter Nakashima</td><td class="dt">11 Apr</td></tr><tr><td class="ti">Small Countries, Long Memories</td><td class="au">Iris Bekele</td><td class="dt">2 Apr</td></tr><tr><td class="ti">What the Ledger Knew</td><td class="au">Daniel Ostrove</td><td class="dt">24 Mar</td></tr></tbody></table></div>
   </div>
-  <aside class="side">
-   <div class="blk"><span class="lab">Finished this year</span>
-    <div class="big">41<small>ahead of last year by six</small></div></div>
-   <div class="blk"><span class="lab">Pages</span>
-    <div class="big">13,880<small>about 38 a day</small></div></div>
-   <div class="blk"><span class="lab">Longest streak</span>
-    <div class="big">64<small>days without missing</small></div>
+  <aside data-cap="Counted honestly, rereads kept separate" class="scene side">
+   <div class="blk"><span class="lab">Finished this year</span><div class="big">41<small>ahead of last year by six</small></div></div>
+   <div class="blk"><span class="lab">Pages</span><div class="big">13,880<small>about 38 a day</small></div></div>
+   <div class="blk"><span class="lab">Longest streak</span><div class="big">64<small>days without missing</small></div>
     <p>Broken on a travel week, which is the honest reason and not a failure of the shelf.</p></div>
-   <div class="blk"><span class="lab">Rereads</span>
-    <div class="big">7<small>mostly the short ones</small></div>
+   <div class="blk"><span class="lab">Rereads</span><div class="big">7<small>mostly the short ones</small></div>
     <p>Counted separately, because a reread is a different act from a first read and folding them together would flatter the number.</p></div>
   </aside>
  </div>
-</div>
-</body>
-</html>
+</div></body></html>

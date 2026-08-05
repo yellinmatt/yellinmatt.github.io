@@ -1,137 +1,111 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
+<html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Train (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of a private tool, rendered with invented data.">
-<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
 <style>
-:root{
-  --tone:#6f9e8c;
-  --bg:hsl(150 8% 6.5%); --ink:hsl(150 6% 93%);
-  --d:'Fraunces',Georgia,serif;
-  --t:'Spectral',Georgia,serif;
-  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
-  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
-  --line:hsl(0 0% 100% / .11);
-  --line2:hsl(0 0% 100% / .20);
-  --mute:hsl(0 0% 66%);
-  --faint:hsl(0 0% 46%);
-  --sur:hsl(0 0% 100% / .035);
-}
 *{box-sizing:border-box}
+.badge{position:fixed;top:14px;right:14px;z-index:20;font:600 9.5px -apple-system,system-ui,sans-serif;
+ letter-spacing:.2em;text-transform:uppercase;border-radius:99px;padding:7px 13px}
+
+:root{--bg:#0B0D11;--card:#141821;--ink:#F3F5F8;--sub:#9AA3B2;--dim:#798394;
+ --line:#242A32;--line2:#30363F;--accent:#FF4E2B;--accent-tint:#3A1E17;--ok:#4FCf8F;
+ --s:-apple-system,'SF Pro Display','Segoe UI',system-ui,sans-serif;
+ --m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif}
 html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
-  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
-/* the grain keeps a flat ground from reading as a slide */
-body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.055;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
-.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
-  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
-.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
-.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
-a{color:inherit}
-
-.pg{max-width:1220px;margin:0 auto;padding:56px 48px 70px}
+ -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+.badge{color:var(--dim);border:1px solid var(--line2);background:rgba(11,13,17,.86)}
+.pg{max-width:1240px;margin:0 auto;padding:52px 48px 64px}
+.lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+h1{font-family:var(--d);font-weight:400;font-size:46px;letter-spacing:-.03em;margin:8px 0 0}
+h1 i{font-style:normal;color:var(--accent)}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;
-  border-bottom:1px solid var(--line);padding-bottom:20px}
-.hd h1{font-size:44px}.hd h1 i{font-style:normal;color:var(--tone)}
-.hd p{margin:9px 0 0;font-family:var(--t);font-size:16.5px;color:var(--mute);max-width:44ch;line-height:1.5}
-.stage{display:grid;grid-template-columns:minmax(0,1fr) 352px minmax(0,1fr);gap:34px;
-  align-items:center;padding:52px 0 12px}
-/* the device */
-.dev{position:relative;width:352px;height:716px;border-radius:46px;padding:11px;
-  background:linear-gradient(160deg,hsl(0 0% 26%),hsl(0 0% 11%));
-  box-shadow:0 40px 90px -30px rgb(0 0 0 / .8),0 0 0 1px hsl(0 0% 100% / .07)}
-.scr{position:relative;height:100%;border-radius:36px;overflow:hidden;background:#f3f4f3;color:#14181a;
-  display:flex;flex-direction:column}
-.sb{display:flex;justify-content:space-between;padding:13px 22px 5px;font:600 12.5px var(--s);color:#14181a}
-.scr .body{flex:1;overflow:hidden;padding:6px 17px 0}
-.tday{font:500 11px var(--s);letter-spacing:.16em;text-transform:uppercase;color:#7d8a85}
-.tbig{font-family:var(--d);font-size:29px;letter-spacing:-.03em;margin:2px 0 14px;color:#14181a}
-.crd{background:#fff;border-radius:18px;padding:17px 18px;box-shadow:0 1px 2px rgb(20 24 26 / .07)}
-.crd .k{font:500 10px var(--s);letter-spacing:.18em;text-transform:uppercase;color:#8a9691}
-.crd h4{font-family:var(--d);font-weight:400;font-size:23px;margin:5px 0 3px;letter-spacing:-.02em}
-.crd .sub{font-size:13.5px;color:#68746f}
-.go{margin-top:14px;background:var(--tone);color:#08110d;border-radius:13px;padding:14px;
-  text-align:center;font:600 15.5px var(--s)}
-.rot{display:flex;gap:7px;margin-top:14px}
-.rot i{flex:1;height:5px;border-radius:3px;background:#dde2df;font-style:normal}
-.rot i.on{background:var(--tone)}
-.lst{margin-top:15px;display:grid;gap:8px}
-.li{display:flex;align-items:center;gap:11px;background:#fff;border-radius:13px;padding:11px 13px;
-  box-shadow:0 1px 2px rgb(20 24 26 / .06);font-size:14.5px}
-.li b{width:19px;height:19px;border-radius:50%;border:1.5px solid #cfd6d2;flex:none}
-.li.dn b{background:var(--tone);border-color:var(--tone)}
-.li.dn span{color:#8a9691;text-decoration:line-through}
-.li em{margin-left:auto;font-style:normal;font-family:var(--m);font-size:12px;color:#8a9691}
-.tabs{display:flex;border-top:1px solid #e2e7e4;background:#fbfcfb;padding:9px 0 20px}
-.tabs div{flex:1;text-align:center;font:500 10px var(--s);letter-spacing:.06em;color:#96a09b}
-.tabs div.on{color:var(--tone)}
-.tabs u{display:block;width:17px;height:17px;margin:0 auto 4px;border-radius:5px;
-  border:1.6px solid currentColor;text-decoration:none}
-/* annotations */
-.ann{display:grid;gap:30px}
+ border-bottom:1px solid var(--line);padding-bottom:20px}
+.hd p{margin:10px 0 0;font-family:'Spectral',Georgia,serif;font-size:16.5px;line-height:1.55;
+ color:var(--sub);max-width:46ch}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 360px minmax(0,1fr);gap:36px;
+ align-items:center;padding:46px 0 8px}
+.dev{width:360px;height:730px;border-radius:48px;padding:11px;justify-self:center;
+ background:linear-gradient(160deg,#3a4150,#12151b);
+ box-shadow:0 44px 96px -34px #05070a,0 0 0 1px rgba(255,255,255,.07)}
+.scr{height:100%;border-radius:38px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+.sb{display:flex;justify-content:space-between;padding:14px 24px 4px;font:600 12.5px var(--s)}
+.bd{flex:1;overflow:hidden;padding:8px 16px 0}
+.k{font:600 10px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.big{font-family:var(--d);font-weight:400;font-size:27px;letter-spacing:-.025em;margin:3px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;padding:15px 16px}
+.card h4{margin:4px 0 2px;font:600 19px var(--s);letter-spacing:-.02em}
+.card .sub{font:450 13px var(--s);color:var(--sub)}
+.cta{margin-top:13px;background:var(--accent);color:#fff;border-radius:13px;padding:13px;
+ text-align:center;font:600 15px var(--s)}
+.rot{display:flex;gap:6px;margin-top:12px}
+.rot i{flex:1;height:4px;border-radius:2px;background:#2a3039}
+.rot i.on{background:var(--accent)}
+.anchor{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:13px 14px}
+.anchor .row{display:flex;align-items:center;gap:10px;padding:6px 0;font:450 13.5px var(--s)}
+.anchor .row b{width:17px;height:17px;border-radius:50%;border:1.5px solid #39404b;flex:none}
+.anchor .row.d b{background:var(--ok);border-color:var(--ok)}
+.anchor .row.d span{color:var(--dim);text-decoration:line-through}
+.tabs{display:flex;border-top:1px solid var(--line);background:#0e1117;padding:9px 0 21px}
+.tabs div{flex:1;text-align:center;font:600 10px var(--s);color:#5b6472}
+.tabs div.on{color:var(--accent)}
+.tabs u{display:block;width:16px;height:16px;margin:0 auto 4px;border-radius:5px;
+ border:1.7px solid currentColor;text-decoration:none}
+.ann{display:grid;gap:28px}
 .ann.r{text-align:right}
-.an .lab{display:block;margin-bottom:7px;color:var(--tone)}
-.an h5{font-family:var(--d);font-weight:400;font-size:19.5px;margin:0 0 6px;letter-spacing:-.02em}
-.an p{margin:0;font-family:var(--t);font-size:14.5px;line-height:1.55;color:var(--mute)}
-.rule{border-top:1px solid var(--line);margin-top:48px;padding-top:22px;
-  display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
-.rule p{margin:7px 0 0;font-family:var(--t);font-size:14.5px;line-height:1.55;color:var(--mute)}
+.an .lab{display:block;margin-bottom:6px;color:var(--accent)}
+.an h5{font-family:var(--d);font-weight:400;font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
+.an p{margin:0;font-family:'Spectral',Georgia,serif;font-size:14.5px;line-height:1.55;color:var(--sub)}
+.rule{border-top:1px solid var(--line);margin-top:44px;padding-top:22px;
+ display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
-@media(max-width:1080px){.stage{grid-template-columns:1fr;justify-items:center}.ann.r{text-align:left}}
+.rule p{margin:6px 0 0;font-family:'Spectral',Georgia,serif;font-size:14.3px;line-height:1.55;color:var(--sub)}
+@media(max-width:1100px){.stage{grid-template-columns:1fr}.ann.r{text-align:left}}
 
-</style>
-</head>
-<body>
+</style></head><body>
 <div class="badge">Sample data</div>
 <div class="pg">
- <div data-cap="A phone app, not a dashboard" class="scene hd">
-  <div><h1>Tra<i>in</i></h1>
-   <p>A training system with no number in it you can fail. It runs on a phone, in four tabs, and it prescribes the day rather than asking you to plan one.</p></div>
-  <div class="lab">Week 12 &middot; Day A &middot; v7.79</div>
+ <div data-cap="A phone app, four tabs, not a dashboard" class="scene hd">
+  <div><span class="lab">Week 12 &middot; day A &middot; v7.79</span><h1>Tra<i>in</i></h1>
+   <p>A training system with no number in it you can fail. It prescribes the day off a rotation instead of asking you to plan one, and it lives on a phone because that is where training actually happens.</p></div>
+  <span class="lab">Today &middot; Lift &middot; Cardio &middot; Track</span>
  </div>
- <div data-cap="The rotation, the swap, and the long view" class="scene stage">
+ <div data-cap="The rotation, the anchor, and the swap" class="scene stage">
   <div class="ann r">
    <div class="an"><span class="lab">The rotation</span><h5>A day you skip is next, not lost</h5><p>The plan advances when a session is finished, never when a date passes. Miss Thursday and Thursday is what Friday offers you.</p></div>
-   <div class="an"><span class="lab">No denominator</span><h5>Nothing here reads 3 of 5</h5><p>A denominator invents a total you can fall behind on. The card counts what happened and says nothing about what did not.</p></div>
+   <div class="an"><span class="lab">No denominator</span><h5>Nothing here reads three of five</h5><p>A denominator invents a total to fall behind on. The card counts what happened and stays silent about what did not.</p></div>
   </div>
   <div class="dev"><div class="scr">
    <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;&#9679;</span></div>
-   <div class="body">
-    <div class="tday">Tuesday, 12 May &middot; afternoon</div>
-    <div class="tbig">Squat and push</div>
-    <div class="crd">
-     <span class="k">Today</span>
+   <div class="bd">
+    <div class="k">Tuesday 12 May &middot; afternoon</div>
+    <div class="big">Squat and push</div>
+    <div class="card"><span class="k">Today</span>
      <h4>Seven movements</h4>
-     <div class="sub">About 34 minutes, barbell and bodyweight</div>
-     <div class="go">Start the session</div>
+     <div class="sub">About 34 minutes &middot; barbell and bodyweight</div>
+     <div class="cta">Do the first session</div>
      <div class="rot"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
     </div>
-    <div class="lst">
-     <div class="li dn"><b></b><span>Back squat</span><em>185 &times; 5</em></div>
-     <div class="li dn"><b></b><span>Romanian deadlift</span><em>155 &times; 8</em></div>
-     <div class="li"><b></b><span>Split squat</span><em>45 &times; 10</em></div>
-     <div class="li"><b></b><span>Standing calf raise</span><em>90 &times; 12</em></div>
-     <div class="li"><b></b><span>Hanging knee raise</span><em>bodyweight</em></div>
+    <div class="anchor"><span class="k">Morning anchor</span>
+     <div class="row d"><b></b><span>Push-ups, submax</span></div>
+     <div class="row d"><b></b><span>Bodyweight squats</span></div>
+     <div class="row"><b></b><span>Deep squat rock</span></div>
+     <div class="row"><b></b><span>Dead hang</span></div>
     </div>
    </div>
    <div class="tabs"><div class="on"><u></u>Today</div><div><u></u>Lift</div><div><u></u>Cardio</div><div><u></u>Track</div></div>
   </div></div>
   <div class="ann">
-   <div class="an"><span class="lab">The swap</span><h5>A video session can stand in for the day</h5><p>Sore, travelling, or short on time: put a class in its place and the rotation holds its position instead of skipping forward.</p></div>
-   <div class="an"><span class="lab">The long view</span><h5>Load is read over months</h5><p>Week to week is noise. The trend line only claims something when it has enough weeks behind it to mean anything.</p></div>
+   <div class="an"><span class="lab">Change today</span><h5>A video session can stand in for the day</h5><p>Sore, travelling, or short of time: put a class in its place and the rotation holds position instead of skipping forward.</p></div>
+   <div class="an"><span class="lab">Levels, not scores</span><h5>Load is read over months</h5><p>Week to week is noise. A level only moves when there are enough weeks behind it to mean something, and it never moves down for a missed day.</p></div>
   </div>
  </div>
  <div data-cap="What it runs on, and the rule it keeps" class="scene rule">
-  <div><span class="lab">Built on</span><p><b>An edge worker and object storage.</b> The phone holds the log, a worker holds the copy, and a passphrase is what joins them.</p></div>
-  <div><span class="lab">Tested by</span><p><b>Four audit harnesses.</b> Each one reads the shipped file rather than the intention, because a checker is only as wide as the file it opens.</p></div>
-  <div><span class="lab">The rule it keeps</span><p><b>No week you can fail.</b> Every surface was checked against that sentence before it was allowed to ship.</p></div>
+  <div><span class="lab">Built on</span><p><b>An edge worker and object storage.</b> The phone holds the log, a worker holds the copy, and a passphrase is the only thing that joins them. Nothing renders for a stranger.</p></div>
+  <div><span class="lab">Tested by</span><p><b>Four audit harnesses.</b> Each reads the shipped file rather than the intention, because a checker is only ever as wide as the file it opens.</p></div>
+  <div><span class="lab">The rule</span><p><b>No week you can fail.</b> Every surface was held against that sentence before it was allowed to ship, and two were rebuilt because they failed it.</p></div>
  </div>
 </div>
-</body>
-</html>
+</body></html>
