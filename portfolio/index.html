@@ -121,7 +121,7 @@ img{display:block;max-width:100%}
   transition:border-color .25s linear,z-index 0s}
 .cell:hover{border-color:color-mix(in srgb,var(--tone) 52%,transparent);z-index:2}
 
-/* two writers, two elements: the drift owns .par, the hover scroll owns img */
+/* two writers, two elements: the drift owns .par, the hover lift owns img */
 .cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
 /* NO IDLE TRANSFORM AND NO will-change, AND THAT IS THE WHOLE FIX.
 
@@ -145,12 +145,12 @@ img{display:block;max-width:100%}
    at once, and the captures were re-encoded to the size they are actually
    displayed at, which took the bitmap total from 107 MB to about 30 MB.
    Nothing about the motion changed. */
-.cell .par img{position:absolute;top:0;left:0;width:100%;height:auto;
-  transition:transform 9s linear}
+.cell .par img{position:absolute;top:0;left:0;width:100%;height:100%;
+  object-fit:cover;object-position:50% 50%;transition:transform 1.1s var(--ease)}
 @media (hover:hover) and (pointer:fine){
-  .cell:hover .par img,.cell:focus-visible .par img{transform:translate3d(0,var(--travel,-55%),0)}
+  .cell:hover .par img,.cell:focus-visible .par img{transform:scale(1.035)}
 }
-.cell.play .par img{transform:translate3d(0,var(--travel,-55%),0)}
+.cell.play .par img{transform:scale(1.035)}
 .cell .par img.crop{width:100%;height:100%;object-fit:cover;object-position:50% 0}
 
 /* 8VC carries the colour on the ITEM and holds it back until hover. At rest
@@ -159,7 +159,8 @@ img{display:block;max-width:100%}
   transition:opacity .6s cubic-bezier(.215,.61,.355,1);
   background:radial-gradient(120% 100% at 50% 100%,color-mix(in srgb,var(--tone) 30%,transparent),transparent 72%)}
 .cell:hover .tone{opacity:1}
-/* type cells: the poster carries the tool, the quote carries the reason */
+/* every cell now carries a matted plate: one signature element per tool,
+   cropped to one shared rectangle on one shared ground */
 .cell.type{background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 11%,transparent),var(--g2))}
 
 /* THE PRIVATE TILES NOW CARRY A POSTER. Every cell used to be either a picture
@@ -168,7 +169,7 @@ img{display:block;max-width:100%}
    behind, a scrim carries it down to where the quote reads, and the quote
    stays. A tool you cannot see is a claim; a tool you can see is evidence.
    These posters are whole pages fitted into 4:3, so they use cover-from-top
-   rather than the scrolling travel the four public tiles use. */
+   on one shared ground, so twelve tools read as one system. */
 .cell.type .par{opacity:.34;transition:opacity .6s var(--ease),transform .9s var(--ease)}
 .cell.type:hover .par,.cell.type:focus-visible .par{opacity:.5}
 .cell.type .par img.crop{transition:transform 1.1s var(--ease)}
@@ -373,7 +374,7 @@ html.js .rv.in{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   /* Gentled, never frozen. Matthew's phone runs Reduce Motion, so this is the
-     path he actually sees: the capture still travels, slowly, and the tabs
+     path he actually sees: the plate lifts slightly on hover, and the tabs
      still change. A frozen fallback reads as broken. */
   .cell .par img{transition-duration:16s}
   .cell.app .par img{transition-duration:1.1s}
@@ -399,28 +400,28 @@ html.js .rv.in{opacity:1;transform:none}
   </header>
 
   <section class="roster">
-    <a class="cell rv" href="../news/" target="_blank" rel="noopener" style="--tone:#d4604f;--travel:-58%" data-k="brief">
+    <a class="cell rv" href="../news/" target="_blank" rel="noopener" style="--tone:#d4604f" data-k="brief">
       <span class="par"><img src="../assets/shots/brief.jpg" alt="The Morning Brief, a recent edition" loading="lazy" decoding="async"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">01</span>
       <span class="cap"><b>The Morning Brief</b><i>Vol. I No. 75 &middot; Daily</i></span>
     </a>
-    <a class="cell rv" href="../well-versed/" target="_blank" rel="noopener" style="--tone:#dd7d63;--travel:-56%" data-k="versed">
+    <a class="cell rv" href="../well-versed/" target="_blank" rel="noopener" style="--tone:#dd7d63" data-k="versed">
       <span class="par"><img src="../assets/shots/versed.jpg" alt="Well-Versed, the lesson library" loading="lazy" decoding="async"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">02</span>
       <span class="cap"><b>Well-Versed</b><i>Daily &middot; every lesson kept</i></span>
     </a>
-    <a class="cell rv" href="../dealcraft/" target="_blank" rel="noopener" style="--tone:#dcb47e;--travel:-54%" data-k="deal">
+    <a class="cell rv" href="../dealcraft/" target="_blank" rel="noopener" style="--tone:#dcb47e" data-k="deal">
       <span class="par"><img src="../assets/shots/deal.jpg" alt="Dealcraft, the corporate law desk" loading="lazy" decoding="async"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">03</span>
       <span class="cap"><b>Dealcraft</b><i>Lesson 016 &middot; two-year build</i></span>
     </a>
-    <a class="cell rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--tone:#7da3c2;--travel:-52%" data-k="bits">
+    <a class="cell rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--tone:#7da3c2" data-k="bits">
       <span class="par"><img src="../assets/shots/bits.jpg" alt="Greatest Bits, the comedy archive" loading="lazy" decoding="async"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
@@ -567,13 +568,13 @@ html.js .rv.in{opacity:1;transform:none}
       var po=new IntersectionObserver(function(es){
         es.forEach(function(e){e.target.classList.toggle('play',e.isIntersecting&&e.intersectionRatio>.55);});
       },{threshold:[0,.55,1]});
-      [].forEach.call(document.querySelectorAll('.cell[style*="travel"]'),function(t){po.observe(t);});
+      [].forEach.call(document.querySelectorAll('.cell .par'),function(t){po.observe(t.parentNode);});
     }
   }catch(e){}
 
   /* A slow parallax drift so the page breathes at rest rather than being a
      grid of frozen screenshots. It writes --drift on .par ONLY; the hover
-     travel writes transform on the img inside it. One writer per property. */
+     lift writes transform on the img inside it. One writer per property. */
   try{
     var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var pars=[].slice.call(document.querySelectorAll('.cell .par'));
@@ -607,7 +608,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06j';
+  var DEMOV='2026-08-06k';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
