@@ -428,13 +428,8 @@ html.js .rv.in{opacity:1;transform:none}
       <span class="no">04</span>
       <span class="cap"><b>Greatest Bits</b><i>459 comics catalogued</i></span>
     </a>
-    <div class="cell app rv" id="train" style="--tone:#6f9e8c" data-k="train">
-      <span class="par" id="tabs">
-        <img class="crop on" src="../assets/shots/train-today.jpg?v=2026-08-06k" alt="Train, the Today tab" loading="lazy" decoding="async">
-        <img class="crop" src="../assets/shots/train-lift.jpg?v=2026-08-06k" alt="Train, the Lift tab" loading="lazy" decoding="async">
-        <img class="crop" src="../assets/shots/train-cardio.jpg?v=2026-08-06k" alt="Train, the Cardio tab" loading="lazy" decoding="async">
-        <img class="crop" src="../assets/shots/train-track.jpg?v=2026-08-06k" alt="Train, the Track tab" loading="lazy" decoding="async">
-      </span>
+    <div class="cell rv" id="train" style="--tone:#6f9e8c" data-k="train">
+      <span class="par"><img class="crop" src="../assets/shots/train.jpg?v=2026-08-06k" alt="Train, the day it prescribes" loading="lazy" decoding="async"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">05</span>
@@ -627,7 +622,7 @@ html.js .rv.in{opacity:1;transform:none}
      lede:'An archive of great comedy, indexed so a bit you half remember can be found.',
      body:'Catalogued by comic and by bit. A standing read-only auditor sweeps the whole archive for empty profiles, dead embeds, missing photographs and duplicates, so the catalogue degrades loudly instead of silently.',
      meta:[['Roster','459 comics'],['Quality','A standing auditor'],['Built','Archive and tooling']]},
-   train:{k:'Private',n:'Train',shot:'train-today.jpg',demo:'train.html',
+   train:{k:'Private',n:'Train',shot:'train.jpg',demo:'train.html',
      lede:'A training system with no number in it you can fail.',
      body:'A phone app in four tabs. It prescribes the day off a rotation, watches load over months rather than days, and lets a video session replace any day without advancing the rotation, so a lift you skipped is next rather than lost. There is no denominator anywhere in it, because a denominator invents a total to fall behind on.',
      meta:[['Version','v7.77'],['Infrastructure','Edge worker, object storage'],['Testing','Four audit harnesses']]},
@@ -861,25 +856,9 @@ html.js .rv.in{opacity:1;transform:none}
     });
   }catch(e){}
 
-  /* Train: the four real tabs, in order, while the tile is on screen. */
-  try{
-    var ph=document.getElementById('tabs');
-    if(ph){
-      var shots=[].slice.call(ph.querySelectorAll('img')),i=0,timer=null;
-      var step=function(){
-        shots[i].classList.remove('on');
-        i=(i+1)%shots.length;
-        shots[i].classList.add('on');
-      };
-      var start=function(){if(!timer)timer=setInterval(step,2600);};
-      var stop=function(){if(timer){clearInterval(timer);timer=null;}};
-      if('IntersectionObserver'in window){
-        new IntersectionObserver(function(es){
-          es.forEach(function(e){if(e.isIntersecting){start();}else{stop();}});
-        },{threshold:.4}).observe(document.getElementById('train'));
-      }else{start();}
-    }
-  }catch(e){}
+  /* The Train tile used to cycle four captures of the real app. It now carries
+     one plate like every other cell, so the cycler and its four sources are
+     deleted here rather than left to run over an element that is gone. */
 })();
 </script>
 </body>
