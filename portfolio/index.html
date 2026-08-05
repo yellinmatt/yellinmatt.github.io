@@ -271,8 +271,12 @@ img{display:block;max-width:100%}
    the sample" link is the honest way through. --k is written by JS, once, from
    the measured pane width; the CSS owns nothing but the shape. */
 .sheet .shot .frame{position:relative;width:100%;overflow:hidden;background:var(--g4)}
-.sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1512px;border:0;
-  transform:scale(var(--k,1));transform-origin:top left;pointer-events:none}
+/* --y is the tour's position and the ONLY thing that moves. The iframe renders
+   its whole height, so there is no inner scroll to fight; we translate the page
+   past a window instead of asking the document to scroll itself. */
+.sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1160px;border:0;
+  transform:scale(var(--k,1)) translateY(calc(var(--y,0px) * -1));
+  transform-origin:top left;pointer-events:none;will-change:transform}
 .sheet .shot .frame::after{content:"";position:absolute;inset:0;
   box-shadow:inset 0 0 0 1px var(--line)}
 .sheet .shot .tag{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:30px 16px 13px;
@@ -600,7 +604,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06c';
+  var DEMOV='2026-08-06d';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
@@ -692,11 +696,18 @@ html.js .rv.in{opacity:1;transform:none}
           '</span>';
         var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe'),
             cap=elShot.querySelector('.cap'), dots=elShot.querySelector('.dots');
+        /* The frame is the WINDOW; the iframe is sized to its full content so
+           every scene is rendered and the tour only has to move it. */
         var fit=function(){
           var w=elShot.clientWidth||fr.clientWidth; if(!w)return;
-          var k=w/1160, h=Math.round((elShot.clientHeight||520)/k);
-          fi.style.height=h+'px'; fi.style.width='1160px';
-          fr.style.setProperty('--k',k); fr.style.height=Math.round(h*k)+'px';
+          var k=w/1160, view=elShot.clientHeight||520, full=1200;
+          try{var d=fi.contentDocument;
+              if(d&&d.body)full=Math.max(full,d.body.scrollHeight,d.documentElement.scrollHeight);
+          }catch(e){}
+          fi.style.height=full+'px';
+          fr.style.setProperty('--k',k);
+          fr.style.height=Math.round(view)+'px';
+          fr._k=k; fr._view=view; fr._full=full;
         };
         fit(); requestAnimationFrame(fit); sheet._fit=fit;
 
@@ -711,21 +722,33 @@ html.js .rv.in{opacity:1;transform:none}
           var pips=[].slice.call(dots.querySelectorAll('i')), i=-1, raf=null;
           var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-          /* THE TRAVEL IS THE POINT, so it is animated rather than jumped.
-             The first version set scrollTop directly and put scroll-behavior on
-             the .frame in THIS document, which owns nothing inside the iframe,
-             so every move was instant and the variety was invisible: you only
-             ever saw arrivals. This tweens the sample's own scrollTop, which is
-             the tool appearing to scroll itself. */
+          /* THE TRAVEL IS THE POINT, so it is animated rather than jumped, and
+             it moves the FRAME rather than the document.
+
+             Two attempts failed first, both diagnosed live. Setting
+             scroll-behavior on .frame in THIS document does nothing, because
+             that element owns nothing inside the iframe. Then tweening the
+             sample's own scrollTop failed differently and worse: the assignment
+             read back correctly and was reset to zero by the next frame, so the
+             caption advanced through all seven scenes while the picture never
+             moved. Rather than keep fighting an inner scroll I do not control,
+             the iframe now renders at full height and the tour translates it
+             past a fixed window. Position is mine, transform-only, and there is
+             no scrollTop in it to be reset. */
+          var y=0;
           var ease=function(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+          var setY=function(v){
+            var max=Math.max(0,(fr._full||1200)-(fr._view||520)/(fr._k||1));
+            y=Math.min(Math.max(0,v),max);
+            fr.style.setProperty('--y',y+'px');
+          };
           var glide=function(to,ms){
             if(raf)cancelAnimationFrame(raf);
-            var el=doc.scrollingElement||doc.documentElement,
-                from=el.scrollTop, d=to-from, t0=performance.now();
-            if(Math.abs(d)<2||reduce){el.scrollTop=to;return;}
+            var from=y, d=to-from, t0=performance.now();
+            if(Math.abs(d)<2||reduce){setY(to);return;}
             var step=function(now){
               var p=Math.min(1,(now-t0)/ms);
-              el.scrollTop=from+d*ease(p);
+              setY(from+d*ease(p));
               if(p<1)raf=requestAnimationFrame(step);
             };
             raf=requestAnimationFrame(step);
