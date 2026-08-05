@@ -5,133 +5,91 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>The Finance Desk (sample) &middot; Matthew Yellin</title>
-<meta name="description" content="A non-functional preview of a private finance tracker, rendered entirely with invented sample figures.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<meta name="description" content="A sample build of a private tool, rendered with invented data.">
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
 <style>
 :root{
-  --paper:#f5f2ec;--card:#fffdf9;--ink:#191a1c;--soft:#4a4d52;--faint:#64676d;
-  --navy:#24404f;--gold:#c2a15e;--green:#5f7d5a;--red:#a8543f;--rule:#e2ddd2;
-  --serif:'Spectral',Georgia,serif;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --tone:#9a7c34;
+  --bg:hsl(42 26% 96.5%); --ink:hsl(34 14% 13%);
+  --d:'Fraunces',Georgia,serif;
+  --t:'Spectral',Georgia,serif;
+  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --line:hsl(30 12% 8% / .13);
+  --line2:hsl(30 12% 8% / .24);
+  --mute:hsl(30 6% 41%);
+  --faint:hsl(30 6% 56%);
+  --sur:hsl(30 12% 8% / .032);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased}
-.demo-badge{position:fixed;top:14px;right:14px;z-index:9;font-family:var(--sans);font-size:12px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--rule);border-radius:999px;padding:7px 15px;
-  background:rgba(245,242,236,.9)}
-.wrap{max-width:1180px;margin:0 auto;padding:42px 46px 60px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+/* the grain keeps a flat ground from reading as a slide */
+body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
+  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
+.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
+a{color:inherit}
 
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:24px;
-  border-bottom:2px solid var(--navy);padding-bottom:18px}
-.top h1{font-size:40px;font-weight:500;letter-spacing:-.026em;margin:0}
-.top .c{font-family:var(--sans);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.sheet{max-width:1150px;margin:0 auto;padding:0 46px 74px}
+.head{display:flex;align-items:baseline;justify-content:space-between;gap:24px;
+  padding:44px 0 15px;border-bottom:3px double var(--line2)}
+.head h1{font-size:clamp(27px,3.2vw,38px)}
+.body{display:grid;grid-template-columns:minmax(0,1fr) 306px;gap:52px;padding-top:40px}
+.letter .date{font-family:var(--m);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint)}
+.letter h2{font-size:clamp(28px,3.6vw,42px);line-height:1.06;margin:13px 0 0;max-width:19ch}
+.letter p{font-family:var(--t);font-size:17.2px;line-height:1.7;margin:22px 0 0;max-width:60ch}
+.letter p.lead{font-size:19px;color:var(--mute);font-style:italic}
+.letter b{font-weight:600}
+.sig{margin-top:34px;padding-top:17px;border-top:1px solid var(--line);
+  font-family:var(--t);font-style:italic;font-size:15px;color:var(--mute)}
+aside .blk{border-top:1px solid var(--line2);padding:15px 0 20px}
+.alloc{margin-top:13px}
+.alloc .bar{display:flex;height:9px;overflow:hidden}
+.alloc .bar i{font-style:normal}
+.alloc dl{margin:14px 0 0}
+.alloc .r{display:grid;grid-template-columns:11px 1fr auto auto;gap:10px;align-items:center;
+  padding:8px 0;border-bottom:1px solid var(--line);font-size:13.6px}
+.alloc .sw{width:9px;height:9px}
+.alloc .p{font-family:var(--m);font-size:12px}
+.alloc .pol{font-family:var(--m);font-size:10px;color:var(--faint);letter-spacing:.1em}
+.gates{list-style:none;margin:13px 0 0;padding:0}
+.gates li{padding:11px 0;border-bottom:1px solid var(--line)}
+.gates b{display:block;font-family:var(--d);font-weight:400;font-size:15.5px;letter-spacing:-.015em}
+.gates span{display:block;margin-top:2px;font-family:var(--t);font-size:13.2px;color:var(--faint)}
+.gates em{float:right;font-style:normal;font-family:var(--m);font-size:11px;color:var(--tone)}
+@media(max-width:900px){.body{grid-template-columns:1fr}}
 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:28px 0 32px}
-.s{background:var(--card);border:1px solid var(--rule);padding:20px 22px}
-.s .l{font-family:var(--sans);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
-.s .v{font-size:36px;font-weight:500;margin-top:8px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.s .d{font-family:var(--sans);font-size:13px;margin-top:7px;color:var(--green)}
-.s .d.f{color:var(--faint)}
-
-.cols{display:grid;grid-template-columns:1fr 1.05fr;gap:34px}
-h3{font-family:var(--sans);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
-  border-bottom:1px solid var(--rule);padding-bottom:9px;margin:0 0 14px;font-weight:600}
-
-.alloc{display:flex;height:34px;margin-bottom:16px;overflow:hidden;border:1px solid var(--rule)}
-.alloc i{display:block;height:100%}
-.key{display:grid;gap:0}
-.k{display:grid;grid-template-columns:14px 1fr 76px 64px;gap:12px;align-items:center;padding:11px 2px;
-  border-bottom:1px solid var(--rule);font-size:16.5px}
-.k .sw{width:12px;height:12px}
-.k .v{font-family:var(--sans);font-size:13.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--soft)}
-.k .p{font-family:var(--sans);font-size:13px;text-align:right;color:var(--faint)}
-
-.letter{background:var(--card);border:1px solid var(--rule);border-top:4px solid var(--navy);padding:24px 26px}
-.letter .h{font-family:var(--sans);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
-.letter h2{font-size:25px;font-weight:500;letter-spacing:-.016em;margin:9px 0 14px}
-.letter p{font-size:16.5px;line-height:1.62;color:var(--soft);margin:0 0 13px}
-.letter p:last-child{margin-bottom:0}
-.letter b{font-weight:500;color:var(--ink)}
-
-.tbl{margin-top:24px}
-.t{display:grid;grid-template-columns:1fr 96px 86px;gap:14px;align-items:baseline;padding:12px 2px;
-  border-bottom:1px solid var(--rule);font-size:16.5px}
-.t .lab i{display:block;font-style:normal;font-size:13.5px;color:var(--faint);margin-top:3px}
-.t .v{font-family:var(--sans);font-size:13.5px;text-align:right;font-variant-numeric:tabular-nums;color:var(--soft)}
-.t .g{font-family:var(--sans);font-size:13px;text-align:right;color:var(--green)}
-.t .g.n{color:var(--red)}
-.t.hd{border-bottom:1px solid var(--ink);font-family:var(--sans);font-size:11px;letter-spacing:.18em;
-  text-transform:uppercase;color:var(--faint);padding-bottom:8px}
-.t.hd .v,.t.hd .g{font-size:11px;letter-spacing:.18em;color:var(--faint)}
 </style>
 </head>
 <body>
-<div class="demo-badge">Sample data</div>
-<div class="wrap">
-
-  <div class="top">
-    <h1>The Finance Desk</h1>
-    <div class="c">Week 31 &middot; letter goes out Monday</div>
+<div class="badge">Sample data</div>
+<div class="sheet">
+ <div class="head"><h1>The Finance Desk</h1><span class="lab">Week 31 &middot; the letter goes out Monday</span></div>
+ <div class="body">
+  <div class="letter">
+   <div class="date">Monday, 6:30 PM</div>
+   <h2>Nothing happened, which is the report</h2>
+   <p class="lead">The contribution went out on schedule for the thirty-first consecutive week and was allocated to policy without discretion.</p>
+   <p>Drift closed the week at <b>1.4 percent</b>, well inside the five percent threshold, so no rebalancing was required and none was performed. That sentence is the whole of the week's activity, and writing it down is the point: a week with nothing in it still gets a letter, because a record that only appears when something happens is a record that flatters itself.</p>
+   <p>One gate fired. A position in the capped sleeve appreciated past its ceiling on Thursday, and the rule trimmed it back on Friday rather than letting a good week rewrite the policy. That is the entire purpose of a cap, and it is worth noting plainly that the trim felt wrong at the time. It usually does. The cap exists precisely for the weeks when the judgement in the room is worse than the judgement written down six months earlier.</p>
+   <p>Open items carried forward: the reserve target is sixty-two percent funded and the schedule has it complete in the first quarter of next year. Nothing else requires a decision this week.</p>
+   <div class="sig">Written before the numbers were looked at a second time, which is the only way the tone stays honest.</div>
   </div>
-
-  <div class="stats">
-    <div class="s"><div class="l">Contributed YTD</div><div class="v">$1,850</div><div class="d">31 of 31 weeks, none missed</div></div>
-    <div class="s"><div class="l">Emergency fund</div><div class="v">62%</div><div class="d">Of a stated target</div></div>
-    <div class="s"><div class="l">Drift from policy</div><div class="v">1.4%</div><div class="d f">Rebalance threshold is 5%</div></div>
-    <div class="s"><div class="l">Decisions logged</div><div class="v">14</div><div class="d f">Each with the reasoning</div></div>
-  </div>
-
-  <div class="cols">
-    <div>
-      <h3>Allocation against policy</h3>
-      <div class="alloc">
-        <i style="width:68%;background:#24404f"></i>
-        <i style="width:16%;background:#c2a15e"></i>
-        <i style="width:9%;background:#5f7d5a"></i>
-        <i style="width:7%;background:#a8543f"></i>
-      </div>
-      <div class="key">
-        <div class="k"><span class="sw" style="background:#24404f"></span><span>Broad market index</span><span class="v">68.0%</span><span class="p">policy 70</span></div>
-        <div class="k"><span class="sw" style="background:#c2a15e"></span><span>Dividend sleeve</span><span class="v">16.0%</span><span class="p">policy 15</span></div>
-        <div class="k"><span class="sw" style="background:#5f7d5a"></span><span>Cash reserve</span><span class="v">9.0%</span><span class="p">policy 10</span></div>
-        <div class="k"><span class="sw" style="background:#a8543f"></span><span>Capped speculative</span><span class="v">7.0%</span><span class="p">cap 8</span></div>
-      </div>
-
-      <div class="tbl">
-        <h3 style="margin-top:28px">The gates, and what they blocked</h3>
-        <div class="t hd"><span class="lab">Rule</span><span class="v">Triggered</span><span class="g">Held</span></div>
-        <div class="t"><span class="lab">Nothing buys on a headline<i>Twenty-four hours, then decide</i></span><span class="v">6 times</span><span class="g">6</span></div>
-        <div class="t"><span class="lab">Speculative sleeve is capped<i>Hard percentage, no exceptions</i></span><span class="v">3 times</span><span class="g">3</span></div>
-        <div class="t"><span class="lab">Reserve first, always<i>Contribution pauses under target</i></span><span class="v">2 times</span><span class="g">2</span></div>
-        <div class="t"><span class="lab">Every decision gets written<i>Or it did not happen</i></span><span class="v">14 times</span><span class="g">14</span></div>
-      </div>
-    </div>
-
-    <div>
-      <h3>This week's letter</h3>
-      <div class="letter">
-        <div class="h">Monday, 6:30 PM &middot; Week 31</div>
-        <h2>Nothing happened, which is the report</h2>
-        <p>The contribution went out on schedule for the thirty-first consecutive week and was allocated to policy without discretion. Drift closed the week at <b>1.4%</b>, well inside the 5% threshold, so no rebalancing was required and none was performed.</p>
-        <p>One gate fired. A position in the capped sleeve appreciated past its ceiling on Thursday and the rule trimmed it back on Friday rather than letting a good week rewrite the policy. That is the entire purpose of a cap, and it is worth noting that the trim felt wrong at the time.</p>
-        <p>Open items carried forward: the reserve target is <b>62%</b> funded and the schedule has it complete in the first quarter of next year. Nothing else requires a decision this week.</p>
-      </div>
-
-      <div class="tbl">
-        <h3 style="margin-top:28px">Contributions, last six weeks</h3>
-        <div class="t hd"><span class="lab">Week</span><span class="v">Amount</span><span class="g">On time</span></div>
-        <div class="t"><span class="lab">Week 31<i>Allocated to policy</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-        <div class="t"><span class="lab">Week 30<i>Allocated to policy</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-        <div class="t"><span class="lab">Week 29<i>Reserve top-up first</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-        <div class="t"><span class="lab">Week 28<i>Allocated to policy</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-        <div class="t"><span class="lab">Week 27<i>Allocated to policy</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-        <div class="t"><span class="lab">Week 26<i>Allocated to policy</i></span><span class="v">$50.00</span><span class="g">Yes</span></div>
-      </div>
-    </div>
-  </div>
-
+  <aside>
+   <div class="blk"><span class="lab">Allocation against policy</span>
+    <div class="alloc"><div class="bar"><i style="width:68.0%;background:#2c3a55"></i><i style="width:16.0%;background:#c2a15e"></i><i style="width:9.0%;background:#4d6b4f"></i><i style="width:7.0%;background:#a4513f"></i></div><div class="r"><span class="sw" style="background:#2c3a55"></span><span>Broad market index</span><span class="p">68.0%</span><span class="pol">policy 70</span></div><div class="r"><span class="sw" style="background:#c2a15e"></span><span>Dividend sleeve</span><span class="p">16.0%</span><span class="pol">policy 15</span></div><div class="r"><span class="sw" style="background:#4d6b4f"></span><span>Cash reserve</span><span class="p">9.0%</span><span class="pol">policy 10</span></div><div class="r"><span class="sw" style="background:#a4513f"></span><span>Capped speculative</span><span class="p">7.0%</span><span class="pol">policy 8</span></div></div></div>
+   <div class="blk"><span class="lab">The gates, and what they blocked</span>
+    <ul class="gates"><li><em>6 held</em><b>Nothing buys on a headline</b><span>Twenty-four hours, then decide</span></li><li><em>3 held</em><b>The speculative sleeve is capped</b><span>A hard percentage, no exceptions</span></li><li><em>2 held</em><b>Reserve first, always</b><span>Contribution pauses under target</span></li><li><em>14 logged</em><b>Every decision gets written</b><span>Or it did not happen</span></li></ul></div>
+   <div class="blk"><span class="lab">Public posture</span>
+    <p style="margin:11px 0 0;font-family:var(--t);font-size:13.6px;line-height:1.6;color:var(--mute)">
+    No figure from this desk appears in public. The percentages on this sample page are invented, and the real letter has never left the machine it is written on.</p></div>
+  </aside>
+ </div>
 </div>
 </body>
 </html>

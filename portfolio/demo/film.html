@@ -4,84 +4,89 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>The Film Library (sample) · Matthew Yellin</title>
-<meta name="description" content="A non-functional preview of a private film tracker, rendered with invented sample entries.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<title>The Film Library (sample) &middot; Matthew Yellin</title>
+<meta name="description" content="A sample build of a private tool, rendered with invented data.">
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
 <style>
 :root{
-  --bg:#0a0a0c;--card:#131317;--ink:#f0eef0;--soft:#bab6bd;--faint:#6c6873;
-  --accent:#8fa6c4;--gold:#d3b06b;--line:rgba(240,238,240,.09);
-  --poster-a:#2b3550;--poster-b:#161a26;
-  --serif:'Spectral',Georgia,serif;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --tone:#8fa6c4;
+  --bg:hsl(220 14% 6%); --ink:hsl(215 10% 93%);
+  --d:'Fraunces',Georgia,serif;
+  --t:'Spectral',Georgia,serif;
+  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --line:hsl(0 0% 100% / .11);
+  --line2:hsl(0 0% 100% / .20);
+  --mute:hsl(0 0% 66%);
+  --faint:hsl(0 0% 46%);
+  --sur:hsl(0 0% 100% / .035);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-.demo-badge{position:fixed;top:14px;right:14px;z-index:9;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:7px 15px;background:rgba(10,10,12,.82)}
-.wrap{max-width:1180px;margin:0 auto;padding:40px 44px 60px}
-.top{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:20px}
-.top h1{font-family:var(--serif);font-size:38px;font-weight:500;margin:0;letter-spacing:-.022em}
-.top .c{font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+/* the grain keeps a flat ground from reading as a slide */
+body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
+  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
+.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
+a{color:inherit}
 
-.pick{display:grid;grid-template-columns:150px 1fr auto;gap:26px;align-items:center;margin:28px 0 34px;
-  background:linear-gradient(180deg,rgba(143,166,196,.1),rgba(143,166,196,.02));
-  border:1px solid rgba(143,166,196,.28);border-radius:16px;padding:24px 28px}
-.pick .po{aspect-ratio:2/3;border-radius:8px;background:linear-gradient(155deg,var(--poster-a),var(--poster-b));border:1px solid var(--line)}
-.pick .l{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--accent)}
-.pick h2{font-family:var(--serif);font-size:33px;font-weight:500;margin:10px 0 8px;letter-spacing:-.018em}
-.pick p{font-size:16px;color:var(--soft);margin:0;line-height:1.5;max-width:56ch}
-.pick .btn{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--bg);background:var(--accent);
-  border-radius:999px;padding:13px 24px;white-space:nowrap;font-weight:600}
+.hero{position:relative;min-height:412px;display:grid;grid-template-columns:214px minmax(0,1fr);
+  gap:42px;align-items:center;padding:64px 48px 52px;max-width:1240px;margin:0 auto;
+  border-bottom:1px solid var(--line)}
+.pos{aspect-ratio:2/3;border-radius:3px;position:relative;overflow:hidden;
+  box-shadow:0 30px 70px -22px rgb(0 0 0 / .85);border:1px solid hsl(0 0% 100% / .09)}
+.pos::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(148deg,hsl(0 0% 100% / .13),transparent 46%)}
+.hero .why .lab{color:var(--tone)}
+.hero h1{font-size:clamp(38px,5.6vw,74px);line-height:.96;margin:15px 0 0;letter-spacing:-.042em}
+.hero .yr{font-family:var(--m);font-size:12px;color:var(--faint);letter-spacing:.14em;margin-top:13px}
+.hero p{font-family:var(--t);font-size:18px;line-height:1.6;color:var(--mute);max-width:48ch;margin:19px 0 0}
+.hero .act{display:flex;gap:11px;margin-top:26px;align-items:center}
+.hero .act button{font:500 10.5px var(--s);letter-spacing:.2em;text-transform:uppercase;
+  background:none;color:var(--ink);border:1px solid var(--line2);padding:12px 20px;cursor:pointer;
+  border-radius:2px;transition:border-color .2s,color .2s}
+.hero .act button.p{background:var(--tone);border-color:var(--tone);color:#0a1018}
+.hero .act button:hover{border-color:var(--tone);color:var(--tone)}
+.hero .act button.p:hover{color:#0a1018;filter:brightness(1.08)}
+.shelf{max-width:1240px;margin:0 auto;padding:34px 48px 70px}
+.fil{display:flex;gap:22px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:14px}
+.fil span{font:500 10px var(--s);letter-spacing:.19em;text-transform:uppercase;color:var(--faint);
+  cursor:pointer;padding-bottom:3px;border-bottom:1px solid transparent}
+.fil span.on{color:var(--ink);border-bottom-color:var(--tone)}
+.gr{display:grid;grid-template-columns:repeat(8,1fr);gap:19px;margin-top:26px}
+.it{position:relative}
+.it .pos{box-shadow:0 12px 26px -14px rgb(0 0 0 / .8);transition:transform .45s cubic-bezier(.16,1,.3,1)}
+.it:hover .pos{transform:translateY(-7px)}
+.it .rk{position:absolute;top:7px;left:8px;z-index:2;font-family:var(--m);font-size:10.5px;
+  color:hsl(0 0% 100% / .82);text-shadow:0 1px 4px rgb(0 0 0 / .7)}
+.it b{display:block;margin-top:9px;font-family:var(--d);font-weight:400;font-size:13.4px;
+  line-height:1.25;letter-spacing:-.015em}
+.it span{display:block;margin-top:2px;font-family:var(--m);font-size:10px;color:var(--faint)}
+@media(max-width:1080px){.gr{grid-template-columns:repeat(5,1fr)}}
+@media(max-width:760px){.hero{grid-template-columns:1fr}.gr{grid-template-columns:repeat(3,1fr)}}
 
-.bar{display:flex;gap:9px;margin-bottom:18px;flex-wrap:wrap}
-.bar span{font-size:12.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
-  border:1px solid var(--line);border-radius:999px;padding:8px 16px}
-.bar span.on{color:var(--gold);border-color:rgba(211,176,107,.42)}
-
-.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px}
-.f .po{aspect-ratio:2/3;border-radius:7px;border:1px solid var(--line);position:relative;overflow:hidden}
-.f .rk{position:absolute;left:8px;top:8px;font-family:var(--serif);font-size:23px;color:rgba(255,255,255,.82);text-shadow:0 2px 8px rgba(0,0,0,.6)}
-.f .nm{font-size:14.5px;margin-top:10px;line-height:1.3;font-weight:500}
-.f .yr{font-size:12.5px;color:var(--faint);margin-top:3px}
-.f .st{font-size:13px;color:var(--gold);margin-top:5px;letter-spacing:.06em}
 </style>
 </head>
 <body>
-<div class="demo-badge">Sample data</div>
-<div class="wrap">
-
-  <div class="top"><h1>The Film Library</h1><div class="c">1,284 seen &middot; 96 on the shelf</div></div>
-
-  <div class="pick">
-    <div class="po"></div>
-    <div>
-      <div class="l">Picked for tonight</div>
-      <h2>The Long Afternoon</h2>
-      <p>Chosen because you have three unwatched entries from this director, it runs under two hours, and you have not reached for anything this slow in five weeks.</p>
-    </div>
-    <div class="btn">Pick again</div>
-  </div>
-
-  <div class="bar"><span class="on">Top hundred</span><span>Unwatched</span><span>By director</span><span>By decade</span><span>Shortest first</span><span>Rewatch</span></div>
-
-  <div class="grid">
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#3b2c3f,#181320)"><span class="rk">1</span></div><div class="nm">Salt and Distance</div><div class="yr">1974</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#2c3b34,#131a18)"><span class="rk">2</span></div><div class="nm">A Quiet Argument</div><div class="yr">1991</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9733;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#443128,#1d1512)"><span class="rk">3</span></div><div class="nm">Harbour Lights</div><div class="yr">1988</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#2a3448,#14181f)"><span class="rk">4</span></div><div class="nm">The Second Winter</div><div class="yr">2003</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#40303a,#1a1418)"><span class="rk">5</span></div><div class="nm">Nobody Waits</div><div class="yr">1969</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#33402f,#171c14)"><span class="rk">6</span></div><div class="nm">River of Small Hours</div><div class="yr">2011</div><div class="st">&#9733;&#9733;&#9733;&#9733;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#3a2f45,#181420)"><span class="rk">7</span></div><div class="nm">The Borrowed Coat</div><div class="yr">1957</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#45362a,#1e1712)"><span class="rk">8</span></div><div class="nm">Late Return</div><div class="yr">1996</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#2e3a42,#151a1e)"><span class="rk">9</span></div><div class="nm">Every Third Thursday</div><div class="yr">2018</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#42303c,#1c1419)"><span class="rk">10</span></div><div class="nm">The Weather Inland</div><div class="yr">1982</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#313f38,#161d1a)"><span class="rk">11</span></div><div class="nm">Small Mercies</div><div class="yr">2007</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-    <div class="f"><div class="po" style="background:linear-gradient(150deg,#3d3348,#1a1620)"><span class="rk">12</span></div><div class="nm">The Night Shift</div><div class="yr">1964</div><div class="st">&#9733;&#9733;&#9733;&#9734;&#9734;</div></div>
-  </div>
-
+<div class="badge">Sample data</div>
+<div class="hero">
+ <div class="pos" style="background:linear-gradient(160deg,#38455f,#1b2536)"></div>
+ <div class="why">
+  <span class="lab">Picked for tonight</span>
+  <h1>The Long Afternoon</h1>
+  <div class="yr">1978 &middot; 104 minutes &middot; unwatched</div>
+  <p>Chosen because three unwatched entries by this director are already on the shelf, it runs under two hours on a weeknight, and nothing this slow has been reached for in five weeks.</p>
+  <div class="act"><button class="p">Start it</button><button>Pick again</button><button>Why this one</button></div>
+ </div>
+</div>
+<div class="shelf">
+ <div class="fil"><span class="on">Top hundred</span><span>Unwatched</span><span>By director</span><span>By decade</span><span>Shortest first</span><span>Rewatch</span></div>
+ <div class="gr"><div class="it"><span class="rk">1</span><div class="pos" style="background:linear-gradient(160deg,#5d4a63,#3b2f42)"></div><b>Salt and Distance</b><span>1974</span></div><div class="it"><span class="rk">2</span><div class="pos" style="background:linear-gradient(160deg,#38503f,#22322b)"></div><b>A Quiet Argument</b><span>1991</span></div><div class="it"><span class="rk">3</span><div class="pos" style="background:linear-gradient(160deg,#634434,#402a22)"></div><b>Harbour Lights</b><span>1988</span></div><div class="it"><span class="rk">4</span><div class="pos" style="background:linear-gradient(160deg,#37496b,#22304a)"></div><b>The Second Winter</b><span>2003</span></div><div class="it"><span class="rk">5</span><div class="pos" style="background:linear-gradient(160deg,#5c3a48,#3d2530)"></div><b>Nobody Waits</b><span>1969</span></div><div class="it"><span class="rk">6</span><div class="pos" style="background:linear-gradient(160deg,#455237,#2c3524)"></div><b>River of Small Hours</b><span>2011</span></div><div class="it"><span class="rk">7</span><div class="pos" style="background:linear-gradient(160deg,#4e4a5e,#33303f)"></div><b>The Borrowed Coat</b><span>1957</span></div><div class="it"><span class="rk">8</span><div class="pos" style="background:linear-gradient(160deg,#574535,#3a2e24)"></div><b>Late Return</b><span>1996</span></div><div class="it"><span class="rk">9</span><div class="pos" style="background:linear-gradient(160deg,#3a4a56,#242f38)"></div><b>Every Third Thursday</b><span>2018</span></div><div class="it"><span class="rk">10</span><div class="pos" style="background:linear-gradient(160deg,#57404e,#3a2733)"></div><b>The Weather Inland</b><span>1982</span></div><div class="it"><span class="rk">11</span><div class="pos" style="background:linear-gradient(160deg,#3d5044,#26332c)"></div><b>Small Mercies</b><span>2007</span></div><div class="it"><span class="rk">12</span><div class="pos" style="background:linear-gradient(160deg,#474160,#2e2a3c)"></div><b>The Night Shift</b><span>1964</span></div><div class="it"><span class="rk">13</span><div class="pos" style="background:linear-gradient(160deg,#4f4040,#332a2a)"></div><b>Coastal Road</b><span>1979</span></div><div class="it"><span class="rk">14</span><div class="pos" style="background:linear-gradient(160deg,#404d61,#293240)"></div><b>An Ordinary Tuesday</b><span>2014</span></div><div class="it"><span class="rk">15</span><div class="pos" style="background:linear-gradient(160deg,#514931,#35301f)"></div><b>The Lending Library</b><span>1953</span></div><div class="it"><span class="rk">16</span><div class="pos" style="background:linear-gradient(160deg,#3a4550,#242c34)"></div><b>Nine Winters</b><span>1998</span></div></div>
 </div>
 </body>
 </html>

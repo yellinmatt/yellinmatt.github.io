@@ -4,99 +4,134 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Train (sample) · Matthew Yellin</title>
-<meta name="description" content="A non-functional preview of a private training tool, rendered with invented sample data.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Train (sample) &middot; Matthew Yellin</title>
+<meta name="description" content="A sample build of a private tool, rendered with invented data.">
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
 <style>
 :root{
-  --bg:#0b0d0c;--card:#121614;--ink:#eef3ef;--soft:#b9c4bd;--faint:#6d7b73;
-  --accent:#6f9e8c;--warm:#d8a15f;--line:rgba(238,243,239,.09);
-  --serif:'Spectral',Georgia,serif;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --tone:#6f9e8c;
+  --bg:hsl(150 8% 6.5%); --ink:hsl(150 6% 93%);
+  --d:'Fraunces',Georgia,serif;
+  --t:'Spectral',Georgia,serif;
+  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --line:hsl(0 0% 100% / .11);
+  --line2:hsl(0 0% 100% / .20);
+  --mute:hsl(0 0% 66%);
+  --faint:hsl(0 0% 46%);
+  --sur:hsl(0 0% 100% / .035);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased}
-.demo-badge{position:fixed;top:14px;right:14px;z-index:9;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-  color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:7px 15px;background:rgba(11,13,12,.8)}
-.wrap{max-width:1180px;margin:0 auto;padding:44px 44px 60px}
-.top{display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:22px}
-.mark{font-family:var(--serif);font-size:38px;font-weight:500;letter-spacing:-.02em}
-.mark span{color:var(--accent)}
-.when{font-size:15px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+/* the grain keeps a flat ground from reading as a slide */
+body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
+  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
+.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
+a{color:inherit}
 
-.ring-row{display:grid;grid-template-columns:290px 1fr;gap:38px;align-items:center;padding:38px 0}
-.ring{position:relative;width:290px;height:290px}
-.ring svg{transform:rotate(-90deg)}
-.ring .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
-.ring .lvl{font-family:var(--serif);font-size:76px;line-height:1;font-weight:500}
-.ring .cap{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-top:10px}
+.pg{max-width:1220px;margin:0 auto;padding:56px 48px 70px}
+.hd{display:flex;align-items:flex-end;justify-content:space-between;gap:30px;
+  border-bottom:1px solid var(--line);padding-bottom:20px}
+.hd h1{font-size:44px}.hd h1 i{font-style:normal;color:var(--tone)}
+.hd p{margin:9px 0 0;font-family:var(--t);font-size:16.5px;color:var(--mute);max-width:44ch;line-height:1.5}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 352px minmax(0,1fr);gap:34px;
+  align-items:center;padding:52px 0 12px}
+/* the device */
+.dev{position:relative;width:352px;height:716px;border-radius:46px;padding:11px;
+  background:linear-gradient(160deg,hsl(0 0% 26%),hsl(0 0% 11%));
+  box-shadow:0 40px 90px -30px rgb(0 0 0 / .8),0 0 0 1px hsl(0 0% 100% / .07)}
+.scr{position:relative;height:100%;border-radius:36px;overflow:hidden;background:#f3f4f3;color:#14181a;
+  display:flex;flex-direction:column}
+.sb{display:flex;justify-content:space-between;padding:13px 22px 5px;font:600 12.5px var(--s);color:#14181a}
+.scr .body{flex:1;overflow:hidden;padding:6px 17px 0}
+.tday{font:500 11px var(--s);letter-spacing:.16em;text-transform:uppercase;color:#7d8a85}
+.tbig{font-family:var(--d);font-size:29px;letter-spacing:-.03em;margin:2px 0 14px;color:#14181a}
+.crd{background:#fff;border-radius:18px;padding:17px 18px;box-shadow:0 1px 2px rgb(20 24 26 / .07)}
+.crd .k{font:500 10px var(--s);letter-spacing:.18em;text-transform:uppercase;color:#8a9691}
+.crd h4{font-family:var(--d);font-weight:400;font-size:23px;margin:5px 0 3px;letter-spacing:-.02em}
+.crd .sub{font-size:13.5px;color:#68746f}
+.go{margin-top:14px;background:var(--tone);color:#08110d;border-radius:13px;padding:14px;
+  text-align:center;font:600 15.5px var(--s)}
+.rot{display:flex;gap:7px;margin-top:14px}
+.rot i{flex:1;height:5px;border-radius:3px;background:#dde2df;font-style:normal}
+.rot i.on{background:var(--tone)}
+.lst{margin-top:15px;display:grid;gap:8px}
+.li{display:flex;align-items:center;gap:11px;background:#fff;border-radius:13px;padding:11px 13px;
+  box-shadow:0 1px 2px rgb(20 24 26 / .06);font-size:14.5px}
+.li b{width:19px;height:19px;border-radius:50%;border:1.5px solid #cfd6d2;flex:none}
+.li.dn b{background:var(--tone);border-color:var(--tone)}
+.li.dn span{color:#8a9691;text-decoration:line-through}
+.li em{margin-left:auto;font-style:normal;font-family:var(--m);font-size:12px;color:#8a9691}
+.tabs{display:flex;border-top:1px solid #e2e7e4;background:#fbfcfb;padding:9px 0 20px}
+.tabs div{flex:1;text-align:center;font:500 10px var(--s);letter-spacing:.06em;color:#96a09b}
+.tabs div.on{color:var(--tone)}
+.tabs u{display:block;width:17px;height:17px;margin:0 auto 4px;border-radius:5px;
+  border:1.6px solid currentColor;text-decoration:none}
+/* annotations */
+.ann{display:grid;gap:30px}
+.ann.r{text-align:right}
+.an .lab{display:block;margin-bottom:7px;color:var(--tone)}
+.an h5{font-family:var(--d);font-weight:400;font-size:19.5px;margin:0 0 6px;letter-spacing:-.02em}
+.an p{margin:0;font-family:var(--t);font-size:14.5px;line-height:1.55;color:var(--mute)}
+.rule{border-top:1px solid var(--line);margin-top:48px;padding-top:22px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.rule p{margin:7px 0 0;font-family:var(--t);font-size:14.5px;line-height:1.55;color:var(--mute)}
+.rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
+@media(max-width:1080px){.stage{grid-template-columns:1fr;justify-items:center}.ann.r{text-align:left}}
 
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
-.tile .l{font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
-.tile .v{font-family:var(--serif);font-size:44px;font-weight:500;line-height:1.05;margin-top:10px}
-.tile .v small{font-size:19px;color:var(--soft);font-weight:400;margin-left:5px}
-.tile .d{font-size:14px;color:var(--accent);margin-top:7px}
-.tile .d.warm{color:var(--warm)}
-
-h2{font-family:var(--serif);font-size:25px;font-weight:500;margin:34px 0 16px;letter-spacing:-.01em}
-.sess{display:grid;gap:11px}
-.set{display:grid;grid-template-columns:34px 1fr 108px 96px;gap:18px;align-items:center;
-  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:17px 22px;font-size:17px}
-.set .n{color:var(--faint);font-family:var(--serif);font-size:19px}
-.set .nm{font-weight:500}
-.set .wt{color:var(--soft);text-align:right;font-variant-numeric:tabular-nums}
-.set .st{text-align:right;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
-.set.todo .st{color:var(--faint)}
-.bars{display:flex;align-items:flex-end;gap:9px;height:104px;margin-top:8px}
-.bars i{flex:1;background:linear-gradient(180deg,var(--accent),rgba(111,158,140,.25));border-radius:4px 4px 0 0;display:block}
-.wk{display:flex;justify-content:space-between;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:9px}
 </style>
 </head>
 <body>
-<div class="demo-badge">Sample data</div>
-<div class="wrap">
-
-  <div class="top">
-    <div class="mark">Tra<span>in</span></div>
-    <div class="when">Week 12 · Tuesday</div>
+<div class="badge">Sample data</div>
+<div class="pg">
+ <div class="hd">
+  <div><h1>Tra<i>in</i></h1>
+   <p>A training system with no number in it you can fail. It runs on a phone, in four tabs, and it prescribes the day rather than asking you to plan one.</p></div>
+  <div class="lab">Week 12 &middot; Day A &middot; v7.79</div>
+ </div>
+ <div class="stage">
+  <div class="ann r">
+   <div class="an"><span class="lab">The rotation</span><h5>A day you skip is next, not lost</h5><p>The plan advances when a session is finished, never when a date passes. Miss Thursday and Thursday is what Friday offers you.</p></div>
+   <div class="an"><span class="lab">No denominator</span><h5>Nothing here reads 3 of 5</h5><p>A denominator invents a total you can fall behind on. The card counts what happened and says nothing about what did not.</p></div>
   </div>
-
-  <div class="ring-row">
-    <div class="ring">
-      <svg width="290" height="290" viewBox="0 0 290 290" aria-hidden="true">
-        <circle cx="145" cy="145" r="126" fill="none" stroke="rgba(238,243,239,.08)" stroke-width="17"></circle>
-        <circle cx="145" cy="145" r="126" fill="none" stroke="#6f9e8c" stroke-width="17" stroke-linecap="round"
-                stroke-dasharray="791.7" stroke-dashoffset="182"></circle>
-      </svg>
-      <div class="mid"><div class="lvl">7</div><div class="cap">Level</div></div>
+  <div class="dev"><div class="scr">
+   <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;&#9679;</span></div>
+   <div class="body">
+    <div class="tday">Tuesday, 12 May &middot; afternoon</div>
+    <div class="tbig">Squat and push</div>
+    <div class="crd">
+     <span class="k">Today</span>
+     <h4>Seven movements</h4>
+     <div class="sub">About 34 minutes, barbell and bodyweight</div>
+     <div class="go">Start the session</div>
+     <div class="rot"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
     </div>
-    <div class="tiles">
-      <div class="tile"><div class="l">Bodyweight</div><div class="v">184.2<small>lb</small></div><div class="d">Down 2.1 this month</div></div>
-      <div class="tile"><div class="l">Energy in</div><div class="v">2,140<small>kcal</small></div><div class="d warm">310 under target</div></div>
-      <div class="tile"><div class="l">Steps</div><div class="v">9,480</div><div class="d">Best day this week</div></div>
-      <div class="tile"><div class="l">Streak</div><div class="v">23<small>days</small></div><div class="d">Unbroken since June</div></div>
+    <div class="lst">
+     <div class="li dn"><b></b><span>Back squat</span><em>185 &times; 5</em></div>
+     <div class="li dn"><b></b><span>Romanian deadlift</span><em>155 &times; 8</em></div>
+     <div class="li"><b></b><span>Split squat</span><em>45 &times; 10</em></div>
+     <div class="li"><b></b><span>Standing calf raise</span><em>90 &times; 12</em></div>
+     <div class="li"><b></b><span>Hanging knee raise</span><em>bodyweight</em></div>
     </div>
+   </div>
+   <div class="tabs"><div class="on"><u></u>Today</div><div><u></u>Lift</div><div><u></u>Cardio</div><div><u></u>Track</div></div>
+  </div></div>
+  <div class="ann">
+   <div class="an"><span class="lab">The swap</span><h5>A video session can stand in for the day</h5><p>Sore, travelling, or short on time: put a class in its place and the rotation holds its position instead of skipping forward.</p></div>
+   <div class="an"><span class="lab">The long view</span><h5>Load is read over months</h5><p>Week to week is noise. The trend line only claims something when it has enough weeks behind it to mean anything.</p></div>
   </div>
-
-  <h2>Today's session</h2>
-  <div class="sess">
-    <div class="set"><span class="n">01</span><span class="nm">Back squat</span><span class="wt">185 &times; 5</span><span class="st">Done</span></div>
-    <div class="set"><span class="n">02</span><span class="nm">Romanian deadlift</span><span class="wt">155 &times; 8</span><span class="st">Done</span></div>
-    <div class="set"><span class="n">03</span><span class="nm">Split squat</span><span class="wt">45 &times; 10</span><span class="st">Done</span></div>
-    <div class="set todo"><span class="n">04</span><span class="nm">Standing calf raise</span><span class="wt">90 &times; 12</span><span class="st">Up next</span></div>
-    <div class="set todo"><span class="n">05</span><span class="nm">Hanging knee raise</span><span class="wt">Bodyweight</span><span class="st">Up next</span></div>
-  </div>
-
-  <h2>Load, last eight weeks</h2>
-  <div class="bars" aria-hidden="true">
-    <i style="height:38%"></i><i style="height:52%"></i><i style="height:47%"></i><i style="height:66%"></i>
-    <i style="height:71%"></i><i style="height:58%"></i><i style="height:84%"></i><i style="height:93%"></i>
-  </div>
-  <div class="wk"><span>Wk 5</span><span>Wk 6</span><span>Wk 7</span><span>Wk 8</span><span>Wk 9</span><span>Wk 10</span><span>Wk 11</span><span>Wk 12</span></div>
-
+ </div>
+ <div class="rule">
+  <div><span class="lab">Built on</span><p><b>An edge worker and object storage.</b> The phone holds the log, a worker holds the copy, and a passphrase is what joins them.</p></div>
+  <div><span class="lab">Tested by</span><p><b>Four audit harnesses.</b> Each one reads the shipped file rather than the intention, because a checker is only as wide as the file it opens.</p></div>
+  <div><span class="lab">The rule it keeps</span><p><b>No week you can fail.</b> Every surface was checked against that sentence before it was allowed to ship.</p></div>
+ </div>
 </div>
 </body>
 </html>

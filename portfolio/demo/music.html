@@ -5,110 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>The Listening Record (sample) &middot; Matthew Yellin</title>
-<meta name="description" content="A non-functional preview of a private listening-history tool, rendered with invented sample data.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<meta name="description" content="A sample build of a private tool, rendered with invented data.">
+<link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
 <style>
 :root{
-  --bg:#0e1412;--panel:#151d1a;--ink:#eef2ef;--soft:#9fb0a8;--faint:#6a7a73;
-  --green:#7fa89b;--green2:#a8c9bb;--warm:#d0a45f;--rule:rgba(238,242,239,.11);
-  --serif:'Spectral',Georgia,serif;
-  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --tone:#7fa89b;
+  --bg:hsl(168 10% 6.5%); --ink:hsl(160 6% 93%);
+  --d:'Fraunces',Georgia,serif;
+  --t:'Spectral',Georgia,serif;
+  --s:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+  --m:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --line:hsl(0 0% 100% / .11);
+  --line2:hsl(0 0% 100% / .20);
+  --mute:hsl(0 0% 66%);
+  --faint:hsl(0 0% 46%);
+  --sur:hsl(0 0% 100% / .035);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased}
-.demo-badge{position:fixed;top:14px;right:14px;z-index:9;font-family:var(--sans);font-size:12px;letter-spacing:.16em;
-  text-transform:uppercase;color:var(--faint);border:1px solid var(--rule);border-radius:999px;padding:7px 15px;
-  background:rgba(14,20,18,.86)}
-.wrap{max-width:1180px;margin:0 auto;padding:42px 46px 60px}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+/* the grain keeps a flat ground from reading as a slide */
+body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;opacity:.055;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+.badge{position:fixed;top:15px;right:15px;z-index:9;font:500 9.5px/1 var(--s);letter-spacing:.2em;
+  text-transform:uppercase;color:var(--faint);border:1px solid var(--line);border-radius:99px;
+  padding:8px 14px;background:color-mix(in srgb,var(--bg) 84%,transparent);backdrop-filter:blur(5px)}
+.lab{font:500 9.5px/1 var(--s);letter-spacing:.22em;text-transform:uppercase;color:var(--faint)}
+.num{font-family:var(--m);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+h1,h2,h3{font-family:var(--d);font-weight:400;letter-spacing:-.025em;margin:0}
+a{color:inherit}
 
-.top{display:flex;align-items:baseline;justify-content:space-between;gap:24px;
-  border-bottom:2px solid var(--green);padding-bottom:18px}
-.top h1{font-size:40px;font-weight:500;letter-spacing:-.028em;margin:0}
-.top .c{font-family:var(--sans);font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.pg{max-width:1240px;margin:0 auto;padding:0 46px 70px}
+.top{padding:46px 0 24px;border-bottom:1px solid var(--line2);
+  display:flex;align-items:baseline;justify-content:space-between;gap:26px;flex-wrap:wrap}
+.top h1{font-size:clamp(30px,3.6vw,44px)}
+.top .meta{font-family:var(--m);font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+.top .meta b{color:var(--tone);font-weight:400}
+.hist{padding:34px 0 30px;border-bottom:1px solid var(--line)}
+.bars{display:flex;align-items:flex-end;gap:5px;height:132px;margin-top:16px}
+.bars i{flex:1;background:linear-gradient(180deg,var(--tone),color-mix(in srgb,var(--tone) 18%,transparent));
+  position:relative;font-style:normal;transition:filter .2s}
+.bars i:hover{filter:brightness(1.35)}
+.bars i em{position:absolute;top:-19px;left:50%;transform:translateX(-50%);font-family:var(--m);
+  font-size:10px;color:var(--faint);font-style:normal;opacity:0;transition:opacity .2s}
+.bars i:hover em{opacity:1}
+.yrs{display:flex;gap:5px;margin-top:8px}
+.yrs span{flex:1;text-align:center;font-family:var(--m);font-size:9.5px;color:var(--faint)}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:0;padding-top:32px}
+.grid>div+div{border-left:1px solid var(--line);padding-left:38px;margin-left:38px}
+ol.rank{list-style:none;margin:16px 0 0;padding:0;counter-reset:r}
+ol.rank li{counter-increment:r;display:grid;grid-template-columns:26px 1fr 62px;gap:14px;
+  align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+ol.rank li::before{content:counter(r,decimal-leading-zero);font-family:var(--m);font-size:10.5px;color:var(--faint)}
+ol.rank b{font-family:var(--d);font-weight:400;font-size:16.5px;letter-spacing:-.02em;display:block}
+ol.rank .rail{display:block;height:2px;margin-top:6px;background:var(--tone);opacity:.5}
+ol.rank em{font-style:normal;text-align:right;font-family:var(--m);font-size:12px;color:var(--mute)}
+ol.rank li:hover .rail{opacity:1}
+.sets{list-style:none;margin:16px 0 0;padding:0}
+.sets li{padding:13px 0;border-bottom:1px solid var(--line)}
+.sets b{font-family:var(--d);font-weight:400;font-size:16.5px;letter-spacing:-.02em}
+.sets span{display:block;margin-top:3px;font-family:var(--t);font-size:13.6px;color:var(--mute)}
+.sets u{float:right;text-decoration:none;font-family:var(--m);font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--tone)}
+.foot{margin-top:30px;font-family:var(--t);font-style:italic;font-size:14px;line-height:1.6;
+  color:var(--mute);border-left:2px solid var(--tone);padding-left:15px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.grid>div+div{border-left:0;padding-left:0;margin-left:0}}
 
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:28px 0 34px}
-.s{background:var(--panel);border:1px solid var(--rule);padding:20px 22px}
-.s .l{font-family:var(--sans);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
-.s .v{font-size:38px;font-weight:500;margin-top:8px;line-height:1;letter-spacing:-.02em}
-.s .d{font-family:var(--sans);font-size:13px;color:var(--green2);margin-top:7px}
-
-.cols{display:grid;grid-template-columns:1.15fr 1fr;gap:34px}
-h3{font-family:var(--sans);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
-  border-bottom:1px solid var(--rule);padding-bottom:9px;margin:0 0 14px;font-weight:600}
-
-.a{display:grid;grid-template-columns:28px 1fr 74px;gap:14px;align-items:center;padding:11px 2px;
-  border-bottom:1px solid var(--rule);font-size:17px}
-.a .n{font-family:var(--sans);font-size:13px;color:var(--faint)}
-.a .nm{font-weight:500}
-.a .nm i{display:block;font-style:normal;height:5px;margin-top:8px;background:var(--green);border-radius:0}
-.a .v{font-family:var(--sans);font-size:13px;color:var(--soft);text-align:right;font-variant-numeric:tabular-nums}
-
-.years{display:flex;align-items:flex-end;gap:7px;height:180px;padding:6px 0 0;border-bottom:1px solid var(--rule)}
-.years i{flex:1;background:linear-gradient(180deg,var(--green2),var(--green));display:block}
-.ylab{display:flex;justify-content:space-between;font-family:var(--sans);font-size:11px;color:var(--faint);
-  margin-top:9px;letter-spacing:.1em}
-
-.sets{margin-top:26px}
-.set{display:grid;grid-template-columns:1fr 88px;gap:14px;align-items:baseline;padding:12px 2px;
-  border-bottom:1px solid var(--rule);font-size:16.5px}
-.set b{font-weight:500}
-.set i{display:block;font-style:normal;font-size:14px;color:var(--soft);margin-top:3px}
-.set .v{font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--warm);text-align:right}
 </style>
 </head>
 <body>
-<div class="demo-badge">Sample data</div>
-<div class="wrap">
-
-  <div class="top">
-    <h1>The Listening Record</h1>
-    <div class="c">Twelve years &middot; rebuilt from raw export</div>
+<div class="badge">Sample data</div>
+<div class="pg">
+ <div class="top"><h1>The Listening Record</h1>
+  <div class="meta">Twelve exports, 2015 to 2026 &middot; rebuilt into one queryable record &middot; <b>4,812 artists</b> after the novelty filter</div></div>
+ <div class="hist"><span class="lab">Qualified plays by year &middot; skips under thirty seconds dropped</span>
+  <div class="bars"><i style="height:31%"><em>2294</em></i><i style="height:44%"><em>3256</em></i><i style="height:58%"><em>4292</em></i><i style="height:49%"><em>3626</em></i><i style="height:71%"><em>5254</em></i><i style="height:86%"><em>6364</em></i><i style="height:79%"><em>5846</em></i><i style="height:97%"><em>7178</em></i><i style="height:100%"><em>7400</em></i><i style="height:88%"><em>6512</em></i><i style="height:81%"><em>5994</em></i><i style="height:52%"><em>3848</em></i></div><div class="yrs"><span>2015</span><span>&nbsp;</span><span>&nbsp;</span><span>2018</span><span>&nbsp;</span><span>&nbsp;</span><span>2021</span><span>&nbsp;</span><span>&nbsp;</span><span>2024</span><span>&nbsp;</span><span>2026</span></div></div>
+ <div class="grid">
+  <div><span class="lab">Most played, all time</span><ol class="rank"><li><div><b>The Vestry Hours</b><span class="rail" style="width:100%"></span></div><em>1,842</em></li><li><div><b>Corva</b><span class="rail" style="width:81%"></span></div><em>1,494</em></li><li><div><b>Harlan Deane</b><span class="rail" style="width:73%"></span></div><em>1,341</em></li><li><div><b>Nightbus Choir</b><span class="rail" style="width:64%"></span></div><em>1,178</em></li><li><div><b>Oona Ferrer</b><span class="rail" style="width:58%"></span></div><em>1,067</em></li><li><div><b>The Long Field</b><span class="rail" style="width:49%"></span></div><em>903</em></li><li><div><b>Sable Motor</b><span class="rail" style="width:43%"></span></div><em>791</em></li><li><div><b>Petra Lund</b><span class="rail" style="width:37%"></span></div><em>688</em></li><li><div><b>Ivo Marchetti</b><span class="rail" style="width:31%"></span></div><em>574</em></li></ol></div>
+  <div><span class="lab">Sets rebuilt from the record</span><ul class="sets"><li><u>Audited</u><b>Rock anthems</b><span>Ranked by repeat rate rather than release date</span></li><li><u>Audited</u><b>Melodic house discovery</b><span>Seeded from the tail of the record, not the head</span></li><li><u>Audited</u><b>Jazz gateway</b><span>Built for someone who does not like jazz yet</span></li><li><u>Audited</u><b>Seventies singer-songwriter</b><span>Deduplicated across four live versions of the same song</span></li><li><u>Audited</u><b>Fresh alt-rock finds</b><span>Nothing played in the last two years</span></li></ul>
+   <p class="foot">Every set was verified by opening it rather than by trusting the write. Nine were rebuilt, nine were opened, and the two that had silently lost a track were the whole reason the check exists.</p>
   </div>
-
-  <div class="stats">
-    <div class="s"><div class="l">Artists</div><div class="v">4,812</div><div class="d">After the novelty filter</div></div>
-    <div class="s"><div class="l">Qualified plays</div><div class="v">61,940</div><div class="d">Skips under 30s dropped</div></div>
-    <div class="s"><div class="l">Listening days</div><div class="v">3,704</div><div class="d">Out of 4,383 possible</div></div>
-    <div class="s"><div class="l">Sets rebuilt</div><div class="v">9</div><div class="d">Each audited track by track</div></div>
-  </div>
-
-  <div class="cols">
-    <div>
-      <h3>Plays by year</h3>
-      <div class="years">
-        <i style="height:26%"></i><i style="height:38%"></i><i style="height:47%"></i><i style="height:44%"></i>
-        <i style="height:61%"></i><i style="height:73%"></i><i style="height:69%"></i><i style="height:88%"></i>
-        <i style="height:97%"></i><i style="height:81%"></i><i style="height:76%"></i><i style="height:52%"></i>
-      </div>
-      <div class="ylab"><span>2015</span><span>2020</span><span>2026 to date</span></div>
-
-      <div class="sets">
-        <h3 style="margin-top:30px">Sets rebuilt from the record</h3>
-        <div class="set"><span><b>Rock Anthems</b><i>Ranked by repeat rate, not by release date</i></span><span class="v">Audited</span></div>
-        <div class="set"><span><b>Melodic House Discovery</b><i>Seeded from the tail, not the head</i></span><span class="v">Audited</span></div>
-        <div class="set"><span><b>Jazz Gateway</b><i>Built for someone who does not like jazz yet</i></span><span class="v">Audited</span></div>
-        <div class="set"><span><b>70s Singer-Songwriter</b><i>Deduplicated across four live versions</i></span><span class="v">Audited</span></div>
-        <div class="set"><span><b>Fresh Alt Rock Finds</b><i>Nothing played in the last two years</i></span><span class="v">Audited</span></div>
-      </div>
-    </div>
-
-    <div>
-      <h3>Most played, all time</h3>
-      <div class="a"><span class="n">01</span><span class="nm">The Vestry Hours<i style="width:100%"></i></span><span class="v">1,842</span></div>
-      <div class="a"><span class="n">02</span><span class="nm">Corva<i style="width:81%"></i></span><span class="v">1,494</span></div>
-      <div class="a"><span class="n">03</span><span class="nm">Harlan Deane<i style="width:73%"></i></span><span class="v">1,341</span></div>
-      <div class="a"><span class="n">04</span><span class="nm">Nightbus Choir<i style="width:64%"></i></span><span class="v">1,178</span></div>
-      <div class="a"><span class="n">05</span><span class="nm">Oona Ferrer<i style="width:58%"></i></span><span class="v">1,067</span></div>
-      <div class="a"><span class="n">06</span><span class="nm">The Long Field<i style="width:49%"></i></span><span class="v">903</span></div>
-      <div class="a"><span class="n">07</span><span class="nm">Sable Motor<i style="width:43%"></i></span><span class="v">791</span></div>
-      <div class="a"><span class="n">08</span><span class="nm">Petra Lund<i style="width:37%"></i></span><span class="v">688</span></div>
-      <div class="a"><span class="n">09</span><span class="nm">Ivo Marchetti<i style="width:31%"></i></span><span class="v">574</span></div>
-      <div class="a"><span class="n">10</span><span class="nm">Cold Harbour Set<i style="width:27%"></i></span><span class="v">502</span></div>
-    </div>
-  </div>
-
+ </div>
 </div>
 </body>
 </html>
