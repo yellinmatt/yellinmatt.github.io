@@ -123,17 +123,30 @@ img{display:block;max-width:100%}
 
 /* two writers, two elements: the drift owns .par, the hover scroll owns img */
 .cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
-/* NO will-change HERE, AND THAT IS THE FIX. These captures are 1100x2921, so
-   each one promoted to its own composited layer costs about 12 MB; at twelve
-   tiles Chrome hits its layer budget, declines to rasterize, and paints the
-   cell background instead. The result was a page whose entire claim is "every
-   screen below is the real product, recorded" showing black rectangles, with
-   only the hovered tile ever rasterizing. Verified on the live page 2026-08-06:
-   setting will-change:auto made the tiles appear on the next paint.
-   will-change is a hint, not a requirement; the transition below still
-   composites, it just does it when there is a reason to. */
+/* NO IDLE TRANSFORM AND NO will-change, AND THAT IS THE WHOLE FIX.
+
+   Diagnosed on the live page 2026-08-06, one hypothesis at a time. The tiles
+   were painting BLACK: every image loaded, decoded and sat at opacity 1, yet
+   only the tile under the cursor ever showed. Removing will-change alone did
+   not fix it. Removing the idle translate3d fixed some tiles. Removing the
+   .par drift transform as well fixed all of them.
+
+   The cause is not any one of those declarations, it is their sum:
+   `transform:translate3d(0,0,0)` and `will-change` are both requests to
+   promote an element to its own compositor layer, and they were being made
+   for fifteen images totalling 107 MB of decoded bitmap. Past its layer
+   budget Chrome simply declines to rasterize, and an unrasterized layer
+   paints as nothing, which on this page is the near-black cell behind it. So
+   a page whose entire claim is "every screen below is the real product,
+   recorded" was showing empty rectangles.
+
+   Two changes hold the fix together: the idle promotion is gone from here, so
+   a layer is created for the tile being hovered rather than for all fifteen
+   at once, and the captures were re-encoded to the size they are actually
+   displayed at, which took the bitmap total from 107 MB to about 30 MB.
+   Nothing about the motion changed. */
 .cell .par img{position:absolute;top:0;left:0;width:100%;height:auto;
-  transform:translate3d(0,0,0);transition:transform 9s linear}
+  transition:transform 9s linear}
 @media (hover:hover) and (pointer:fine){
   .cell:hover .par img,.cell:focus-visible .par img{transform:translate3d(0,var(--travel,-55%),0)}
 }
