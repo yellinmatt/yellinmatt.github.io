@@ -275,9 +275,18 @@ img{display:block;max-width:100%}
   transform:scale(var(--k,1));transform-origin:top left;pointer-events:none}
 .sheet .shot .frame::after{content:"";position:absolute;inset:0;
   box-shadow:inset 0 0 0 1px var(--line)}
-.sheet .shot .tag{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:26px 16px 11px;
-  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--g11);
-  background:linear-gradient(to top,var(--g2),transparent)}
+.sheet .shot .tag{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:30px 16px 13px;
+  background:linear-gradient(to top,var(--g2) 22%,transparent);
+  display:flex;align-items:center;gap:12px}
+.sheet .shot .tag .cap{flex:1;font-size:12.5px;line-height:1.35;color:var(--ink);
+  transition:opacity .32s var(--ease)}
+.sheet .shot .tag .cap.out{opacity:0}
+.sheet .shot .tag .dots{display:flex;gap:5px;flex:none}
+.sheet .shot .tag .dots i{width:5px;height:5px;border-radius:50%;background:var(--g8);
+  transition:background .3s,transform .3s}
+.sheet .shot .tag .dots i.on{background:var(--tone);transform:scale(1.45)}
+/* the tour drives scrollTop on the frame; the frame owns nothing but the shape */
+.sheet .shot .frame{scroll-behavior:smooth}
 .sheet .shot.none{display:grid;place-items:center;min-height:220px;
   background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 13%,transparent),var(--g3))}
 .sheet .shot.none span{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--g11)}
@@ -642,18 +651,52 @@ html.js .rv.in{opacity:1;transform:none}
          Falls back to the poster if the pane has no width yet. */
       elShot.className='shot'+(d.shot||d.demo?'':' none');
       if(d.demo){
+        /* THE TOUR. A static frame shows the top of a page and nothing else,
+           which is the same as showing nothing: the features are further down.
+           So the card RUNS the sample instead of cropping it, walking scene to
+           scene on a timer with a caption that names what you are looking at.
+           Scenes come from the sample itself (section.scene[data-cap]), so a
+           page gains a stop in the tour by gaining a section, and there is no
+           second list to keep in sync. */
         elShot.innerHTML='<div class="frame"><iframe title="'+d.n+
-          ', a sample build" loading="lazy" tabindex="-1" aria-hidden="true" '+
-          'src="demo/'+d.demo+'"></iframe></div>'+
-          '<span class="tag">A sample build &middot; invented data</span>';
-        var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe');
+          ', a sample build" tabindex="-1" aria-hidden="true" src="demo/'+d.demo+'"></iframe></div>'+
+          '<span class="tag"><span class="cap">A sample build, with invented data</span>'+
+          '<span class="dots"></span></span>';
+        var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe'),
+            cap=elShot.querySelector('.cap'), dots=elShot.querySelector('.dots');
         var fit=function(){
           var w=elShot.clientWidth||fr.clientWidth; if(!w)return;
-          var k=w/1512, h=Math.round(1180*k);
-          fi.style.height='1180px'; fr.style.setProperty('--k',k);
-          fr.style.height=h+'px';
+          var k=w/1160, h=Math.round((elShot.clientHeight||520)/k);
+          fi.style.height=h+'px'; fi.style.width='1160px';
+          fr.style.setProperty('--k',k); fr.style.height=Math.round(h*k)+'px';
         };
         fit(); requestAnimationFrame(fit); sheet._fit=fit;
+
+        if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}
+        fi.addEventListener('load',function(){
+          var doc; try{doc=fi.contentDocument;}catch(e){return;}
+          if(!doc)return;
+          var scenes=[].slice.call(doc.querySelectorAll('.scene[data-cap]'));
+          if(!scenes.length)return;
+          fit();
+          dots.innerHTML=scenes.map(function(){return '<i></i>';}).join('');
+          var pips=[].slice.call(dots.querySelectorAll('i')), i=-1;
+          var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          var go=function(n){
+            i=n; var s=scenes[i];
+            doc.documentElement.scrollTop=doc.body.scrollTop=Math.max(0,s.offsetTop-58);
+            pips.forEach(function(p,j){p.classList.toggle('on',j===i);});
+            cap.classList.add('out');
+            setTimeout(function(){cap.textContent=s.getAttribute('data-cap');cap.classList.remove('out');},260);
+          };
+          go(0);
+          /* Reduced motion gets the first scene and no timer: an auto-advancing
+             panel is exactly the thing that setting is asking us not to do. */
+          if(!reduce) sheet._tour=setInterval(function(){go((i+1)%scenes.length);},3400);
+          /* Hovering the frame is a request to look, so the tour waits. */
+          elShot.onmouseenter=function(){if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}};
+          elShot.onmouseleave=function(){if(!reduce&&!sheet._tour)sheet._tour=setInterval(function(){go((i+1)%scenes.length);},3400);};
+        });
       }else{
         sheet._fit=null;
         elShot.innerHTML=d.shot
@@ -681,9 +724,10 @@ html.js .rv.in{opacity:1;transform:none}
       sheet.classList.remove('on');
       document.documentElement.classList.remove('locked');
       sheet._fit=null;
-      /* Empty the pane on the way out. A frame left in the DOM keeps a whole
-         second page alive behind a closed modal, and eight of them would
-         accumulate over a browse. */
+      /* Stop the tour before the frame goes: an interval holding a reference to
+         a removed document is a leak that only shows up after eight cards. */
+      if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}
+      elShot.onmouseenter=elShot.onmouseleave=null;
       setTimeout(function(){sheet.hidden=true;elShot.innerHTML='';},320);
       if(last&&last.focus)last.focus();
     }
