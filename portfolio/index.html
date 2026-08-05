@@ -607,7 +607,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06g';
+  var DEMOV='2026-08-06h';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
@@ -727,83 +727,83 @@ html.js .rv.in{opacity:1;transform:none}
           var pips=[].slice.call(dots.querySelectorAll('i')), i=-1;
           var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-          /* THE TRAVEL IS THE POINT, so it is animated rather than jumped, and
-             it moves the FRAME rather than the document.
+          /* A CONTINUOUS PAN, NOT A SLIDESHOW.
+             Scene-to-scene jumping was still jumpy by construction: it holds
+             still, lurches, holds still. The references Matthew keeps say the
+             opposite. rauno.me/craft ships SIXTY-SIX <video> elements and
+             Metalab three video plus twenty-three <picture>: best-in-class work
+             pages show the product RECORDING itself, moving continuously, never
+             stepping. This does the same thing with no codec and nothing to
+             host, by panning the live sample at a constant slow rate.
 
-             Two attempts failed first, both diagnosed live. Setting
-             scroll-behavior on .frame in THIS document does nothing, because
-             that element owns nothing inside the iframe. Then tweening the
-             sample's own scrollTop failed differently and worse: the assignment
-             read back correctly and was reset to zero by the next frame, so the
-             caption advanced through all seven scenes while the picture never
-             moved. Rather than keep fighting an inner scroll I do not control,
-             the iframe now renders at full height and the tour translates it
-             past a fixed window. Position is mine, transform-only, and there is
-             no scrollTop in it to be reset. */
-          /* THE TRAVEL IS THE POINT, so it moves the FRAME rather than the
-             document, and the browser animates it rather than a loop of mine.
+             The browser owns the motion through the Web Animations API, so it
+             runs off the main thread and cannot stutter when the page is busy.
+             The caption follows the pan rather than driving it, and the arrows
+             SEEK the same animation instead of fighting it, which is why a
+             manual step and the pan never disagree. */
+          var maxY=Math.max(0,(fr._full||1200)-(fr._view||520)/(fr._k||1));
+          var k=fr._k||1;
+          /* about 62px of content a second: slow enough to read a heading as it
+             passes, quick enough that a seven-screen tool is not a commitment */
+          var dur=Math.min(52000,Math.max(16000,(maxY/62)*1000));
+          var anim=null;
 
-             Three attempts failed first, each diagnosed live rather than
-             guessed. (1) scroll-behavior on .frame in THIS document does
-             nothing, because that element owns nothing inside the iframe.
-             (2) Tweening the sample's own scrollTop failed worse: the
-             assignment read back correctly and was reset by the next frame, so
-             the caption walked all seven scenes while the picture sat still.
-             (3) Translating the frame from a requestAnimationFrame loop LOOKED
-             right and still did nothing, because one non-finite value makes
-             setProperty('--y','NaNpx') fail SILENTLY: no error, no movement,
-             and the loop stops on the first frame.
-
-             So the loop is gone. One property is set per scene and a CSS
-             transition does the animating, which is fewer moving parts, runs on
-             the compositor, and cannot half-apply. --y is guarded, because the
-             lesson of attempt three is that an invalid custom property is
-             thrown away without complaint. */
-          var setY=function(v){
-            var k=fr._k||1, max=Math.max(0,(fr._full||1200)-(fr._view||520)/k);
-            if(!isFinite(v))return;
-            var yy=Math.min(Math.max(0,v),max);
-            /* MOVED WITH top, NOT transform, and that is deliberate.
-               Transform is the better tool and it does not work on this
-               element: a --y inside calc() resolved to zero, and then a
-               hand-written inline `transform` computed to the identity matrix
-               while the stylesheet's own transform on the same element applied
-               normally. Both times every number I could read looked right and
-               the picture did not move, which is the failure mode that costs
-               the most time. top is a plain layout property, it cannot be
-               quietly discarded, and one transitioned element is cheap.
-               Scale stays in the stylesheet, where it demonstrably works. */
-            fr._y=yy;
-            fi.style.top=(-yy*k)+'px';
+          var capFor=function(y){
+            var s=scenes[0];
+            for(var j=0;j<scenes.length;j++){ if(scenes[j].offsetTop<=y+140) s=scenes[j]; }
+            return s;
           };
-          var go=function(n){
+          var lastCap=null;
+          var follow=function(){
+            if(!anim)return;
+            var t=anim.currentTime||0, p=Math.min(1,t/dur), y=p*maxY;
+            var s=capFor(y), n=scenes.indexOf(s);
+            if(s!==lastCap){
+              lastCap=s; i=n;
+              pips.forEach(function(q,j){q.classList.toggle('on',j===n);});
+              cap.classList.add('out');
+              setTimeout(function(){cap.textContent=s.getAttribute('data-cap');cap.classList.remove('out');},200);
+            }
+            sheet._follow=requestAnimationFrame(follow);
+          };
+
+          if(reduce){
+            /* No pan at all under reduced motion. The arrows still work, so the
+               whole tool is still reachable, just never in motion unasked. */
+            fi.style.top='0px';
+            cap.textContent=scenes[0].getAttribute('data-cap');
+            pips[0].classList.add('on'); i=0;
+          }else{
+            anim=fi.animate(
+              [{top:'0px'},{top:(-maxY*k)+'px'}],
+              {duration:dur,easing:'linear',direction:'alternate',iterations:Infinity}
+            );
+            sheet._anim=anim;
+            sheet._follow=requestAnimationFrame(follow);
+          }
+
+          /* An arrow seeks the pan to that scene and lets it carry on from
+             there, so pressing next never leaves the caption and the picture
+             describing different parts of the page. */
+          var seek=function(n){
             i=(n+scenes.length)%scenes.length;
-            var s=scenes[i];
-            setY((s.offsetTop||0)-46);
-            pips.forEach(function(p,j){p.classList.toggle('on',j===i);});
+            var y=Math.max(0,Math.min(maxY,scenes[i].offsetTop-46));
+            if(anim){ anim.currentTime=(maxY?y/maxY:0)*dur; }
+            else{ fi.style.top=(-y*k)+'px'; }
+            lastCap=scenes[i]; 
+            pips.forEach(function(q,j){q.classList.toggle('on',j===i);});
             cap.classList.add('out');
-            setTimeout(function(){cap.textContent=s.getAttribute('data-cap');cap.classList.remove('out');},240);
+            setTimeout(function(){cap.textContent=scenes[i].getAttribute('data-cap');cap.classList.remove('out');},200);
           };
-          var dwell=function(){
-            if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}
-            /* 4.6s: 0.95 travelling, the rest holding still long enough to read
-               the caption and the panel it points at. */
-            if(!reduce)sheet._tour=setInterval(function(){go(i+1);},4600);
-          };
-          go(0); dwell();
-
-          /* The arrows drive the same function and restart the dwell, so a manual
-             step never leaves the tour about to jump a quarter second later. */
           [].forEach.call(elShot.querySelectorAll('.arw'),function(b){
             b.addEventListener('click',function(e){
               e.preventDefault();e.stopPropagation();
-              go(i+ (+b.getAttribute('data-step')) ); dwell();
+              seek(i+(+b.getAttribute('data-step')));
             });
           });
-          /* Hovering the frame is a request to look, so the tour waits. The
-             arrows stay live while it is paused, which is the whole point. */
-          elShot.onmouseenter=function(){if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}};
-          elShot.onmouseleave=dwell;
+          /* Hovering is a request to look, so the pan holds where it is. */
+          elShot.onmouseenter=function(){if(anim&&anim.playState==='running')anim.pause();};
+          elShot.onmouseleave=function(){if(anim&&anim.playState==='paused')anim.play();};
         });
       }else{
         sheet._fit=null;
@@ -835,6 +835,8 @@ html.js .rv.in{opacity:1;transform:none}
       /* Stop the tour before the frame goes: an interval holding a reference to
          a removed document is a leak that only shows up after eight cards. */
       if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}
+      if(sheet._follow){cancelAnimationFrame(sheet._follow);sheet._follow=null;}
+      if(sheet._anim){try{sheet._anim.cancel();}catch(e){}sheet._anim=null;}
       elShot.onmouseenter=elShot.onmouseleave=null;
       setTimeout(function(){sheet.hidden=true;elShot.innerHTML='';},320);
       if(last&&last.focus)last.focus();
