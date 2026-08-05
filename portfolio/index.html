@@ -276,7 +276,11 @@ img{display:block;max-width:100%}
    past a window instead of asking the document to scroll itself. */
 .sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1160px;border:0;
   transform:scale(var(--k,1)) translateY(calc(var(--y,0px) * -1));
-  transform-origin:top left;pointer-events:none;will-change:transform}
+  transform-origin:top left;pointer-events:none;will-change:transform;
+  transition:transform 950ms cubic-bezier(.16,1,.3,1)}
+@media (prefers-reduced-motion:reduce){
+  .sheet .shot .frame iframe{transition:none}
+}
 .sheet .shot .frame::after{content:"";position:absolute;inset:0;
   box-shadow:inset 0 0 0 1px var(--line)}
 .sheet .shot .tag{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:30px 16px 13px;
@@ -604,7 +608,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06d';
+  var DEMOV='2026-08-06e';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
@@ -719,7 +723,7 @@ html.js .rv.in{opacity:1;transform:none}
           if(!scenes.length)return;
           fit();
           dots.innerHTML=scenes.map(function(){return '<i></i>';}).join('');
-          var pips=[].slice.call(dots.querySelectorAll('i')), i=-1, raf=null;
+          var pips=[].slice.call(dots.querySelectorAll('i')), i=-1;
           var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
           /* THE TRAVEL IS THE POINT, so it is animated rather than jumped, and
@@ -735,28 +739,34 @@ html.js .rv.in{opacity:1;transform:none}
              the iframe now renders at full height and the tour translates it
              past a fixed window. Position is mine, transform-only, and there is
              no scrollTop in it to be reset. */
-          var y=0;
-          var ease=function(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+          /* THE TRAVEL IS THE POINT, so it moves the FRAME rather than the
+             document, and the browser animates it rather than a loop of mine.
+
+             Three attempts failed first, each diagnosed live rather than
+             guessed. (1) scroll-behavior on .frame in THIS document does
+             nothing, because that element owns nothing inside the iframe.
+             (2) Tweening the sample's own scrollTop failed worse: the
+             assignment read back correctly and was reset by the next frame, so
+             the caption walked all seven scenes while the picture sat still.
+             (3) Translating the frame from a requestAnimationFrame loop LOOKED
+             right and still did nothing, because one non-finite value makes
+             setProperty('--y','NaNpx') fail SILENTLY: no error, no movement,
+             and the loop stops on the first frame.
+
+             So the loop is gone. One property is set per scene and a CSS
+             transition does the animating, which is fewer moving parts, runs on
+             the compositor, and cannot half-apply. --y is guarded, because the
+             lesson of attempt three is that an invalid custom property is
+             thrown away without complaint. */
           var setY=function(v){
-            var max=Math.max(0,(fr._full||1200)-(fr._view||520)/(fr._k||1));
-            y=Math.min(Math.max(0,v),max);
-            fr.style.setProperty('--y',y+'px');
-          };
-          var glide=function(to,ms){
-            if(raf)cancelAnimationFrame(raf);
-            var from=y, d=to-from, t0=performance.now();
-            if(Math.abs(d)<2||reduce){setY(to);return;}
-            var step=function(now){
-              var p=Math.min(1,(now-t0)/ms);
-              setY(from+d*ease(p));
-              if(p<1)raf=requestAnimationFrame(step);
-            };
-            raf=requestAnimationFrame(step);
+            var k=fr._k||1, max=Math.max(0,(fr._full||1200)-(fr._view||520)/k);
+            if(!isFinite(v))return;
+            fr.style.setProperty('--y',Math.min(Math.max(0,v),max)+'px');
           };
           var go=function(n){
             i=(n+scenes.length)%scenes.length;
             var s=scenes[i];
-            glide(Math.max(0,s.offsetTop-46),950);
+            setY((s.offsetTop||0)-46);
             pips.forEach(function(p,j){p.classList.toggle('on',j===i);});
             cap.classList.add('out');
             setTimeout(function(){cap.textContent=s.getAttribute('data-cap');cap.classList.remove('out');},240);
