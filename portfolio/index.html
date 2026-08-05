@@ -603,7 +603,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06n';
+  var DEMOV='2026-08-06p';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',demo:'brief.html',
@@ -744,9 +744,20 @@ html.js .rv.in{opacity:1;transform:none}
           var dur=Math.min(52000,Math.max(16000,(maxY/62)*1000));
           var anim=null;
 
+          /* THE CAPTION FOLLOWS WHAT IS VISIBLE, NOT WHAT IS AT THE TOP.
+             This was the "out of whack" bug, and it is arithmetic rather than
+             taste: the window shows view/k of the page at once, so the furthest
+             the pan can travel is full minus that. On a 1,971px ad in a 1,022px
+             window the last scene sits at 1,779 and the maximum position is 949,
+             so a scene keyed to reaching the TOP could never fire and the words
+             described a part of the page the picture never showed. Keying to the
+             CENTRE of the visible band means every scene is captioned as it
+             passes, including the last one, which no longer needs to reach a
+             position that does not exist. */
+          var band=function(){return (fr._view||520)/(fr._k||1);};
           var capFor=function(y){
-            var s=scenes[0];
-            for(var j=0;j<scenes.length;j++){ if(scenes[j].offsetTop<=y+140) s=scenes[j]; }
+            var mid=y+band()/2, s=scenes[0];
+            for(var j=0;j<scenes.length;j++){ if(scenes[j].offsetTop<=mid) s=scenes[j]; }
             return s;
           };
           var lastCap=null;
@@ -783,7 +794,7 @@ html.js .rv.in{opacity:1;transform:none}
              describing different parts of the page. */
           var seek=function(n){
             i=(n+scenes.length)%scenes.length;
-            var y=Math.max(0,Math.min(maxY,scenes[i].offsetTop-46));
+            var y=Math.max(0,Math.min(maxY,scenes[i].offsetTop-band()/2+80));
             if(anim){ anim.currentTime=(maxY?y/maxY:0)*dur; }
             else{ fi.style.top=(-y*k)+'px'; }
             lastCap=scenes[i]; 
