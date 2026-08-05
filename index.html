@@ -93,9 +93,20 @@
   var live=window.MY.PROJECTS.filter(function(p){return p.tier==='live';});
   var ul=document.getElementById('ledger'),field=document.getElementById('hf');
 
+  /* 2026-08-04. The ledger links to the LIVE PUBLICATION, not to a portfolio
+     anchor. It used to write href="portfolio/#a-<id>", and those anchors
+     stopped existing when the portfolio was rebuilt as the roster-plus-sheet
+     page on 2026-08-02, so all four links silently dumped you at the top of
+     the portfolio index and nothing appeared to happen. The rule this broke:
+     a feature that MOVES must be deleted from its old home in the same edit,
+     and grep the CALLERS. p.href is the single source of truth for where a
+     project lives and is written relative to /portfolio/, so strip the ../ to
+     make it root-absolute from here. */
   ul.innerHTML=live.map(function(p){
+    var to=p.href?p.href.replace(/^\.\.\//,'/'):'portfolio/';
+    var ext=!!p.href;
     return '<li class="rv" style="--tone:'+p.tone+'">'+
-      '<a class="item" href="portfolio/#a-'+p.id+'">'+
+      '<a class="item" href="'+to+'"'+(ext?' target="_blank" rel="noopener"':'')+'>'+
         '<span class="nm">'+p.n+'</span><span class="one">'+p.one+'</span></a></li>';
   }).join('');
 
