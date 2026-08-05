@@ -123,8 +123,17 @@ img{display:block;max-width:100%}
 
 /* two writers, two elements: the drift owns .par, the hover scroll owns img */
 .cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
+/* NO will-change HERE, AND THAT IS THE FIX. These captures are 1100x2921, so
+   each one promoted to its own composited layer costs about 12 MB; at twelve
+   tiles Chrome hits its layer budget, declines to rasterize, and paints the
+   cell background instead. The result was a page whose entire claim is "every
+   screen below is the real product, recorded" showing black rectangles, with
+   only the hovered tile ever rasterizing. Verified on the live page 2026-08-06:
+   setting will-change:auto made the tiles appear on the next paint.
+   will-change is a hint, not a requirement; the transition below still
+   composites, it just does it when there is a reason to. */
 .cell .par img{position:absolute;top:0;left:0;width:100%;height:auto;
-  will-change:transform;transform:translate3d(0,0,0);transition:transform 9s linear}
+  transform:translate3d(0,0,0);transition:transform 9s linear}
 @media (hover:hover) and (pointer:fine){
   .cell:hover .par img,.cell:focus-visible .par img{transform:translate3d(0,var(--travel,-55%),0)}
 }
