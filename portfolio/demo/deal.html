@@ -5,7 +5,7 @@
 <title>Dealcraft (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of Dealcraft, shown on desktop and phone with invented data.">
 <link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>:root{--bg:#F6F3EC;--ink:#1c1917;--sub:#57514a;--dim:#7f776c;--line:rgba(20,17,12,.13);--line2:rgba(20,17,12,.24);--accent:#7B2D26;--surface:#fffdf8;--chrome:#eee8dc;--ctaink:#fff;--devhi:#3a4150;--devlo:#12151b;--pbg:#F6F3EC;--pcard:#fffdf8;--pline:rgba(20,17,12,.13);--pink:#1c1917;--pdim:#7f776c;--pchrome:#eee8dc
+<style>:root{--bg:#F6F3EC;--ink:#1c1917;--sub:#57514a;--dim:#7f776c;--line:rgba(28,25,23,.14);--line2:rgba(28,25,23,.26);--accent:#7B2D26;--surface:#fffdf8;--chrome:#f0eade;--ctaink:#fff;--devhi:#3a4150;--devlo:#12151b;--pbg:#fffdf8;--pcard:#fffdf8;--pline:rgba(28,25,23,.14);--pink:#1c1917;--pdim:#7f776c;--pchrome:#f0eade
  --s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;
  --m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif}
 
@@ -17,18 +17,22 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
  border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
 .lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margin:0}
-.pg{max-width:1300px;margin:0 auto;padding:52px 48px 66px}
+.pg{max-width:1320px;margin:0 auto;padding:52px 48px 70px}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;
  border-bottom:1px solid var(--line);padding-bottom:20px}
-.hd h1{font-size:clamp(34px,4.4vw,52px);margin-top:8px}
+.hd h1{font-size:clamp(34px,4.4vw,54px);margin-top:8px}
 .hd h1 i{font-style:normal;color:var(--accent)}
-.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:50ch}
-
-/* the rig: a desktop with the phone overlapping its lower right, the shape every
-   product page uses because it says "same tool, two places" without a caption */
-.stage{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,2.1fr) minmax(0,.85fr);
- gap:34px;align-items:center;padding:44px 0 10px}
-.rig{position:relative;padding-bottom:64px;padding-right:104px}
+.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:52ch}
+.stage{display:grid;gap:34px;align-items:center;padding:46px 0;border-bottom:1px solid var(--line)}
+.stage.pair{grid-template-columns:minmax(0,2.2fr) minmax(0,.9fr)}
+.stage.pair.flip{grid-template-columns:minmax(0,.9fr) minmax(0,2.2fr)}
+.stage.pair.flip .rig{order:2}
+.stage .cap{grid-column:1/-1;margin-bottom:-8px}
+.stage .cap h3{font-size:23px;margin:6px 0 0}
+.stage .cap p{margin:8px 0 0;font-family:var(--t);font-size:15px;line-height:1.55;color:var(--sub);max-width:64ch}
+/* devices */
+.rig{position:relative}
+.rig.withphone{padding-right:150px;padding-bottom:44px}
 .mac{border-radius:11px;overflow:hidden;border:1px solid var(--line2);
  box-shadow:0 40px 90px -34px rgba(0,0,0,.55);background:var(--surface)}
 .bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--chrome);
@@ -36,88 +40,97 @@ h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margi
 .bar i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
 .bar u{flex:1;margin-left:9px;text-decoration:none;font:500 10.5px var(--m);color:var(--dim);
  background:var(--surface);border-radius:5px;padding:4px 9px;text-align:center}
-.win{padding:16px 18px;min-height:352px}
+.win{padding:0;overflow:hidden}
 .dev{position:absolute;right:0;bottom:0;width:186px;height:384px;border-radius:28px;padding:7px;
  background:linear-gradient(160deg,var(--devhi),var(--devlo));
  box-shadow:0 30px 64px -26px rgba(0,0,0,.62),0 0 0 1px var(--line2)}
-.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);
- display:flex;flex-direction:column}
+.dev.solo{position:static;margin:0 auto}
+.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);display:flex;flex-direction:column}
 .sb{display:flex;justify-content:space-between;padding:8px 13px 2px;font:600 8px var(--s);color:var(--pink)}
 .pbody{flex:1;overflow:hidden;padding:4px 9px 0}
 .tabs{display:flex;border-top:1px solid var(--pline);padding:5px 0 11px;background:var(--pchrome)}
-.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:0}
+.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden}
 .tabs div.on{color:var(--accent)}
 .tabs u{display:block;width:10px;height:10px;margin:0 auto 3px;border-radius:3px;
  border:1.3px solid currentColor;text-decoration:none}
-
-.ann{display:grid;gap:26px}
-.ann.r{text-align:right}
+.ann{display:grid;gap:24px}
 .an .lab{display:block;margin-bottom:6px;color:var(--accent)}
-.an h5{font-size:19px;margin:0 0 6px}
-.an p{margin:0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-.rule{border-top:1px solid var(--line);margin-top:40px;padding-top:22px;
- display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.an h5{font-size:18px;margin:0 0 6px}
+.an p{margin:0;font-family:var(--t);font-size:14px;line-height:1.55;color:var(--sub)}
+.rule{padding-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
 .rule p{margin:6px 0 0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-
-/* the miniature UI kit every window and phone screen is drawn from, so twelve
-   different tools still share one drawing vocabulary */
-.k{font:600 8.5px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
-.pk{font:600 7px var(--s);letter-spacing:.16em;text-transform:uppercase;color:var(--pdim)}
-.hh{font-family:var(--d);font-size:20px;letter-spacing:-.025em;margin:4px 0 10px}
-.ph{font-family:var(--d);font-size:14px;letter-spacing:-.02em;margin:2px 0 7px;color:var(--pink)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px}
-.pcard{background:var(--pcard);border:1px solid var(--pline);border-radius:10px;padding:8px 9px;margin-bottom:6px}
-.row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
-.row:last-child{border-bottom:0}
-.row b{font-weight:600;font-size:12px}
-.row .m{margin-left:auto;font-family:var(--m);font-size:10px;color:var(--dim)}
-.prow{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;color:var(--pink)}
-.prow .m{margin-left:auto;font-family:var(--m);font-size:8px;color:var(--pdim)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-.cta{background:var(--accent);color:var(--ctaink);border-radius:8px;padding:8px;text-align:center;
- font:600 10.5px var(--s);margin-top:7px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:8px}
-.bars i{flex:1;background:var(--accent);opacity:.75;display:block}
-.chip{display:inline-block;font:600 8px var(--s);letter-spacing:.13em;text-transform:uppercase;
- border:1px solid var(--line2);border-radius:99px;padding:3px 8px;color:var(--dim);margin-right:5px}
-.chip.on{color:var(--accent);border-color:var(--accent)}
-@media(max-width:1180px){.stage{grid-template-columns:1fr}.ann.r{text-align:left}
- .dev{position:static;width:190px;margin:22px auto 0}.rig{padding-bottom:0;padding-right:0}}
+@media(max-width:1080px){.stage.pair,.stage.pair.flip{grid-template-columns:1fr}
+ .rig.withphone{padding-right:0;padding-bottom:0}.dev{position:static;margin:20px auto 0}}
 @media(max-width:760px){.rule{grid-template-columns:1fr}}
+
+
+.dc{background:var(--surface)}
+.dchd{padding:13px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline}
+.dchd b{font-family:var(--d);font-size:15px;font-weight:400}
+.dchd span{font:500 8.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.dcb{display:grid;grid-template-columns:1.35fr 1fr;gap:0}
+.dcb>div{padding:15px 20px}
+.dcb>div+div{border-left:1px solid var(--line)}
+.dcb h4{font-family:var(--d);font-weight:400;font-size:19px;letter-spacing:-.022em;margin:0 0 8px}
+.dcb p{font-family:var(--t);font-size:11.6px;line-height:1.65;color:var(--sub);margin:0 0 9px}
+.dcb p b{color:var(--ink);font-weight:600}
+.clause{font-family:var(--m);font-size:9.6px;line-height:1.75;background:var(--chrome);
+ border:1px solid var(--line);padding:10px 12px;color:var(--sub)}
+.clause em{font-style:normal;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--ink);padding:0 2px}
+.clause .n{display:block;margin-top:7px;font-family:var(--s);font-size:9px;color:var(--accent);letter-spacing:.04em}
+.dcb .side b{display:block;font:600 8.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:8px}
+.dcb .side .r{padding:7px 0;border-bottom:1px solid var(--line);font-family:var(--t);font-size:11.4px}
+.dcb .side .r i{display:block;font-style:normal;font-size:9.8px;color:var(--dim);margin-top:2px}
+.tk{background:var(--surface);padding:16px 20px}
+.tk .g{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);margin-top:10px}
+.tk .g div{background:var(--surface);padding:11px 12px}
+.tk .g b{display:block;font-family:var(--d);font-size:13px;font-weight:400;line-height:1.2}
+.tk .g span{display:block;margin-top:4px;font:500 8px var(--s);letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
+.tk .g i{display:block;margin-top:5px;font-style:normal;font-family:var(--t);font-size:10.2px;color:var(--dim);line-height:1.4}
+.pd{padding:6px 3px;font-family:var(--t)}
+.pd .k{font:500 6.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.pd h5{font-family:var(--d);font-weight:400;font-size:12.6px;line-height:1.2;margin:4px 0 6px}
+.pd .b{font-size:8.4px;line-height:1.6;color:var(--pdim);margin-bottom:7px}
+.pd .c{font-family:var(--m);font-size:7px;line-height:1.7;background:var(--pchrome);
+ border:1px solid var(--pline);padding:6px 7px;color:var(--pdim)}
+.pd .i{padding:5px 0;border-top:1px solid var(--pline);font-family:var(--d);font-size:9.4px}
 </style></head><body>
 <div class="badge">Sample data</div>
 <div class="pg">
  <div data-cap="A curriculum in the order a deal actually runs" class="scene hd">
-  <div><span class="lab">Lesson 016 &middot; a two-year curriculum</span><h1>Dealcraft</h1><p>A two-year daily curriculum in corporate and transactional law, taught in the order a deal actually runs rather than the order a casebook lists them.</p></div>
-  <span class="lab">Six tracks &middot; mattyellin.com/dealcraft</span>
- </div>
- <div data-cap="Doctrine at the desk, cards on the train" class="scene stage">
-  <div class="ann r"><div class="an"><span class="lab">Deal order, not book order</span><h5>Taught the way it happens</h5><p>A casebook lists doctrine alphabetically. A deal runs in a sequence, and the sequence is most of the understanding.</p></div><div class="an"><span class="lab">Real transactions</span><h5>Taken apart clause by clause</h5><p>Published agreements read in full, with the negotiated language marked and the reason for it explained.</p></div></div>
-  <div class="rig">
-   <div class="mac"><div class="bar"><i></i><i></i><i></i><u>mattyellin.com/dealcraft</u></div>
-    <div class="win"><span class="k">Track 2 &middot; lesson 016</span><div class="hh">Where accounting becomes cash</div>
- <div class="card"><div style="font-family:var(--t);font-size:11.5px;line-height:1.55;color:var(--sub)">
- Working capital true-up takes the safest numbers on the balance sheet, reserves, accruals, cutoff, and settles them in cash months after the handshake. Working capital is a deal isn't read off the sheet; it's built by applying a negotiated accounting methodology to it.</div></div>
- <div class="two"><div class="card"><span class="k">The toolkit</span>
-  <div class="row"><b>Purchase price mechanics</b><span class="m">9 cards</span></div>
-  <div class="row"><b>Reps and warranties</b><span class="m">11</span></div>
-  <div class="row"><b>Conditions and covenants</b><span class="m">8</span></div></div>
-  <div class="card"><span class="k">Breakdowns</span>
-  <div class="row"><b>A nine figure earn-out</b><span class="m">clause by clause</span></div>
-  <div class="row"><b>The MAC that failed</b><span class="m">read in full</span></div></div></div></div></div>
-   <div class="dev"><div class="scr">
-    <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
-    <div class="pbody"><span class="pk">Lesson 016</span><div class="ph">Where accounting becomes cash</div>
- <div class="pcard"><div style="font-family:var(--t);font-size:8.5px;line-height:1.5;color:var(--pdim)">
- Working capital is built by applying a negotiated methodology, not read off the sheet.</div></div>
- <div class="pcard"><span class="pk">Toolkit</span><div class="prow">Purchase price mechanics</div>
- <div class="prow">Reps and warranties</div><div class="prow">Conditions and covenants</div></div></div>
-    <div class="tabs"><div class="on"><u></u>Today</div><div class=""><u></u>Toolkit</div><div class=""><u></u>Deals</div><div class=""><u></u>Glossary</div></div></div></div>
-  </div>
-  <div class="ann"><div class="an"><span class="lab">A toolkit, not a reader</span><h5>Thirty-five cards across four tracks</h5><p>Each card is one mechanism you can carry into a meeting, not a chapter you have to have finished.</p></div><div class="an"><span class="lab">An encyclopedia underneath</span><h5>Every term defined once</h5><p>Concepts are defined in one place and linked everywhere, so the vocabulary compounds rather than repeats.</p></div></div>
- </div>
+  <div><span class="lab">Lesson 016 &middot; a two-year daily curriculum</span><h1>Dealcraft</h1><p>A two-year daily curriculum in corporate and transactional law, taught in the order a deal actually runs rather than the order a casebook lists them.</p></div>
+  <span class="lab">Six tracks &middot; mattyellin.com/dealcraft</span></div>
+ <div data-cap="Doctrine taught beside the clause it lives in" class="scene stage pair"><div class="cap"><span class="lab">The lesson</span><h3>Doctrine, then the clause it lives in</h3><p>Every mechanism is taught next to the language that implements it, with the negotiated words marked and the reason for them stated.</p></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>mattyellin.com/dealcraft</u></div><div class="win"><div class="dc"><div class="dchd"><b>Dealcraft</b><span>Track 2 &middot; lesson 016</span></div>
+<div class="dcb"><div>
+ <h4>Where accounting becomes cash</h4>
+ <p>Working capital true-up takes the softest numbers on the balance sheet, reserves, accruals and cutoff, and settles them in <b>cash</b> months after the handshake. The figure is not read off the sheet; it is built by applying a negotiated methodology to it.</p>
+ <div class="clause">1.4 <em>Estimated Closing Working Capital</em> shall be calculated
+in accordance with the Accounting Principles set forth on
+<em>Schedule 1.4</em>, which shall control in the event of any
+conflict with GAAP.
+<span class="n">The order of precedence is the whole negotiation. Schedule 1.4 beats GAAP, so whoever drafts the schedule sets the price.</span></div>
+ <p style="margin-top:9px">Three months later the buyer recalculates on its own methodology, and the gap between the two is a wire transfer in one direction or the other.</p>
+</div><div class="side">
+ <b>Where this sits</b>
+ <div class="r">Purchase price mechanics<i>Lesson 014, the base and its adjustments</i></div>
+ <div class="r">Escrow and holdback<i>Lesson 018, what the true-up is secured by</i></div>
+ <div class="r">Accounting principles<i>Glossary, defined once</i></div>
+ <div class="r">Earn-out interaction<i>Track 4, where the same numbers reappear</i></div>
+</div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pd"><div class="k">Lesson 016</div><h5>Where accounting becomes cash</h5>
+<div class="b">The figure is built by applying a negotiated methodology, not read off the sheet.</div>
+<div class="c">1.4 Estimated Closing Working Capital shall be calculated in accordance with Schedule 1.4, which shall control.</div></div></div><div class="tabs"><div class="on"><u></u>Today</div><div class=""><u></u>Toolkit</div><div class=""><u></u>Deals</div><div class=""><u></u>Glossary</div></div></div></div></div><div class="ann"><div class="an"><span class="lab">Real language</span><h5>The clause, not a paraphrase</h5><p>A summary of a provision teaches you the idea. The provision teaches you where the money moves.</p></div><div class="an"><span class="lab">Cross-referenced</span><h5>Every card knows its neighbours</h5><p>The same numbers reappear in the earn-out and the escrow, and the lesson says so rather than leaving you to notice.</p></div></div></div><div data-cap="Thirty-five mechanisms you can carry into a meeting" class="scene stage pair flip"><div class="cap"><span class="lab">The toolkit</span><h3>Thirty-five cards, four tracks</h3><p>Each card is one mechanism you can carry into a meeting, not a chapter you need to have finished.</p></div><div class="ann"><div class="an"><span class="lab">Deal order</span><h5>Not alphabetical</h5><p>A casebook lists doctrine; a deal runs in a sequence, and the sequence is most of the understanding.</p></div><div class="an"><span class="lab">Defined once</span><h5>The glossary is the spine</h5><p>A term is defined in one place and linked everywhere, so the vocabulary compounds instead of repeating.</p></div></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>mattyellin.com/dealcraft</u></div><div class="win"><div class="tk"><div style="font:500 8.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)">The toolkit &middot; thirty-five cards across four tracks</div>
+<div class="g">
+ <div><span>Price</span><b>The base and its adjustments</b><i>What the number is before anyone argues</i></div>
+ <div><span>Risk</span><b>Reps and warranties</b><i>Who is promising what, and for how long</i></div>
+ <div><span>Timing</span><b>Conditions and covenants</b><i>What has to be true at closing</i></div>
+ <div><span>Remedy</span><b>Indemnities and caps</b><i>What happens when a promise fails</i></div>
+ <div><span>Price</span><b>Working capital true-up</b><i>Accounting settled in cash</i></div>
+ <div><span>Price</span><b>Earn-outs</b><i>Paying for a future you cannot verify</i></div>
+ <div><span>Risk</span><b>Material adverse change</b><i>The clause nobody wins on</i></div>
+ <div><span>Remedy</span><b>Escrow and holdback</b><i>Money that has not finished moving</i></div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pd"><div class="k">Toolkit</div>
+<div class="i">The base and its adjustments</div><div class="i">Reps and warranties</div>
+<div class="i">Conditions and covenants</div><div class="i">Indemnities and caps</div>
+<div class="i">Working capital true-up</div><div class="i">Earn-outs</div></div></div><div class="tabs"><div class=""><u></u>Today</div><div class="on"><u></u>Toolkit</div><div class=""><u></u>Deals</div><div class=""><u></u>Glossary</div></div></div></div></div></div>
  <div data-cap="What it runs on, and the rule it keeps" class="scene rule"><div><span class="lab">Published</span><p><b>Sixteen lessons so far.</b> Two full rotations through six tracks planned, with digests and decks at each turn.</p></div><div><span class="lab">Built on</span><p><b>Research and writing.</b> Primary documents first, secondary sources cited and spot-checked, nothing asserted from memory.</p></div><div><span class="lab">The rule</span><p><b>Cite it or cut it.</b> Every claim carries a source, and a claim that cannot find one does not ship.</p></div></div>
-</div>
-</body></html>
+</div></body></html>

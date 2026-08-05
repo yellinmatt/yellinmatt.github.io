@@ -5,7 +5,7 @@
 <title>The Desk (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of The Desk, shown on desktop and phone with invented data.">
 <link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>:root{--bg:#0a0a0b;--ink:#f6f6f8;--sub:#a2a2ac;--dim:#7d7d88;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--accent:#ff6363;--surface:#151517;--chrome:#111113;--ctaink:#1a0d0d;--devhi:#3a4150;--devlo:#12151b;--pbg:#0a0a0b;--pcard:#151517;--pline:rgba(255,255,255,.08);--pink:#f6f6f8;--pdim:#7d7d88;--pchrome:#111113
+<style>:root{--bg:#0a0a0b;--ink:#f6f6f8;--sub:#a2a2ac;--dim:#8b8b96;--body:#a2a2ac;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--accent:#ff6363;--coral:#ff6363;--ok:#59d499;--warn:#ffc531;--surface:#0a0a0b;--panel:#151517;--panel2:#1c1c20;--chrome:#111113;--ctaink:#1a0d0d;--devhi:#3a4150;--devlo:#12151b;--pbg:#0a0a0b;--pcard:#151517;--pline:rgba(255,255,255,.08);--pink:#f6f6f8;--pdim:#8b8b96;--pchrome:#111113
  --s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;
  --m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif}
 
@@ -17,18 +17,22 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
  border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
 .lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margin:0}
-.pg{max-width:1300px;margin:0 auto;padding:52px 48px 66px}
+.pg{max-width:1320px;margin:0 auto;padding:52px 48px 70px}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;
  border-bottom:1px solid var(--line);padding-bottom:20px}
-.hd h1{font-size:clamp(34px,4.4vw,52px);margin-top:8px}
+.hd h1{font-size:clamp(34px,4.4vw,54px);margin-top:8px}
 .hd h1 i{font-style:normal;color:var(--accent)}
-.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:50ch}
-
-/* the rig: a desktop with the phone overlapping its lower right, the shape every
-   product page uses because it says "same tool, two places" without a caption */
-.stage{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,2.1fr) minmax(0,.85fr);
- gap:34px;align-items:center;padding:44px 0 10px}
-.rig{position:relative;padding-bottom:64px;padding-right:104px}
+.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:52ch}
+.stage{display:grid;gap:34px;align-items:center;padding:46px 0;border-bottom:1px solid var(--line)}
+.stage.pair{grid-template-columns:minmax(0,2.2fr) minmax(0,.9fr)}
+.stage.pair.flip{grid-template-columns:minmax(0,.9fr) minmax(0,2.2fr)}
+.stage.pair.flip .rig{order:2}
+.stage .cap{grid-column:1/-1;margin-bottom:-8px}
+.stage .cap h3{font-size:23px;margin:6px 0 0}
+.stage .cap p{margin:8px 0 0;font-family:var(--t);font-size:15px;line-height:1.55;color:var(--sub);max-width:64ch}
+/* devices */
+.rig{position:relative}
+.rig.withphone{padding-right:150px;padding-bottom:44px}
 .mac{border-radius:11px;overflow:hidden;border:1px solid var(--line2);
  box-shadow:0 40px 90px -34px rgba(0,0,0,.55);background:var(--surface)}
 .bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--chrome);
@@ -36,97 +40,125 @@ h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margi
 .bar i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
 .bar u{flex:1;margin-left:9px;text-decoration:none;font:500 10.5px var(--m);color:var(--dim);
  background:var(--surface);border-radius:5px;padding:4px 9px;text-align:center}
-.win{padding:16px 18px;min-height:352px}
+.win{padding:0;overflow:hidden}
 .dev{position:absolute;right:0;bottom:0;width:186px;height:384px;border-radius:28px;padding:7px;
  background:linear-gradient(160deg,var(--devhi),var(--devlo));
  box-shadow:0 30px 64px -26px rgba(0,0,0,.62),0 0 0 1px var(--line2)}
-.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);
- display:flex;flex-direction:column}
+.dev.solo{position:static;margin:0 auto}
+.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);display:flex;flex-direction:column}
 .sb{display:flex;justify-content:space-between;padding:8px 13px 2px;font:600 8px var(--s);color:var(--pink)}
 .pbody{flex:1;overflow:hidden;padding:4px 9px 0}
 .tabs{display:flex;border-top:1px solid var(--pline);padding:5px 0 11px;background:var(--pchrome)}
-.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:0}
+.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden}
 .tabs div.on{color:var(--accent)}
 .tabs u{display:block;width:10px;height:10px;margin:0 auto 3px;border-radius:3px;
  border:1.3px solid currentColor;text-decoration:none}
-
-.ann{display:grid;gap:26px}
-.ann.r{text-align:right}
+.ann{display:grid;gap:24px}
 .an .lab{display:block;margin-bottom:6px;color:var(--accent)}
-.an h5{font-size:19px;margin:0 0 6px}
-.an p{margin:0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-.rule{border-top:1px solid var(--line);margin-top:40px;padding-top:22px;
- display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.an h5{font-size:18px;margin:0 0 6px}
+.an p{margin:0;font-family:var(--t);font-size:14px;line-height:1.55;color:var(--sub)}
+.rule{padding-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
 .rule p{margin:6px 0 0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-
-/* the miniature UI kit every window and phone screen is drawn from, so twelve
-   different tools still share one drawing vocabulary */
-.k{font:600 8.5px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
-.pk{font:600 7px var(--s);letter-spacing:.16em;text-transform:uppercase;color:var(--pdim)}
-.hh{font-family:var(--d);font-size:20px;letter-spacing:-.025em;margin:4px 0 10px}
-.ph{font-family:var(--d);font-size:14px;letter-spacing:-.02em;margin:2px 0 7px;color:var(--pink)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px}
-.pcard{background:var(--pcard);border:1px solid var(--pline);border-radius:10px;padding:8px 9px;margin-bottom:6px}
-.row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
-.row:last-child{border-bottom:0}
-.row b{font-weight:600;font-size:12px}
-.row .m{margin-left:auto;font-family:var(--m);font-size:10px;color:var(--dim)}
-.prow{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;color:var(--pink)}
-.prow .m{margin-left:auto;font-family:var(--m);font-size:8px;color:var(--pdim)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-.cta{background:var(--accent);color:var(--ctaink);border-radius:8px;padding:8px;text-align:center;
- font:600 10.5px var(--s);margin-top:7px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:8px}
-.bars i{flex:1;background:var(--accent);opacity:.75;display:block}
-.chip{display:inline-block;font:600 8px var(--s);letter-spacing:.13em;text-transform:uppercase;
- border:1px solid var(--line2);border-radius:99px;padding:3px 8px;color:var(--dim);margin-right:5px}
-.chip.on{color:var(--accent);border-color:var(--accent)}
-@media(max-width:1180px){.stage{grid-template-columns:1fr}.ann.r{text-align:left}
- .dev{position:static;width:190px;margin:22px auto 0}.rig{padding-bottom:0;padding-right:0}}
+@media(max-width:1080px){.stage.pair,.stage.pair.flip{grid-template-columns:1fr}
+ .rig.withphone{padding-right:0;padding-bottom:0}.dev{position:static;margin:20px auto 0}}
 @media(max-width:760px){.rule{grid-template-columns:1fr}}
+
+
+.dk{background:var(--bg);padding:14px 18px}
+.dkhd{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:11px;border-bottom:1px solid var(--line2)}
+.dkhd b{font:600 15px var(--s);letter-spacing:-.015em}
+.dkhd span{font-family:var(--m);font-size:9.4px;color:var(--dim);letter-spacing:.05em}
+.dkpal{display:flex;align-items:center;gap:8px;margin:11px 0 12px;background:var(--panel);
+ border:1px solid var(--line);border-radius:8px;padding:8px 11px}
+.dkpal kbd{font-family:var(--m);font-size:8.4px;color:var(--dim);border:1px solid var(--line2);border-radius:4px;padding:2px 5px}
+.dkpal span{font-size:10.6px;color:var(--dim)}
+.dklbl{font:600 8px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim);margin-bottom:6px}
+.dkmv{font:600 17px/1.28 var(--s);letter-spacing:-.015em}
+.dkmeta{margin-top:6px;font-size:10.4px;color:var(--sub)}
+.dkfire{margin-top:11px;display:grid;gap:6px}
+.dkfire .i{display:flex;align-items:center;gap:9px;background:rgba(255,99,99,.08);
+ border:1px solid rgba(255,99,99,.28);border-radius:9px;padding:8px 11px}
+.dkfire .i .d{width:6px;height:6px;border-radius:50%;background:var(--coral);flex:none}
+.dkfire .i span{flex:1;font-size:11.4px}
+.dkfire .i em{font-style:normal;font-family:var(--m);font-size:8.6px;color:var(--coral)}
+.dkquiet{margin-top:9px;display:flex;align-items:center;gap:8px;font-size:10.6px;color:var(--sub)}
+.dkquiet .d{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+.dkg{display:grid;grid-template-columns:1fr 1.05fr;gap:22px;margin-top:14px}
+.dkr{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid var(--line);font-size:10.8px;color:var(--sub)}
+.dkr:last-child{border-bottom:0}
+.dkr b{font-family:var(--m);font-size:9.4px;width:44px;flex:none;color:var(--body)}
+.dkr b.soon{color:var(--warn)} .dkr b.crit{color:var(--coral)}
+.dkboard{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-top:8px}
+.dkbr{display:flex;align-items:center;gap:9px;background:var(--panel);padding:9px 11px}
+.dkbr .s{width:6px;height:6px;border-radius:50%;flex:none}
+.dkbr .s.ok{background:var(--ok)} .dkbr .s.wa{background:var(--warn)} .dkbr .s.cr{background:var(--coral)}
+.dkbr .t{flex:1} .dkbr .t b{display:block;font:600 11.4px var(--s)}
+.dkbr .t span{display:block;margin-top:1px;font-size:9.8px;color:var(--sub)}
+.dkbr em{font-style:normal;font-family:var(--m);font-size:8px;letter-spacing:.09em}
+.dkbr em.ok{color:var(--ok)} .dkbr em.wa{color:var(--warn)} .dkbr em.cr{color:var(--coral)}
+.dklock{margin-top:12px;background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 12px}
+.dklock b{display:block;font:600 11.4px var(--s)}
+.dklock span{display:block;margin-top:2px;font-size:9.8px;color:var(--sub)}
+.dklock .in{display:flex;gap:6px;margin-top:9px}
+.dklock .in i{flex:1;max-width:130px;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;
+ padding:6px 8px;font-family:var(--m);font-size:9.4px;letter-spacing:.2em;color:var(--sub);font-style:normal}
+.dklock .in u{text-decoration:none;background:var(--panel2);border:1px solid var(--line2);border-radius:6px;
+ padding:6px 12px;font:600 9.4px var(--s)}
+.pk2 .k{font:600 6.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--pdim)}
+.pk2 .mv{font:600 11.4px/1.3 var(--s);margin:3px 0 7px;color:var(--pink)}
+.pk2 .i{display:flex;align-items:center;gap:6px;background:rgba(255,99,99,.09);
+ border:1px solid rgba(255,99,99,.28);border-radius:8px;padding:6px 8px;margin-bottom:5px;font-size:8.4px;color:var(--pink)}
+.pk2 .i .d{width:5px;height:5px;border-radius:50%;background:var(--coral);flex:none}
+.pk2 .r{display:flex;gap:7px;padding:4px 0;border-bottom:1px solid var(--pline);font-size:8.4px;color:var(--pdim)}
+.pk2 .r b{font-family:var(--m);font-size:7.6px;width:30px;flex:none;color:var(--pink)}
 </style></head><body>
 <div class="badge">Sample data</div>
 <div class="pg">
  <div data-cap="The board rebuilt while you are asleep" class="scene hd">
   <div><span class="lab">Thursday 14 May &middot; rebuilt 07:30</span><h1>The Desk</h1><p>The board I start every morning from, rebuilt while I am asleep. One thing on fire, the first move, a fourteen-day horizon, and every project with where it stands.</p></div>
-  <span class="lab">One writer &middot; rerunning self-heals</span>
- </div>
- <div data-cap="The same board at the desk and on the walk" class="scene stage">
-  <div class="ann r"><div class="an"><span class="lab">One thing on fire</span><h5>Never a list of nine priorities</h5><p>If everything is urgent the board has told you nothing. It names one, and says plainly that the rest can slide.</p></div><div class="an"><span class="lab">Every line has a source</span><h5>A claim with no file never renders</h5><p>The board carries the path it came from, so a sentence you cannot trace does not reach the morning.</p></div></div>
-  <div class="rig">
-   <div class="mac"><div class="bar"><i></i><i></i><i></i><u>desk &middot; private</u></div>
-    <div class="win"><span class="k">First move</span>
- <div class="hh">Send the revised term sheet comparison before the two o'clock call.</div>
- <div class="card" style="border-color:rgba(255,99,99,.3);background:rgba(255,99,99,.07)">
-  <div class="row"><span class="dot"></span><b>Externship certification wants both signatures</b><span class="m">TODAY</span></div>
-  <div class="row"><span class="dot"></span><b>Bid list closes and nothing is ranked</b><span class="m">2 DAYS</span></div></div>
- <div class="two"><div><span class="k">Open</span>
-  <div class="row"><b>Daily brief pipeline</b><span class="m">LIVE</span></div>
-  <div class="row"><b>Lesson archive</b><span class="m">LIVE</span></div>
-  <div class="row"><b>Deal breakdown series</b><span class="m">BUILDING</span></div>
-  <div class="row"><b>Reading list rebuild</b><span class="m">BLOCKED</span></div></div>
-  <div><span class="k">Today</span>
-  <div class="row"><b>08:00</b><span>Write the morning brief</span></div>
-  <div class="row"><b>10:30</b><span>Draft the comparison memo</span></div>
-  <div class="row"><b>14:00</b><span>Call on the term sheet</span></div>
-  <div class="row"><b>16:30</b><span>Session, lower body</span></div></div></div></div></div>
-   <div class="dev"><div class="scr">
-    <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
-    <div class="pbody"><span class="pk">First move</span>
- <div class="ph" style="font-size:12px;line-height:1.3">Send the term sheet comparison before two.</div>
- <div class="pcard" style="border-color:rgba(255,99,99,.3)">
-  <div class="prow"><span class="dot"></span>Certification, both signatures</div>
-  <div class="prow"><span class="dot"></span>Bid list closes</div></div>
- <div class="pcard"><span class="pk">Today</span>
-  <div class="prow">Morning brief<span class="m">08:00</span></div>
-  <div class="prow">Comparison memo<span class="m">10:30</span></div>
-  <div class="prow">Term sheet call<span class="m">14:00</span></div></div></div>
-    <div class="tabs"><div class="on"><u></u>Board</div><div class=""><u></u>Reads</div><div class=""><u></u>Sweep</div><div class=""><u></u>Money</div></div></div></div>
-  </div>
-  <div class="ann"><div class="an"><span class="lab">Rebuilt, not edited</span><h5>Rerunning it self-heals</h5><p>There is one writer. The board is regenerated each morning rather than patched, so it cannot drift from what is true.</p></div><div class="an"><span class="lab">Money stays locked</span><h5>Figures need a passcode on the device</h5><p>The finance band renders nothing until it is unlocked, and nothing behind that gate has ever reached a public page.</p></div></div>
- </div>
+  <span class="lab">One writer &middot; rerunning self-heals</span></div>
+ <div data-cap="One thing on fire, and the first move" class="scene stage pair"><div class="cap"><span class="lab">The morning</span><h3>One thing on fire, and the first move</h3><p>Never a list of nine priorities. It names the one thing, says plainly that the rest can slide, and carries the file it came from.</p></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>desk &middot; private</u></div><div class="win"><div class="dk"><div class="dkhd"><b>The Desk</b><span>THU 14 MAY &middot; REBUILT 07:30</span></div>
+<div class="dkpal"><kbd>&#8984;K</kbd><span>Jump to a project, a file, or a day</span></div>
+<div class="dklbl">First move</div>
+<div class="dkmv">Send the revised term sheet comparison before the two o'clock call.</div>
+<div class="dkmeta">Everything else can slide behind it &middot; src Career/Deals/term-sheet-compare.md</div>
+<div class="dkfire">
+ <div class="i"><span class="d"></span><span>Externship time certification wants both signatures</span><em>TODAY</em></div>
+ <div class="i"><span class="d"></span><span>Bid list closes and nothing is ranked yet</span><em>2 DAYS</em></div></div>
+<div class="dkquiet"><span class="d"></span>Everything else is quiet. Four projects ran overnight without needing you.</div>
+<div class="dkg"><div><div class="dklbl">Today</div>
+ <div class="dkr"><b>08:00</b>Write the morning brief</div>
+ <div class="dkr"><b class="crit">10:30</b>Draft the comparison memo</div>
+ <div class="dkr"><b>14:00</b>Call on the term sheet</div>
+ <div class="dkr"><b>16:30</b>Session, lower body</div></div>
+<div><div class="dklbl">The horizon</div>
+ <div class="dkr"><b class="crit">Fri 16</b>Time certification, both signatures</div>
+ <div class="dkr"><b class="soon">Mon 19</b>Bid list closes</div>
+ <div class="dkr"><b class="soon">Wed 21</b>Registration opens</div>
+ <div class="dkr"><b>Tue 27</b>Quarterly letter goes out</div></div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pk2"><div class="k">First move</div>
+<div class="mv">Send the term sheet comparison before two.</div>
+<div class="i"><span class="d"></span>Certification, both signatures</div>
+<div class="i"><span class="d"></span>Bid list closes, nothing ranked</div>
+<div style="margin-top:8px"><div class="k">Today</div>
+<div class="r"><b>08:00</b>Morning brief</div><div class="r"><b>10:30</b>Comparison memo</div>
+<div class="r"><b>14:00</b>Term sheet call</div></div></div></div><div class="tabs"><div class="on"><u></u>Board</div><div class=""><u></u>Reads</div><div class=""><u></u>Sweep</div><div class=""><u></u>Money</div></div></div></div></div><div class="ann"><div class="an"><span class="lab">One fire</span><h5>Not nine priorities</h5><p>If everything is urgent the board has told you nothing. It names one and lets the rest wait.</p></div><div class="an"><span class="lab">Every line has a source</span><h5>A claim with no file never renders</h5><p>The board carries the path it came from, so a sentence you cannot trace does not reach the morning.</p></div></div></div><div data-cap="Every project, the overnight sweep, and the locked band" class="scene stage pair flip"><div class="cap"><span class="lab">The board</span><h3>Every project, and what ran overnight</h3><p>Six projects with where each stands, the overnight sweep with what it changed, and a finance band that renders nothing until it is unlocked.</p></div><div class="ann"><div class="an"><span class="lab">Rebuilt, not edited</span><h5>Rerunning it self-heals</h5><p>One writer. The board is regenerated each morning rather than patched, so it cannot drift from what is true.</p></div><div class="an"><span class="lab">Money stays locked</span><h5>A passcode on the device</h5><p>Nothing behind that gate has ever reached a public page, including this sample.</p></div></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>desk &middot; private</u></div><div class="win"><div class="dk"><div class="dkhd"><b>Open</b><span>SIX PROJECTS &middot; ONE WRITER</span></div>
+<div class="dkboard">
+ <div class="dkbr"><span class="s ok"></span><div class="t"><b>Daily brief pipeline</b><span>Published clean for 41 straight mornings</span></div><em class="ok">LIVE</em></div>
+ <div class="dkbr"><span class="s ok"></span><div class="t"><b>Lesson archive</b><span>142 lessons, indexed and cross-linked</span></div><em class="ok">LIVE</em></div>
+ <div class="dkbr"><span class="s wa"></span><div class="t"><b>Deal breakdown series</b><span>Third entry drafted, wants a diagram</span></div><em class="wa">BUILDING</em></div>
+ <div class="dkbr"><span class="s cr"></span><div class="t"><b>Reading list rebuild</b><span>Held until the shelf model is decided, which is on you</span></div><em class="cr">BLOCKED</em></div>
+ <div class="dkbr"><span class="s ok"></span><div class="t"><b>Training system</b><span>Week 12 loaded, sync healthy</span></div><em class="ok">LIVE</em></div></div>
+<div class="dkg" style="grid-template-columns:1fr 1fr">
+<div><div class="dklbl" style="margin-top:12px">The sweep</div>
+ <div class="dkr"><b class="ok">06:04</b>Morning brief built and published</div>
+ <div class="dkr"><b class="ok">06:14</b>Lesson written and filed</div>
+ <div class="dkr"><b class="soon">07:02</b>Encyclopedia skipped, machine asleep</div></div>
+<div><div class="dklock"><b>Finance is locked</b><span>Figures never render until a passcode is entered on this device</span>
+ <div class="in"><i>&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;</i><u>Unlock</u></div></div></div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pk2"><div class="k">Open</div>
+<div class="r"><b>LIVE</b>Daily brief pipeline</div><div class="r"><b>LIVE</b>Lesson archive</div>
+<div class="r"><b>BLD</b>Deal breakdown series</div><div class="r"><b>BLK</b>Reading list rebuild</div>
+<div style="margin-top:8px"><div class="k">The sweep</div>
+<div class="r"><b>06:04</b>Brief published</div><div class="r"><b>06:14</b>Lesson filed</div></div></div></div><div class="tabs"><div class=""><u></u>Board</div><div class=""><u></u>Reads</div><div class="on"><u></u>Sweep</div><div class=""><u></u>Money</div></div></div></div></div></div>
  <div data-cap="One writer, and every line carries a source" class="scene rule"><div><span class="lab">Cadence</span><p><b>Rebuilt every morning at 07:30.</b> Reconciled against yesterday before it renders, so the first thing you read is already true.</p></div><div><span class="lab">Discipline</span><p><b>One writer.</b> Two writers on one surface is how a board starts disagreeing with itself.</p></div><div><span class="lab">The rule</span><p><b>A decision is not made until it is written.</b> Reached in conversation and never written down means it did not happen.</p></div></div>
-</div>
-</body></html>
+</div></body></html>

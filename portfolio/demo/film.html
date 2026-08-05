@@ -5,7 +5,7 @@
 <title>The Film Library (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of The Film Library, shown on desktop and phone with invented data.">
 <link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>:root{--bg:#0B0D11;--ink:#EAEEF4;--sub:#98A2B0;--dim:#78828F;--line:rgba(234,238,244,.10);--line2:rgba(234,238,244,.20);--accent:#8FA6C4;--surface:#151a21;--chrome:#111419;--ctaink:#0a1018;--devhi:#3a4150;--devlo:#12151b;--pbg:#0B0D11;--pcard:#151a21;--pline:rgba(234,238,244,.10);--pink:#EAEEF4;--pdim:#78828F;--pchrome:#111419
+<style>:root{--bg:#0B0D11;--ink:#EAEEF4;--sub:#98A2B0;--dim:#8792A0;--line:rgba(234,238,244,.10);--line2:rgba(234,238,244,.20);--accent:#8FA6C4;--surface:#101419;--chrome:#0d1116;--ctaink:#0a1018;--devhi:#3a4150;--devlo:#12151b;--pbg:#0B0D11;--pcard:#101419;--pline:rgba(234,238,244,.10);--pink:#EAEEF4;--pdim:#8792A0;--pchrome:#0d1116
  --s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;
  --m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif}
 
@@ -17,18 +17,22 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
  border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
 .lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margin:0}
-.pg{max-width:1300px;margin:0 auto;padding:52px 48px 66px}
+.pg{max-width:1320px;margin:0 auto;padding:52px 48px 70px}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;
  border-bottom:1px solid var(--line);padding-bottom:20px}
-.hd h1{font-size:clamp(34px,4.4vw,52px);margin-top:8px}
+.hd h1{font-size:clamp(34px,4.4vw,54px);margin-top:8px}
 .hd h1 i{font-style:normal;color:var(--accent)}
-.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:50ch}
-
-/* the rig: a desktop with the phone overlapping its lower right, the shape every
-   product page uses because it says "same tool, two places" without a caption */
-.stage{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,2.1fr) minmax(0,.85fr);
- gap:34px;align-items:center;padding:44px 0 10px}
-.rig{position:relative;padding-bottom:64px;padding-right:104px}
+.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:52ch}
+.stage{display:grid;gap:34px;align-items:center;padding:46px 0;border-bottom:1px solid var(--line)}
+.stage.pair{grid-template-columns:minmax(0,2.2fr) minmax(0,.9fr)}
+.stage.pair.flip{grid-template-columns:minmax(0,.9fr) minmax(0,2.2fr)}
+.stage.pair.flip .rig{order:2}
+.stage .cap{grid-column:1/-1;margin-bottom:-8px}
+.stage .cap h3{font-size:23px;margin:6px 0 0}
+.stage .cap p{margin:8px 0 0;font-family:var(--t);font-size:15px;line-height:1.55;color:var(--sub);max-width:64ch}
+/* devices */
+.rig{position:relative}
+.rig.withphone{padding-right:150px;padding-bottom:44px}
 .mac{border-radius:11px;overflow:hidden;border:1px solid var(--line2);
  box-shadow:0 40px 90px -34px rgba(0,0,0,.55);background:var(--surface)}
 .bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--chrome);
@@ -36,85 +40,94 @@ h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margi
 .bar i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
 .bar u{flex:1;margin-left:9px;text-decoration:none;font:500 10.5px var(--m);color:var(--dim);
  background:var(--surface);border-radius:5px;padding:4px 9px;text-align:center}
-.win{padding:16px 18px;min-height:352px}
+.win{padding:0;overflow:hidden}
 .dev{position:absolute;right:0;bottom:0;width:186px;height:384px;border-radius:28px;padding:7px;
  background:linear-gradient(160deg,var(--devhi),var(--devlo));
  box-shadow:0 30px 64px -26px rgba(0,0,0,.62),0 0 0 1px var(--line2)}
-.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);
- display:flex;flex-direction:column}
+.dev.solo{position:static;margin:0 auto}
+.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);display:flex;flex-direction:column}
 .sb{display:flex;justify-content:space-between;padding:8px 13px 2px;font:600 8px var(--s);color:var(--pink)}
 .pbody{flex:1;overflow:hidden;padding:4px 9px 0}
 .tabs{display:flex;border-top:1px solid var(--pline);padding:5px 0 11px;background:var(--pchrome)}
-.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:0}
+.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden}
 .tabs div.on{color:var(--accent)}
 .tabs u{display:block;width:10px;height:10px;margin:0 auto 3px;border-radius:3px;
  border:1.3px solid currentColor;text-decoration:none}
-
-.ann{display:grid;gap:26px}
-.ann.r{text-align:right}
+.ann{display:grid;gap:24px}
 .an .lab{display:block;margin-bottom:6px;color:var(--accent)}
-.an h5{font-size:19px;margin:0 0 6px}
-.an p{margin:0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-.rule{border-top:1px solid var(--line);margin-top:40px;padding-top:22px;
- display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.an h5{font-size:18px;margin:0 0 6px}
+.an p{margin:0;font-family:var(--t);font-size:14px;line-height:1.55;color:var(--sub)}
+.rule{padding-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
 .rule p{margin:6px 0 0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-
-/* the miniature UI kit every window and phone screen is drawn from, so twelve
-   different tools still share one drawing vocabulary */
-.k{font:600 8.5px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
-.pk{font:600 7px var(--s);letter-spacing:.16em;text-transform:uppercase;color:var(--pdim)}
-.hh{font-family:var(--d);font-size:20px;letter-spacing:-.025em;margin:4px 0 10px}
-.ph{font-family:var(--d);font-size:14px;letter-spacing:-.02em;margin:2px 0 7px;color:var(--pink)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px}
-.pcard{background:var(--pcard);border:1px solid var(--pline);border-radius:10px;padding:8px 9px;margin-bottom:6px}
-.row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
-.row:last-child{border-bottom:0}
-.row b{font-weight:600;font-size:12px}
-.row .m{margin-left:auto;font-family:var(--m);font-size:10px;color:var(--dim)}
-.prow{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;color:var(--pink)}
-.prow .m{margin-left:auto;font-family:var(--m);font-size:8px;color:var(--pdim)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-.cta{background:var(--accent);color:var(--ctaink);border-radius:8px;padding:8px;text-align:center;
- font:600 10.5px var(--s);margin-top:7px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:8px}
-.bars i{flex:1;background:var(--accent);opacity:.75;display:block}
-.chip{display:inline-block;font:600 8px var(--s);letter-spacing:.13em;text-transform:uppercase;
- border:1px solid var(--line2);border-radius:99px;padding:3px 8px;color:var(--dim);margin-right:5px}
-.chip.on{color:var(--accent);border-color:var(--accent)}
-@media(max-width:1180px){.stage{grid-template-columns:1fr}.ann.r{text-align:left}
- .dev{position:static;width:190px;margin:22px auto 0}.rig{padding-bottom:0;padding-right:0}}
+@media(max-width:1080px){.stage.pair,.stage.pair.flip{grid-template-columns:1fr}
+ .rig.withphone{padding-right:0;padding-bottom:0}.dev{position:static;margin:20px auto 0}}
 @media(max-width:760px){.rule{grid-template-columns:1fr}}
+
+
+.fl{background:var(--surface)}
+.flhero{display:grid;grid-template-columns:112px 1fr;gap:18px;padding:16px 20px;align-items:center;border-bottom:1px solid var(--line)}
+.flpos{aspect-ratio:2/3;border-radius:2px;position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.09)}
+.flpos::after{content:"";position:absolute;inset:0;background:linear-gradient(148deg,rgba(255,255,255,.13),transparent 46%)}
+.flhero .k{font:600 7.6px var(--s);letter-spacing:.19em;text-transform:uppercase;color:var(--accent)}
+.flhero h4{font-family:var(--d);font-weight:400;font-size:27px;letter-spacing:-.03em;margin:5px 0 0}
+.flhero .yr{margin-top:5px;font-family:var(--m);font-size:9px;color:var(--dim);letter-spacing:.1em}
+.flhero p{font-family:var(--t);font-size:11.4px;line-height:1.6;color:var(--sub);margin:8px 0 0;max-width:46ch}
+.flact{display:flex;gap:7px;margin-top:11px}
+.flact u{text-decoration:none;font:600 8px var(--s);letter-spacing:.17em;text-transform:uppercase;
+ border:1px solid var(--line2);padding:7px 13px;border-radius:2px}
+.flact u.p{background:var(--accent);border-color:var(--accent);color:#0a1018}
+.flq{padding:14px 20px;border-bottom:1px solid var(--line)}
+.flpair{display:grid;grid-template-columns:1fr 62px 1fr;gap:14px;align-items:center;margin-top:10px}
+.flopt{display:flex;gap:11px;align-items:center;background:rgba(234,238,244,.035);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.flmini{width:34px;height:51px;border-radius:2px;flex:none}
+.flopt b{display:block;font-family:var(--d);font-weight:400;font-size:14px}
+.flopt span{display:block;margin-top:1px;font-family:var(--m);font-size:8.6px;color:var(--dim)}
+.flvs{text-align:center;font-family:var(--m);font-size:8px;letter-spacing:.17em;color:var(--dim);line-height:1.5}
+.flnote{margin-top:11px;font-family:var(--t);font-size:11px;line-height:1.6;color:var(--sub);
+ border-left:2px solid var(--accent);padding-left:12px;max-width:70ch}
+.flshelf{padding:13px 20px}
+.flfil{display:flex;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:9px}
+.flfil span{font:600 8px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim);padding-bottom:3px;border-bottom:1px solid transparent}
+.flfil span.on{color:var(--ink);border-bottom-color:var(--accent)}
+.flgr{display:grid;grid-template-columns:repeat(9,1fr);gap:11px;margin-top:12px}
+.flit{position:relative}
+.flit .rk{position:absolute;top:4px;left:5px;z-index:2;font-family:var(--m);font-size:8.4px;color:rgba(255,255,255,.85)}
+.flit b{display:block;margin-top:5px;font-family:var(--d);font-weight:400;font-size:9.6px;line-height:1.2}
+.pfl{padding:6px 3px}
+.pfl .k{font:600 6.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.pfl .pp{aspect-ratio:2/3;border-radius:2px;margin:5px 0 6px}
+.pfl h5{font-family:var(--d);font-weight:400;font-size:13px;margin:0 0 3px;color:var(--pink)}
+.pfl .b{font-family:var(--m);font-size:7.4px;color:var(--pdim)}
+.pfl .cta{background:var(--accent);color:#0a1018;border-radius:6px;padding:6px;text-align:center;font:600 9px var(--s);margin-top:7px}
 </style></head><body>
 <div class="badge">Sample data</div>
 <div class="pg">
  <div data-cap="It picks tonight, and says why" class="scene hd">
   <div><span class="lab">A running top hundred &middot; self-running</span><h1>The Film Library</h1><p>Everything worth watching, and an engine that decides what I watch tonight. The point of a library is that it answers, so it reads the shelf and picks rather than handing back a list.</p></div>
-  <span class="lab">It answers rather than listing</span>
- </div>
- <div data-cap="The shelf at the desk, the verdict on the sofa" class="scene stage">
-  <div class="ann r"><div class="an"><span class="lab">It answers</span><h5>Never a list to choose from</h5><p>Handing back twenty options is the problem restated. The engine reads the shelf and names one, with the reason.</p></div><div class="an"><span class="lab">Pairs, not stars</span><h5>Twenty questions reorder it</h5><p>Stars collapse everything into five buckets and stop discriminating. A pair always has a winner.</p></div></div>
-  <div class="rig">
-   <div class="mac"><div class="bar"><i></i><i></i><i></i><u>films &middot; private</u></div>
-    <div class="win"><span class="k">Picked for tonight</span><div class="hh">The Long Afternoon</div>
- <div class="card"><div style="font-family:var(--t);font-size:11.5px;line-height:1.55;color:var(--sub)">
- Chosen because three unwatched entries by this director are already on the shelf, it runs under two hours on a weeknight, and nothing this slow has been reached for in five weeks.</div></div>
- <div class="card"><span class="k">Adjust the ranking &middot; question 14 of 20</span>
- <div class="row"><b>A Quiet Argument</b><span class="m">currently 2</span></div>
- <div class="row"><b>Harbour Lights</b><span class="m">currently 3</span></div></div>
- <div class="card"><span class="chip on">Top hundred</span><span class="chip">Unwatched</span><span class="chip">By decade</span><span class="chip">Bumped out</span></div></div></div>
-   <div class="dev"><div class="scr">
-    <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
-    <div class="pbody"><span class="pk">Tonight</span><div class="ph">The Long Afternoon</div>
- <div class="pcard"><div style="font-family:var(--t);font-size:8.5px;line-height:1.5;color:var(--pdim)">
- 1978 &middot; 104 minutes &middot; unwatched</div><div class="cta">Start it</div></div>
- <div class="pcard"><span class="pk">Which stays</span><div class="prow">A Quiet Argument</div>
- <div class="prow">Harbour Lights</div></div></div>
-    <div class="tabs"><div class="on"><u></u>Tonight</div><div class=""><u></u>Shelf</div><div class=""><u></u>Quiz</div><div class=""><u></u>Bumped</div></div></div></div>
-  </div>
-  <div class="ann"><div class="an"><span class="lab">Bumped out</span><h5>Losing has a consequence</h5><p>Anything that loses often enough leaves the hundred rather than sitting quietly at the bottom of it.</p></div><div class="an"><span class="lab">Cut how you choose</span><h5>Unwatched, shortest, by decade</h5><p>Nobody picks a film by alphabet. The filters match the questions people actually ask on a Tuesday.</p></div></div>
- </div>
+  <span class="lab">It answers rather than listing</span></div>
+ <div data-cap="One film, with the reason it was chosen" class="scene stage pair"><div class="cap"><span class="lab">Tonight</span><h3>One film, and the reason</h3><p>Not twenty options. One choice, with the three facts that produced it, and a button that says why if you want to argue.</p></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>films &middot; private</u></div><div class="win"><div class="fl"><div class="flhero">
+ <div class="flpos" style="background:linear-gradient(160deg,#38455f,#1b2536)"></div>
+ <div><div class="k">Picked for tonight</div><h4>The Long Afternoon</h4>
+ <div class="yr">1978 &middot; 104 minutes &middot; unwatched</div>
+ <p>Chosen because three unwatched entries by this director are already on the shelf, it runs under two hours on a weeknight, and nothing this slow has been reached for in five weeks.</p>
+ <div class="flact"><u class="p">Start it</u><u>Pick again</u><u>Why this one</u></div></div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pfl"><div class="k">Tonight</div>
+<div class="pp" style="background:linear-gradient(160deg,#38455f,#1b2536)"></div>
+<h5>The Long Afternoon</h5><div class="b">1978 &middot; 104 min &middot; unwatched</div>
+<div class="cta">Start it</div></div></div><div class="tabs"><div class="on"><u></u>Tonight</div><div class=""><u></u>Shelf</div><div class=""><u></u>Quiz</div><div class=""><u></u>Bumped</div></div></div></div></div><div class="ann"><div class="an"><span class="lab">It answers</span><h5>Never a list to choose from</h5><p>Handing back twenty options is the problem restated. It reads the shelf and names one.</p></div><div class="an"><span class="lab">The reason is shown</span><h5>Not a black box</h5><p>Three unwatched by the director, under two hours, nothing this slow in five weeks. You can disagree with it.</p></div></div></div><div data-cap="Ranked by asking, and losing has a consequence" class="scene stage pair flip"><div class="cap"><span class="lab">The ranking</span><h3>Ranked by asking, not by rating</h3><p>Twenty pairwise questions reorder the hundred, and anything that loses often enough leaves it rather than sitting at the bottom.</p></div><div class="ann"><div class="an"><span class="lab">Pairs, not stars</span><h5>Five buckets stop discriminating</h5><p>A pair always has a winner, which is why twenty questions can do what a thousand ratings cannot.</p></div><div class="an"><span class="lab">Bumped out</span><h5>Losing costs you your place</h5><p>The hundred stays a hundred. Something has to leave for something to enter.</p></div></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>films &middot; private</u></div><div class="win"><div class="fl"><div class="flq">
+ <div style="font:600 7.6px var(--s);letter-spacing:.19em;text-transform:uppercase;color:var(--dim)">Adjust the ranking &middot; question 14 of 20</div>
+ <div class="flpair">
+  <div class="flopt"><div class="flmini" style="background:linear-gradient(160deg,#38503f,#22322b)"></div>
+   <div><b>A Quiet Argument</b><span>1991 &middot; currently 2</span></div></div>
+  <div class="flvs">Which<br>stays</div>
+  <div class="flopt"><div class="flmini" style="background:linear-gradient(160deg,#634434,#402a22)"></div>
+   <div><b>Harbour Lights</b><span>1988 &middot; currently 3</span></div></div></div>
+ <div class="flnote">Stars collapse everything into five buckets and then stop discriminating. Pairs do not: twenty questions reorder the shelf, and anything that loses often enough is bumped out of the hundred rather than quietly sitting at the bottom of it.</div></div>
+<div class="flshelf"><div class="flfil"><span class="on">Top hundred</span><span>Unwatched</span><span>By director</span><span>By decade</span><span>Shortest first</span><span>Bumped out</span></div>
+<div class="flgr"><div class="flit"><span class="rk">1</span><div class="flpos" style="background:linear-gradient(160deg,#5d4a63,#3b2f42)"></div><b>Salt and Distance</b></div><div class="flit"><span class="rk">2</span><div class="flpos" style="background:linear-gradient(160deg,#38503f,#22322b)"></div><b>A Quiet Argument</b></div><div class="flit"><span class="rk">3</span><div class="flpos" style="background:linear-gradient(160deg,#634434,#402a22)"></div><b>Harbour Lights</b></div><div class="flit"><span class="rk">4</span><div class="flpos" style="background:linear-gradient(160deg,#37496b,#22304a)"></div><b>The Second Winter</b></div><div class="flit"><span class="rk">5</span><div class="flpos" style="background:linear-gradient(160deg,#5c3a48,#3d2530)"></div><b>Nobody Waits</b></div><div class="flit"><span class="rk">6</span><div class="flpos" style="background:linear-gradient(160deg,#455237,#2c3524)"></div><b>River of Small Hours</b></div><div class="flit"><span class="rk">7</span><div class="flpos" style="background:linear-gradient(160deg,#4e4a5e,#33303f)"></div><b>The Borrowed Coat</b></div><div class="flit"><span class="rk">8</span><div class="flpos" style="background:linear-gradient(160deg,#574535,#3a2e24)"></div><b>Late Return</b></div><div class="flit"><span class="rk">9</span><div class="flpos" style="background:linear-gradient(160deg,#3a4a56,#242f38)"></div><b>Every Third Thursday</b></div></div></div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pfl"><div class="k">Which stays</div>
+<div class="pp" style="background:linear-gradient(160deg,#38503f,#22322b);aspect-ratio:3/2"></div>
+<h5>A Quiet Argument</h5><div class="b">1991 &middot; currently 2</div>
+<div class="pp" style="background:linear-gradient(160deg,#634434,#402a22);aspect-ratio:3/2;margin-top:6px"></div>
+<h5>Harbour Lights</h5><div class="b">1988 &middot; currently 3</div></div></div><div class="tabs"><div class=""><u></u>Tonight</div><div class=""><u></u>Shelf</div><div class="on"><u></u>Quiz</div><div class=""><u></u>Bumped</div></div></div></div></div></div>
  <div data-cap="How it ranks, and the rule it keeps" class="scene rule"><div><span class="lab">Running</span><p><b>A top hundred.</b> Continuously reordered by the quiz rather than fixed at the moment it was written.</p></div><div><span class="lab">Built on</span><p><b>Collections and an engine.</b> The shelf is the data; the picker is a small ranking model over it.</p></div><div><span class="lab">The rule</span><p><b>The point of a library is that it answers.</b> If it hands back a list, it has failed at the only job it had.</p></div></div>
-</div>
-</body></html>
+</div></body></html>

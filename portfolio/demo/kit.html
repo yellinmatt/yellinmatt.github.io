@@ -5,7 +5,7 @@
 <title>The Claude OS Kit (sample) &middot; Matthew Yellin</title>
 <meta name="description" content="A sample build of The Claude OS Kit, shown on desktop and phone with invented data.">
 <link rel='preconnect' href='https://fonts.googleapis.com'><link rel='preconnect' href='https://fonts.gstatic.com' crossorigin><link href='https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..600&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap' rel='stylesheet'>
-<style>:root{--bg:#F6F4F0;--ink:#191714;--sub:#57534c;--dim:#7d776d;--line:rgba(20,17,12,.13);--line2:rgba(20,17,12,.24);--accent:#7a6a53;--surface:#fffdf9;--chrome:#efece5;--ctaink:#fff;--devhi:#3a4150;--devlo:#12151b;--pbg:#F6F4F0;--pcard:#fffdf9;--pline:rgba(20,17,12,.13);--pink:#191714;--pdim:#7d776d;--pchrome:#efece5
+<style>:root{--bg:#F6F4F0;--ink:#191714;--sub:#57534c;--dim:#7d776d;--line:rgba(28,24,18,.14);--line2:rgba(28,24,18,.26);--ctaink:#fff;--devhi:#3a4150;--devlo:#12151b;--accent:#7a6a53;--surface:#fffdf9;--chrome:#efece5;--pbg:#fffdf9;--pcard:#fffdf9;--pline:rgba(28,24,18,.14);--pink:#191714;--pdim:#7d776d;--pchrome:#efece5
  --s:-apple-system,'SF Pro Text','Segoe UI',system-ui,sans-serif;
  --m:ui-monospace,'SF Mono',Menlo,monospace;--d:'Fraunces',Georgia,serif;--t:'Spectral',Georgia,serif}
 
@@ -17,18 +17,22 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--s);
  border:1px solid var(--line2);background:color-mix(in srgb,var(--bg) 86%,transparent)}
 .lab{font:600 9.5px var(--s);letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
 h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margin:0}
-.pg{max-width:1300px;margin:0 auto;padding:52px 48px 66px}
+.pg{max-width:1320px;margin:0 auto;padding:52px 48px 70px}
 .hd{display:flex;align-items:flex-end;justify-content:space-between;gap:32px;
  border-bottom:1px solid var(--line);padding-bottom:20px}
-.hd h1{font-size:clamp(34px,4.4vw,52px);margin-top:8px}
+.hd h1{font-size:clamp(34px,4.4vw,54px);margin-top:8px}
 .hd h1 i{font-style:normal;color:var(--accent)}
-.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:50ch}
-
-/* the rig: a desktop with the phone overlapping its lower right, the shape every
-   product page uses because it says "same tool, two places" without a caption */
-.stage{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,2.1fr) minmax(0,.85fr);
- gap:34px;align-items:center;padding:44px 0 10px}
-.rig{position:relative;padding-bottom:64px;padding-right:104px}
+.hd p{margin:11px 0 0;font-family:var(--t);font-size:16.5px;line-height:1.55;color:var(--sub);max-width:52ch}
+.stage{display:grid;gap:34px;align-items:center;padding:46px 0;border-bottom:1px solid var(--line)}
+.stage.pair{grid-template-columns:minmax(0,2.2fr) minmax(0,.9fr)}
+.stage.pair.flip{grid-template-columns:minmax(0,.9fr) minmax(0,2.2fr)}
+.stage.pair.flip .rig{order:2}
+.stage .cap{grid-column:1/-1;margin-bottom:-8px}
+.stage .cap h3{font-size:23px;margin:6px 0 0}
+.stage .cap p{margin:8px 0 0;font-family:var(--t);font-size:15px;line-height:1.55;color:var(--sub);max-width:64ch}
+/* devices */
+.rig{position:relative}
+.rig.withphone{padding-right:150px;padding-bottom:44px}
 .mac{border-radius:11px;overflow:hidden;border:1px solid var(--line2);
  box-shadow:0 40px 90px -34px rgba(0,0,0,.55);background:var(--surface)}
 .bar{display:flex;align-items:center;gap:7px;padding:9px 12px;background:var(--chrome);
@@ -36,89 +40,93 @@ h1,h2,h3,h4,h5{font-family:var(--d);font-weight:400;letter-spacing:-.028em;margi
 .bar i{width:9px;height:9px;border-radius:50%;background:var(--line2);display:block}
 .bar u{flex:1;margin-left:9px;text-decoration:none;font:500 10.5px var(--m);color:var(--dim);
  background:var(--surface);border-radius:5px;padding:4px 9px;text-align:center}
-.win{padding:16px 18px;min-height:352px}
+.win{padding:0;overflow:hidden}
 .dev{position:absolute;right:0;bottom:0;width:186px;height:384px;border-radius:28px;padding:7px;
  background:linear-gradient(160deg,var(--devhi),var(--devlo));
  box-shadow:0 30px 64px -26px rgba(0,0,0,.62),0 0 0 1px var(--line2)}
-.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);
- display:flex;flex-direction:column}
+.dev.solo{position:static;margin:0 auto}
+.scr{height:100%;border-radius:22px;overflow:hidden;background:var(--pbg);display:flex;flex-direction:column}
 .sb{display:flex;justify-content:space-between;padding:8px 13px 2px;font:600 8px var(--s);color:var(--pink)}
 .pbody{flex:1;overflow:hidden;padding:4px 9px 0}
 .tabs{display:flex;border-top:1px solid var(--pline);padding:5px 0 11px;background:var(--pchrome)}
-.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden;text-overflow:clip;letter-spacing:0}
+.tabs div{flex:1;text-align:center;font:600 6px var(--s);color:var(--pdim);white-space:nowrap;overflow:hidden}
 .tabs div.on{color:var(--accent)}
 .tabs u{display:block;width:10px;height:10px;margin:0 auto 3px;border-radius:3px;
  border:1.3px solid currentColor;text-decoration:none}
-
-.ann{display:grid;gap:26px}
-.ann.r{text-align:right}
+.ann{display:grid;gap:24px}
 .an .lab{display:block;margin-bottom:6px;color:var(--accent)}
-.an h5{font-size:19px;margin:0 0 6px}
-.an p{margin:0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-.rule{border-top:1px solid var(--line);margin-top:40px;padding-top:22px;
- display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.an h5{font-size:18px;margin:0 0 6px}
+.an p{margin:0;font-family:var(--t);font-size:14px;line-height:1.55;color:var(--sub)}
+.rule{padding-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
 .rule b{font-family:var(--d);font-weight:400;font-size:17px;letter-spacing:-.02em}
 .rule p{margin:6px 0 0;font-family:var(--t);font-size:14.2px;line-height:1.55;color:var(--sub)}
-
-/* the miniature UI kit every window and phone screen is drawn from, so twelve
-   different tools still share one drawing vocabulary */
-.k{font:600 8.5px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim)}
-.pk{font:600 7px var(--s);letter-spacing:.16em;text-transform:uppercase;color:var(--pdim)}
-.hh{font-family:var(--d);font-size:20px;letter-spacing:-.025em;margin:4px 0 10px}
-.ph{font-family:var(--d);font-size:14px;letter-spacing:-.02em;margin:2px 0 7px;color:var(--pink)}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-bottom:7px}
-.pcard{background:var(--pcard);border:1px solid var(--pline);border-radius:10px;padding:8px 9px;margin-bottom:6px}
-.row{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12px}
-.row:last-child{border-bottom:0}
-.row b{font-weight:600;font-size:12px}
-.row .m{margin-left:auto;font-family:var(--m);font-size:10px;color:var(--dim)}
-.prow{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;color:var(--pink)}
-.prow .m{margin-left:auto;font-family:var(--m);font-size:8px;color:var(--pdim)}
-.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:none}
-.cta{background:var(--accent);color:var(--ctaink);border-radius:8px;padding:8px;text-align:center;
- font:600 10.5px var(--s);margin-top:7px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.bars{display:flex;align-items:flex-end;gap:3px;height:56px;margin-top:8px}
-.bars i{flex:1;background:var(--accent);opacity:.75;display:block}
-.chip{display:inline-block;font:600 8px var(--s);letter-spacing:.13em;text-transform:uppercase;
- border:1px solid var(--line2);border-radius:99px;padding:3px 8px;color:var(--dim);margin-right:5px}
-.chip.on{color:var(--accent);border-color:var(--accent)}
-@media(max-width:1180px){.stage{grid-template-columns:1fr}.ann.r{text-align:left}
- .dev{position:static;width:190px;margin:22px auto 0}.rig{padding-bottom:0;padding-right:0}}
+@media(max-width:1080px){.stage.pair,.stage.pair.flip{grid-template-columns:1fr}
+ .rig.withphone{padding-right:0;padding-bottom:0}.dev{position:static;margin:20px auto 0}}
 @media(max-width:760px){.rule{grid-template-columns:1fr}}
+
+
+.kt{background:var(--surface)}
+.kthd{padding:14px 20px;border-bottom:2px solid var(--ink);display:flex;justify-content:space-between;align-items:baseline}
+.kthd b{font-family:var(--d);font-size:18px;font-weight:400}
+.kthd span{font:500 8.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--dim)}
+.kttab{width:100%;border-collapse:collapse}
+.kttab th{text-align:left;font:600 8px var(--s);letter-spacing:.17em;text-transform:uppercase;color:var(--dim);
+ padding:10px 14px 8px;border-bottom:1px solid var(--line2)}
+.kttab td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;
+ font-family:var(--t);font-size:11px;line-height:1.5;color:var(--sub)}
+.kttab td:first-child{width:120px}
+.kttab td b{display:block;font-family:var(--d);font-size:14px;font-weight:400;color:var(--ink)}
+.kttab td small{display:block;font-family:var(--m);font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.kttree{font-family:var(--m);font-size:9.6px;line-height:1.9;color:var(--sub);background:var(--chrome);
+ border:1px solid var(--line);padding:12px 14px;white-space:pre;margin:12px 20px}
+.kttree b{color:var(--ink);font-weight:400} .kttree i{color:var(--accent);font-style:normal}
+.ktgate{margin:0 20px 16px;padding:11px 13px;border-left:2px solid var(--accent);
+ background:color-mix(in srgb,var(--accent) 6%,transparent);font-family:var(--t);font-size:11px;line-height:1.6;color:var(--sub)}
+.ktgate b{color:var(--ink);font-weight:600}
+.pk3{padding:6px 3px;font-family:var(--t)}
+.pk3 .k{font:600 6.5px var(--s);letter-spacing:.18em;text-transform:uppercase;color:var(--accent)}
+.pk3 h5{font-family:var(--d);font-weight:400;font-size:13px;margin:4px 0 6px}
+.pk3 .b{font-size:8.4px;line-height:1.55;color:var(--pdim)}
+.pk3 .i{padding:5px 0;border-top:1px solid var(--pline);font-family:var(--d);font-size:9.6px}
+.pk3 .t{font-family:var(--m);font-size:7px;line-height:1.8;color:var(--pdim);white-space:pre;margin-top:7px}
 </style></head><body>
 <div class="badge">Sample data</div>
 <div class="pg">
  <div data-cap="One system, packaged four ways" class="scene hd">
   <div><span class="lab">Documentation kit &middot; four editions shipped</span><h1>The Claude OS Kit</h1><p>One operating system for a working life, written out four times for four different readers. Each edition ships a handbook, a deck, deliberately blank templates, and a first-run script that interviews the reader.</p></div>
-  <span class="lab">Handbook &middot; deck &middot; templates &middot; first run</span>
- </div>
- <div data-cap="The handbook at the desk, the one-pager in hand" class="scene stage">
-  <div class="ann r"><div class="an"><span class="lab">Four readers, four builds</span><h5>Not one manual with four covers</h5><p>An enterprise install and a first terminal need different first sentences, so they got different documents.</p></div><div class="an"><span class="lab">Blank on purpose</span><h5>The templates stay empty</h5><p>A filled-in template teaches you to copy. An empty one with a good prompt teaches you to think.</p></div></div>
-  <div class="rig">
-   <div class="mac"><div class="bar"><i></i><i></i><i></i><u>kit &middot; private</u></div>
-    <div class="win"><span class="k">Four editions</span><div class="hh">Written out four times, for four readers</div>
- <div class="card"><div class="row"><b>Enterprise</b><span class="m">a private equity firm</span></div>
- <div class="row"><b>Work account</b><span class="m">a locked-down machine</span></div>
- <div class="row"><b>Starter pack</b><span class="m">never opened a terminal</span></div>
- <div class="row"><b>Advanced twin</b><span class="m">already running one</span></div></div>
- <div class="two"><div class="card"><span class="k">What installs</span>
-  <div style="font-family:var(--m);font-size:9.5px;line-height:1.8;color:var(--sub)">kit/<br>
-  &#9500; 0-START-HERE.md<br>&#9500; 2-Handbook.pdf<br>&#9500; templates/<br>&#9492; _build/gates/</div></div>
-  <div class="card"><span class="k">Carried across all four</span>
-  <div class="row"><b>One law file</b></div><div class="row"><b>Memory in tiers</b></div>
-  <div class="row"><b>Suggest, then act</b></div></div></div></div></div>
-   <div class="dev"><div class="scr">
-    <div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div>
-    <div class="pbody"><span class="pk">Edition 03</span><div class="ph">Starter pack</div>
- <div class="pcard"><div style="font-family:var(--t);font-size:8.5px;line-height:1.5;color:var(--pdim)">
- Asks one question at a time and never makes you type a file path.</div><div class="cta">Begin the first run</div></div>
- <div class="pcard"><span class="pk">Carried across</span><div class="prow">One law file</div>
- <div class="prow">Memory in tiers</div><div class="prow">Suggest, then act</div></div></div>
-    <div class="tabs"><div class="on"><u></u>Start</div><div class=""><u></u>Handbook</div><div class=""><u></u>Files</div><div class=""><u></u>Build</div></div></div></div>
-  </div>
-  <div class="ann"><div class="an"><span class="lab">The first run interviews you</span><h5>No manual to read first</h5><p>A script asks one question at a time and writes the config from the answers, so nothing starts with a blank file.</p></div><div class="an"><span class="lab">Gates fail the build</span><h5>Two of them, at build time</h5><p>If a single text box overflows, the build stops. That is the only reason the pages are square.</p></div></div>
- </div>
- <div data-cap="What ships, and the rule it keeps" class="scene rule"><div><span class="lab">Shipped</span><p><b>Four editions.</b> Enterprise, work account, starter pack and advanced twin, all four sent and in use.</p></div><div><span class="lab">Built on</span><p><b>Documentation and design.</b> Every artifact is rendered by one build script, so a change lands in the handbook, the deck and the templates at once.</p></div><div><span class="lab">The rule</span><p><b>A document that overflows is one nobody trusts.</b> The gates enforce it rather than a reviewer noticing.</p></div></div>
-</div>
-</body></html>
+  <span class="lab">Handbook &middot; deck &middot; templates &middot; first run</span></div>
+ <div data-cap="Four readers, four genuinely different documents" class="scene stage pair"><div class="cap"><span class="lab">The editions</span><h3>Four readers, four documents</h3><p>An enterprise install and a first terminal need different first sentences, so they got different documents rather than one manual with four covers.</p></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>kit &middot; private</u></div><div class="win"><div class="kt"><div class="kthd"><b>The Claude OS Kit</b><span>Four editions &middot; four readers</span></div>
+<table class="kttab"><thead><tr><th>Edition</th><th>Written for</th><th>What is different</th></tr></thead><tbody>
+<tr><td><small>Edition 01</small><b>Enterprise</b></td><td>A private equity firm</td>
+<td>Information barriers between deal teams, four data classes, a named approval authority. The shared memory stops at the wall.</td></tr>
+<tr><td><small>Edition 02</small><b>Work account</b></td><td>A locked-down machine</td>
+<td>Three files you paste in. No install, no terminal, no admin rights assumed anywhere.</td></tr>
+<tr><td><small>Edition 03</small><b>Starter pack</b></td><td>Never opened a terminal</td>
+<td>Asks one question at a time and never makes the reader type a file path.</td></tr>
+<tr><td><small>Edition 04</small><b>Advanced twin</b></td><td>Already running one</td>
+<td>The introductory layer removed entirely: a landscape reference and an annotated config twin.</td></tr>
+</tbody></table></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pk3"><div class="k">Edition 03</div><h5>Starter pack</h5>
+<div class="b">Asks one question at a time and never makes you type a file path.</div>
+<div style="margin-top:8px"><div class="i">Enterprise</div><div class="i">Work account</div>
+<div class="i">Starter pack</div><div class="i">Advanced twin</div></div></div></div><div class="tabs"><div class="on"><u></u>Start</div><div class=""><u></u>Book</div><div class=""><u></u>Files</div><div class=""><u></u>Build</div></div></div></div></div><div class="ann"><div class="an"><span class="lab">Not four covers</span><h5>Four builds</h5><p>The enterprise edition talks about information barriers. The starter pack never says the word terminal.</p></div><div class="an"><span class="lab">Blank on purpose</span><h5>The templates stay empty</h5><p>A filled-in template teaches you to copy. An empty one with a good prompt teaches you to think.</p></div></div></div><div data-cap="One build script, and a gate that stops it" class="scene stage pair flip"><div class="cap"><span class="lab">The build</span><h3>A gate that fails the build</h3><p>Every artifact is rendered by one script, and two layout gates stop the build rather than shipping a page that overflows.</p></div><div class="ann"><div class="an"><span class="lab">One writer</span><h5>A change lands everywhere at once</h5><p>Handbook, deck and templates all render from the same source, so they cannot disagree.</p></div><div class="an"><span class="lab">It fails loudly</span><h5>Overflow halts the build</h5><p>A document that overflows is one nobody trusts, and a reviewer noticing is not a system.</p></div></div><div class="rig withphone"><div class="mac"><div class="bar"><i></i><i></i><i></i><u>kit &middot; private</u></div><div class="win"><div class="kt"><div class="kthd"><b>What installs</b><span>One build, every artifact</span></div>
+<div class="kttree"><b>kit/</b>
+ &#9500; <b>0-START-HERE.md</b>     <i># orientation, plain language</i>
+ &#9500; <b>1-One-Pager.pdf</b>     <i># the whole idea on one page</i>
+ &#9500; <b>2-Handbook.pdf</b>      <i># 16 pages, typeset</i>
+ &#9500; <b>3-Overview.html</b>     <i># self-contained, works offline</i>
+ &#9500; <b>templates/</b>
+ &#9474;  &#9500; CONSTITUTION.md  <i># the law</i>
+ &#9474;  &#9492; MEMORY.md        <i># the router</i>
+ &#9500; <b>DOMAIN.md</b> &times;5         <i># mostly blank on purpose</i>
+ &#9492; <b>_build/</b>
+    &#9500; build.py          <i># renders every artifact</i>
+    &#9492; gates/            <i># fails the build on overflow</i></div>
+<div class="ktgate"><b>Build halted.</b> 2-Handbook.pdf, page 11: text box overflows its container by 4.2mm. Nothing was written. This is the only reason the pages are square.</div></div></div></div><div class="dev"><div class="scr"><div class="sb"><span>9:41</span><span>&#9679;&#9679;&#9679;</span></div><div class="pbody"><div class="pk3"><div class="k">What installs</div>
+<div class="t">kit/
+ 0-START-HERE.md
+ 1-One-Pager.pdf
+ 2-Handbook.pdf
+ templates/
+ _build/gates/</div></div></div><div class="tabs"><div class=""><u></u>Start</div><div class=""><u></u>Book</div><div class=""><u></u>Files</div><div class="on"><u></u>Build</div></div></div></div></div></div>
+ <div data-cap="What ships, and the rule it keeps" class="scene rule"><div><span class="lab">Shipped</span><p><b>Four editions.</b> Enterprise, work account, starter pack and advanced twin, all four sent and in use.</p></div><div><span class="lab">Built on</span><p><b>Documentation and design.</b> One build script renders every artifact, so nothing is typeset twice.</p></div><div><span class="lab">The rule</span><p><b>A document that overflows is one nobody trusts.</b> The gates enforce it rather than a reviewer noticing.</p></div></div>
+</div></body></html>
