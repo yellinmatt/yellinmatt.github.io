@@ -275,8 +275,8 @@ img{display:block;max-width:100%}
    its whole height, so there is no inner scroll to fight; we translate the page
    past a window instead of asking the document to scroll itself. */
 .sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1160px;border:0;
-  transform-origin:top left;pointer-events:none;will-change:transform;
-  transition:transform 950ms cubic-bezier(.16,1,.3,1)}
+  transform:scale(var(--k,1));transform-origin:top left;pointer-events:none;
+  transition:top 950ms cubic-bezier(.16,1,.3,1)}
 @media (prefers-reduced-motion:reduce){
   .sheet .shot .frame iframe{transition:none}
 }
@@ -607,7 +607,7 @@ html.js .rv.in{opacity:1;transform:none}
      page was correct on the server and wrong in the frame, which is the worst
      shape a bug can have. The token makes a sample change invalidate its own
      cache instead of depending on a visitor holding shift. */
-  var DEMOV='2026-08-06f';
+  var DEMOV='2026-08-06g';
 
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
@@ -709,9 +709,10 @@ html.js .rv.in{opacity:1;transform:none}
           }catch(e){}
           fi.style.height=full+'px';
           fr.style.height=Math.round(view)+'px';
+          fr.style.setProperty('--k',k);
           fr._k=k; fr._view=view; fr._full=full;
           if(fr._y==null)fr._y=0;
-          fi.style.transform='scale('+k+') translateY('+(-fr._y)+'px)';
+          fi.style.top=(-fr._y*k)+'px';
         };
         fit(); requestAnimationFrame(fit); sheet._fit=fit;
 
@@ -762,13 +763,18 @@ html.js .rv.in{opacity:1;transform:none}
             var k=fr._k||1, max=Math.max(0,(fr._full||1200)-(fr._view||520)/k);
             if(!isFinite(v))return;
             var yy=Math.min(Math.max(0,v),max);
-            /* Written as ONE string rather than through a custom property.
-               A --y in a calc() inside transform resolved to zero here even
-               though the property was set and valid, so the frame never moved
-               while every number I could read looked correct. One writer, one
-               declaration, nothing to resolve. */
+            /* MOVED WITH top, NOT transform, and that is deliberate.
+               Transform is the better tool and it does not work on this
+               element: a --y inside calc() resolved to zero, and then a
+               hand-written inline `transform` computed to the identity matrix
+               while the stylesheet's own transform on the same element applied
+               normally. Both times every number I could read looked right and
+               the picture did not move, which is the failure mode that costs
+               the most time. top is a plain layout property, it cannot be
+               quietly discarded, and one transitioned element is cheap.
+               Scale stays in the stylesheet, where it demonstrably works. */
             fr._y=yy;
-            fi.style.transform='scale('+k+') translateY('+(-yy)+'px)';
+            fi.style.top=(-yy*k)+'px';
           };
           var go=function(n){
             i=(n+scenes.length)%scenes.length;
