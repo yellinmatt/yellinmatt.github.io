@@ -580,6 +580,14 @@ html.js .rv.in{opacity:1;transform:none}
      the same, and it is what gives the seven private cells something to do.
      Navigation still works: the modal carries the live link rather than
      replacing it. */
+  /* BUMP THIS WHENEVER A SAMPLE BUILD CHANGES. Caught live 2026-08-06: the card
+     loaded a browser-cached copy of the previous desk.html, so the tour looked
+     for scenes in a document that predated them and silently found none. The
+     page was correct on the server and wrong in the frame, which is the worst
+     shape a bug can have. The token makes a sample change invalidate its own
+     cache instead of depending on a visitor holding shift. */
+  var DEMOV='2026-08-06b';
+
   var PROJ={
    brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',href:'../news/',
      lede:'A daily newspaper that writes and publishes itself before six every morning.',
@@ -659,7 +667,7 @@ html.js .rv.in{opacity:1;transform:none}
            page gains a stop in the tour by gaining a section, and there is no
            second list to keep in sync. */
         elShot.innerHTML='<div class="frame"><iframe title="'+d.n+
-          ', a sample build" tabindex="-1" aria-hidden="true" src="demo/'+d.demo+'"></iframe></div>'+
+          ', a sample build" tabindex="-1" aria-hidden="true" src="demo/'+d.demo+'?v='+DEMOV+'"></iframe></div>'+
           '<span class="tag"><span class="cap">A sample build, with invented data</span>'+
           '<span class="dots"></span></span>';
         var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe'),
