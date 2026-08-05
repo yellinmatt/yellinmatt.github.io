@@ -123,8 +123,30 @@ img{display:block;max-width:100%}
 
 /* two writers, two elements: the drift owns .par, the hover scroll owns img */
 .cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
+/* NO IDLE TRANSFORM AND NO will-change, AND THAT IS THE WHOLE FIX.
+
+   Diagnosed on the live page 2026-08-06, one hypothesis at a time. The tiles
+   were painting BLACK: every image loaded, decoded and sat at opacity 1, yet
+   only the tile under the cursor ever showed. Removing will-change alone did
+   not fix it. Removing the idle translate3d fixed some tiles. Removing the
+   .par drift transform as well fixed all of them.
+
+   The cause is not any one of those declarations, it is their sum:
+   `transform:translate3d(0,0,0)` and `will-change` are both requests to
+   promote an element to its own compositor layer, and they were being made
+   for fifteen images totalling 107 MB of decoded bitmap. Past its layer
+   budget Chrome simply declines to rasterize, and an unrasterized layer
+   paints as nothing, which on this page is the near-black cell behind it. So
+   a page whose entire claim is "every screen below is the real product,
+   recorded" was showing empty rectangles.
+
+   Two changes hold the fix together: the idle promotion is gone from here, so
+   a layer is created for the tile being hovered rather than for all fifteen
+   at once, and the captures were re-encoded to the size they are actually
+   displayed at, which took the bitmap total from 107 MB to about 30 MB.
+   Nothing about the motion changed. */
 .cell .par img{position:absolute;top:0;left:0;width:100%;height:auto;
-  will-change:transform;transform:translate3d(0,0,0);transition:transform 9s linear}
+  transition:transform 9s linear}
 @media (hover:hover) and (pointer:fine){
   .cell:hover .par img,.cell:focus-visible .par img{transform:translate3d(0,var(--travel,-55%),0)}
 }
@@ -137,8 +159,25 @@ img{display:block;max-width:100%}
   transition:opacity .6s cubic-bezier(.215,.61,.355,1);
   background:radial-gradient(120% 100% at 50% 100%,color-mix(in srgb,var(--tone) 30%,transparent),transparent 72%)}
 .cell:hover .tone{opacity:1}
-/* type-only cells: no screenshot exists, so the name is the mark */
+/* type cells: the poster carries the tool, the quote carries the reason */
 .cell.type{background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 11%,transparent),var(--g2))}
+
+/* THE PRIVATE TILES NOW CARRY A POSTER. Every cell used to be either a picture
+   or a sentence; the seven private ones were sentences because there was no
+   public screen to shoot. There is now: the sample builds. The poster sits
+   behind, a scrim carries it down to where the quote reads, and the quote
+   stays. A tool you cannot see is a claim; a tool you can see is evidence.
+   These posters are whole pages fitted into 4:3, so they use cover-from-top
+   rather than the scrolling travel the four public tiles use. */
+.cell.type .par{opacity:.34;transition:opacity .6s var(--ease),transform .9s var(--ease)}
+.cell.type:hover .par,.cell.type:focus-visible .par{opacity:.5}
+.cell.type .par img.crop{transition:transform 1.1s var(--ease)}
+@media (hover:hover) and (pointer:fine){
+  .cell.type:hover .par img.crop,.cell.type:focus-visible .par img.crop{transform:scale(1.045)}
+}
+.cell.type .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(to top,var(--g2) 4%,color-mix(in srgb,var(--g2) 72%,transparent) 46%,
+    color-mix(in srgb,var(--g2) 30%,transparent) 100%)}
 /* 2026-08-04. The name-at-top treatment was right, but it left two thirds of
    the tile empty and the cell still read as a screenshot that had failed to
    load. A private tool CANNOT be captured (none of these seven is published;
@@ -224,6 +263,21 @@ img{display:block;max-width:100%}
 .sheet .shot{position:relative;overflow-y:auto;overflow-x:hidden;background:var(--g4);
   border-right:1px solid var(--line);scrollbar-width:thin}
 .sheet .shot img{width:100%;height:auto;display:block}
+
+/* THE LIVE SAMPLE. The eight private tools have no public page to screenshot,
+   so the card carries the sample build itself in a frame rather than a picture
+   of it. It cannot go stale, because it IS the page. Non-interactive on
+   purpose: a scrollable frame inside a modal steals the wheel, and the "open
+   the sample" link is the honest way through. --k is written by JS, once, from
+   the measured pane width; the CSS owns nothing but the shape. */
+.sheet .shot .frame{position:relative;width:100%;overflow:hidden;background:var(--g4)}
+.sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1512px;border:0;
+  transform:scale(var(--k,1));transform-origin:top left;pointer-events:none}
+.sheet .shot .frame::after{content:"";position:absolute;inset:0;
+  box-shadow:inset 0 0 0 1px var(--line)}
+.sheet .shot .tag{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:26px 16px 11px;
+  font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--g11);
+  background:linear-gradient(to top,var(--g2),transparent)}
 .sheet .shot.none{display:grid;place-items:center;min-height:220px;
   background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 13%,transparent),var(--g3))}
 .sheet .shot.none span{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--g11)}
@@ -243,6 +297,22 @@ img{display:block;max-width:100%}
 .sheet .meat .row dd{margin:0;color:var(--mute)}
 .sheet .meat .go{display:inline-block;margin-top:22px;font-size:10.5px;letter-spacing:.24em;
   text-transform:uppercase;color:var(--tone);border-bottom:1px solid currentColor;padding-bottom:3px}
+/* THE CARD ARRIVES IN ORDER. Same vocabulary as the About page reveal and the
+   grid's own .rv, applied inside the panel so the card reads top to bottom
+   instead of appearing whole. Entrance only: nothing here loops, and the
+   reduced-motion block below collapses all of it to a plain fade. */
+.sheet .meat>*{opacity:0;transform:translateY(9px);
+  transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.sheet.on .meat>*{opacity:1;transform:none}
+.sheet.on .meat>.k{transition-delay:.10s}
+.sheet.on .meat>h3{transition-delay:.15s}
+.sheet.on .meat>.lede{transition-delay:.20s}
+.sheet.on .meat>p{transition-delay:.25s}
+.sheet.on .meat>dl{transition-delay:.30s}
+.sheet.on .meat>.go{transition-delay:.35s}
+.sheet .shot{opacity:0;transition:opacity .5s var(--ease) .06s}
+.sheet.on .shot{opacity:1}
+
 .sheet .x{position:absolute;top:10px;right:10px;z-index:3;width:38px;height:38px;
   display:grid;place-items:center;background:none;border:0;cursor:pointer;color:var(--g11);
   font:inherit;font-size:19px;line-height:1;transition:color .2s}
@@ -253,6 +323,10 @@ html.locked,html.locked body{overflow:hidden}
   .sheet{transition-duration:.15s}
   .sheet .panel{transform:none;transition-duration:.15s}
   .cell .open{transition-duration:.12s}
+  /* the staged entrance and the poster drift both collapse to nothing */
+  .sheet .meat>*,.sheet.on .meat>*{opacity:1;transform:none;transition:none;transition-delay:0s}
+  .sheet .shot{opacity:1;transition:none}
+  .cell.type .par img.crop,.cell.type:hover .par img.crop{transform:none;transition:none}
 }
 
 .next{display:block;border-top:1px solid var(--line);padding:clamp(40px,5.5vw,80px) 0}
@@ -336,6 +410,8 @@ html.js .rv.in{opacity:1;transform:none}
       <span class="cap"><b>Train</b><i>v7.77 &middot; no number you can fail</i></span>
     </div>
     <div class="cell type rv" style="--tone:#e0654f" data-k="desk">
+      <span class="par"><img class="crop" src="../assets/shots/desk.jpg" alt="The Desk, the morning board" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">06</span>
@@ -346,6 +422,8 @@ html.js .rv.in{opacity:1;transform:none}
       <p>Twelve things, built one at a time. <em>Four of them run without me.</em></p>
     </div>
     <div class="cell type rv" style="--tone:#9a8fb0" data-k="kit">
+      <span class="par"><img class="crop" src="../assets/shots/kit.jpg" alt="The Claude OS Kit, the four editions" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">07</span>
@@ -353,6 +431,8 @@ html.js .rv.in{opacity:1;transform:none}
       <q>A document that overflows is <em>a document nobody trusts.</em></q>
     </div>
     <div class="cell type rv" style="--tone:#c99a6a" data-k="uni">
+      <span class="par"><img class="crop" src="../assets/shots/uni.jpg" alt="A Personal University, a chapter page" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">08</span>
@@ -360,6 +440,8 @@ html.js .rv.in{opacity:1;transform:none}
       <q><em>No scores anywhere.</em> A grade is not the test of whether you understood it.</q>
     </div>
     <div class="cell type rv" style="--tone:#7fa89b" data-k="music">
+      <span class="par"><img class="crop" src="../assets/shots/music.jpg" alt="The Listening Record, the analysis" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">09</span>
@@ -367,6 +449,8 @@ html.js .rv.in{opacity:1;transform:none}
       <q>Every set verified <em>by opening it, rather than by trusting the write.</em></q>
     </div>
     <div class="cell type rv" style="--tone:#c2a15e" data-k="fin">
+      <span class="par"><img class="crop" src="../assets/shots/fin.jpg" alt="The Finance Desk, the weekly letter" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">10</span>
@@ -374,6 +458,8 @@ html.js .rv.in{opacity:1;transform:none}
       <q>Evidence is named and dated, <em>or it does not count.</em></q>
     </div>
     <div class="cell type rv" style="--tone:#8fa6c4" data-k="film">
+      <span class="par"><img class="crop" src="../assets/shots/film.jpg" alt="The Film Library, the shelf" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">11</span>
@@ -381,6 +467,8 @@ html.js .rv.in{opacity:1;transform:none}
       <q>The point of a library is <em>that it answers.</em></q>
     </div>
     <div class="cell type rv" style="--tone:#b08a5e" data-k="read">
+      <span class="par"><img class="crop" src="../assets/shots/read.jpg" alt="The Reading Log, the year so far" loading="lazy" decoding="async"></span>
+      <span class="scrim" aria-hidden="true"></span>
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">12</span>
@@ -500,35 +588,35 @@ html.js .rv.in{opacity:1;transform:none}
      lede:'An archive of great comedy, indexed so a bit you half remember can be found.',
      body:'Catalogued by comic and by bit. A standing read-only auditor sweeps the whole archive for empty profiles, dead embeds, missing photographs and duplicates, so the catalogue degrades loudly instead of silently.',
      meta:[['Roster','459 comics'],['Quality','A standing auditor'],['Built','Archive and tooling']]},
-   train:{k:'Private',n:'Train',shot:'train-today.jpg',
+   train:{k:'Private',n:'Train',shot:'train-today.jpg',demo:'train.html',
      lede:'A training system with no number in it you can fail.',
      body:'A phone app in four tabs. It prescribes the day off a rotation, watches load over months rather than days, and lets a video session replace any day without advancing the rotation, so a lift you skipped is next rather than lost. There is no denominator anywhere in it, because a denominator invents a total to fall behind on.',
      meta:[['Version','v7.77'],['Infrastructure','Edge worker, object storage'],['Testing','Four audit harnesses']]},
-   desk:{k:'Private',n:'The Desk',
+   desk:{k:'Private',n:'The Desk',shot:'desk.jpg',demo:'desk.html',
      lede:'The board I start every morning from, rebuilt while I am asleep.',
      body:'The one thing on fire, the first move, a fourteen-day horizon, the live decisions, and every project with where it stands. One writer, and rerunning it self-heals. Every line carries a source, and a decision reached in conversation is not made until it is written down.',
      meta:[['Cadence','Rebuilt each morning'],['Discipline','One writer'],['Built','Dashboard']]},
-   kit:{k:'Private',n:'The Claude OS Kit',
+   kit:{k:'Private',n:'The Claude OS Kit',shot:'kit.jpg',demo:'kit.html',
      lede:'The system I run everything from, packaged four ways for four readers.',
      body:'An enterprise build for a private equity firm with information barriers and four data classes; a three-file work-computer install; a beginner edition that asks one question at a time; and an advanced edition with the beginner layer cut out entirely.',
      meta:[['Shipped','Four editions'],['Gates','Two build-time layout checks'],['Built','Documentation and design']]},
-   uni:{k:'Private',n:'A Personal University',
+   uni:{k:'Private',n:'A Personal University',shot:'uni.jpg',demo:'encyclopedia.html',
      lede:'Re-teaching myself a finished degree by writing the encyclopedia of it.',
      body:'Three courses complete and live, a fourth building, written one course at a time by a job that runs daily. No scores anywhere: the record pages became Assessments, questions as a set with model answers.',
      meta:[['Live','48 pages'],['Building','A fourth course'],['Rule','No scores']]},
-   music:{k:'Private',n:'The Listening Record',
+   music:{k:'Private',n:'The Listening Record',shot:'music.jpg',demo:'music.html',
      lede:'Twelve years of listening, turned from raw rows into something you can question.',
      body:'Twelve streaming exports covering 2015 to 2026, rebuilt into one queryable record, then used on itself: the record reorganised the library it came from, each curated set verified by opening it rather than by trusting the write.',
      meta:[['Artists','5,068'],['Plays','66,253 qualified'],['Built','Analysis']]},
-   fin:{k:'Private',n:'The Finance Desk',
+   fin:{k:'Private',n:'The Finance Desk',shot:'fin.jpg',demo:'finance.html',
      lede:'A weekly letter that reports on my own money the way an analyst reports on somebody else\u2019s.',
      body:'The interesting part is not the number, it is the gate: a ruling is not made until it is written, evidence is named and dated or it does not count, and no figure from it appears in public.',
      meta:[['Cadence','A letter every Monday'],['Method','A decision gate'],['Public','No figures, ever']]},
-   film:{k:'Private',n:'The Film Library',
+   film:{k:'Private',n:'The Film Library',shot:'film.jpg',demo:'film.html',
      lede:'Everything worth watching, and an engine that decides what I watch tonight.',
      body:'A shelf with a running top hundred. The point of a library is that it answers: it reads the shelf and picks, rather than handing back a list to choose from.',
      meta:[['Running','A top hundred'],['Built','Collections']]},
-   read:{k:'Private',n:'The Reading Log',
+   read:{k:'Private',n:'The Reading Log',shot:'read.jpg',demo:'reading.html',
      lede:'Every book finished, so the year has a shape.',
      body:'Shelved and counted. A shape you can look at beats a vague sense that you have not been reading enough.',
      meta:[['Built','Collections'],['State','Self-running']]}
@@ -547,14 +635,42 @@ html.js .rv.in{opacity:1;transform:none}
       sheet.querySelector('.panel').style.setProperty('--tone',tone);
       elKind.textContent=d.k; elName.textContent=d.n;
       elLede.textContent=d.lede; elBody.textContent=d.body;
-      elShot.className='shot'+(d.shot?'':' none');
-      elShot.innerHTML=d.shot
-        ? '<img src="../assets/shots/'+d.shot+'" alt="'+d.n+'">'
-        : '<span>No public screen</span>';
+      /* A private tool has no public page to photograph, so the card runs the
+         SAMPLE BUILD in a frame instead of a picture of one. The frame is
+         measured, never guessed: --k comes from the pane's own width, so the
+         whole 1512-wide page lands inside whatever the modal turns out to be.
+         Falls back to the poster if the pane has no width yet. */
+      elShot.className='shot'+(d.shot||d.demo?'':' none');
+      if(d.demo){
+        elShot.innerHTML='<div class="frame"><iframe title="'+d.n+
+          ', a sample build" loading="lazy" tabindex="-1" aria-hidden="true" '+
+          'src="demo/'+d.demo+'"></iframe></div>'+
+          '<span class="tag">A sample build &middot; invented data</span>';
+        var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe');
+        var fit=function(){
+          var w=elShot.clientWidth||fr.clientWidth; if(!w)return;
+          var k=w/1512, h=Math.round(1180*k);
+          fi.style.height='1180px'; fr.style.setProperty('--k',k);
+          fr.style.height=h+'px';
+        };
+        fit(); requestAnimationFrame(fit); sheet._fit=fit;
+      }else{
+        sheet._fit=null;
+        elShot.innerHTML=d.shot
+          ? '<img src="../assets/shots/'+d.shot+'" alt="'+d.n+'">'
+          : '<span>No public screen</span>';
+      }
       elShot.scrollTop=0;
       elMeta.innerHTML=d.meta.map(function(m){
         return '<div class="row"><dt>'+m[0]+'</dt><dd>'+m[1]+'</dd></div>';}).join('');
-      if(d.href){elGo.href=d.href;elGo.style.display='';}else{elGo.style.display='none';}
+      /* One link, and it says which of the two things it is. A live publication
+         opens the real page; a private tool opens the sample, because the real
+         one either needs a passphrase or does not exist in public at all. */
+      if(d.href){
+        elGo.href=d.href; elGo.textContent='Open the live page →'; elGo.style.display='';
+      }else if(d.demo){
+        elGo.href='demo/'+d.demo; elGo.textContent='Open the sample build →'; elGo.style.display='';
+      }else{elGo.style.display='none';}
       last=document.activeElement;
       sheet.hidden=false;
       requestAnimationFrame(function(){sheet.classList.add('on');});
@@ -564,9 +680,15 @@ html.js .rv.in{opacity:1;transform:none}
     function close(){
       sheet.classList.remove('on');
       document.documentElement.classList.remove('locked');
-      setTimeout(function(){sheet.hidden=true;},320);
+      sheet._fit=null;
+      /* Empty the pane on the way out. A frame left in the DOM keeps a whole
+         second page alive behind a closed modal, and eight of them would
+         accumulate over a browse. */
+      setTimeout(function(){sheet.hidden=true;elShot.innerHTML='';},320);
       if(last&&last.focus)last.focus();
     }
+    /* The frame is sized from a measurement, so a resize has to re-measure. */
+    window.addEventListener('resize',function(){if(sheet._fit)sheet._fit();},{passive:true});
     document.addEventListener('click',function(e){
       var c=e.target.closest('.cell[data-k]');
       if(c){e.preventDefault();open(c);return;}
