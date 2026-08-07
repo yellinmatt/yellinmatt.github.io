@@ -16,24 +16,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,SOFT,WONK,opsz,wght@0,0..100,0..1,9..144,100..900;1,0..100,0..1,9..144,100..900&display=swap" rel="stylesheet">
 <style>
-/* ============================================================================
-   PORTFOLIO — modelled on the real code of rauno.me/craft and metalab.com,
-   read off the saved pages rather than described.
-
-   THE FINDING THAT DROVE THIS REBUILD: rauno.me/craft carries 66 <video> and
-   0 <canvas>; metalab.com carries 25 <img>. Neither DRAWS its product. They
-   record it. Every visual below is therefore a real capture of the real
-   running page, taken at 1280 wide, scrolled by transform inside a clipped
-   frame: the same effect as rauno's looping mp4, with one image, no codec and
-   nothing to host.
-
-   Word budget from the same source: rauno spends 369 words on twenty projects
-   and metalab 284 on nine. Roughly twenty each, title included.
-
-   Greyscale: Radix at zero saturation, exactly as rauno declares it. The
-   ground is never #000, because oryzo.ai defines --color-pure-black and then
-   refuses to use it.
-   ========================================================================== */
 :root{
   --g1:hsl(0 0% 5.6%);   --g2:hsl(0 0% 8.5%);   --g3:hsl(0 0% 11.0%);
   --g4:hsl(0 0% 13.6%);  --g5:hsl(0 0% 15.8%);  --g6:hsl(0 0% 20.5%);
@@ -46,9 +28,6 @@
   --pad:clamp(20px,4vw,56px);
   --ease:cubic-bezier(.16,1,.3,1);
 }
-/* Dark-only by design, per the site's register rule: the broadsheet
-   publications carry the light/dark pair, home, portfolio and about do not.
-   Both blocks are declared so the contrast gate can resolve either. */
 @media (prefers-color-scheme:light){:root{
   --g1:hsl(0 0% 5.6%);   --g2:hsl(0 0% 8.5%);   --g3:hsl(0 0% 11.0%);
   --g4:hsl(0 0% 13.6%);  --g5:hsl(0 0% 15.8%);  --g6:hsl(0 0% 20.5%);
@@ -87,29 +66,6 @@ img{display:block;max-width:100%}
 .mast p{margin:clamp(20px,2.6vw,32px) 0 0;font-size:clamp(16px,1.6vw,20px);line-height:1.5;
   color:var(--mute);max-width:34ch}
 
-/* ============================ THE ROSTER ============================
-   Read off the saved code of luxcapital.com/companies, a16z American
-   Dynamism and 8vc.com.
-
-   THE STRUCTURAL MOVE, taken verbatim because it is the one thing that
-   transfers with no modification: a16z sets
-       .box-a { border: 1px solid #d0d0ce; margin: -1px 0 0 -1px; }
-   with NO gap and NO border-radius, so adjacent borders collapse into one
-   hairline and 66 tiles read as a single ledger rather than 66 cards.
-
-   ONE CELL SHAPE, REPEATED. Lux aspect-ratio:1/1, a16z min-height:223px in
-   repeat(5,1fr), 8VC padding-top:120%. Never a mixed-size grid: the
-   authority is in the repetition. Three-up rather than five-up, because at
-   twelve entries a16z's five-up leaves three empty cells, which is exactly
-   why they had to invent .grid-item-filler to hide it.
-
-   WHERE I DELIBERATELY DEPART. Lux hides the product photograph at
-   opacity:0 and reveals it to only .33 on hover, because a famous WORDMARK
-   is its payload and the photo is atmosphere. Here the screenshot IS the
-   payload, so it shows at rest and hover adds rather than reveals. Twelve
-   unknown names at Lux's zero visible words would be an empty grid, so each
-   cell keeps a name in real type and one line of metadata. And no filters:
-   a filter bar over twelve entries advertises that you expected more.  */
 .roster{display:grid;grid-template-columns:repeat(3,1fr);
   margin:0 0 clamp(40px,6vw,88px);padding-top:1px;padding-left:1px}
 @media (max-width:1000px){.roster{grid-template-columns:repeat(2,1fr)}}
@@ -121,30 +77,7 @@ img{display:block;max-width:100%}
   transition:border-color .25s linear,z-index 0s}
 .cell:hover{border-color:color-mix(in srgb,var(--tone) 52%,transparent);z-index:2}
 
-/* two writers, two elements: the drift owns .par, the hover lift owns img */
 .cell .par{position:absolute;inset:0;transform:translate3d(0,var(--drift,0px),0)}
-/* NO IDLE TRANSFORM AND NO will-change, AND THAT IS THE WHOLE FIX.
-
-   Diagnosed on the live page 2026-08-06, one hypothesis at a time. The tiles
-   were painting BLACK: every image loaded, decoded and sat at opacity 1, yet
-   only the tile under the cursor ever showed. Removing will-change alone did
-   not fix it. Removing the idle translate3d fixed some tiles. Removing the
-   .par drift transform as well fixed all of them.
-
-   The cause is not any one of those declarations, it is their sum:
-   `transform:translate3d(0,0,0)` and `will-change` are both requests to
-   promote an element to its own compositor layer, and they were being made
-   for fifteen images totalling 107 MB of decoded bitmap. Past its layer
-   budget Chrome simply declines to rasterize, and an unrasterized layer
-   paints as nothing, which on this page is the near-black cell behind it. So
-   a page whose entire claim is "every screen below is the real product,
-   recorded" was showing empty rectangles.
-
-   Two changes hold the fix together: the idle promotion is gone from here, so
-   a layer is created for the tile being hovered rather than for all fifteen
-   at once, and the captures were re-encoded to the size they are actually
-   displayed at, which took the bitmap total from 107 MB to about 30 MB.
-   Nothing about the motion changed. */
 .cell .par img{position:absolute;top:0;left:0;width:100%;height:100%;
   object-fit:cover;object-position:50% 50%;transition:transform 1.1s var(--ease)}
 @media (hover:hover) and (pointer:fine){
@@ -153,23 +86,12 @@ img{display:block;max-width:100%}
 .cell.play .par img{transform:scale(1.035)}
 .cell .par img.crop{width:100%;height:100%;object-fit:cover;object-position:50% 0}
 
-/* 8VC carries the colour on the ITEM and holds it back until hover. At rest
-   twelve cells are identical; on hover one of them becomes itself. */
 .cell .tone{position:absolute;inset:0;pointer-events:none;opacity:0;
   transition:opacity .6s cubic-bezier(.215,.61,.355,1);
   background:radial-gradient(120% 100% at 50% 100%,color-mix(in srgb,var(--tone) 30%,transparent),transparent 72%)}
 .cell:hover .tone{opacity:1}
-/* every cell now carries a matted plate: one signature element per tool,
-   cropped to one shared rectangle on one shared ground */
 .cell.type{background:radial-gradient(120% 110% at 50% 108%,color-mix(in srgb,var(--tone) 11%,transparent),var(--g2))}
 
-/* THE PRIVATE TILES NOW CARRY A POSTER. Every cell used to be either a picture
-   or a sentence; the seven private ones were sentences because there was no
-   public screen to shoot. There is now: the sample builds. The poster sits
-   behind, a scrim carries it down to where the quote reads, and the quote
-   stays. A tool you cannot see is a claim; a tool you can see is evidence.
-   These posters are whole pages fitted into 4:3, so they use cover-from-top
-   on one shared ground, so twelve tools read as one system. */
 .cell.type .par{opacity:.34;transition:opacity .6s var(--ease),transform .9s var(--ease)}
 .cell.type:hover .par,.cell.type:focus-visible .par{opacity:.5}
 .cell.type .par img.crop{transition:transform 1.1s var(--ease)}
@@ -179,14 +101,6 @@ img{display:block;max-width:100%}
 .cell.type .scrim{position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(to top,var(--g2) 4%,color-mix(in srgb,var(--g2) 72%,transparent) 46%,
     color-mix(in srgb,var(--g2) 30%,transparent) 100%)}
-/* 2026-08-04. The name-at-top treatment was right, but it left two thirds of
-   the tile empty and the cell still read as a screenshot that had failed to
-   load. A private tool CANNOT be captured (none of these seven is published;
-   every path 404s), so the tile stops waiting for a picture and carries the
-   RULE that governs the tool instead. Every sentence is lifted verbatim from
-   that project's own `how` field in proofs.js, so the copy keeps one writer
-   and nothing here is newly authored. Held back at rest like the tone, so
-   twelve cells still read as twelve cells until you point at one. */
 .cell.type q{position:absolute;left:18px;right:18px;bottom:20px;z-index:2;quotes:none;
   display:block;font-weight:200;font-size:clamp(15px,1.42vw,19px);line-height:1.34;
   letter-spacing:-.02em;color:var(--g11);max-width:27ch;transition:color .3s linear}
@@ -197,34 +111,20 @@ img{display:block;max-width:100%}
 
 .cell .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:64px 18px 16px;
   background:linear-gradient(transparent,rgba(6,6,7,.5) 26%,rgba(6,6,7,.88) 62%,rgba(6,6,7,.97))}
-/* A cell with no screenshot must not look like a cell whose screenshot
-   failed. Its type moves to the TOP, under the numeral, so it reads as a
-   deliberate typographic entry in the ledger rather than an empty frame with
-   a caption stuck to the floor. */
 .cell.type .cap{background:none;top:0;bottom:auto;padding:46px 18px 18px}
 .cell.type .cap b{font-size:clamp(20px,2.1vw,28px)}
 .cell .cap b{display:block;font-weight:400;font-size:clamp(19px,1.9vw,25px);line-height:1.1;
   letter-spacing:-.03em;color:var(--ink);transition:color .25s linear}
 .cell:hover .cap b{color:var(--tone)}
-/* ONE label register for every piece of metadata on the page, which is what
-   all three firms do: Lux .text-style-mono-caps, a16z .note, 8VC .section-tag.
-   Fraunces has no mono cut, so uppercase at +.2em does the same job and keeps
-   the site on one family. */
 .cell .cap i{display:block;margin-top:7px;font-style:normal;font-size:10.5px;letter-spacing:.2em;
   text-transform:uppercase;color:var(--g11)}
 .cell .no{position:absolute;top:14px;left:18px;z-index:2;font-size:10px;letter-spacing:.2em;
   color:var(--g11);mix-blend-mode:difference}
 
-/* Train is a phone, so its cell shows a close crop of real UI rather than a
-   whole device floating in empty ground, and it cycles the four real tabs. */
 .cell.app .par img{object-position:50% 2%;opacity:0;
   transition:opacity .75s cubic-bezier(.215,.61,.355,1)}
 .cell.app .par img.on{opacity:1}
 
-/* a16z drops a full-width cell INSIDE the grid at position ten that states
-   something declarative in the roster's own voice. Their line works because
-   66 and 1,989 are large numbers; "twelve" is not a flex, so this carries the
-   thesis instead of the inventory. */
 .cell.say{aspect-ratio:auto;display:flex;align-items:center;grid-column:1/-1;
   background:var(--g1);padding:clamp(30px,4.4vw,58px) 18px}
 .cell.say:hover{border-color:var(--line)}
@@ -233,14 +133,6 @@ img{display:block;max-width:100%}
 .cell.say p em{font-style:normal;color:var(--accent)}
 
 
-/* ======================== THE PREVIEW SHEET ========================
-   Lux Capital keeps its grid wordless and defers every word behind a click:
-   the modal carries a one-line blurb (their 28 average 21.8 words) plus three
-   labelled rows, Industries / Milestones / Founders. Same idea here, and it
-   is what finally gives the seven private cells something to do, since they
-   have no live page to open.
-   Their hover tell is a + glyph that rotates from -22.5deg to 0 over 250ms;
-   the same affordance sits on each cell below. */
 .cell .open{position:absolute;top:12px;right:14px;z-index:3;width:22px;height:22px;
   display:grid;place-items:center;opacity:0;transform:rotate(-22.5deg);
   transition:opacity .25s ease,transform .25s ease;pointer-events:none}
@@ -265,16 +157,7 @@ img{display:block;max-width:100%}
   border-right:1px solid var(--line);scrollbar-width:thin}
 .sheet .shot img{width:100%;height:auto;display:block}
 
-/* THE LIVE SAMPLE. The eight private tools have no public page to screenshot,
-   so the card carries the sample build itself in a frame rather than a picture
-   of it. It cannot go stale, because it IS the page. Non-interactive on
-   purpose: a scrollable frame inside a modal steals the wheel, and the "open
-   the sample" link is the honest way through. --k is written by JS, once, from
-   the measured pane width; the CSS owns nothing but the shape. */
 .sheet .shot .frame{position:relative;width:100%;overflow:hidden;background:var(--g4)}
-/* --y is the tour's position and the ONLY thing that moves. The iframe renders
-   its whole height, so there is no inner scroll to fight; we translate the page
-   past a window instead of asking the document to scroll itself. */
 .sheet .shot .frame iframe{position:absolute;top:0;left:0;width:1160px;border:0;
   transform:scale(var(--k,1));transform-origin:top left;pointer-events:none;
   transition:top 950ms cubic-bezier(.16,1,.3,1)}
@@ -294,9 +177,6 @@ img{display:block;max-width:100%}
   transition:background .3s,transform .3s}
 .sheet .shot .tag .dots i.on{background:var(--tone);transform:scale(1.45)}
 
-/* ARROWS. Sized as real targets (36px, comfortably past the 24px minimum) and
-   given a visible resting state, because a control you have to hunt for is a
-   control most people never find. */
 .sheet .shot .tag .arw{flex:none;width:36px;height:36px;display:grid;place-items:center;
   background:color-mix(in srgb,var(--g4) 84%,transparent);border:1px solid var(--line);
   border-radius:50%;cursor:pointer;color:var(--g11);padding:0;
@@ -328,10 +208,6 @@ img{display:block;max-width:100%}
 .sheet .meat .row dd{margin:0;color:var(--mute)}
 .sheet .meat .go{display:inline-block;margin-top:22px;font-size:10.5px;letter-spacing:.24em;
   text-transform:uppercase;color:var(--tone);border-bottom:1px solid currentColor;padding-bottom:3px}
-/* THE CARD ARRIVES IN ORDER. Same vocabulary as the About page reveal and the
-   grid's own .rv, applied inside the panel so the card reads top to bottom
-   instead of appearing whole. Entrance only: nothing here loops, and the
-   reduced-motion block below collapses all of it to a plain fade. */
 .sheet .meat>*{opacity:0;transform:translateY(9px);
   transition:opacity .45s var(--ease),transform .45s var(--ease)}
 .sheet.on .meat>*{opacity:1;transform:none}
@@ -354,7 +230,6 @@ html.locked,html.locked body{overflow:hidden}
   .sheet{transition-duration:.15s}
   .sheet .panel{transform:none;transition-duration:.15s}
   .cell .open{transition-duration:.12s}
-  /* the staged entrance and the poster drift both collapse to nothing */
   .sheet .meat>*,.sheet.on .meat>*{opacity:1;transform:none;transition:none;transition-delay:0s}
   .sheet .shot{opacity:1;transition:none}
   .cell.type .par img.crop,.cell.type:hover .par img.crop{transform:none;transition:none}
@@ -373,9 +248,6 @@ html.js .rv.in{opacity:1;transform:none}
 
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  /* Gentled, never frozen. Matthew's phone runs Reduce Motion, so this is the
-     path he actually sees: the plate lifts slightly on hover, and the tabs
-     still change. A frozen fallback reads as broken. */
   .cell .par img{transition-duration:16s}
   .cell.app .par img{transition-duration:1.1s}
   html.js .rv{transform:none}
@@ -433,7 +305,7 @@ html.js .rv.in{opacity:1;transform:none}
       <span class="tone" aria-hidden="true"></span>
       <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
       <span class="no">05</span>
-      <span class="cap"><b>Train</b><i>v7.85 &middot; no number you can fail</i></span>
+      <span class="cap"><b>Train</b><i>v7.86 &middot; no number you can fail</i></span>
     </div>
     <div class="cell type rv" style="--tone:#e0654f" data-k="desk">
       <span class="par"><img class="crop" src="../assets/shots/desk.jpg?v=2026-08-06u" alt="The Desk, the morning board" loading="lazy" decoding="async"></span>
@@ -555,9 +427,6 @@ html.js .rv.in{opacity:1;transform:none}
     }
   }catch(e){[].forEach.call(document.querySelectorAll('.rv'),function(e){e.classList.add('in');});}
 
-  /* Touch has no hover, so on a phone the capture plays whenever the tile is
-     the thing you are looking at. Without this the page is static on the
-     device most people will actually see it on. */
   try{
     if(window.matchMedia&&window.matchMedia('(hover:none)').matches&&'IntersectionObserver'in window){
       var po=new IntersectionObserver(function(es){
@@ -567,9 +436,6 @@ html.js .rv.in{opacity:1;transform:none}
     }
   }catch(e){}
 
-  /* A slow parallax drift so the page breathes at rest rather than being a
-     grid of frozen screenshots. It writes --drift on .par ONLY; the hover
-     lift writes transform on the img inside it. One writer per property. */
   try{
     var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var pars=[].slice.call(document.querySelectorAll('.cell .par'));
@@ -592,17 +458,6 @@ html.js .rv.in{opacity:1;transform:none}
   }catch(e){}
 
 
-  /* ---------------- the preview sheet ----------------
-     Lux keeps the grid wordless and puts every word in a click-modal; this is
-     the same, and it is what gives the seven private cells something to do.
-     Navigation still works: the modal carries the live link rather than
-     replacing it. */
-  /* BUMP THIS WHENEVER A SAMPLE BUILD CHANGES. Caught live 2026-08-06: the card
-     loaded a browser-cached copy of the previous desk.html, so the tour looked
-     for scenes in a document that predated them and silently found none. The
-     page was correct on the server and wrong in the frame, which is the worst
-     shape a bug can have. The token makes a sample change invalidate its own
-     cache instead of depending on a visitor holding shift. */
   var DEMOV='2026-08-06u';
 
   var PROJ={
@@ -625,7 +480,7 @@ html.js .rv.in{opacity:1;transform:none}
    train:{k:'Private',n:'Train',shot:'train.jpg',demo:'train.html',
      lede:'A training system with no number in it you can fail.',
      body:'A phone app in four tabs. It prescribes the day off a rotation, watches load over months rather than days, and lets a video session replace any day without advancing the rotation, so a lift you skipped is next rather than lost. There is no denominator anywhere in it, because a denominator invents a total to fall behind on.',
-     meta:[['Version','v7.85'],['Infrastructure','Edge worker, object storage'],['Testing','One gate, twenty-four checks']]},
+     meta:[['Version','v7.86'],['Infrastructure','Edge worker, object storage'],['Testing','One gate, twenty-four checks']]},
    desk:{k:'Private',n:'The Desk',shot:'desk.jpg',demo:'desk.html',
      lede:'The board I start every morning from, rebuilt while I am asleep.',
      body:'The one thing on fire, the first move, a fourteen-day horizon, the live decisions, and every project with where it stands. One writer, and rerunning it self-heals. Every line carries a source, and a decision reached in conversation is not made until it is written down.',
@@ -669,20 +524,8 @@ html.js .rv.in{opacity:1;transform:none}
       sheet.querySelector('.panel').style.setProperty('--tone',tone);
       elKind.textContent=d.k; elName.textContent=d.n;
       elLede.textContent=d.lede; elBody.textContent=d.body;
-      /* A private tool has no public page to photograph, so the card runs the
-         SAMPLE BUILD in a frame instead of a picture of one. The frame is
-         measured, never guessed: --k comes from the pane's own width, so the
-         whole 1512-wide page lands inside whatever the modal turns out to be.
-         Falls back to the poster if the pane has no width yet. */
       elShot.className='shot'+(d.shot||d.demo?'':' none');
       if(d.demo){
-        /* THE TOUR. A static frame shows the top of a page and nothing else,
-           which is the same as showing nothing: the features are further down.
-           So the card RUNS the sample instead of cropping it, walking scene to
-           scene on a timer with a caption that names what you are looking at.
-           Scenes come from the sample itself (section.scene[data-cap]), so a
-           page gains a stop in the tour by gaining a section, and there is no
-           second list to keep in sync. */
         elShot.innerHTML='<div class="frame"><iframe title="'+d.n+
           ', a sample build" tabindex="-1" aria-hidden="true" src="demo/'+d.demo+'?v='+DEMOV+'"></iframe></div>'+
           '<span class="tag">'+
@@ -695,8 +538,6 @@ html.js .rv.in{opacity:1;transform:none}
           '</span>';
         var fr=elShot.querySelector('.frame'), fi=elShot.querySelector('iframe'),
             cap=elShot.querySelector('.cap'), dots=elShot.querySelector('.dots');
-        /* The frame is the WINDOW; the iframe is sized to its full content so
-           every scene is rendered and the tour only has to move it. */
         var fit=function(){
           var w=elShot.clientWidth||fr.clientWidth; if(!w)return;
           var k=w/1160, view=elShot.clientHeight||520, full=1200;
@@ -723,37 +564,11 @@ html.js .rv.in{opacity:1;transform:none}
           var pips=[].slice.call(dots.querySelectorAll('i')), i=-1;
           var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-          /* A CONTINUOUS PAN, NOT A SLIDESHOW.
-             Scene-to-scene jumping was still jumpy by construction: it holds
-             still, lurches, holds still. The references Matthew keeps say the
-             opposite. rauno.me/craft ships SIXTY-SIX <video> elements and
-             Metalab three video plus twenty-three <picture>: best-in-class work
-             pages show the product RECORDING itself, moving continuously, never
-             stepping. This does the same thing with no codec and nothing to
-             host, by panning the live sample at a constant slow rate.
-
-             The browser owns the motion through the Web Animations API, so it
-             runs off the main thread and cannot stutter when the page is busy.
-             The caption follows the pan rather than driving it, and the arrows
-             SEEK the same animation instead of fighting it, which is why a
-             manual step and the pan never disagree. */
           var maxY=Math.max(0,(fr._full||1200)-(fr._view||520)/(fr._k||1));
           var k=fr._k||1;
-          /* about 62px of content a second: slow enough to read a heading as it
-             passes, quick enough that a seven-screen tool is not a commitment */
           var dur=Math.min(52000,Math.max(16000,(maxY/62)*1000));
           var anim=null;
 
-          /* THE CAPTION FOLLOWS WHAT IS VISIBLE, NOT WHAT IS AT THE TOP.
-             This was the "out of whack" bug, and it is arithmetic rather than
-             taste: the window shows view/k of the page at once, so the furthest
-             the pan can travel is full minus that. On a 1,971px ad in a 1,022px
-             window the last scene sits at 1,779 and the maximum position is 949,
-             so a scene keyed to reaching the TOP could never fire and the words
-             described a part of the page the picture never showed. Keying to the
-             CENTRE of the visible band means every scene is captioned as it
-             passes, including the last one, which no longer needs to reach a
-             position that does not exist. */
           var band=function(){return (fr._view||520)/(fr._k||1);};
           var capFor=function(y){
             var mid=y+band()/2, s=scenes[0];
@@ -775,8 +590,6 @@ html.js .rv.in{opacity:1;transform:none}
           };
 
           if(reduce){
-            /* No pan at all under reduced motion. The arrows still work, so the
-               whole tool is still reachable, just never in motion unasked. */
             fi.style.top='0px';
             cap.textContent=scenes[0].getAttribute('data-cap');
             pips[0].classList.add('on'); i=0;
@@ -789,9 +602,6 @@ html.js .rv.in{opacity:1;transform:none}
             sheet._follow=requestAnimationFrame(follow);
           }
 
-          /* An arrow seeks the pan to that scene and lets it carry on from
-             there, so pressing next never leaves the caption and the picture
-             describing different parts of the page. */
           var seek=function(n){
             i=(n+scenes.length)%scenes.length;
             var y=Math.max(0,Math.min(maxY,scenes[i].offsetTop-band()/2+80));
@@ -808,7 +618,6 @@ html.js .rv.in{opacity:1;transform:none}
               seek(i+(+b.getAttribute('data-step')));
             });
           });
-          /* Hovering is a request to look, so the pan holds where it is. */
           elShot.onmouseenter=function(){if(anim&&anim.playState==='running')anim.pause();};
           elShot.onmouseleave=function(){if(anim&&anim.playState==='paused')anim.play();};
         });
@@ -821,9 +630,6 @@ html.js .rv.in{opacity:1;transform:none}
       elShot.scrollTop=0;
       elMeta.innerHTML=d.meta.map(function(m){
         return '<div class="row"><dt>'+m[0]+'</dt><dd>'+m[1]+'</dd></div>';}).join('');
-      /* One link, and it says which of the two things it is. A live publication
-         opens the real page; a private tool opens the sample, because the real
-         one either needs a passphrase or does not exist in public at all. */
       if(d.href){
         elGo.href=d.href; elGo.textContent='Open the live page →'; elGo.style.display='';
       }else if(d.demo){
@@ -839,8 +645,6 @@ html.js .rv.in{opacity:1;transform:none}
       sheet.classList.remove('on');
       document.documentElement.classList.remove('locked');
       sheet._fit=null;
-      /* Stop the tour before the frame goes: an interval holding a reference to
-         a removed document is a leak that only shows up after eight cards. */
       if(sheet._tour){clearInterval(sheet._tour);sheet._tour=null;}
       if(sheet._follow){cancelAnimationFrame(sheet._follow);sheet._follow=null;}
       if(sheet._anim){try{sheet._anim.cancel();}catch(e){}sheet._anim=null;}
@@ -848,14 +652,12 @@ html.js .rv.in{opacity:1;transform:none}
       setTimeout(function(){sheet.hidden=true;elShot.innerHTML='';},320);
       if(last&&last.focus)last.focus();
     }
-    /* The frame is sized from a measurement, so a resize has to re-measure. */
     window.addEventListener('resize',function(){if(sheet._fit)sheet._fit();},{passive:true});
     document.addEventListener('click',function(e){
       var c=e.target.closest('.cell[data-k]');
       if(c){e.preventDefault();open(c);return;}
       if(e.target.closest('[data-close]'))close();
     });
-    /* a cell that is an anchor must still be reachable by keyboard */
     [].forEach.call(document.querySelectorAll('.cell[data-k]'),function(c){
       if(c.tagName!=='A'){c.setAttribute('tabindex','0');c.setAttribute('role','button');}
       c.addEventListener('keydown',function(e){
@@ -867,9 +669,6 @@ html.js .rv.in{opacity:1;transform:none}
     });
   }catch(e){}
 
-  /* The Train tile used to cycle four captures of the real app. It now carries
-     one plate like every other cell, so the cycler and its four sources are
-     deleted here rather than left to run over an element that is gone. */
 })();
 </script>
 </body>
