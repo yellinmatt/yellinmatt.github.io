@@ -249,7 +249,10 @@ input,select{border:0;background:none}
 .dot.today .dw{color:var(--accent)}
 .dot.rest .di{background:transparent;border:1px dashed var(--line-2)}
 .dot.ahead .di{opacity:.72}
-.dot.missed .di{opacity:.4}
+.dot.missed .di{opacity:1;background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--line-2)}
+.dot{position:relative}
+.dot::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;border-radius:50%}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px}
 .card h3,.trend h3{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -1088,6 +1091,11 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .lwd.fut{opacity:.35}
 .lwd.td{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--line-2)}
 .lwd.td.on{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--good)}
+.mcard.soff{opacity:.62}
+.mcard.soff .mcw{color:var(--sub)}
+.mcard .mcoff{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.03em;
+  text-transform:uppercase;color:var(--amber);background:var(--amber-tint,var(--surface-2));
+  border-radius:5px;padding:2px 5px;margin:0 0 5px}
 .mcard .mspk{display:inline-flex;align-items:flex-end;gap:1.5px;height:17px;margin-right:6px;vertical-align:-4px}
 .mcard .mspk i{display:block;width:3px;border-radius:1px;background:var(--line-2);flex:none}
 .mcard .mspk i.lastb{background:var(--sub)}
@@ -1414,7 +1422,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .pzhead[data-tone]{color:var(--rag,var(--ink))}
 .pzline{font-size:13.5px;line-height:1.6;color:var(--sub)}
 .pzline b{color:var(--ink);font-weight:700}
-.pzr2{display:grid;grid-template-columns:11px 1fr auto auto 30px;align-items:center;gap:9px;padding:11px 0;border-top:1px solid var(--line)}
+.pzr2{display:grid;grid-template-columns:11px 1fr auto auto 36px;align-items:center;gap:9px;padding:11px 0;border-top:1px solid var(--line)}
 .pzr2:first-child{border-top:0}
 .pzr2.hd{border-top:0;padding:0 0 7px;font-size:10px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
 .pzr2.hd .pzn,.pzr2.hd .pzp,.pzr2.hd .pzmph,.pzr2.hd .pzc{font-size:10px;font-weight:800;color:var(--faint)}
@@ -1450,7 +1458,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .pzr[data-z="long"] .pzb i,.pzr2[data-z="long"] .pzb i{background:var(--good);opacity:.55}
 .pzr[data-z="steady"] .pzb i,.pzr2[data-z="steady"] .pzb i{background:var(--amber)}
 .pzr[data-z="tempo"] .pzb i,.pzr2[data-z="tempo"] .pzb i,.pzr[data-z="faster"] .pzb i,.pzr2[data-z="faster"] .pzb i{background:var(--accent)}
-.pzr .pzc{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 22px;text-align:right}
+.pzr .pzc{font-size:13px;font-weight:800;color:var(--ink);flex:0 0 34px;text-align:right}
 
 .lvhist{margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
 .lvht{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:7px}
@@ -1475,7 +1483,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .hanchor[open]>summary{border-bottom:1px solid var(--line)}
 .hanchor[open]>summary .acount{display:none}
 .hanchor .abody{padding:4px 20px 16px}
-.ahow{display:flex;width:44px;height:44px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin:-11px -14px -11px -11px}
+.ahow{display:flex;width:44px;height:44px;min-height:44px;align-items:center;justify-content:center;background:none;border:0;padding:0;color:var(--faint);flex:none;margin:-11px -14px -11px -11px}
 .ahow svg{width:16px;height:16px}
 .ahow:active{color:var(--accent)}
 .c9a{display:flex;align-items:stretch;margin-top:4px}
@@ -1741,7 +1749,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.81";
+var VERSION="v7.82";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1867,6 +1875,29 @@ function slotCandidates(sl,eq){
 }
 function slotEx(sl,eq){
   return slotCandidates(sl,eq)[0]||null;
+}
+function slotKey(L,sl){return L+":"+(sl&&sl.pat);}
+function slotPick(L,sl,eq,avoid){
+  var id=(S.slotPick||{})[slotKey(L,sl)];
+  if(!id)return null;
+  if(avoid&&avoid[id])return null;                       /* 3: the sore flag outranks it */
+  var cands=slotCandidates(sl,eq||defaultEquip());
+  return cands.indexOf(id)>=0?id:null;                   /* 1 and 2, in one test */
+}
+function slotExFor(L,sl,eq,avoid){
+  var over=slotPick(L,sl,eq,avoid);
+  if(over)return {id:over,sl:sl,chosen:true};
+  if(avoid)return slotExSore(sl,eq,avoid);
+  var id=slotEx(sl,eq);
+  return id?{id:id,sl:sl}:null;
+}
+function slotSetPick(L,pat,id){
+  S.slotPick=S.slotPick||{};
+  var k=L+":"+pat;
+  if(!id)delete S.slotPick[k]; else S.slotPick[k]=id;
+  var w=S.wk[TODAY];
+  if(w&&!w.start&&w.letter===L&&!wkProgress(w).done)delete S.wk[TODAY];
+  save();
 }
 function slotExSore(sl,eq,avoid){
   var cands=slotCandidates(sl,eq);
@@ -2211,7 +2242,7 @@ function workDay(){
   if(S.wk[TODAY])return S.wk[TODAY];
   var L=letterFor(),tpl=DAYS[L],eq=defaultEquip(),avoid=soreAvoid(),seen={};
   var order=tpl.slots.map(function(sl){
-    var pick=slotExSore(sl,eq,avoid);if(!pick)return null;
+    var pick=slotExFor(L,sl,eq,avoid);if(!pick)return null;
     var id=pick.id,src=pick.sl;
     if(seen[id])return null;seen[id]=true;
     var e=LIB[id],t=S.progress[id]||{};
@@ -3595,18 +3626,34 @@ function coachCardHTML(){
     '<button class="wbtn" style="width:100%;margin-top:10px" onclick="startDeload()">Take a deload week</button>';
   return h+'</div>';
 }
+function workedWeight(sets){
+  var counts={},best=null,bn=0;
+  (sets||[]).forEach(function(s){
+    if(!s||s.completed===false||s.on===false)return;
+    var w=parseFloat(s.weightLb!=null?s.weightLb:s.w)||0;
+    if(!(w>0))return;
+    counts[w]=(counts[w]||0)+1;
+    if(counts[w]>bn||(counts[w]===bn&&w>best)){bn=counts[w];best=w;}
+  });
+  return best;
+}
 function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.high,weight:o.weight};
+  var did=(o.bw||!S.profile.adjustable)?null:workedWeight(sets);
+  var asked=parseFloat(o.weight)||0;
+  var base=(did!=null)?did:asked;
+  if(did!=null&&Math.abs(did-asked)>=0.5){t.fromLogged={did:did,asked:asked,date:TODAY};}
+  else if(t.fromLogged)delete t.fromLogged;
   var cs=coachState();
   if(cs.k==="red"||cs.k==="layoff"){
     t.low=o.low;t.high=o.high;
-    t.weight=(o.bw||!S.profile.adjustable)?o.weight:Math.max(0,(parseFloat(o.weight)||0)-inc());
+    t.weight=(o.bw||!S.profile.adjustable)?o.weight:Math.max(0,base-inc());
     t.ladderStep=(o.bw||!S.profile.adjustable)?"reps":"load";S.progress[o.exId]=t;return;
   }
-  if(cs.k==="amber"){t.low=o.low;t.high=o.high;t.weight=o.weight;t.ladderStep="hold";S.progress[o.exId]=t;return;}
+  if(cs.k==="amber"){t.low=o.low;t.high=o.high;t.weight=(o.bw||!S.profile.adjustable)?o.weight:base;t.ladderStep="hold";S.progress[o.exId]=t;return;}
   var allHigh=sets.length>0&&sets.every(function(s){return (s.reps||0)>=o.high;});
   var repMode=(o.bw||!S.profile.adjustable);
-  if(allHigh){if(repMode){var ceil=(o.unit==="s")?90:20,step=(o.unit==="s")?10:2;if(o.high<ceil){t.low=o.high;t.high=o.high+step;}else{t.note="graduate";}t.weight=o.weight;}else{t.weight=(parseFloat(o.weight)||0)+inc();t.low=8;t.high=12;}}
-  else{t.low=o.low;t.high=o.high;t.weight=o.weight;}
+  if(allHigh){if(repMode){var ceil=(o.unit==="s")?90:20,step=(o.unit==="s")?10:2;if(o.high<ceil){t.low=o.high;t.high=o.high+step;}else{t.note="graduate";}t.weight=o.weight;}else{t.weight=base+inc();t.low=8;t.high=12;}}
+  else{t.low=o.low;t.high=o.high;t.weight=repMode?o.weight:base;}
   t.ladderStep=repMode?"reps":"load";S.progress[o.exId]=t;}
 
 var REST_BY={squat:120,hinge:120,"h-push":90,"v-push":90,"h-pull":90,"v-pull":90,core:45,isolation:45};
@@ -3967,7 +4014,7 @@ function dayPatternSummary(L){
   var tpl=DAYS[L];if(!tpl)return "";
   var seen=[],order=["squat","hinge","h-push","v-push","h-pull","v-pull","core","isolation"];
   (tpl.slots||[]).forEach(function(sl){
-    var id=slotEx(sl);var e=id&&LIB[id];if(!e||!e.pattern)return;
+    var _p=slotExFor(L,sl);var id=_p&&_p.id;var e=id&&LIB[id];if(!e||!e.pattern)return;
     if(seen.indexOf(e.pattern)<0)seen.push(e.pattern);
   });
   if(!seen.length)return "";
@@ -3980,7 +4027,7 @@ function movementDayGroups(){
   var g={A:[],B:[],C:[]},seen={};
   ["A","B","C"].forEach(function(L){
     (DAYS[L]?DAYS[L].slots:[]).forEach(function(sl){
-      var id=slotEx(sl);if(!id||!LIB[id]||seen[L+id])return;
+      var _p=slotExFor(L,sl);var id=_p&&_p.id;if(!id||!LIB[id]||seen[L+id])return;
       seen[L+id]=1;g[L].push(id);
     });
   });
@@ -3993,7 +4040,7 @@ function dayPatternPips(L){
   var tpl=DAYS[L];if(!tpl)return "";
   var seen=[],order=["squat","hinge","h-push","v-push","h-pull","v-pull","core","isolation"];
   (tpl.slots||[]).forEach(function(sl){
-    var id=slotEx(sl),e=id&&LIB[id];if(!e||!e.pattern)return;
+    var _p=slotExFor(L,sl);var id=_p&&_p.id,e=id&&LIB[id];if(!e||!e.pattern)return;
     if(seen.indexOf(e.pattern)<0)seen.push(e.pattern);
   });
   seen.sort(function(a,b){return order.indexOf(a)-order.indexOf(b);});
@@ -4034,14 +4081,14 @@ function liftPlanHTML(){
       '<span class="pdd">'+dayPatternPips(k)+'</span></span>'+
       (isNext?'<span class="ptag">Next</span>':(scored?'<span class="pdchip"><b>'+upish+'</b>/'+scored+'</span>':''))+
       '<span class="pdchev">'+I.chevD+'</span></summary>'+
-      '<div class="mgrid">'+ids.map(movementRowHTML).join("")+'</div>'+
-      '<button class="plbuild" onclick="event.preventDefault();openBuild()">'+I.edit+' Build a session</button>'+
+      '<div class="mgrid">'+ids.map(function(_id){return movementRowHTML(_id,k);}).join("")+'</div>'+
+      '<button class="plbuild" onclick="event.preventDefault();openBuild()">'+I.edit+' Build a one-off session</button>'+
       '</details>';
   }).join("");
   if(g.other.length)days+='<details class="plday" name="plday"><summary><span class="pdi"><span class="pll">+</span></span>'+
     '<span class="pdm"><span class="pdn">Outside the rotation</span>'+
     '<span class="pdd"><i class="pip">'+g.other.length+'</i></span></span>'+
-    '<span class="pdchev">'+I.chevD+'</span></summary><div class="mgrid">'+g.other.map(movementRowHTML).join("")+'</div></details>';
+    '<span class="pdchev">'+I.chevD+'</span></summary><div class="mgrid">'+g.other.map(function(_id){return movementRowHTML(_id);}).join("")+'</div></details>';
   var lifts=S.sessions.filter(function(s){return s.type==="lift";}).length;
   var body='<div class="plweek" data-t="'+lv.tone+'">'+
       '<span class="plwn num">'+m.lifts+'</span>'+
@@ -4093,14 +4140,24 @@ function exerciseTrend(id){
   return {dir:"down",tone:"flat",n:ser.length,
     word:rising?"lighter, on top of a strong run":"a lighter session",short:"lighter",cap:cap};
 }
-function movementRowHTML(id){
+function soreReasonFor(id){
+  var act=soreActive();
+  for(var i=0;i<act.length;i++){
+    var k=act[i];
+    if((SORE[k].avoid||[]).indexOf(id)>=0)return {k:k,n:SORE[k].n};
+  }
+  return null;
+}
+function movementRowHTML(id,L){
   var e=LIB[id],le=lastEntry(id),t=S.progress[id]||{},pr=prFor(id);
+  var soff=soreReasonFor(id);
   var best=null;
   if(le)le.e.sets.forEach(function(x){if(!x.completed)return;var w=x.weightLb||0,r=x.reps||0;if(!best||w>best.w||(w===best.w&&r>best.r))best={w:w,r:r};});
   var now=e.bw?((t.low||8)+"-"+(t.high||12)+" reps"):((t.weight!=null?t.weight:15)+wLbl()+" x "+(t.low||8)+"-"+(t.high||12));
   var lastTxt=le&&best?(shortDate(le.date)+" &middot; "+(e.bw?best.r+" reps":best.w+wLbl()+" x"+best.r)):"not trained yet";
   var sg=suggestWeight(id),tr=exerciseTrend(id);
-  return '<button class="mcard'+(le?"":" untrained")+(sg?" prop":"")+'" onclick="movementSheet(\''+id+'\')">'+
+  return '<button class="mcard'+(le?"":" untrained")+(sg?" prop":"")+(soff?" soff":"")+'" onclick="movementSheet(\''+id+'\''+(L?(",\''+L+'\'"):"")+')">'+
+    (soff?'<span class="mcoff">off &middot; '+esc(soff.n.toLowerCase())+'</span>':'')+
     '<span class="mcn">'+esc(e.name)+'</span>'+
     '<span class="mcw num">'+now+(sg?'<em class="mcup" data-d="'+sg.dir+'">'+(sg.dir==="up"?"&uarr;":"&darr;")+' '+sg.to+wLbl()+'</em>':'')+'</span>'+
     '<span class="mcl">'+lastTxt+'</span>'+
@@ -4116,12 +4173,19 @@ function suggestWeight(id){
   var sets=(le.e.sets||[]).filter(function(x){return x.completed;});
   if(sets.length<2)return null;
   var hi=(t.high||12),lo=(t.low||8);
-  var at=sets.filter(function(x){return (x.weightLb||0)===cur;});
+  var did=workedWeight(sets);
+  if(did!=null&&Math.abs(did-cur)>=inc()){
+    return {dir:(did>cur?"up":"down"),from:cur,to:did,reconcile:true,
+      why:"You have been lifting "+did+wLbl()+" here while the card said "+cur+wLbl()+
+          ". Match the card to what you are actually doing."};
+  }
+  var ref=(did!=null)?did:cur;
+  var at=sets.filter(function(x){return (x.weightLb||0)===ref;});
   if(at.length<2)return null;
   var allTop=at.every(function(x){return (x.reps||0)>=hi;});
   var anyLow=at.some(function(x){return (x.reps||0)<lo;});
-  if(allTop)return {dir:"up",from:cur,to:cur+inc(),why:"You cleared "+hi+" reps on every set at "+cur+wLbl()+" last time."};
-  if(anyLow)return {dir:"down",from:cur,to:Math.max(inc(),cur-inc()),why:"A set came in under "+lo+" reps at "+cur+wLbl()+" last time."};
+  if(allTop)return {dir:"up",from:cur,to:ref+inc(),why:"You cleared "+hi+" reps on every set at "+ref+wLbl()+" last time."};
+  if(anyLow)return {dir:"down",from:cur,to:Math.max(inc(),ref-inc()),why:"A set came in under "+lo+" reps at "+ref+wLbl()+" last time."};
   return null;
 }
 function applySuggestedWeight(id){
@@ -4172,7 +4236,7 @@ function sessionLengthHTML(){
     '',
     false,I.clock||I.cal,tone);
 }
-function movementSheet(id){
+function movementSheet(id,L){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
   var hist=[];
   S.sessions.forEach(function(s){if(s.type!=="lift")return;s.entries.forEach(function(en){if(en.exerciseId!==id)return;
@@ -4192,13 +4256,40 @@ function movementSheet(id){
   var prop=sg?('<div class="mprop" data-d="'+sg.dir+'"><div class="mpt">Move '+(sg.dir==="up"?"up":"down")+' to <b>'+sg.to+wLbl()+'</b></div>'+
     '<div class="mps">'+sg.why+'</div>'+
     '<button class="wbtn" onclick="applySuggestedWeight(\''+id+'\')">Set it to '+sg.to+wLbl()+'</button></div>'):'';
+  var swap="";
+  if(L&&DAYS[L]){
+    var eqNow=sessionEquip(),avNow=soreAvoid(),theSlot=null;
+    DAYS[L].slots.forEach(function(sl){
+      if(theSlot)return;
+      if(slotCandidates(sl,eqNow).indexOf(id)>=0)theSlot=sl;
+    });
+    if(theSlot){
+      var cands=slotCandidates(theSlot,eqNow);
+      var cur=(S.slotPick||{})[slotKey(L,theSlot)]||null;
+      var served=slotExFor(L,theSlot,eqNow,avNow);
+      if(cands.length>1){
+        swap='<div class="ssub" style="margin-top:16px">Day '+L+' &middot; '+esc(PATTERNS[theSlot.pat]||theSlot.pat)+'</div>'+
+          cands.map(function(cid){
+            var ce=LIB[cid],on=(served&&served.id===cid),off=!!avNow[cid];
+            return '<button class="opt sorepick'+(on?" sel":"")+'" onclick="slotSetPick(\''+L+'\',\''+theSlot.pat+'\',\''+
+              (cur===cid?'':cid)+'\');movementSheet(\''+cid+'\',\''+L+'\');refreshCurrent();">'+
+              '<span class="oi">'+(on?I.check:"")+'</span>'+
+              '<span><div class="on2">'+esc(ce?ce.name:cid)+(cid===cands[0]&&!cur?' &middot; default':'')+'</div>'+
+              '<div class="oc">'+(off?'Off while you have that area flagged sore':
+                 (on?'Serving this on Day '+L:'Tap to use this instead'))+'</div></span></button>';
+          }).join("")+
+          (cur?('<div class="ksub" style="margin-top:8px">Your choice, kept for every Day '+L+'. '+
+                'It lapses on its own if you change kit so it is not doable.</div>'):'');
+      }
+    }
+  }
   openSheet('<div class="grab"></div><h3>'+esc(e.name)+'</h3>'+
     '<div class="ssub">'+PATTERNS[e.pattern]+' &middot; '+e.diff+'</div>'+
     '<div class="msum"><div class="ms"><b class="num">'+(e.bw?((t.low||8)+"-"+(t.high||12)):((t.weight!=null?t.weight:15)+wLbl()))+'</b><span>'+(e.bw?"rep range":"working weight")+'</span></div>'+
     '<div class="ms"><b class="num">'+(pr?(e.bw?"x"+pr.r:pr.w+wLbl()):"--")+'</b><span>best set</span></div>'+
     '<div class="ms"><b class="num">'+hist.length+'</b><span>times trained</span></div></div>'+
     spark+
-    prop+'<div class="anote" style="margin-top:12px">'+next+'</div>'+
+    prop+'<div class="anote" style="margin-top:12px">'+next+'</div>'+swap+
     (vid?'<div class="vrow" style="grid-template-columns:1fr;margin-top:14px">'+vidCardHTML(vid,true)+'</div>':
          '<a class="sheet-cta ghost" href="'+ytSearch(e.q)+'" target="_blank" rel="noopener">Watch the form on YouTube</a>')+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
@@ -6628,8 +6719,7 @@ function soreRowHTML(){
   var act=soreActive(),lap=soreLapsedToday(),txt,cls="",body="";
   if(act.length){
     cls="on";
-    var names=act.map(function(k){return SORE[k].n.toLowerCase();}).join(" and ");
-    txt='<b>Sore '+esc(names)+'</b>';
+    txt='<b>Sore</b> &middot; '+act.length+' area'+(act.length===1?'':'s')+' flagged';
     body='<div class="sorebody">'+act.map(function(k){
       var left=SORE_DAYS-soreAge(k);
       return '<div class="sgrp"><div class="srw"><span class="srk">'+esc(SORE[k].n)+'</span>'+
@@ -6645,11 +6735,41 @@ function soreRowHTML(){
   return '<button class="sorerow '+cls+'" onclick="soreSheet()" aria-label="Sore areas">'+
     '<span class="sdot"></span><span class="stx">'+txt+'</span><span class="sarr">'+I.arrow+'</span></button>'+body;
 }
+function rehabPool(){
+  var ok={mobility:1,recovery:1,yoga:1,morning:1};
+  return VID.filter(function(v){return v.m&&ok[v.c];});
+}
+function rehabClipFor(k){
+  var id=(S.rehabPick||{})[k]||(SORE[k]&&SORE[k].clip)||null;
+  if(!id)return null;
+  var v=vidById(id);
+  return (v&&v.m)?v:null;
+}
+function rehabSetPick(k,id){
+  S.rehabPick=S.rehabPick||{};
+  if(!id)delete S.rehabPick[k]; else S.rehabPick[k]=id;
+  save();
+}
+function rehabPickSheet(k){
+  var cur=(S.rehabPick||{})[k]||(SORE[k]&&SORE[k].clip)||null;
+  var rows=rehabPool().map(function(v){
+    var on=(cur===v.id);
+    return '<button class="opt sorepick'+(on?" sel":"")+'" onclick="rehabSetPick(\''+k+'\',\''+esc(v.id)+'\');rehabPickSheet(\''+k+'\');refreshCurrent();">'+
+      '<span class="oi">'+(on?I.check:"")+'</span>'+
+      '<span><div class="on2">'+esc(v.t)+'</div>'+
+      '<div class="oc">'+esc(vidMinsTxt(v))+(v.id===(SORE[k]&&SORE[k].clip)?' &middot; the default':'')+'</div></span></button>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>A clip for '+esc((SORE[k]||{}).n||k)+'</h3>'+
+    '<div class="ssub">Offered on any day you flag this area. Nothing here is scheduled and nothing '+
+    'goes on your level; pick the one that actually helps.</div>'+rows+
+    ((S.rehabPick||{})[k]?('<button class="sheet-cta ghost" onclick="rehabSetPick(\''+k+'\',null);rehabPickSheet(\''+k+'\');refreshCurrent();">Back to the default</button>'):'')+
+    '<button class="sheet-cta ghost" onclick="soreSheet()">Back</button>');
+}
 function soreClipHTML(act,inline){
   var seen={},out="";
   (act||[]).forEach(function(k){
-    var id=SORE[k]&&SORE[k].clip;if(!id||seen[id])return;seen[id]=true;
-    var v=vidById(id);if(!v)return;
+    var v=rehabClipFor(k);if(!v||seen[v.id])return;seen[v.id]=true;
+    var id=v.id;
     if(inline){
       out+='<button class="soreclip" onclick="sessionVidSheet(\''+esc(id)+'\')">'+
         '<span class="sci">'+I.play+'</span>'+
@@ -6669,11 +6789,16 @@ function soreSheet(){
   var act=soreActive();
   var rows=Object.keys(SORE).map(function(k){
     var on=act.indexOf(k)>=0,left=on?(SORE_DAYS-soreAge(k)):0;
+    var v=rehabClipFor(k);
+    var pick=on?('<button class="opt sorepick" style="margin-top:-6px" onclick="rehabPickSheet(\''+k+'\')">'+
+      '<span class="oi">'+I.play+'</span>'+
+      '<span><div class="on2">'+(v?('Clip: '+esc(v.t)):'Choose a clip for this')+'</div>'+
+      '<div class="oc">'+(v?(esc(vidMinsTxt(v))+' &middot; tap to change'):'Nothing set yet for '+esc(SORE[k].n.toLowerCase()))+'</div></span></button>'):'';
     return '<button class="opt sorepick'+(on?" sel":"")+'" onclick="soreTap(\''+k+'\')">'+
       '<span class="oi">'+(on?I.check:"")+'</span>'+
       '<span><div class="on2">'+esc(SORE[k].n)+(on?(' &middot; '+(left>1?(left+" days left"):"last day")):"")+'</div>'+
       '<div class="oc">'+(on?esc(SORE[k].why):"Tap if it hurts")+'</div></span>'+
-      '</button>';
+      '</button>'+pick;
   }).join("");
   openSheet('<div class="grab"></div><h3>Anything sore?</h3>'+
     '<div class="ssub">The next session leans away from what you name here, for '+SORE_DAYS+
