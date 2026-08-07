@@ -56,6 +56,8 @@
       cursorUpdatedAt: stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 }),
       progressState: S.progress || null,
       progressUpdatedAt: stampedAt("progress", S.progress),
+      sore: S.sore || {},
+      soreUpdatedAt: stampedAt("sore", S.sore || {}),
     };
   }
   var STAMP_KEY = "train.syncStamps";
@@ -162,7 +164,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { onUnauthorized(r.status); mark(false, "push " + r.status); } })
@@ -242,6 +244,11 @@
           bumpStamp("cursor", { planPos: S.planPos, cycleNext: S.cycleNext }, Number(srv.cursorUpdatedAt));
         }
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
+        if (srv.sore && typeof srv.sore === "object" &&
+            Number(srv.soreUpdatedAt || 0) > stampedAt("sore", S.sore || {})) {
+          S.sore = srv.sore;
+          bumpStamp("sore", S.sore, Number(srv.soreUpdatedAt));
+        }
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
         else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
           S.progress = srv.progressState; bumpStamp("progress", S.progress, Number(srv.progressUpdatedAt));
@@ -263,7 +270,8 @@
   function bootstrapFromServer(srv) {
     var S = { v: 2,
       profile: { setup: true, name: "", units: "lb", loc: "Miami", goalLb: 180, stretchLb: 175, rest: 90, theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null },
-      progress: srv.progressState || {}, wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
+      progress: srv.progressState || {}, sore: (srv.sore && typeof srv.sore === "object") ? srv.sore : {},
+      wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
       done: (srv.done && typeof srv.done === "object") ? srv.done : {},
       runs: {},
       anchor: (srv.anchor && typeof srv.anchor === "object") ? srv.anchor : {},
