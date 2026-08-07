@@ -3606,7 +3606,8 @@ function liftLevelDetailHTML(){
     levelMechanicsHTML("lift",L)+
     (dl2.due?'<button class="wbtn" style="width:100%;margin-top:11px" onclick="startDeload()">Take a deload week</button>':'')+
     '<div class="foot" style="margin-top:11px">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>';
-  return collapsible("Where the level comes from","Level "+L.lvl,inner+levelHistoryHTML("lift"),false,I.dumbbell,levelToneOf(L,dl));
+  var _c=dl?(dl.dir==="flat"?"holding":(dl.dir==="up"?"rising":"easing off")):("Level "+L.lvl);
+  return collapsible("Where the level comes from",_c,inner+levelHistoryHTML("lift"),false,I.dumbbell,levelToneOf(L,dl));
 }
 function liftDelta(L){
   var ser=L.series||[];if(ser.length<8)return null;
@@ -4111,9 +4112,11 @@ function liftPlanHTML(){
       '<span class="plww">'+esc(lv.word)+'</span></div>'+
     days+
     '<div class="foot" style="margin-top:12px">'+lifts+' session'+(lifts===1?"":"s")+' banked'+(easingIn()?' &middot; easing in, volume is deliberately light':'')+'.</div>';
-  var lastLift=null;for(var li=S.sessions.length-1;li>=0;li--){if(S.sessions[li].type==="lift"){lastLift=S.sessions[li].date;break;}}
+  var lastLift=null;S.sessions.forEach(function(x){if(x.type==="lift"&&x.date&&(!lastLift||x.date>lastLift))lastLift=x.date;});
   var tone=lastLift?(daysBetween(lastLift,TODAY)<=3?"good":daysBetween(lastLift,TODAY)<=7?"amber":"red"):"";
-  return collapsible("The plan","Day "+next,body,false,I.dumbbell,tone);
+  var _g=lastLift?daysBetween(lastLift,TODAY):null;
+  var _c=(_g==null)?"none logged":(_g===0?"lifted today":(_g===1?"lifted yesterday":"lifted "+_g+" days ago"));
+  return collapsible("The plan",_c,body,false,I.dumbbell,tone);
 }
 function exerciseSeries(id){
   var e=LIB[id];if(!e)return [];
@@ -5554,7 +5557,7 @@ function rpeTrendHTML(){
   var verdict=(recent>=early+0.8)?"Everything is getting harder. That is usually accumulated fatigue rather than lost fitness.":
               (recent<=early-0.8)?"Sessions are feeling easier than they did. Room to add.":
               "Effort is steady across the block.";
-  return collapsible("How hard it has felt","last "+pts.length,'<div>'+
+  return collapsible("How hard it has felt","RPE "+recent.toFixed(1)+" lately",'<div>'+
     '<svg class="rpes" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" aria-hidden="true">'+
     '<line x1="0" y1="'+y8+'" x2="'+W+'" y2="'+y8+'" stroke="var(--amber)" stroke-width="1" stroke-dasharray="4 4" opacity=".7"/>'+
     '<path d="'+d+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
@@ -5633,7 +5636,7 @@ function lifetimeHTML(){
     return '<tr><td class="alk">'+l1+'</td><td class="alv num">'+v1+(u1?'<small> '+u1+'</small>':'')+'</td>'+
       '<td class="alk">'+l2+'</td><td class="alv num">'+v2+(u2?'<small> '+u2+'</small>':'')+'</td></tr>';
   };
-  return collapsible("All time","since "+(first||""),'<div>'+
+  return collapsible("All time",moved+" day"+(moved===1?"":"s")+" moved",'<div>'+
     '<table class="altab">'+
     lrow("Sessions",S.sessions.length,"","Miles run",mi.toFixed(0),"")+
     lrow("Lifts",lifts.length,"","Hours",(mins/60).toFixed(0),"")+
@@ -8491,7 +8494,8 @@ function levelDetailHTML(){
     levelMechanicsHTML("cardio",L)+
     (ep?'<div class="ksub" style="margin-top:9px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago. That is fitness, which the level cannot show.</div>':'')+
     '<div class="foot" style="margin-top:11px">Weekly mileage, rising over about three weeks and falling over six, so a quiet fortnight bends the level rather than docking you. '+runs.length+' runs, '+mi.toFixed(0)+' mi on record.</div>';
-  return collapsible("Where the level comes from","Level "+L.lvl,inner+levelHistoryHTML("cardio"),false,I.spark,levelToneOf(L,dl));
+  var _c=dl?(dl.dir==="flat"?"holding":(dl.dir==="up"?"rising":"easing off")):("Level "+L.lvl);
+  return collapsible("Where the level comes from",_c,inner+levelHistoryHTML("cardio"),false,I.spark,levelToneOf(L,dl));
 }
 
 var ODOP="w";
