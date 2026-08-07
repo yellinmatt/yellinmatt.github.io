@@ -1752,7 +1752,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.84";
+var VERSION="v7.85";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3776,7 +3776,8 @@ function runSteps(s){
             (p.why&&p.why.length?" Eased back because "+p.why.join(", and ")+".":"")};
   return [
     {role:"Get set",title:"Start the watch",note:"Open the Workout app or Pedometer and start an outdoor run. It does all the measuring. This screen only walks the plan."},
-    {role:"Warm up",title:"Walk, about "+Math.round(RUN_WARM/60)+" min",note:"Brisk. Nothing that feels like running yet."},
+    {role:"Warm up",title:"Walk, about "+Math.round(RUN_WARM/60)+" min",note:"Brisk. Nothing that feels like running yet.",
+     vid:pickForSlot("runwarm",0)},
     main,
     {role:"Cool down",title:"Walk, about "+Math.round(RUN_COOL/60)+" min",note:"Part of the session, not the bit after it."},
     {role:"Wrap up",title:"Stop the watch",note:"End the recording. Apple's own record lands here by tomorrow."},
@@ -3824,6 +3825,8 @@ function renderRun(){
     '<div class="lbl">'+(watch?'<span class="wpulse" aria-hidden="true"></span>':'')+esc(c.role)+' &middot; step '+(s.idx+1)+' of '+steps.length+'</div>'+
     '<div style="font-size:32px;font-weight:800;letter-spacing:-.03em;line-height:1.15;margin-top:8px">'+c.title+'</div>'+
     '<div style="font-size:15px;color:var(--sub);line-height:1.45;margin-top:8px">'+c.note+'</div>'+
+    (c.vid?('<div class="vrow" style="grid-template-columns:1fr;margin:12px 0 2px">'+vidCardHTML(c.vid,true)+'</div>'+
+      '<div style="font-size:13px;color:var(--faint);margin-top:6px">Optional. The walk is the warm-up; this is if you want to move first.</div>'):'')+
     (c.role==="The run"?'<button onclick="customRunSheet()" style="background:none;border:0;color:var(--faint);font-size:13px;font-weight:600;padding:10px 0;min-height:44px;cursor:pointer">'+(s.custom?"Edit my plan &middot; or go back to the generated one":"Use my own plan instead")+'</button>':'')+
     '<div class="runsegs">'+segs+'</div>'+
     '<button class="big-start" style="margin-top:16px" onclick="runStepNext()">'+(last?"Log the run":"Next: "+esc(steps[s.idx+1].role.toLowerCase()))+'</button>'+
@@ -5664,7 +5667,11 @@ function volChart(){
     return collapsible("Weekly lifting volume","nothing in 12 weeks",
       '<div class="ksub" style="margin:0">No lifting logged in the last twelve weeks. The last week that carried any was '+lastWk.replace("-W"," week ")+'.</div>',false,I.chart,"warn");
   }
-  return drawerize(barChart("Weekly lifting volume","last "+N+" weeks",vals,
+  var _tw=vals[N-1]||0;
+  var _k=function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";};
+  var _prev=null;for(var _i=N-2;_i>=0;_i--){if(vals[_i]>0){_prev=vals[_i];break;}}
+  var _chip=_tw>0?(_k(_tw)+" lb this week"):(_prev!=null?("last week "+_k(_prev)+" lb"):"nothing yet this week");
+  return drawerize(barChart("Weekly lifting volume",_chip,vals,
     wks.map(function(k,i){return i===N-1?"now":"";}),
     function(v){return (v/1000).toFixed(v>=10000?0:1)+"k";},"lb"),I.chart,"");
 }
