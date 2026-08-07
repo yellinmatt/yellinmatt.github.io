@@ -1749,7 +1749,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.82";
+var VERSION="v7.83";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2075,6 +2075,7 @@ function planFor(k){
 function advanceCycle(){
   if(!S.daySlot)S.daySlot={};
   var slot=(S.daySlot[TODAY]!=null)?S.daySlot[TODAY]:(S.cycleNext||0);
+  S.daySlot[TODAY]=slot;
   S.cycleNext=((slot+1)%cycleLen());
   save();
 }
@@ -2128,11 +2129,16 @@ function dayStatus(k){
   var metPlan=(pl.type==="lift")?didLift:(pl.type==="run")?didRun:moved;
   return {plan:pl,moved:moved,didLift:didLift,didRun:didRun,metPlan:metPlan,partial:(moved&&!metPlan)};
 }
-function isDone(k){
+function didAnything(k){
   if(S.done[k])return true;
   if(sessionDayIndex()[k])return true;
-  return S.anchor[k]?anchorComplete(k):false;
+  var a=S.anchor[k];
+  if(a){for(var i in a){if(a[i])return true;}}
+  var vd=(S.progress||{}).vdone||{};
+  for(var id in vd){if(vd[id]===k)return true;}
+  return false;
 }
+function isDone(k){return didAnything(k);}
 function longestStreak(){
   var ks=Object.keys(sessionDayIndex()).concat(Object.keys(S.done||{}),Object.keys(S.anchor||{}));
   if(!ks.length)return 0;
@@ -6377,6 +6383,7 @@ function toggleVDone(id,btn){
   if(was)delete S.progress.vdone[id];else S.progress.vdone[id]=TODAY;
   var v=vidById(id);
   if(v&&v.lv)setLadderAfter(v.c,was?v.lv-1:v.lv);
+  recomputeDone(TODAY);
   save();
   if(btn){
     var on=vDone(id);
@@ -7266,7 +7273,8 @@ function planDow(k){var p=k.split("-");return new Date(+p[0],+p[1]-1,+p[2]).getD
 function recomputeDone(k){
   var has=S.sessions.some(function(s){return s.date===k;})|| !!S.runs[k];
   var pl=planFor(k)||{type:"none"};
-  if(has||anchorComplete(k))S.done[k]=true;else delete S.done[k];
+  delete S.done[k];
+  if(has||didAnything(k))S.done[k]=true;
 }
 function clearToday(){
   var mine=S.sessions.filter(function(s){return s.date===TODAY;});
