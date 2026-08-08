@@ -1596,6 +1596,12 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .msheet .dbody{padding:0}
 .msheet{margin-top:4px}
 .d3cap{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 8px 2px}
+.dtap{display:block;width:100%;text-align:left;background:none;border:0;font:inherit;color:inherit;cursor:pointer}
+.dtap:active{background:var(--surface-2)}
+.gch.tapp{cursor:pointer;border:0;font:inherit;color:inherit;text-align:left;width:100%}
+.gch.tapp:active{background:var(--surface-2)}
+.gcarr{display:inline-flex;margin-left:5px;color:var(--faint);vertical-align:-1px}
+.gcarr svg{width:11px;height:11px}
 .d3wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
 .d3{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:11px 10px 10px;min-width:0}
 .d3[data-tone="good"]{--rag:var(--good);--rag-tint:var(--good-tint)}
@@ -1804,7 +1810,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.2";
+var VERSION="v8.3";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4745,14 +4751,16 @@ function sparkSVG(pts,tone){
     (last>=0?'<circle class="gsd" cx="'+x(last).toFixed(1)+'" cy="'+y(pts[last]).toFixed(2)+'" r="2.2"/>':"")+
     '</svg>';
 }
-function glanceChip(label,val,sub,tone,spark,readout){
+function glanceChip(label,val,sub,tone,spark,readout,act){
   if(val==null)return "";
-  return '<div class="gch" data-tone="'+tone+'"'+
+  var tag=act?"button":"div";
+  return '<'+tag+' class="gch'+(act?" tapp":"")+'" data-tone="'+tone+'"'+
+    (act?' onclick="'+act+'" aria-label="'+esc(label)+', open detail"':'')+
     (readout?' data-r="'+esc(readout)+'"':'')+'>'+
-    '<span class="gcl">'+label+'</span>'+
+    '<span class="gcl">'+label+(act?'<span class="gcarr">'+I.arrow+'</span>':'')+'</span>'+
     '<span class="gcv num">'+(val==null?"&mdash;":val)+'</span>'+
     '<span class="gcs">'+(val==null?"no data":sub)+'</span>'+
-    ((val!=null&&spark)?spark:'')+'</div>';
+    ((val!=null&&spark)?spark:'')+'</'+tag+'>';
 }
 function trackGlanceHTML(){
   var out="";
@@ -4765,37 +4773,43 @@ function trackGlanceHTML(){
     slLastV?(hrsTxt(tMed(tWin(slGet,6,0)))+" typical"):"no reading yet",
     slTr.tone||"none",
     sparkSVG(rollSeries(slGet,1,"last",28,1),slTr.tone),
-    slLastV?("Sleep, each of the last 28 nights. Last night "+hrsTxt(slLastV)+"."):null);
+    slLastV?("Sleep, each of the last 28 nights. Last night "+hrsTxt(slLastV)+"."):null,
+    "metricSheet('sleep')");
   var stv=stepsVerdict(),w=stepsAvgOver(7);
   var stGet=function(k){return (S.steps||{})[k]||null;};
   out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
     (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none",
     sparkSVG(rollSeries(stGet,7,"mean",12,7),stv.tone),
-    w?("Steps a day, 7-day average, sampled weekly across 12 weeks. Now "+w.avg.toLocaleString()+"."):null);
+    w?("Steps a day, 7-day average, sampled weekly across 12 weeks. Now "+w.avg.toLocaleString()+"."):null,
+    "metricSheet('steps')");
   var cv=calVerdict();
   var calGet=function(k){var n=(S.nutrition||{})[k];return (n&&n.c)?n.c:null;};
   out+=glanceChip("Calories",calStat(),
     cv.enough?(cv.avg.toLocaleString()+" a day"):("log a few days and this reads a rate"),cv.tone||"none",
     sparkSVG(rollSeries(calGet,CAL_DAYS,"mean",12,7),cv.tone),
-    cv.enough?("Calories a day, "+CAL_DAYS+"-day average, sampled weekly across 12 weeks."):null);
+    cv.enough?("Calories a day, "+CAL_DAYS+"-day average, sampled weekly across 12 weeks."):null,
+    "metricSheet('cal')");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   var rhrMap={};vitalDays("rhr").forEach(function(p){rhrMap[p.d]=p.v;});
   var rhrGet=function(k){return rhrMap[k]==null?null:rhrMap[k];};
   var rhrTone=(rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none";
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",rhrTone,
     sparkSVG(rollSeries(rhrGet,28,"med",12,28),rhrTone),
-    rw?("Resting heart rate, 28-day median, sampled across the last year. Now "+Math.round(rw.med)+"."):null);
+    rw?("Resting heart rate, 28-day median, sampled across the last year. Now "+Math.round(rw.med)+"."):null,
+    "openDeep('recovering')");
   var bm=bmi();
   var h=S.profile.heightIn,wMap={};
   trendSeries().forEach(function(p){wMap[p.date]=p.v;});
   var bmiGet=function(k){var v=wMap[k];return (v!=null&&h>0)?(703*v/(h*h)):null;};
   out+=glanceChip("BMI",bm?bm.toFixed(1):null,bm?bmiBand(bm).w:"needs a weigh-in","flat",
     sparkSVG(rollSeries(bmiGet,14,"mean",12,7),"flat"),
-    bm?("BMI from the weigh-in trend, 12 weeks. Now "+bm.toFixed(1)+", "+bmiBand(bm).w+"."):null);
+    bm?("BMI from the weigh-in trend, 12 weeks. Now "+bm.toFixed(1)+", "+bmiBand(bm).w+"."):null,
+    "openDeep('changing')");
   var m=weekMetrics(0);
   out+=glanceChip("Miles run",m?m.miles.toFixed(1):null,"this week",(m&&m.miles>0)?"good":"flat",
     sparkSVG(weekSeries("miles"),(m&&m.miles>0)?"good":"flat"),
-    m?("Run miles a week, last 12 weeks. This week "+m.miles.toFixed(1)+"."):null);
+    m?("Run miles a week, last 12 weeks. This week "+m.miles.toFixed(1)+"."):null,
+    "openDeep('training')");
   return '<div class="glance">'+out+'</div>';
 }
 function trackDashHTML(){
@@ -4831,7 +4845,8 @@ function trackDashHTML(){
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
       trackGlanceHTML()+measureRowsHTML()+
       '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
-    '<div class="dband"><div class="bandlbl">Body</div>'+body+'</div>'+
+    '<button class="dband dtap" onclick="openDeep(&quot;changing&quot;)"><div class="bandlbl">Body'+
+      '<span class="gcarr">'+I.arrow+'</span></div>'+body+'</button>'+
     '</div>';
 }
 function sparkStrip(vals,tone){
@@ -4976,7 +4991,7 @@ function deepHTML(){
       '<span class="ndc'+(normTone(c.tone)==="good"?" gd":(normTone(c.tone)==="amber"?" wn":""))+'">'+c.t+'</span></span>'+
       '<span class="nda">'+I.arrow+'</span></button>';
   }).join("");
-  var h='<div class="ndp">'+rows+'</div>';
+  var h='';
   h+=collapsible("Where the numbers come from",c4.t,
       freshnessHTML()+backupBlockHTML()+
       '<button class="sheet-cta ghost" onclick="settingsSheet()">Settings and sync</button>',
