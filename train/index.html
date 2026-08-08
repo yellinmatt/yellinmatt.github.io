@@ -1784,7 +1784,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.88";
+var VERSION="v7.90";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1833,7 +1833,7 @@ var LIB={
   barbench:{name:"Barbell bench press",pattern:"h-push",equip:"bar",diff:"intermediate",cue:"shoulder blades pinned, bar to sternum, no bounce",q:"barbell bench press form"},
   dbcurl:{name:"DB biceps curl",pattern:"isolation",equip:"DB",diff:"beginner",cue:"elbows pinned to ribs, no swing, slow lower",q:"dumbbell biceps curl form"},
   hammercurl:{name:"DB hammer curl",pattern:"isolation",equip:"DB",diff:"beginner",cue:"neutral grip, elbows still, brachialis and forearm",q:"dumbbell hammer curl form"},
-  pushup:{name:"Push-up",pattern:"h-push",equip:"BW",bw:true,diff:"beginner",cue:"hollow body, elbows back",q:"proper push up form"},
+  pushup:{name:"Push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.64,diff:"beginner",cue:"hollow body, elbows back",q:"proper push up form"},
   inclinepress:{name:"DB incline press",pattern:"h-push",equip:"DB",diff:"beginner",cue:"45 incline, no elbow flare",q:"dumbbell incline press form"},
   feetpush:{name:"Feet-elevated push-up",pattern:"h-push",equip:"BW",bw:true,diff:"intermediate",cue:"harder press, no more load",q:"feet elevated push up"},
   kneelpress:{name:"Half-kneeling DB press",pattern:"v-push",equip:"DB",side:true,neck:true,diff:"intermediate",cue:"ribs down, no shrug, pain-free ROM",q:"half kneeling dumbbell press form"},
@@ -1863,28 +1863,55 @@ var LIB={
   birddog:{name:"Bird dog",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"reach long, no hip rock, brace",q:"bird dog exercise form"},
   plank:{name:"Front plank",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"},
 
-  pushwall:{name:"Wall push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.20,diff:"beginner",cue:"hands on the wall, body straight, slow down",q:"wall push up proper form"},
-  pushbench:{name:"Hands on counter push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.35,diff:"beginner",cue:"kitchen counter height, elbows back not flared",q:"countertop push up form"},
-  pushhigh:{name:"Push-up, hands on a chair",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"chair seat height, hollow body, full range",q:"incline push up proper form"},
-  pushknee:{name:"Knee push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down, hips straight, chest to floor",q:"knee push up proper form"},
-  pushmid:{name:"Push-up, hands on a step",pattern:"h-push",equip:"BW",bw:true,bwl:0.55,diff:"beginner",cue:"low step or two books, elbows back",q:"low incline push up form"},
+  pushwall:{name:"Wall push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.20,diff:"beginner",cue:"hands on the wall, body straight, slow on the way in",q:"wall push up proper form"},
+  pushbench:{name:"Counter push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.35,diff:"beginner",cue:"kitchen counter height, elbows back not flared",q:"countertop push up form"},
+  pushhigh:{name:"Chair push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on the chair seat, hollow body, full range",q:"incline push up proper form"},
+  pushknee:{name:"Knee push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down, hips straight, chest to the floor",q:"knee push up proper form"},
+  pushmid:{name:"Low-step push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.55,diff:"beginner",cue:"hands on a low step or two thick books, elbows back",q:"low incline push up form"},
+  pushwide:{name:"Wide push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.64,diff:"beginner",cue:"hands wider than the shoulders, chest leads, shorter range",q:"wide grip push up form chest"},
+  pushdiamond:{name:"Diamond push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.64,diff:"intermediate",cue:"hands together under the chest, elbows tight to the ribs, triceps do the work",q:"diamond push up triceps form"},
+  pushnarrow:{name:"Close-grip push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.64,diff:"intermediate",cue:"hands under the shoulders, elbows brush the ribs, triceps emphasis",q:"close grip push up triceps"},
+  pushtempo:{name:"Slow push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.64,diff:"intermediate",cue:"four seconds down, pause an inch off the floor, drive up",q:"tempo push up slow eccentric"},
   pushfeet:{name:"Feet-elevated push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.70,diff:"intermediate",cue:"feet on a low step, ribs down, no sag",q:"feet elevated push up form"},
-  pushfeet2:{name:"Feet on a chair push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.74,diff:"intermediate",cue:"feet on the chair seat, hollow body throughout",q:"decline push up proper form"},
-  pusharcher:{name:"Archer push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.90,diff:"advanced",cue:"one arm bends, the other stays long",q:"archer push up form"},
+  pushfeet2:{name:"Decline push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.74,diff:"intermediate",cue:"feet on the chair seat, hollow body throughout",q:"decline push up proper form"},
+  pushdeficit:{name:"Deficit push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.74,diff:"intermediate",cue:"hands on two books, chest sinks below them, full stretch",q:"deficit push up deep range"},
+  pusharcher:{name:"Archer push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.90,diff:"advanced",cue:"one arm bends, the other stays long, alternate sides",q:"archer push up form"},
+  pushonearm:{name:"One-arm push-up negative",pattern:"h-push",equip:"BW",bw:true,side:true,bwl:1.00,diff:"advanced",cue:"feet wide, lower on one arm for five seconds, push up with both",q:"one arm push up progression negative"},
 
+  bwsumo:{name:"Wide-stance squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"feet wide, toes out, sit straight down between the hips",q:"sumo bodyweight squat form"},
+  bwsquattempo:{name:"Slow squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"five seconds down, three-second pause at the bottom, stand",q:"tempo bodyweight squat pause"},
   bwrfess:{name:"Rear-foot-elevated split squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"back foot on a chair, tall torso, front heel drives",q:"bulgarian split squat bodyweight form"},
   bwstepup:{name:"Step-up",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"full foot on the step, no push from the back leg",q:"bodyweight step up form"},
-  bwskater:{name:"Skater squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"back knee toward the floor, chest forward, control",q:"skater squat progression form"},
+  bwcossack:{name:"Cossack squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"shift wide onto one leg, other leg long, heel down",q:"cossack squat form beginner"},
+  bwskater:{name:"Skater squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"back knee toward the floor, chest forward, controlled",q:"skater squat progression form"},
   bwpistolbox:{name:"Box pistol squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"sit to the box on one leg, stand without rocking",q:"box pistol squat progression"},
+  bwpistol:{name:"Pistol squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"full depth on one leg, free leg straight ahead",q:"pistol squat full form"},
 
+  bwrdl:{name:"Bodyweight RDL",pattern:"hinge",equip:"BW",bw:true,diff:"beginner",cue:"hands sliding down the thighs, soft knees, hinge back until the hamstrings pull",q:"bodyweight romanian deadlift hinge pattern"},
   bwslrdl:{name:"Single-leg RDL",pattern:"hinge",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"long range, soft knee, weight over the ball of the foot",q:"single leg rdl bodyweight form"},
-  bandrdl:{name:"Band RDL",pattern:"hinge",equip:"band",bw:true,diff:"intermediate",cue:"band under the feet, hinge back, flat spine",q:"band romanian deadlift form"},
-  nordichigh:{name:"High-box Nordic curl",pattern:"hinge",equip:"BW",bw:true,diff:"advanced",cue:"heels anchored, lower slowly to the box, hands catch",q:"nordic hamstring curl progression beginner"},
+  bandrdl:{name:"Band RDL",pattern:"hinge",equip:"band",bw:true,diff:"intermediate",cue:"band under the feet, hinge back, flat spine, squeeze at the top",q:"band romanian deadlift form"},
+  bandgm:{name:"Band good morning",pattern:"hinge",equip:"band",bw:true,diff:"intermediate",cue:"band across the upper back, hinge to parallel, spine long",q:"band good morning form"},
+  bwhipthrust:{name:"Shoulder-elevated hip thrust",pattern:"hinge",equip:"BW",bw:true,diff:"intermediate",cue:"shoulders on the couch, ribs down, drive the hips to level",q:"bodyweight hip thrust couch form"},
+  nordicband:{name:"Band-assisted Nordic curl",pattern:"hinge",equip:"band",bw:true,diff:"advanced",cue:"heels anchored, band takes some weight, lower as slowly as you can",q:"band assisted nordic hamstring curl"},
+  nordichigh:{name:"High-box Nordic curl",pattern:"hinge",equip:"BW",bw:true,diff:"advanced",cue:"heels anchored, lower slowly to the box, hands catch you",q:"nordic hamstring curl progression beginner"},
 
-  invrowhigh:{name:"Inverted row, bar high",pattern:"h-pull",equip:"bar",bw:true,diff:"beginner",cue:"bar at hip height, body straight, chest to bar",q:"high bar inverted row form"},
+  invrowhigh:{name:"Inverted row, bar high",pattern:"h-pull",equip:"bar",bw:true,diff:"beginner",cue:"bar at hip height, body straight, chest to the bar",q:"high bar inverted row form"},
+  invrowwide:{name:"Wide inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"intermediate",cue:"hands wide, pull to the sternum, squeeze the mid-back",q:"wide grip inverted row form"},
   invrowfeet:{name:"Feet-elevated inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"advanced",cue:"feet up on a chair, body level, full pull",q:"feet elevated inverted row form"},
+  invrowone:{name:"One-arm inverted row",pattern:"h-pull",equip:"bar",bw:true,side:true,diff:"advanced",cue:"one hand on the bar, hips square, no twisting",q:"one arm inverted row progression"},
 
-  pikehigh:{name:"Pike push-up, hands raised",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"beginner",cue:"hands on a step, hips high, pain-free range only",q:"elevated pike push up beginner"}
+  pullneg:{name:"Pull-up negative",pattern:"v-pull",equip:"bar",bw:true,diff:"beginner",cue:"jump to the top, lower for five seconds, repeat",q:"pull up negative progression beginner"},
+  pullband:{name:"Band-assisted pull-up",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"foot in the band, full hang to chin over the bar",q:"band assisted pull up form"},
+  chinup:{name:"Chin-up",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"palms toward you, full hang, chest to the bar",q:"chin up proper form"},
+  pullwide:{name:"Wide-grip pull-up",pattern:"v-pull",equip:"bar",bw:true,diff:"advanced",cue:"hands wide, drive the elbows down, no neck craning",q:"wide grip pull up form"},
+
+  pikehigh:{name:"Pike push-up, hands raised",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"beginner",cue:"hands on a step, hips high, pain-free range only",q:"elevated pike push up beginner"},
+  pikefeet:{name:"Feet-elevated pike push-up",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"advanced",cue:"feet on a chair, torso near vertical, head between the hands",q:"elevated pike push up handstand progression"},
+
+  hollow:{name:"Hollow hold",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"intermediate",cue:"low back pressed flat, arms and legs long, breathe",q:"hollow body hold form"},
+  legraise:{name:"Lying leg raise",pattern:"core",equip:"BW",bw:true,diff:"beginner",cue:"hands under the hips, lower slowly, no arching",q:"lying leg raise form lower abs"},
+  hangknee:{name:"Hanging knee raise",pattern:"core",equip:"bar",bw:true,diff:"intermediate",cue:"dead hang, knees to the chest, no swinging",q:"hanging knee raise form"},
+  plankreach:{name:"Plank shoulder tap",pattern:"core",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"feet wide, tap the opposite shoulder, hips do not rock",q:"plank shoulder tap anti rotation"}
 };
 
 var BWLAD={
@@ -1939,7 +1966,14 @@ var DAYS={
     {pat:"h-pull",lad:"hpull", bw:"invrow",      db:"row1",  band:"bandrow", none:"tablerow", sets:3,low:6,high:8},
     {pat:"isolation",bw:"ytw",      db:"facepull",   sets:2,low:12,high:15}]}
 };
-function defaultEquip(){var e=(S.profile.equip||["BW"]).slice();if(!e.length)e=["BW"];return e;}
+function defaultEquip(){
+  var e=(S.profile.equip||["BW"]).slice();if(!e.length)e=["BW"];
+  if(!S.profile.barSeeded){
+    S.profile.barSeeded=TODAY;
+    if(e.indexOf("bar")<0){e.push("bar");S.profile.equip=e.slice();save();}
+  }
+  return e;
+}
 function sessionEquip(w){w=w||S.wk[TODAY];return (w&&w.equip&&w.equip.length)?w.equip:defaultEquip();}
 function hasDB(eq){return (eq||[]).indexOf("DB")>=0;}
 function trainMode(w){return hasDB(sessionEquip(w))?"db":"bw";}
@@ -2222,8 +2256,16 @@ function isBW(){return (S.profile.programme||"bw")==="bw";}
 if(!S.daySlot)S.daySlot={};
 if(!S.vetted)S.vetted={};
 if(S.cycleNext==null)S.cycleNext=0;
-function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,equip:["BW","band"],adjustable:false,mode:"bw",programme:"bw",programmeStart:null,programStart:null,runPlanStart:null},
-  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{},anchor:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null,sore:{},swapSkip:null};}
+function seed(){return {v:2,profile:{name:"",units:"lb",loc:"Miami",goalLb:180,stretchLb:175,rest:90,bwFactor:65,theme:"system",started:null,setup:false,/* v7.89: "bar" added to the default kit. He owns a doorway pull-up bar and said so on 2026-08-07,
+   and it is the single highest-value item in the whole programme: pull-ups generate the greatest
+   lat activation of any commonly compared pull, and without a bar the vertical-pull ladder is band
+   pulldowns at increasing choke, which works but cannot be measured, so the rung never advances
+   honestly. It also unlocks the whole inverted-row ladder, which is the best-tolerated pulling
+   pattern for a bad shoulder. This is a DEFAULT, not a lock; Settings > Equipment > Change kit
+   still removes it for a hotel room. */
+equip:["BW","band","bar"],adjustable:false,mode:"bw",programme:"bw",programmeStart:null,programStart:null,runPlanStart:null},
+  progress:{},wk:{},sessions:[],done:{},runs:{},anchor:{},weigh:[],protein:{},nutrition:{},steps:{},stamps:{nutrition:{},steps:{},anchor:{}},deleted:[],planPos:0,daySlot:{},cycleNext:0,override:{},vetted:{},activeMode:"plan",genWk:null,sore:{},
+  bwLev:{},swapSkip:null};}
 function load(){
   var rawStr=null,raw=null;try{rawStr=localStorage.getItem(LS);raw=rawStr?JSON.parse(rawStr):null;}catch(e){try{if(rawStr)localStorage.setItem("train_v2_corrupt",rawStr);}catch(e2){}}
   if(!raw){ // migrate from v1 if present
@@ -2333,13 +2375,25 @@ function soreActive(){
   var out=[];for(var k in (S.sore||{})){var a=soreAge(k);if(a!=null&&a>=0&&a<SORE_DAYS)out.push(k);}
   return out.sort();
 }
+function soreEase(rk){
+  var caps=(SORE[rk]||{}).ladCap||{},out=[];
+  for(var k in caps){
+    var ids=ladIds(k);if(!ids.length)continue;
+    var to=Math.min(caps[k]+1,ids.length-1);
+    var raw=((S.bwLev||{})[k]);raw=(raw==null?0:+raw);
+    if(!(raw>to))continue;
+    S.bwLev=S.bwLev||{};S.bwLev[k]=to;
+    out.push({lad:k,n:(BWLAD[k]||{}).n||k,to:ids[to]});
+  }
+  return out;
+}
 function soreLapsedToday(){
   var out=[],dirty=false;
   for(var k in (S.sore||{})){
     var a=soreAge(k),e=S.sore[k];
     if(a==null||a<0){delete S.sore[k];dirty=true;continue;}
     if(a<SORE_DAYS)continue;
-    if(!e.told){e.told=TODAY;dirty=true;out.push(k);}
+    if(!e.told){e.told=TODAY;e.ease=soreEase(k);dirty=true;out.push(k);}
     else if(e.told<TODAY){delete S.sore[k];dirty=true;}
     else out.push(k);
   }
@@ -5488,10 +5542,10 @@ function stepTarget(){
 function sleepTarget(){return {t:RESEARCH.sleepHours};}
 
 var BW={
-  miles:    {seed:null, up:0.5, down:0.5, cap:12,    floor:2},
-  steps:    {seed:7000, up:250, down:250, cap:12000, floor:5000, hitDays:5},
-  sessions: {seed:3,    up:0,   down:1,   cap:3,     floor:2},
-  easeAfter:3, weeksBack:52
+  miles:    {seed:null, grow:1.10, ceil:1.30, step:0.25, cap:12,    floor:2},
+  steps:    {seed:7000, grow:1.05, ceil:1.25, step:250, cap:12000, floor:5000, hitDays:5},
+  sessions: {seed:3,    grow:1.00, ceil:1.00, step:1,   cap:3,     floor:2},
+  weeksBack:52, alpha:0.5
 };
 var BW_SEED_WEEKS=12;
 function bwSeed(k){
@@ -5513,28 +5567,56 @@ function bwWeekHit(k,back,target){
   var m=weekMetrics(back);
   return (k==="miles")?(m.miles>=target):(m.lifts>=target);
 }
+function bwWeekActual(k,back){
+  if(k==="steps"){
+    var d=weekDays(back),sum=0,n=0;
+    for(var x=0;x<d.length;x++){if(d[x]>TODAY)break;var v=(S.steps||{})[d[x]];if(v!=null){sum+=+v;n++;}}
+    return n?Math.round(sum/n):0;
+  }
+  var m=weekMetrics(back);
+  return (k==="miles")?m.miles:m.lifts;
+}
+function bwRound(v,step){return Math.round(v/step)*step;}
+function bwWeekLive(back){
+  var d=weekDays(back),i;
+  for(i=0;i<d.length;i++){
+    if(d[i]>TODAY)break;
+    if((S.steps||{})[d[i]]!=null)return true;
+    if(S.weigh.some(function(w){return w.date===d[i];}))return true;
+    if(S.sessions.some(function(s){return s.date===d[i];}))return true;
+  }
+  return false;
+}
 function bwLadder(k){
   var sp=bwSpec(k),s0=bwSeed(k),t=s0,st=S.profile.programmeStart;
-  var earned=0,weeks=0,miss=0;
+  var earned=0,weeks=0,miss=0,base=null,last=null,prev=t;
   if(st){
     for(var back=BW.weeksBack;back>=1;back--){
       var ws=weekStartKey(back);
       if(ws<st)continue;
+      if(!bwWeekLive(back))continue;      /* a data gap is not a missed week */
       weeks++;
-      if(bwWeekHit(k,back,t)){
+      var act=bwWeekActual(k,back),hit=bwWeekHit(k,back,t);
+      base=(base==null)?act:(base*(1-BW.alpha)+act*BW.alpha);
+      prev=t;
+      if(hit){
         earned++;miss=0;
-        if(sp.up)t=Math.min(sp.cap,Math.round((t+sp.up)*1000)/1000);
+        t=bwRound(Math.max(t,base)*sp.grow,sp.step);
       }else{
         miss++;
-        if(miss>=BW.easeAfter){miss=0;t=Math.max(sp.floor,Math.round((t-sp.down)*1000)/1000);}
+        t=bwRound((t+Math.max(base,act))/2,sp.step);
       }
+      var ref=Math.max(base||0,act);
+      if(ref>0)t=Math.min(t,bwRound(ref*sp.ceil,sp.step));
+      t=Math.max(sp.floor,Math.min(sp.cap,t));
+      last={act:act,hit:hit,from:prev,to:t};
     }
   }
-  return {t:t,earned:earned,weeks:weeks,miss:miss,seed:(t===s0&&earned===0)};
+  return {t:t,earned:earned,weeks:weeks,miss:miss,base:base,last:last,seed:(t===s0&&weeks===0)};
 }
 function bwTarget(k){
   var L=bwLadder(k);
-  return {t:L.t,seed:L.seed,earned:L.earned,weeks:L.weeks,miss:L.miss,from:null};
+  return {t:L.t,seed:L.seed,earned:L.earned,weeks:L.weeks,miss:L.miss,base:L.base,last:L.last,from:null};
 }
 
 function stepsVerdict(){
@@ -7039,7 +7121,13 @@ function soreRowHTML(){
     }).join("")+'</div>'+soreClipHTML(act,true);
   }else if(lap.length){
     cls="lapsed";
-    txt='<b>'+esc(SORE[lap[0]].n)+' flag lapsed.</b> The full session is back.';
+    var ez=[];lap.forEach(function(k){((S.sore[k]||{}).ease||[]).forEach(function(x){ez.push(x);});});
+    txt='<b>'+esc(SORE[lap[0]].n)+' flag lapsed.</b> ';
+    var names=ez.map(function(x){return LIB[x.to]?LIB[x.to].name.toLowerCase():x.to;});
+    var list=names.length>1?names.slice(0,-1).join(", ")+" and "+names[names.length-1]:names[0];
+    txt+= ez.length
+      ? 'The session is back, starting at the '+esc(list)+'.'
+      : 'The full session is back.';
   }else{
     txt='Something sore?';
   }
@@ -7169,34 +7257,41 @@ function targetsHTML(){
         "this week, resets "+turns,"miles") +
     row("Steps",stepsY||0,pT.t,(stepsY?Math.round(stepsY/100)/10+"k":"--")+" / "+(Math.round(pT.t/100)/10)+"k",
         fmtDate(yd),"steps");
-  var earned=(mT.earned||0)+(pT.earned||0)+(sT.earned||0);
-  var note=earned?
-    ("These move with the work. A week you hit raises that target a rung; three missed weeks in a row bring it back down. "+
-     earned+" rung"+(earned===1?"":"s")+" earned so far."):
-    "These move with the work, never with the calendar. Hit one for a week and it goes up a rung; miss three weeks running and it eases back. Nothing moves until you move it.";
+  var mv=(mT.last&&mT.last.to!==mT.last.from)?mT.last:null;
+  var note=mv?
+    ("These follow the size of the week, not a fixed step. Last week's "+
+     (Math.round(mv.act*10)/10)+" mi moved the run target "+(mv.to>mv.from?"up":"down")+
+     " from "+mv.from.toFixed(2).replace(/0$/,"").replace(/\.$/,"")+" to "+mT.t+
+     ". A bigger week moves it further; a quiet one just settles it."):
+    "";
   var chip=(m.lifts>=sT.t?"sessions done":m.lifts+" of "+sT.t+" sessions");
-  return collapsible("Targets",chip,'<div class="tgwrap">'+body+'</div><div class="tgn">'+note+'</div>',
+  return collapsible("Targets",chip,'<div class="tgwrap">'+body+'</div>'+(note?'<div class="tgn">'+note+'</div>':''),
                      true,I.gauge,(m.lifts>=sT.t?"good":"flat"));
 }
 function targetSheet(k){
   var T=bwTarget(k),sp=bwSpec(k);
   var W={
     sessions:{h:"Bodyweight sessions",v:T.t+" a week",
-      b:"Three a week is the aim, and it is deliberately the one target that never ratchets upward. Everything else here climbs when you hit it; this holds at three, because pushing a shoulder that already hurts toward five sessions would be the app manufacturing the injury the whole programme exists to avoid. It can still ease down to two on a run of missed weeks, since a floor you cannot reach is not a floor.",
+      b:"Three a week is the aim, and it is deliberately the one target that never climbs. The other two follow what you do; this one holds at three however good the weeks get, because ratcheting a shoulder that already hurts toward five sessions would be the app manufacturing the injury the whole programme exists to avoid. Do six if you want to. It just will not ask for six. It can still ease to two on a run of quiet weeks, since a floor you cannot reach is not a floor.",
       s:"Which days is up to you. Nothing is owed on any given day."},
-    miles:{h:"Miles run",v:T.t.toFixed(1)+" a week",
-      b:"This is read off your own last eight weeks of running and starts at two miles, whatever it says here now. It used to open at six, which was my number and it was a bad one: you had run 1.3 miles in the eight weeks before, so six was a four-fold jump in the one thing that actually injures returning runners. Novice runners get hurt roughly four times as often per hour as regular ones, and the only randomised trial on starting distance found injuries at 7 percent starting low against 18 percent starting at double.",
-      s:"Half a mile a rung. Run-walk counts, and sixty seconds running against ninety walking is a real session."},
+    miles:{h:"Miles run",v:T.t.toFixed(2).replace(/0$/,"").replace(/\.$/,"")+" a week",
+      b:"This follows your actual running. Run three miles against a two-mile target and it moves up accordingly; run nine and it moves further than three would have; run one and it just sits where it is. It opened off your own record rather than a number I picked. It used to open at a flat six, which was mine and was a bad one: you had run 1.3 miles in the eight weeks before, so six was a four-fold jump in the one thing that actually injures returning runners.",
+      s:"The only fixed rule is a ceiling on how fast it can climb, thirty percent above your recent average, which is where progression starts causing injuries rather than fitness. Run-walk counts: sixty seconds running against ninety walking is a real session."},
     steps:{h:"Steps a day",v:T.t.toLocaleString()+" on "+sp.hitDays+" days a week",
-      b:"Seven thousand, not ten. The ten thousand figure has never had evidence behind it, and the 2025 dose-response work across more than 160,000 adults puts 7,000 steps a day against 2,000 at 47 percent lower all-cause mortality, with most of the curve flat past that point. This is the cheap one: on a day you do nothing else, hitting it is the day discharged.",
+      b:"Seven thousand to start, not ten. The ten thousand figure has never had evidence behind it, and the 2025 dose-response work across more than 160,000 adults puts 7,000 a day against 2,000 at 47 percent lower all-cause mortality, with most of the curve flat past that point. From there it follows what you actually walk, audited when each week closes. This is the cheap one: on a day you do nothing else, hitting it is the day discharged.",
       s:"Read from yesterday, because the export runs on whole days and today has not closed."}
   }[k];
   if(!W)return;
-  var moved=T.earned?(T.earned+" rung"+(T.earned===1?"":"s")+" earned so far."):"Nothing has moved it yet.";
+  var mv=T.last&&T.last.to!==T.last.from;
+  var moved=mv?
+    ("Last week you did "+(k==="steps"?Math.round(T.last.act).toLocaleString():(Math.round(T.last.act*10)/10))+
+     ", and that moved it "+(T.last.to>T.last.from?"up":"down")+" to "+
+     (k==="steps"?T.t.toLocaleString():T.t)+"."):
+    "It has not moved yet.";
   openSheet('<div class="grab"></div><h3>'+esc(W.h)+'</h3>'+
     '<div class="ssub">Right now: <b>'+esc(W.v)+'</b></div>'+
     '<div class="tgwhy">'+esc(W.b)+
-    '<span class="tgws">It moves with the work and never with the calendar: a week you hit raises it one rung, three missed weeks running ease it back. '+esc(moved)+' '+esc(W.s)+'</span></div>'+
+    '<span class="tgws">It is recomputed when a week finishes, never on a date, and a week with nothing recorded counts as a gap rather than a miss. '+esc(moved)+' '+esc(W.s)+'</span></div>'+
     '<button class="sheet-cta" onclick="closeSheet()">Got it</button>');
 }
 function movementHTML(){

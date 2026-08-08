@@ -58,6 +58,8 @@
       progressUpdatedAt: stampedAt("progress", S.progress),
       sore: S.sore || {},
       soreUpdatedAt: stampedAt("sore", S.sore || {}),
+      bwLev: S.bwLev || {},
+      bwLevUpdatedAt: stampedAt("bwLev", S.bwLev || {}),
     };
   }
   var STAMP_KEY = "train.syncStamps";
@@ -248,6 +250,11 @@
             Number(srv.soreUpdatedAt || 0) > stampedAt("sore", S.sore || {})) {
           S.sore = srv.sore;
           bumpStamp("sore", S.sore, Number(srv.soreUpdatedAt));
+        }
+        if (srv.bwLev && typeof srv.bwLev === "object" && !Array.isArray(srv.bwLev) &&
+            Number(srv.bwLevUpdatedAt || 0) > stampedAt("bwLev", S.bwLev || {})) {
+          S.bwLev = srv.bwLev;
+          bumpStamp("bwLev", S.bwLev, Number(srv.bwLevUpdatedAt));
         }
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
         else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
