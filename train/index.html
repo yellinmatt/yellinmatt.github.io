@@ -1759,7 +1759,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v7.86";
+var VERSION="v7.87";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5324,7 +5324,8 @@ function stepMedian(days){
 }
 function stepTarget(){
   var m=stepMedian(28)||stepMedian(90);
-  if(isBW()&&bwSeedHolds())return {t:BW.stepsSeed,from:(m?m.med:null),n:(m?m.n:0),of:(m?m.of:0),capped:false,seed:true};
+  if(isBW()){var L=bwLadder("steps");
+    return {t:L.t,from:(m?m.med:null),n:(m?m.n:0),of:(m?m.of:0),capped:L.t>=BW.steps.cap,seed:L.seed,earned:L.earned};}
   if(!m)return null;
   var t=Math.round(m.med*RESEARCH.stepsRung/250)*250;
   t=Math.max(RESEARCH.stepsFloor,Math.min(RESEARCH.stepsPlateau,t));
@@ -5332,27 +5333,47 @@ function stepTarget(){
 }
 function sleepTarget(){return {t:RESEARCH.sleepHours};}
 
-var BW={milesSeed:6,milesFloor:3,sessionsSeed:3,sessionsFloor:2,stepsSeed:7000,rung:1.10,seedDays:7};
+var BW={
+  miles:    {seed:6,    up:0.5, down:0.5, cap:12,    floor:3},
+  steps:    {seed:7000, up:250, down:250, cap:12000, floor:5000, hitDays:4},
+  sessions: {seed:3,    up:0,   down:1,   cap:3,     floor:2},
+  easeAfter:3, weeksBack:52
+};
 
-function bwSeedHolds(){
-  var st=S.profile.programmeStart;
-  if(!st)return true;
-  return daysBetween(st,TODAY)<BW.seedDays;
+function bwSpec(k){return BW[k]||BW.sessions;}
+function bwWeekHit(k,back,target){
+  if(k==="steps"){
+    var d=weekDays(back),n=0;
+    for(var x=0;x<d.length;x++){if(d[x]>TODAY)break;var v=(S.steps||{})[d[x]];if(v!=null&&+v>=target)n++;}
+    return n>=bwSpec("steps").hitDays;
+  }
+  var m=weekMetrics(back);
+  return (k==="miles")?(m.miles>=target):(m.lifts>=target);
+}
+function bwLadder(k){
+  var sp=bwSpec(k),t=sp.seed,st=S.profile.programmeStart;
+  var earned=0,weeks=0,miss=0;
+  if(st){
+    for(var back=BW.weeksBack;back>=1;back--){
+      var ws=weekStartKey(back);
+      if(ws<st)continue;
+      weeks++;
+      if(bwWeekHit(k,back,t)){
+        earned++;miss=0;
+        if(sp.up)t=Math.min(sp.cap,Math.round((t+sp.up)*1000)/1000);
+      }else{
+        miss++;
+        if(miss>=BW.easeAfter){miss=0;t=Math.max(sp.floor,Math.round((t-sp.down)*1000)/1000);}
+      }
+    }
+  }
+  return {t:t,earned:earned,weeks:weeks,miss:miss,seed:(t===sp.seed&&earned===0)};
 }
 function bwTarget(k){
-  var held=bwSeedHolds();
-  if(k==="steps"){
-    var st=stepTarget();
-    return st?{t:st.t,seed:!!st.seed,from:st.from}:{t:BW.stepsSeed,seed:true,from:null};
-  }
-  var b=weekBase(k==="miles"?"miles":"lifts");
-  var seedV=(k==="miles")?BW.milesSeed:BW.sessionsSeed;
-  var floorV=(k==="miles")?BW.milesFloor:BW.sessionsFloor;
-  if(held||!b||b.n<3)return {t:seedV,seed:true,from:b?b.cap:null};
-  var t=b.cap*BW.rung;
-  t=(k==="miles")?Math.max(floorV,Math.round(t*2)/2):Math.max(floorV,Math.round(t));
-  return {t:t,seed:false,from:b.cap};
+  var L=bwLadder(k);
+  return {t:L.t,seed:L.seed,earned:L.earned,weeks:L.weeks,miss:L.miss,from:null};
 }
+
 function stepsVerdict(){
   var w=stepsAvgOver(7);
   if(!w)return {tone:"",head:"",val:null,pct:0,base:null};
@@ -6980,10 +7001,11 @@ function targetsHTML(){
         "this week, resets "+turns) +
     row("Steps",stepsY||0,pT.t,(stepsY?stepsY.toLocaleString():"no reading")+" of "+pT.t.toLocaleString(),
         fmtDate(yd));
-  var days=S.profile.programmeStart?Math.max(0,BW.seedDays-daysBetween(S.profile.programmeStart,TODAY)):BW.seedDays;
-  var note=(sT.seed&&mT.seed)?
-    ("Starting targets, held for the first week"+(days>0?" ("+(days===1?"1 day":days+" days")+" to go)":"")+". After that they move to your own recent average plus a tenth, so a strong run raises them and a quiet one lets them down."):
-    "Set from your own recent average plus a tenth, so they move with you rather than sitting still.";
+  var earned=(mT.earned||0)+(pT.earned||0)+(sT.earned||0);
+  var note=earned?
+    ("These move with the work. A week you hit raises that target a rung; three missed weeks in a row bring it back down. "+
+     earned+" rung"+(earned===1?"":"s")+" earned so far."):
+    "These move with the work, never with the calendar. Hit one for a week and it goes up a rung; miss three weeks running and it eases back. Nothing moves until you move it.";
   var chip=(m.lifts>=sT.t?"sessions done":m.lifts+" of "+sT.t+" sessions");
   return collapsible("Targets",chip,'<div class="tgwrap">'+body+'</div><div class="tgn">'+note+'</div>',
                      true,I.gauge,(m.lifts>=sT.t?"good":"flat"));
