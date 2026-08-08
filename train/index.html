@@ -1832,7 +1832,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.7";
+var VERSION="v8.8";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3146,6 +3146,63 @@ function famA(kind){
       famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days",axR:"yesterday"})+
       famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
       '<div class="pfoot">Apple Health &middot; through yesterday &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
+  }
+  if(kind==="rhr"){
+    var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
+    if(!rw)return '<div data-tone="flat">'+famHead(I.heart,"Resting HR","Last 28 days",null)+
+      '<div class="verd" style="margin-top:2px">No resting heart rate yet. It arrives with the next Health export.</div></div>';
+    var r7=vitalWindow("rhr",7);
+    var dl=ry?(rw.med-ry.med):0;
+    var rtone=(dl>=5)?"red":(dl>=2)?"amber":(dl<=-3)?"good":"flat";
+    var mon=rhrMonthly(12);
+    var rvals=mon.map(function(x){return x.med;});
+    var rlo=rvals.length?Math.max(0,Math.floor(Math.min.apply(null,rvals)-2)):0;
+    var rpts=mon.map(function(x){return {v:x.med,d:x.m.slice(5)+"/"+x.m.slice(2,4),cls:(ry&&x.med<=ry.med)?"hit":""};});
+    return '<div data-tone="'+rtone+'">'+famHead(I.heart,"Resting HR","Last 28 days",null)+
+      '<div class="hero56 num">'+Math.round(rw.med)+'<span> bpm</span></div>'+
+      '<div class="verd">'+(dl>=2?"Up "+Math.round(dl)+" on the year. That is deconditioning, and it comes back down with weeks of easy aerobic work."
+        :dl<=-3?"Down "+Math.abs(Math.round(dl))+" on the year. The aerobic base is rebuilding.":"Level with the year.")+'</div>'+
+      (rvals.length>1?famBars(rpts,{rule:ry?ry.med:0,ruleLbl:ry?(Math.round(ry.med)+" yr"):"",floor:rlo,
+        axL:"12 months",axR:"now",fmt:function(v){return Math.round(v)+" bpm";}}):"")+
+      famStrip([[r7?Math.round(r7.med):"&mdash;","7 days"],[Math.round(rw.med),"28 days"],[ry?Math.round(ry.med):"&mdash;","the year"]])+
+      '<div class="pfoot">Apple Health &middot; monthly medians &middot; the axis is floored to your range, never to zero</div></div>';
+  }
+  if(kind==="bmi"){
+    var bm=bmi();
+    if(bm==null)return '<div data-tone="flat">'+famHead(I.spark,"BMI","Needs height and a weigh-in",null)+
+      '<div class="verd" style="margin-top:2px">Set your height in Settings and log a weigh-in, and this switches on.</div></div>';
+    var bb=bmiBand(bm),bs=weightStats();
+    var hIn=S.profile.heightIn;
+    var bpts5=(S.weigh||[]).filter(function(x){return daysBetween(x.date,TODAY)<=83;})
+      .map(function(x){return {v:703*x.w/(hIn*hIn),d:shortDay(x.date),cls:(703*x.w/(hIn*hIn))<25?"hit":""};});
+    var blo=bpts5.length?Math.max(0,Math.floor(Math.min.apply(null,bpts5.map(function(x){return x.v;}))-0.5)):0;
+    var toGoal=(bs&&bs.goal)?(703*bs.goal/(hIn*hIn)):null;
+    return '<div data-tone="'+(bb.k==="good"?"good":bb.k==="red"?"red":"amber")+'">'+
+      famHead(I.spark,"BMI","From your latest weigh-in",null)+
+      '<div class="hero56 num">'+bm.toFixed(1)+'<span> '+esc(bb.w)+'</span></div>'+
+      '<div class="verd">'+(toGoal!=null?("At your "+bs.goal+" "+wLbl()+" goal this reads "+toGoal.toFixed(1)+". "):"")+
+        'BMI cannot tell muscle from fat, so read it as one coarse marker beside the trend, not as a verdict.</div>'+
+      (bpts5.length>1?famBars(bpts5,{rule:25,ruleLbl:"25 healthy",floor:blo,axL:"12 weeks",axR:"latest",
+        fmt:function(v){return v.toFixed(1);}}):"")+
+      famStrip([[bm.toFixed(1),"now"],[toGoal!=null?toGoal.toFixed(1):"&mdash;","at goal"],["25.0","top of healthy"]])+
+      '<div class="pfoot">Your scale and your height &middot; 703 &times; lb / in&sup2; &middot; bars are weigh-ins over 12 weeks</div></div>';
+  }
+  if(kind==="miles"){
+    var mw=weekMetrics(0).miles,mser=weeklyMilesSeries(12);
+    var mt=bwTarget("miles"),mtgt=mt?mt.t:0;
+    var mvals=mser.map(function(w){return w.mi;});
+    var mavg=mvals.length?(mvals.reduce(function(a,x){return a+x;},0)/mvals.length):0;
+    var mbest=mvals.length?Math.max.apply(null,mvals):0;
+    var mpts=mser.map(function(w,i){return {v:w.mi,d:(i===mser.length-1)?"now":String(mser.length-i)+"w",cls:(mtgt&&w.mi>=mtgt)?"hit":""};});
+    var mtone=(!mtgt)?"flat":(mw>=mtgt?"good":mw>=mtgt*0.6?"amber":"flat");
+    return '<div data-tone="'+mtone+'">'+famHead(I.run,"Miles run","This week",mtgt?Math.round(Math.min(1,mw/mtgt)*100):null)+
+      '<div class="hero56 num">'+mw.toFixed(1)+'<span> mi</span></div>'+
+      '<div class="verd">'+(mtgt?(mw>=mtgt?"Past the weekly target of "+mtgt.toFixed(1)+".":"Target is "+mtgt.toFixed(1)+" this week, earned from your own last twelve.")
+        :"No target yet: it opens off your own last twelve weeks.")+'</div>'+
+      (mvals.length>1?famBars(mpts,{rule:mtgt,ruleLbl:mtgt?(mtgt.toFixed(1)+" tgt"):"",axL:"12 weeks",axR:"this week",
+        fmt:function(v){return v.toFixed(1)+" mi";}}):"")+
+      famStrip([[mw.toFixed(1),"this week"],[mavg.toFixed(1),"12-week avg"],[mbest.toFixed(1),"best week"]])+
+      '<div class="pfoot">Your logged runs &middot; rolling weeks &middot; the target climbs only from weeks you actually ran</div></div>';
   }
   var stt=weightStats();
   if(!stt)return '<div data-tone="flat">'+famHead(I.spark,"Weight","Trend",null)+'<div class="verd" style="margin-top:2px">No weigh-in yet.</div>'+
@@ -4825,7 +4882,7 @@ function trackGlanceHTML(){
   out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",rhrTone,
     sparkSVG(rollSeries(rhrGet,28,"med",12,28),rhrTone),
     rw?("Resting heart rate, 28-day median, sampled across the last year. Now "+Math.round(rw.med)+"."):null,
-    "openDeep('recovering')");
+    "metricSheet('rhr')");
   var bm=bmi();
   var h=S.profile.heightIn,wMap={};
   trendSeries().forEach(function(p){wMap[p.date]=p.v;});
@@ -4833,12 +4890,12 @@ function trackGlanceHTML(){
   out+=glanceChip("BMI",bm?bm.toFixed(1):null,bm?bmiBand(bm).w:"needs a weigh-in","flat",
     sparkSVG(rollSeries(bmiGet,14,"mean",12,7),"flat"),
     bm?("BMI from the weigh-in trend, 12 weeks. Now "+bm.toFixed(1)+", "+bmiBand(bm).w+"."):null,
-    "openDeep('changing')");
+    "metricSheet('bmi')");
   var m=weekMetrics(0);
   out+=glanceChip("Miles run",m?m.miles.toFixed(1):null,"this week",(m&&m.miles>0)?"good":"flat",
     sparkSVG(weekSeries("miles"),(m&&m.miles>0)?"good":"flat"),
     m?("Run miles a week, last 12 weeks. This week "+m.miles.toFixed(1)+"."):null,
-    "openDeep('training')");
+    "metricSheet('miles')");
   return '<div class="glance">'+out+'</div>';
 }
 function trackDashHTML(){
@@ -7304,7 +7361,7 @@ function bwHeroHTML(){
       '<button class="big-start'+(resuming&&wp.total?" hasfill":"")+'"'+(resuming&&wp.total?(' style="--fill:'+(wp.done/wp.total).toFixed(3)+'"'):'')+
       ' onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
     '<button class="recwalk" onclick="startRun()">'+I.run+' Or go for a run</button>'+
-    '<button class="recwalk" onclick="logWalkQuick(15)">'+I.run+' Or log a 15-minute walk</button>'+
+    '<button class="recwalk" onclick="actSheet(\'walk\')">'+I.run+' Or log a walk</button>'+
     heroTailHTML()+'</div>';
 }
 function heroTailHTML(){
@@ -9212,10 +9269,13 @@ function renderCardio(){
     '<div class="lbl">Next run</div>'+
     '<h2 style="padding-right:0">'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":
-      (tgt.fromTarget?('One of three this week &middot; <b>'+tgt.wk.toFixed(1)+' mi</b> the whole week. Run-walk counts: 60 seconds running, 90 walking.')
+      (tgt.fromTarget?('<b>'+tgt.wk.toFixed(1)+' mi</b> this week. Run-walk counts: 60 seconds running, 90 walking.')
                      :runStatusLine(rr)))+'</div>'+
     '<button class="big-start" onclick="startRun('+tgt.mi+')">'+I.run+' Start a run</button>'+
-    '<div class="herorow"><button class="wbtn" style="flex:1" onclick="logPastSheet()">Log a run or walk</button></div></div>';
+    '<div class="herorow">'+
+      '<button class="wbtn" style="flex:1" onclick="actSheet(\'run\')">Log a run</button>'+
+      '<button class="wbtn" style="flex:1" onclick="actSheet(\'walk\')">Log a walk</button>'+
+    '</div></div>';
   h+=levelDetailHTML();
   h+=odoCardHTML();
   h+=badgeList(false,"run");
