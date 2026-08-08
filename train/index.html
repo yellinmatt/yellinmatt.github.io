@@ -127,7 +127,7 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .head .title{font-size:clamp(19px,5.4vw,28px)}
 .head .tools{flex:none}
 .head .tools{display:flex;align-items:center;gap:8px}
-.iconbtn{width:38px;height:38px;border-radius:11px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--sub)}
+.iconbtn{width:44px;height:44px;border-radius:11px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;color:var(--sub)}
 .iconbtn:active{background:var(--surface-2)}
 .iconbtn,.calnav,.hero .chg{position:relative}
 .iconbtn::after,.calnav::after,.hero .chg::after{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;min-width:44px;min-height:44px}
@@ -321,7 +321,8 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .set.on .tick svg{opacity:1}
 .set.on .val{color:var(--good)}
 .setbtns{display:flex;gap:8px;margin:6px 0 6px}
-.setbtn{flex:1;min-height:44px;padding:9px;border:1px dashed var(--line-2);border-radius:10px;font-size:13px;font-weight:600;color:var(--sub)}
+.setbtn{flex:1;min-height:44px;padding:9px;border:1px dashed var(--line-2);border-radius:10px;font-size:13px;font-weight:600;color:var(--sub);display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.setbtn svg{width:16px;height:16px;flex:none}
 .setbtn:active{background:var(--surface-2)}
 .setbtn.rm{border-style:solid;color:var(--faint)}
 
@@ -454,7 +455,7 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .wdb{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:22px;font-weight:600;line-height:1;display:flex;align-items:center;justify-content:center}
 .wdb:active{background:var(--accent-tint);color:var(--accent)}
 .wfoot{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin-top:6px}
-.wfoot button{background:none;border:0;font:inherit;font-size:13px;font-weight:600;color:var(--faint);padding:8px 6px;cursor:pointer}
+.wfoot button{background:none;border:0;font:inherit;font-size:13px;font-weight:600;color:var(--faint);padding:8px 6px;cursor:pointer;min-height:44px;display:inline-flex;align-items:center}
 .wfoot span{color:var(--line-2,var(--line))}
 .wbig{width:132px;text-align:center;font-size:34px;font-weight:700;letter-spacing:-.03em;background:transparent;border:0;color:var(--ink);padding:0}
 .wunit{text-align:center;font-size:13px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
@@ -1354,7 +1355,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .wlrow2 .wlsub2{display:block;font-size:13px;font-weight:500;color:var(--faint);margin-top:2px}
 .wlrow2 .wtag{font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-tint);border-radius:4px;padding:2px 5px;margin-left:4px}
 .wlrow2 .wlv{font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;flex:none;min-width:56px;text-align:right}
-.wlrow2 .wlb{flex:none;width:36px;height:36px;border-radius:10px;background:var(--surface-2);color:var(--sub);display:inline-flex;align-items:center;justify-content:center;border:0}
+.wlrow2 .wlb{flex:none;width:44px;height:44px;border-radius:10px;background:var(--surface-2);color:var(--sub);display:inline-flex;align-items:center;justify-content:center;border:0}
 .wlrow2 .wlb svg{width:17px;height:17px}
 .wlrow2 .wlb.dang{color:var(--accent)}
 .wbtn.accent{background:var(--accent);color:var(--white)}
@@ -1828,7 +1829,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.5";
+var VERSION="v8.6";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4601,7 +4602,7 @@ function renderLift(){
       '<div class="meta">'+(isBW()?"bodyweight":equipLabel(sessionEquip()))+
         (easingIn()?' &middot; <b>ease-in</b>':'')+' &middot; nothing is owed today</div>'+
       planCardHTML()+
-      (liftDone?movementOfferHTML():'')+
+      ((!scheduled||liftDone)?movementOfferHTML():'')+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
       '</div>';
@@ -7175,9 +7176,9 @@ function soreCardHTML(){
       esc(SORE[lap[0]].n)+'</span><span class="srv">cleared</span></div>'+
       '<div class="srwhy">The flag lapsed on its own. The full session is back.</div></div></div>';
   }else{
-    body='<div class="srwhy" style="padding:2px 0 4px">Nothing flagged. The session runs as written.</div>';
+    body='<div class="sorebody"><div class="srwhy">The session runs as written.</div></div>';
   }
-  body+='<button class="sheet-cta ghost" style="margin-top:10px" onclick="soreSheet()">'+
+  body+='<button class="setbtn" style="width:100%;margin-top:12px" onclick="soreSheet()">'+
         (n?"Change what is sore":"Flag something sore")+'</button>';
   return collapsible("Sore",n?(n+" area"+(n===1?"":"s")+" flagged"):"nothing flagged",
     body,n>0,I.spark,n?"warn":"flat");
@@ -7368,6 +7369,12 @@ function targetSheet(k){
     '<span class="tgws">It is recomputed when a week finishes, never on a date, and a week with nothing recorded counts as a gap rather than a miss. '+esc(moved)+' '+esc(W.s)+'</span></div>'+
     '<button class="sheet-cta" onclick="closeSheet()">Got it</button>');
 }
+function vidLabel(t){
+  var parts=String(t||"").split("|").map(function(x){return x.trim();})
+    .filter(function(x){return x&&!/session\s*\d+\s*\/\s*\d+/i.test(x);});
+  var s=parts.length?parts[parts.length-1]:"";
+  return s.replace(/\s*from Runna\s*$/i,"").trim()||"Guided session";
+}
 function movementOfferHTML(){
   var tracks=["mobility","recovery","pilates"],names={mobility:"Mobility",recovery:"Stretch",pilates:"Pilates"};
   var day=Math.floor(new Date(TODAY+"T12:00:00")/86400000);
@@ -7379,7 +7386,7 @@ function movementOfferHTML(){
     return '<button class="movoffer" onclick="sessionVidSheet(\''+v.id+'\')">'+
       '<span class="moi">'+I.play+'</span>'+
       '<span class="mob"><span class="mon">'+esc(names[t])+' &middot; session '+v.lv+'</span>'+
-      '<span class="moc">'+esc(v.t||"Guided session")+'</span></span>'+
+      '<span class="moc">'+esc(vidLabel(v.t))+'</span></span>'+
       '<span class="moa">'+I.arrow+'</span></button>';
   }
   return "";
