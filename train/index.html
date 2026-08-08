@@ -249,7 +249,7 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .dot.today.done .di{background:var(--accent);border-color:var(--accent);color:var(--white)}
 .dot.today .dw{color:var(--accent)}
 .dot.rest .di{background:transparent;border:1px dashed var(--line-2)}
-.dot.ahead .di{opacity:.72}
+.dot.ahead .di{opacity:.72}  /* a DOT, not words: opacity is fine here and states.py allows it */
 .dot.missed .di{opacity:1;background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--line-2)}
 .dot{position:relative}
 .dot::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -550,7 +550,7 @@ details[open]>summary .chev{transform:rotate(180deg)}
   details:not([open])>summary .chev{animation:nudge 2.4s ease-in-out 3}
 
 @keyframes nudge{0%,88%,100%{transform:translateY(0)}92%{transform:translateY(2px)}96%{transform:translateY(0)}}
-.dot.ahead .dl{opacity:.7}
+.dot.ahead .dl{color:var(--faint)}
 .dot .dl{font-size:13px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
 .dot.today .dl{color:var(--accent)}
 .hcard[data-sm="1"] .hcol i{width:15px;height:15px;border-radius:4px}
@@ -1591,20 +1591,19 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .msheet .dbody{padding:0}
 .msheet{margin-top:4px}
 .d3cap{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint);margin:0 0 8px 2px}
-.d3wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 12px}
-.d3wrap>.d3:last-child:nth-child(odd){grid-column:1/-1}
-.d3{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:14px 13px 13px}
+.d3wrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.d3{display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:11px 10px 10px;min-width:0}
 .d3[data-tone="good"]{--rag:var(--good);--rag-tint:var(--good-tint)}
 .d3[data-tone="amber"]{--rag:var(--amber);--rag-tint:var(--amber-tint)}
 .d3[data-tone="red"]{--rag:var(--accent);--rag-tint:var(--accent-tint)}
 .d3[data-tone="flat"]{--rag:var(--ink);--rag-tint:var(--surface-2)}
 .d3[data-tone="none"]{--rag:var(--faint);--rag-tint:var(--surface-2)}
-.d3i{display:flex;width:26px;height:26px;border-radius:8px;align-items:center;justify-content:center;background:var(--rag-tint);color:var(--rag);flex:none}
+.d3i{display:flex;width:22px;height:22px;border-radius:7px;align-items:center;justify-content:center;background:var(--rag-tint);color:var(--rag);flex:none}
 .d3i svg{width:14px;height:14px}
 .d3v{display:block;font-size:24px;font-weight:800;letter-spacing:-.03em;color:var(--rag);margin-top:12px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
-.d3l{display:block;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:7px}
-.d3w{display:block;font-size:20px;font-weight:780;letter-spacing:-.02em;color:var(--rag);margin-top:12px;line-height:1.1;max-width:100%;overflow-wrap:break-word}
-.d3f{display:block;font-size:13px;line-height:1.32;color:var(--sub);margin-top:auto;padding-top:9px;font-variant-numeric:tabular-nums}
+.d3l{display:block;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin-top:4px}
+.d3w{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em;color:var(--rag);margin-top:7px;line-height:1.2;max-width:100%;overflow-wrap:break-word}
+.d3f{display:block;font-size:11px;line-height:1.3;color:var(--sub);margin-top:auto;padding-top:6px;font-variant-numeric:tabular-nums}
 .d3f b{color:var(--ink);font-weight:700}
 .d3f.miss{color:var(--faint);font-style:italic}
 .d3{min-height:104px}
@@ -1800,7 +1799,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.0";
+var VERSION="v8.1";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3239,10 +3238,7 @@ function renderToday(){
   document.getElementById("v-today").innerHTML=h+hero+
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
     targetsHTML()+
-    movementHTML()+
-    todayMetricsHTML()+
-    (isFresh()?emptyStateHTML():"")+
-    drawerize(todayLogHTML(),I.check,"");
+    todayMetricsHTML();
   tileBandPulse();
   streakPulse();
   levelRingAnim();
@@ -4561,6 +4557,8 @@ function renderLift(){
     h+=planCardHTML();
     h+=liftLevelDetailHTML();
     h+=liftPlanHTML();
+    h+=movementHTML();
+    h+=drawerize(todayLogHTML(),I.check,"");
     h+=badgeList(false,"lift");
     document.getElementById("v-lift").innerHTML=h;
     return;
