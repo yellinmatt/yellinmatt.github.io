@@ -1832,7 +1832,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.8";
+var VERSION="v8.9";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3900,7 +3900,8 @@ function liftLevelDetailHTML(){
   var inner=levelHeroHTML("lift",L,st.w)+liftDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("lift",L)+
     (dl2.due?'<button class="wbtn" style="width:100%;margin-top:11px" onclick="startDeload()">Take a deload week</button>':'')+
-    '<div class="foot" style="margin-top:11px">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>';
+    moreHTML("How the level works",
+      '<div class="foot" style="margin:0">Weekly tonnage on the same curve as your cardio level: 12,000 lb a week reads Level 13, exactly as 12 miles a week does.</div>');
   var _c=dl?(dl.dir==="flat"?"holding":(dl.dir==="up"?"rising":"easing off")):("Level "+L.lvl);
   return collapsible("Where the level comes from",_c,inner+levelHistoryHTML("lift"),false,I.chart,levelToneOf(L,dl));
 }
@@ -4668,7 +4669,6 @@ function renderLift(){
       '</div>';
     h+=liftLevelDetailHTML();
     h+=liftPlanHTML();
-    h+=movementHTML();
     h+=badgeList(false,"lift");
     document.getElementById("v-lift").innerHTML=h;
     return;
@@ -7443,13 +7443,32 @@ function movementOfferHTML(){
     if(!l.length)continue;
     var v=l[ladderPos(t)%l.length];
     if(!v||vDone(v.id))continue;
-    return '<button class="movoffer" onclick="sessionVidSheet(\''+v.id+'\')">'+
+    return '<button class="movoffer" onclick="movementPickSheet()">'+
       '<span class="moi">'+I.play+'</span>'+
       '<span class="mob"><span class="mon">'+esc(names[t])+' &middot; session '+v.lv+'</span>'+
       '<span class="moc">'+esc(vidLabel(v.t))+'</span></span>'+
       '<span class="moa">'+I.arrow+'</span></button>';
   }
   return "";
+}
+function movementPickSheet(){
+  var tracks=[["mobility","Mobility","Joints and range"],["recovery","Stretch","Lengthen and settle"],["pilates","Pilates","Core and control"]];
+  var rows=tracks.map(function(t){
+    var l=ladderList(t[0]); if(!l.length)return null;
+    var v=l[ladderPos(t[0])%l.length]; if(!v)return null;
+    var on=vDone(v.id);
+    return {on:on,html:'<button class="opt'+(on?" done":"")+'" onclick="closeSheet();sessionVidSheet(\''+v.id+'\')">'+
+      '<span class="oi">'+(on?I.check:I.play)+'</span>'+
+      '<span><div class="on2">'+esc(t[1])+' &middot; session '+v.lv+'</div>'+
+      '<div class="oc">'+esc(on?"Done today":(vidLabel(v.t)||t[2]))+'</div></span>'+
+      '<span class="oar">'+I.arrow+'</span></button>'};
+  }).filter(Boolean);
+  if(!rows.length)return;
+  rows.sort(function(a,b){return (a.on?1:0)-(b.on?1:0);});
+  openSheet('<div class="grab"></div><h3>Movement</h3>'+
+    '<div class="ssub">Pick a track. Each one picks up where you left off.</div>'+
+    rows.map(function(r){return r.html;}).join("")+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
 }
 function movementHTML(){
   var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],cols="",anyLeft=false;
@@ -9107,8 +9126,10 @@ function levelDetailHTML(){
   var dl=levelDelta(L);
   var inner=levelHeroHTML("cardio",L,st.w)+levelDeltaHTML(L)+'<div class="ld" style="margin:10px 0 14px">'+st.c+'</div>'+
     levelMechanicsHTML("cardio",L)+
-    (ep?'<div class="ksub" style="margin-top:9px">Easy pace <b>'+mmss(ep.now)+'/mi</b>, '+Math.abs(Math.round(ep.diff))+' s/mi '+(ep.diff>0?"quicker":"slower")+' than eight weeks ago. That is fitness, which the level cannot show.</div>':'')+
-    '<div class="foot" style="margin-top:11px">Weekly mileage, rising over about three weeks and falling over six, so a quiet fortnight bends the level rather than docking you. '+runs.length+' runs, '+mi.toFixed(0)+' mi on record.</div>';
+    (ep?'<div class="lmech" style="margin-top:9px"><div class="lmr"><span class="lmk">Easy pace</span><span class="lmv num">'+mmss(ep.now)+'<small> /mi &middot; '+Math.abs(Math.round(ep.diff))+'s '+(ep.diff>0?"quicker":"slower")+' than 8wk</small></span></div></div>':'')+
+    moreHTML("How the level works",
+      '<div class="foot" style="margin:0">Weekly mileage, rising over about three weeks and falling over six, so a quiet fortnight bends the level rather than docking you. '+runs.length+' runs, '+mi.toFixed(0)+' mi on record.'+
+      (ep?' Easy pace is fitness the level cannot show.':'')+'</div>');
   var _c=dl?(dl.dir==="flat"?"holding":(dl.dir==="up"?"rising":"easing off")):("Level "+L.lvl);
   return collapsible("Where the level comes from",_c,inner+levelHistoryHTML("cardio"),false,I.spark,levelToneOf(L,dl));
 }
