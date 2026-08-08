@@ -450,9 +450,12 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 
 .sectlbl{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);margin:14px 2px 9px}
 .wdial{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0 2px}
-.wdb{width:52px;height:52px;flex:0 0 52px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:30px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center}
+.wdb{width:44px;height:44px;flex:0 0 44px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-size:22px;font-weight:600;line-height:1;display:flex;align-items:center;justify-content:center}
 .wdb:active{background:var(--accent-tint);color:var(--accent)}
-.wbig{width:150px;text-align:center;font-size:44px;font-weight:800;letter-spacing:-.03em;background:transparent;border:0;color:var(--ink);padding:0}
+.wfoot{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin-top:6px}
+.wfoot button{background:none;border:0;font:inherit;font-size:13px;font-weight:600;color:var(--faint);padding:8px 6px;cursor:pointer}
+.wfoot span{color:var(--line-2,var(--line))}
+.wbig{width:132px;text-align:center;font-size:34px;font-weight:700;letter-spacing:-.03em;background:transparent;border:0;color:var(--ink);padding:0}
 .wunit{text-align:center;font-size:13px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px}
 .wunit b{font-weight:800}
 .dcard .dbody .libsearch{margin:12px 0 4px;width:100%}
@@ -689,6 +692,20 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .chero .lvlk{font-size:13px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--faint)}
 .chero .lvlw{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:1px 0 4px;color:var(--ink)}
 .chero .lvlw[data-k="base"]{color:var(--sub)}
+.chero .lvlsub{font-size:13px;color:var(--sub);line-height:1.35}
+.movoffer{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;margin-top:12px;
+  padding:11px 13px;border:0;border-radius:12px;background:var(--surface-2);font:inherit;
+  color:inherit;text-align:left;cursor:pointer}
+.movoffer:active{background:var(--line)}
+.movoffer .moi{display:flex;width:32px;height:32px;flex:none;border-radius:9px;align-items:center;
+  justify-content:center;background:var(--accent-tint);color:var(--accent)}
+.movoffer .moi svg{width:15px;height:15px}
+.movoffer .mob{flex:1;min-width:0}
+.movoffer .mon{display:block;font-size:14px;font-weight:600}
+.movoffer .moc{display:block;font-size:12px;color:var(--faint);margin-top:1px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.movoffer .moa{color:var(--faint);flex:none}
+.movoffer .moa svg{width:14px;height:14px}
 .chero .lvlp{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
 .chero .lvlp b{color:var(--ink);font-weight:800}
 [data-tier="base"]{--tier:#7C8794}
@@ -1810,7 +1827,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.3";
+var VERSION="v8.4";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4191,8 +4208,9 @@ function weighSheet(dateK){
     '<button class="wdb" onclick="nudgeW(1)" aria-label="higher">+</button></div>'+
     '<div class="wunit">'+wLbl()+'<span id="w-delta"></span></div>'+
     '<button class="sheet-cta" onclick="saveWeigh()">'+(existing?'Update this day':'Add to the log')+'</button>'+
-    (S.weigh.length?'<button class="sheet-cta ghost" onclick="weighLogSheet()">'+I.edit+' History, edit or delete</button>':'')+
-    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
+    '<div class="wfoot">'+
+      (S.weigh.length?'<button onclick="weighLogSheet()">History, edit or delete</button><span>&middot;</span>':'')+
+      '<button onclick="closeSheet()">Cancel</button></div>');
   wDelta();
 }
 function nudgeW(d){var el=document.getElementById("w-val");if(!el)return;var v=parseFloat(el.value)||0;el.value=(v+d*wStep()).toFixed(1);wDelta();}
@@ -4571,12 +4589,18 @@ function renderLift(){
   var nm=esc(S.wk[TODAY]?S.wk[TODAY].name:DAYS[L].name),nex=(S.wk[TODAY]?S.wk[TODAY].order.length:DAYS[L].slots.length);
   var scheduled=(plan.type==="lift");
   if(isBW()){
+    var LLv=liftLevel(),LLs=liftLevelStatus(LLv);
     h+='<div class="hero">'+
-      '<div class="lbl">Next session &middot; '+(L==="Gen"?"Custom build":("Day "+L))+'</div>'+
-      '<h2>'+nm+'</h2>'+
-      '<div class="meta"><b>'+nex+' movements</b> &middot; '+(isBW()?"bodyweight":equipLabel(sessionEquip()))+
+      '<div class="chero"><div class="cheroL">'+levelRingHTML(LLv)+'</div>'+
+      '<div class="cheroR" data-tier="'+levelTier(LLv.lvl).k+'">'+
+        '<div class="lvlk">Level '+LLv.lvl+'<span class="tierpill">'+levelTier(LLv.lvl).w+'</span></div>'+
+        '<div class="lvlw" data-k="'+LLs.k+'">'+esc(LLs.w)+'</div>'+
+        '<div class="lvlsub">'+esc(nm)+' &middot; '+nex+' movements</div>'+
+      '</div></div>'+
+      '<div class="meta">'+(isBW()?"bodyweight":equipLabel(sessionEquip()))+
         (easingIn()?' &middot; <b>ease-in</b>':'')+' &middot; nothing is owed today</div>'+
       planCardHTML()+
+      (liftDone?movementOfferHTML():'')+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
       '</div>';
@@ -7136,9 +7160,26 @@ function vidSwapToday(){
   return null;
 }
 function soreCardHTML(){
-  var act=soreActive(),n=act.length;
+  var act=soreActive(),n=act.length,lap=soreLapsedToday();
+  var body="";
+  if(n){
+    body='<div class="sorebody">'+act.map(function(k){
+      var left=SORE_DAYS-soreAge(k);
+      return '<div class="sgrp"><div class="srw"><span class="srk">'+esc(SORE[k].n)+'</span>'+
+        '<span class="srv">'+(left>1?(left+" days left"):"last day")+'</span></div>'+
+        '<div class="srwhy">'+esc(SORE[k].why)+'</div></div>';
+    }).join("")+'</div>'+soreClipHTML(act,true);
+  }else if(lap.length){
+    body='<div class="sorebody"><div class="sgrp"><div class="srw"><span class="srk">'+
+      esc(SORE[lap[0]].n)+'</span><span class="srv">cleared</span></div>'+
+      '<div class="srwhy">The flag lapsed on its own. The full session is back.</div></div></div>';
+  }else{
+    body='<div class="srwhy" style="padding:2px 0 4px">Nothing flagged. The session runs as written.</div>';
+  }
+  body+='<button class="sheet-cta ghost" style="margin-top:10px" onclick="soreSheet()">'+
+        (n?"Change what is sore":"Flag something sore")+'</button>';
   return collapsible("Sore",n?(n+" area"+(n===1?"":"s")+" flagged"):"nothing flagged",
-    soreRowHTML(),n>0,I.spark,n?"warn":"flat");
+    body,n>0,I.spark,n?"warn":"flat");
 }
 function soreRowHTML(){
   var act=soreActive(),lap=soreLapsedToday(),txt,cls="",body="";
@@ -7325,6 +7366,22 @@ function targetSheet(k){
     '<div class="tgwhy">'+esc(W.b)+
     '<span class="tgws">It is recomputed when a week finishes, never on a date, and a week with nothing recorded counts as a gap rather than a miss. '+esc(moved)+' '+esc(W.s)+'</span></div>'+
     '<button class="sheet-cta" onclick="closeSheet()">Got it</button>');
+}
+function movementOfferHTML(){
+  var tracks=["mobility","recovery","pilates"],names={mobility:"Mobility",recovery:"Stretch",pilates:"Pilates"};
+  var day=Math.floor(new Date(TODAY+"T12:00:00")/86400000);
+  for(var i=0;i<tracks.length;i++){
+    var t=tracks[(day+i)%tracks.length],l=ladderList(t);
+    if(!l.length)continue;
+    var v=l[ladderPos(t)%l.length];
+    if(!v||vDone(v.id))continue;
+    return '<button class="movoffer" onclick="sessionVidSheet(\''+v.id+'\')">'+
+      '<span class="moi">'+I.play+'</span>'+
+      '<span class="mob"><span class="mon">'+esc(names[t])+' &middot; session '+v.lv+'</span>'+
+      '<span class="moc">'+esc(v.t||"Guided session")+'</span></span>'+
+      '<span class="moa">'+I.arrow+'</span></button>';
+  }
+  return "";
 }
 function movementHTML(){
   var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],cols="",anyLeft=false;
@@ -9170,24 +9227,7 @@ if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||T
 document.addEventListener("visibilitychange",function(){var woOn=document.getElementById("v-workout").classList.contains("on");if(document.hidden){if(woOn)woFreeze();}else{refreshDate();if(woOn)woResume();else if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
 renderToday();
 
-(function(){
-  var rd=document.createElement("div");rd.className="rdout";rd.setAttribute("role","status");
-  document.body.appendChild(rd);
-  var hideT=null;
-  function place(el){
-    var t=el.getAttribute("data-r");if(!t)return;
-    var r=el.getBoundingClientRect();
-    rd.textContent=t;
-    rd.style.left=Math.max(60,Math.min(window.innerWidth-60,r.left+r.width/2))+"px";
-    rd.style.top=Math.max(36,r.top)+"px";
-    rd.classList.add("on");
-    clearTimeout(hideT);hideT=setTimeout(function(){rd.classList.remove("on");},2800);
-  }
-  function hit(e){return (e.target&&e.target.closest)?e.target.closest("[data-r]"):null;}
-  document.addEventListener("mouseover",function(e){var el=hit(e);if(el)place(el);},{passive:true});
-  document.addEventListener("mouseout",function(e){if(hit(e))rd.classList.remove("on");},{passive:true});
-  document.addEventListener("click",function(e){var el=hit(e);if(el)place(el);},{passive:true});
-})();
+
 
 </script>
 <script>
