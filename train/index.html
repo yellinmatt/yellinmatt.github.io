@@ -1832,7 +1832,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v8.9";
+var VERSION="v9.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -8122,13 +8122,16 @@ function bestWeek(read){
   for(var i=1;i<=12;i++){var v=read(i);if(v>best)best=v;}
   return best;
 }
-function cweekCell(label,val,v,best,fmt,unit,act){
+function cweekCell(label,val,v,best,fmt,unit,act,tgt,tgtFull){
   var ref=(v&&v.base)?v.base.cap:0;
-  var top=Math.max(best,val,ref,0.0001);
+  var mark=(tgt>0)?tgt:ref;
+  var top=Math.max(best,val,ref,mark,0.0001);
   var fill=Math.max(0,Math.min(100,(val/top)*100));
-  var tick=(ref>0)?Math.max(0,Math.min(100,(ref/top)*100)):null;
+  var tick=(mark>0)?Math.max(0,Math.min(100,(mark/top)*100)):null;
   var word=v?v.word:"first weeks on record",dir=v?v.dir:"flat";
-  var sub=(best>0)?("best week "+fmt(best)+(ref>0?(" · usual "+fmt(ref)):"")):"first weeks on record";
+  var sameRef=(ref>0&&tgtFull>0&&fmt(ref)===fmt(tgtFull));
+  var sub=(tgtFull>0)?("target "+fmt(tgtFull)+" a week"+((ref>0&&!sameRef)?(" · usual "+fmt(ref)):""))
+        :((best>0)?("best week "+fmt(best)+(ref>0?(" · usual "+fmt(ref)):"")):"first weeks on record");
   return '<button class="cwc" onclick="'+act+'">'+
     '<span class="cwk">'+esc(label)+'</span>'+
     '<span class="cwv num">'+fmt(val)+(unit?('<small>'+esc(unit)+'</small>'):'')+'</span>'+
@@ -8145,9 +8148,13 @@ function cardioWeekHTML(){
   var stBest=bestWeek(function(i){return weekSteps(i).sum;});
   var f1=function(v){return (Math.round(v*10)/10).toFixed(1);};
   var fk=function(v){return v>=10000?((v/1000).toFixed(0)+"k"):v>=1000?((v/1000).toFixed(1)+"k"):String(Math.round(v));};
-  var cells=cweekCell("Miles run",mi,weekVerdict("miles",mi,el),miBest,f1,"mi","show('cardio')");
+  var miT=bwTarget("miles"), miTF=miT?miT.t:0;
+  var cells=cweekCell("Miles run",mi,weekVerdict("miles",mi,el),miBest,f1,"mi","show('cardio')",
+    miTF>0?(miTF*(Math.min(el,7)/7)):0, miTF);
   if(sw.days||stBest>0)
-    cells+=cweekCell("Steps",sw.sum,weekVerdict("steps",sw.sum,sw.days),stBest,fk,"","show('track')");
+    (function(){var stT=bwTarget("steps"),rung=stT?stT.t:0;
+      cells+=cweekCell("Steps",sw.sum,weekVerdict("steps",sw.sum,sw.days),stBest,fk,"","show('track')",
+        rung>0?(rung*Math.max(0,sw.days)):0, rung>0?(rung*7):0);})();
   return '<div class="cweek"><div class="cwl">This week</div><div class="cwpair">'+cells+'</div></div>';
 }
 function paceZonesParts(srcRuns,winLabel){
