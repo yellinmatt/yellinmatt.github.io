@@ -27,6 +27,7 @@
   --line:#E7E9ED; --line-2:#D8DCE2;
   --accent:#FF4E2B; --accent-press:#E63E1E; --accent-tint:#FFE9E3;
   --good:#12A150; --good-tint:#E4F6EC; --amber:#B7791F; --amber-tint:#FBF1DD;
+  --dir-up:#0E7C3F; --dir-down:#C2410C; --dir-flat:#5C636E;
   --nav-bg:rgba(245,246,248,.86); --restbar-bg:#14181E; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(16,17,22,.42);
   --shadow:0 1px 2px rgba(16,17,22,.04), 0 3px 12px rgba(16,17,22,.06);
   --shadow-lg:0 12px 44px rgba(16,17,22,.18);
@@ -40,6 +41,8 @@
     --line:#242A32; --line-2:#30363F;
     --accent:#FF5C3A; --accent-press:#FF7053; --accent-tint:#3A1E17;
     --good:#34D399; --good-tint:#12271E; --amber:#F0C36B; --amber-tint:#2A2213;
+  --dir-up:#3DDC97; --dir-down:#FF8A7A; --dir-flat:#A8B0BC;
+    --dir-up:#3DDC97; --dir-down:#FF8A7A; --dir-flat:#A8B0BC;
     --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(0,0,0,.6);
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
     --shadow-lg:0 16px 52px rgba(0,0,0,.6);
@@ -722,6 +725,13 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
 .lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
 .lvlcard .lcring .lctrack{stroke:var(--line-2)}
+.lring[data-dir="up"] .lprog,.lvlcard[data-dir="up"] .lcring .lcarc{stroke:var(--dir-up)}
+.lring[data-dir="down"] .lprog,.lvlcard[data-dir="down"] .lcring .lcarc{stroke:var(--dir-down)}
+.lring[data-dir="flat"] .lprog,.lvlcard[data-dir="flat"] .lcring .lcarc{stroke:var(--dir-flat)}
+.dirg{font-style:normal;font-variant-numeric:normal;margin-right:3px}
+[data-dir="up"] .dirg{color:var(--dir-up)}
+[data-dir="down"] .dirg{color:var(--dir-down)}
+[data-dir="flat"] .dirg{color:var(--dir-flat)}
 .lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
 .lvlcard .lctxt{min-width:0}
 .lvlcard .lck{display:block;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
@@ -1136,12 +1146,6 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .amrapdot{display:inline-block;margin-left:7px;padding:1px 6px;border-radius:5px;
   background:var(--accent-tint);color:var(--accent);font-size:10px;font-weight:700;
   letter-spacing:.03em;vertical-align:1px}
-.goalbar{margin:14px -2px 0;padding:12px 0 0;border-top:1px solid var(--line)}
-.goalhd{font-size:11px;letter-spacing:.05em;color:var(--faint);text-transform:uppercase;margin-bottom:8px}
-.goalrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.goalcell{background:var(--surface-2);border-radius:10px;padding:9px 4px;text-align:center}
-.goaln{font-size:19px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
-.goall{font-size:11px;color:var(--faint);margin-top:2px}
 .plday{border-top:1px solid var(--line);margin:0 -2px}
 .plday:first-of-type{border-top:0}
 .plday>summary{list-style:none;cursor:pointer;display:flex;align-items:flex-start;gap:11px;
@@ -1832,7 +1836,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v9.0";
+var VERSION="v9.1";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4632,14 +4636,8 @@ function planCardHTML(){
       '<div class="planno">'+num+'<span class="planchev">'+I.arrow+'</span></div>'+
       '<div class="planwhy">'+esc(why)+'</div></button>';
   });
-  var goals=[["pushup","Normal"],["pushnarrow","Close"],["pushfeet","Feet up"]].map(function(g){
-    var n=lastAmrap(g[0]);
-    return '<div class="goalcell"><div class="goaln">'+(n==null?"&mdash;":n)+'</div>'+
-           '<div class="goall">'+g[1]+'</div></div>';
-  }).join("");
-  return '<div class="planwrap">'+rows+'</div>'+
-    '<div class="goalbar"><div class="goalhd">Best set &middot; toward 50</div>'+
-    '<div class="goalrow">'+goals+'</div></div>';
+
+  return '<div class="planwrap">'+rows+'</div>';
 }
 function renderLift(){
   refreshDate();
@@ -4654,7 +4652,7 @@ function renderLift(){
   if(isBW()){
     var LLv=liftLevel(),LLs=liftLevelStatus(LLv);
     h+='<div class="hero">'+
-      '<div class="chero"><div class="cheroL">'+levelRingHTML(LLv)+'</div>'+
+      '<div class="chero"><div class="cheroL">'+levelRingHTML(LLv,'lift')+'</div>'+
       '<div class="cheroR" data-tier="'+levelTier(LLv.lvl).k+'">'+
         '<div class="lvlk">Level '+LLv.lvl+'<span class="tierpill">'+levelTier(LLv.lvl).w+'</span></div>'+
         '<div class="lvlw" data-k="'+LLs.k+'">'+esc(LLs.w)+'</div>'+
@@ -4674,7 +4672,7 @@ function renderLift(){
     return;
   }
   h+='<div class="hero">'+
-    '<div class="chero"><div class="cheroL">'+levelRingHTML(LL)+'</div>'+
+    '<div class="chero"><div class="cheroL">'+levelRingHTML(LL,'lift')+'</div>'+
     '<div class="cheroR" data-tier="'+levelTier(LL.lvl).k+'"><div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+levelTier(LL.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
     '<div class="lvlp">'+(LLS.k==="base"
@@ -7135,13 +7133,14 @@ function miniLevelHTML(kind){
   var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
   var t=levelTier(L.lvl),C=2*Math.PI*18,off=C*(1-L.pips/10);
   var prev=levelPrevLv(kind),to=L.lvl+L.pips/10;
-  return '<button class="lvlcard" data-tier="'+t.k+'" data-kind="'+kind+'" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+'">'+
+  var _dir=levelDirOf(kind);
+  return '<button class="lvlcard" data-tier="'+t.k+'" data-kind="'+kind+'" data-dir="'+_dir+'" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')" aria-label="'+(kind==="lift"?"Lift":"Cardio")+' level '+L.lvl+', '+t.w+', '+(_dir==="up"?"rising":_dir==="down"?"falling":"holding")+'">'+
     '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
       '<circle class="lctrack" cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
-      '<g transform="rotate(-90 22 22)"><circle class="lcarc" cx="22" cy="22" r="18" fill="none" stroke="var(--tier)" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
+      '<g transform="rotate(-90 22 22)"><circle class="lcarc" cx="22" cy="22" r="18" fill="none" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
       '</svg><span class="lcnum num">'+L.lvl+'</span></span>'+
     '<span class="lctxt"><span class="lck">'+(kind==="lift"?"Lift":"Cardio")+'</span>'+
-    '<span class="lcw">'+esc(st.w)+'</span>'+
+    '<span class="lcw"><i class="dirg" aria-hidden="true">'+dirGlyph(_dir)+'</i>'+esc(st.w)+'</span>'+
     '<span class="lct">'+t.w+'</span></span></button>';
 }
 function levelPrevLv(kind){
@@ -7150,19 +7149,21 @@ function levelPrevLv(kind){
 }
 var RINGC=2*Math.PI*18;
 function levelRingAnim(){
-  if(motionOff())return;
-  document.querySelectorAll("#v-today .lvlcard").forEach(function(card){
+  document.querySelectorAll(".lvlcard").forEach(function(card){
     var arc=card.querySelector(".lcring .lcarc"),num=card.querySelector(".lcnum");
     if(!arc||!num)return;
     var to=parseFloat(card.getAttribute("data-to")),fromA=card.getAttribute("data-from");
     var from=(fromA===""||fromA==="null")?null:parseFloat(fromA);
     if(!isFinite(to))return;
     if(from==null||!isFinite(from))from=0;
-    var delta=to-from, up=delta>=0;
+    var delta=to-from;
+    var LNow=(card.getAttribute("data-kind")==="lift")?liftLevel():cardioLevel();
+    if(motionOff()){
+      num.textContent=LNow.lvl;
+      arc.setAttribute("stroke-dashoffset",(RINGC*(1-LNow.pips/10)).toFixed(1));
+      return;
+    }
     var dur=Math.min(2600,Math.max(700,Math.abs(delta)*900||700));
-    var tone=Math.abs(delta)<0.05?null:(up?"var(--good)":"var(--accent)");
-    var settled=arc.getAttribute("stroke")||"var(--tier)";
-    if(tone)arc.setAttribute("stroke",tone);
     var t0=null;
     function ease(x){return 1-Math.pow(1-x,3);}
     function frame(ts){
@@ -7172,10 +7173,8 @@ function levelRingAnim(){
       arc.setAttribute("stroke-dashoffset",(RINGC*(1-frac)).toFixed(1));
       num.textContent=Math.floor(v+1e-9);
       if(k<1){requestAnimationFrame(frame);return;}
-      var L=(card.getAttribute("data-kind")==="lift")?liftLevel():cardioLevel();
-      num.textContent=L.lvl;
-      arc.setAttribute("stroke-dashoffset",(RINGC*(1-L.pips/10)).toFixed(1));
-      if(tone)setTimeout(function(){arc.setAttribute("stroke",settled);},420);
+      num.textContent=LNow.lvl;
+      arc.setAttribute("stroke-dashoffset",(RINGC*(1-LNow.pips/10)).toFixed(1));
     }
     arc.setAttribute("stroke-dashoffset",(RINGC*(1-(from-Math.floor(from)))).toFixed(1));
     num.textContent=Math.floor(from);
@@ -7241,7 +7240,7 @@ function soreCardHTML(){
   body+='<button class="setbtn" style="width:100%;margin-top:12px" onclick="soreSheet()">'+
         (n?"Change what is sore":"Flag something sore")+'</button>';
   return collapsible("Sore",n?(n+" area"+(n===1?"":"s")+" flagged"):"nothing flagged",
-    body,n>0,I.spark,n?"warn":"flat");
+    body,false,I.spark,n?"warn":"flat");
 }
 function soreRowHTML(){
   var act=soreActive(),lap=soreLapsedToday(),txt,cls="",body="";
@@ -9069,13 +9068,24 @@ function liftLevelStatus(L){
   if(r>-0.20)return {w:"Easing",k:"flat",c:"Quieter than usual. Nothing has been lost."};
   return {w:"Coming back",k:"flat",c:"One session gets this climbing again."};
 }
-function levelRingHTML(L){
+function levelDirOf(kind){
+  try{
+    var L=(kind==="lift")?liftLevel():cardioLevel();
+    var now=L.lvl+(L.pips/10), prev=levelPrevLv(kind);
+    if(prev==null||!isFinite(prev))return "flat";
+    var d=now-prev;
+    return (Math.abs(d)<0.05)?"flat":(d>0?"up":"down");
+  }catch(e){return "flat";}
+}
+function dirGlyph(dir){return dir==="up"?"\u25B2":(dir==="down"?"\u25BC":"\u2013");}
+function levelRingHTML(L,kind){
   var C=251.33,off=C*(1-L.pips/10);
   var _t=levelTier(L.lvl);
-  return '<svg class="lring" data-tier="'+_t.k+'" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+L.pips+' of 10 toward level '+(L.lvl+1)+'">'+
+  var _d=kind?levelDirOf(kind):"flat";
+  return '<svg class="lring" data-tier="'+_t.k+'" data-dir="'+_d+'" width="104" height="104" viewBox="0 0 96 96" role="img" aria-label="Level '+L.lvl+', '+L.pips+' of 10 toward level '+(L.lvl+1)+', '+(_d==="up"?"rising":_d==="down"?"falling":"holding")+'">'+
     '<g transform="rotate(-90 48 48)">'+
     '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
-    '<circle class="lprog" cx="48" cy="48" r="40" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="butt" stroke-dasharray="'+C+'" stroke-dashoffset="'+off.toFixed(2)+'"/>'+
+    '<circle class="lprog" cx="48" cy="48" r="40" fill="none" stroke-width="8" stroke-linecap="butt" stroke-dasharray="'+C+'" stroke-dashoffset="'+off.toFixed(2)+'"/>'+
     '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface)" stroke-width="8" stroke-dasharray="2 23.13"/></g>'+
     '<text x="48" y="48" text-anchor="middle" dominant-baseline="central" class="num" style="font-size:34px;font-weight:800;fill:var(--ink);letter-spacing:-.02em">'+L.lvl+'</text></svg>';
 }
@@ -9119,7 +9129,7 @@ function levelMechanicsHTML(kind,L){
     '<div class="lmr tot"><span class="lmk">Level '+L.lvl+'</span><span class="lmv num">'+fmt(scored)+'<small> scored</small></span></div>'+
     (need!=null?('<div class="lmr next"><span class="lmk">Level '+(L.lvl+1)+' needs</span><span class="lmv num">'+fmt(need)+'<small> '+unit+' a week</small></span></div>'):'')+
     '</div>'+
-    (weeksOn<8?('<div class="ksub" style="margin-top:9px">Every extra week you run raises the multiplier, so consistency moves this faster than any single long run does.</div>'):'');
+    (weeksOn<8?('<div class="ksub" style="margin-top:9px">Every extra week you "+(isLift?"lift":"run")+" raises the multiplier, so consistency moves this faster than any single "+(isLift?"heavy session":"long run")+" does.</div>'):'');
 }
 function levelToneOf(L,dl){
   if(!dl)return "flat";
@@ -9286,7 +9296,7 @@ function renderCardio(){
   var h='<div class="head"><div><div class="date">Running &amp; walking</div><div class="title">Cardio</div></div>'+
     '<div class="tools">'+streakChipHTML("cardio")+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
-  h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L)+'</div>'+
+  h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L,'cardio')+'</div>'+
     '<div class="cheroR" data-tier="'+levelTier(L.lvl).k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+levelTier(L.lvl).w+'</span></div>'+
     '<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'+
     '<div class="lvlp">'+(LS.k==="base"?(allRuns().length===1?'1 run on record':(allRuns().length+' runs on record')):('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1)))+'</div>'+
@@ -9297,7 +9307,7 @@ function renderCardio(){
     '<div class="lbl">Next run</div>'+
     '<h2 style="padding-right:0">'+(tgt.restart?"Ease back in":"Easy")+' &middot; '+tgt.mi+' mi</h2>'+
     '<div class="meta">'+(rr.gap===0?"You already ran today.":
-      (tgt.fromTarget?('<b>'+tgt.wk.toFixed(1)+' mi</b> this week. Run-walk counts: 60 seconds running, 90 walking.')
+      (tgt.fromTarget?('<b>'+tgt.wk.toFixed(1)+' mi</b> this week. Walk when you want, it still counts as one run.')
                      :runStatusLine(rr)))+'</div>'+
     '<button class="big-start" onclick="startRun('+tgt.mi+')">'+I.run+' Start a run</button>'+
     '<div class="herorow">'+
