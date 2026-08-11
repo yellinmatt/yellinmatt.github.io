@@ -1650,6 +1650,8 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
   .d3wrap .d3:nth-child(2){animation-delay:.095s}
   .d3wrap .d3:nth-child(3){animation-delay:.15s}
   .d3wrap .d3:nth-child(4){animation-delay:.205s}
+  .d3wrap .d3:nth-child(5){animation-delay:.26s}
+  .d3wrap .d3:nth-child(6){animation-delay:.315s}
   @keyframes d3in{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
   .d3wrap .d3 .d3w{animation:d3pop .5s .28s cubic-bezier(.34,1.4,.5,1) both}
   @keyframes d3pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
@@ -1658,6 +1660,21 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
   .d3.bump .d3w{animation:d3pop2 .62s .5s cubic-bezier(.34,1.5,.5,1) both}
   @keyframes d3pop2{0%{opacity:0;transform:translateY(6px) scale(.9)}60%{transform:translateY(0) scale(1.07)}100%{opacity:1;transform:none}}
 
+.rcv{display:flex;gap:13px;align-items:center}
+.rcvring{position:relative;width:62px;height:62px;flex:none;display:grid;place-items:center}
+.rcvring svg{position:absolute;inset:0}
+.rcvn{font-size:21px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+.rcvt{display:flex;flex-direction:column;min-width:0;gap:2px}
+.rcvk{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
+.rcvw{font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+.rcvchips{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px}
+.rcvchips i{font-style:normal;font-size:12px;font-weight:600;color:var(--sub);
+  background:var(--surface-2);border-radius:999px;padding:3px 9px}
+.srow2{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;
+  margin-top:12px;padding:13px 2px 0;min-height:44px;background:none;border:0;
+  border-top:1px solid var(--line);color:var(--sub);font-size:15px;text-align:left}
+.srv2{display:inline-flex;align-items:center;gap:6px;color:var(--faint)}
+.srv2 svg{width:16px;height:16px}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1836,7 +1853,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v9.1";
+var VERSION="v9.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3032,11 +3049,56 @@ function tileBandPulse(){
     return any;
   }catch(e){return false;}
 }
+
+function rhrYearAgo(){
+  var hi=new Date(NOW);hi.setFullYear(hi.getFullYear()-1);
+  var lo=new Date(hi);lo.setDate(lo.getDate()-27);
+  var loK=keyOf(lo),hiK=keyOf(hi);
+  var xs=vitalDays("rhr").filter(function(p){return p.d>=loK&&p.d<=hiK;}).map(function(p){return p.v;});
+  return xs.length>=8?medOf(xs):null;
+}
+function trendWeight(){
+  var v=weightVerdict();
+  if(!v||v.val==null)return {tone:"none",word:"Not enough yet",foot:"No weigh-ins yet",miss:1};
+  var st=v.st||{},rate=st.rate;
+  var word=(rate==null)?"Too few weigh-ins":(rate<=-0.25?"Coming off":(rate<0.15?"Holding":"Climbing"));
+  var foot="<b>"+v.val.toFixed(1)+"</b> "+wLbl()+
+    (rate!=null?(" &middot; "+(rate>0?"up ":"down ")+Math.abs(rate).toFixed(1)+" a week"):"");
+  if(st.ageDays>=2)foot+=" &middot; "+st.ageDays+"d old";
+  return {tone:v.tone||"flat",word:word,foot:foot,miss:(st.ageDays>=2)};
+}
+function trendRHR(){
+  var w=vitalWindow("rhr",28),ya=rhrYearAgo();
+  if(!w)return {tone:"none",word:"Not enough yet",foot:"No resting heart rate yet",miss:1};
+  var now=Math.round(w.med),d=(ya==null)?null:(now-Math.round(ya));
+  var word=(d==null)?"Tracking":(d>=2?"Up on last year":(d<=-2?"Down on last year":"Level with last year"));
+  var tone=(d==null)?"flat":(d>=5?"red":(d>=2?"amber":(d<=-3?"good":"flat")));
+  var foot="<b>"+now+"</b> bpm"+(d==null?" &middot; 28-day median":(" &middot; was "+Math.round(ya)+" a year ago"));
+  return {tone:tone,word:word,foot:foot,miss:0};
+}
+function trendMiles(){
+  var runs=allRuns();
+  if(!runs.length)return {tone:"none",word:"Not enough yet",foot:"No runs on record",miss:1};
+  var sum=function(from,to){var a=new Date(NOW);a.setDate(a.getDate()-from);
+    var b=new Date(NOW);b.setDate(b.getDate()-to);var aK=keyOf(a),bK=keyOf(b);
+    return runs.filter(function(r){return r.date>=aK&&r.date<=bK;})
+               .reduce(function(t,r){return t+(r.distanceMi||0);},0);};
+  var now=sum(6,0),prev=sum(13,7);
+  var last=runs[runs.length-1];
+  var word=(now<=0)?"Nothing this week":(prev<=0?"Back running":(now>prev*1.06?"Running more":(now<prev*0.94?"Running less":"Holding steady")));
+  var tone=(now<=0)?"flat":(now>=prev?"good":"amber");
+  return {tone:tone,word:word,
+    foot:"<b>"+now.toFixed(1)+"</b> mi &middot; last ran "+shortDay(last.date),
+    miss:(now<=0)};
+}
 function todayMetricsHTML(){
   var tiles=[
     {key:"cal",   label:"Calories",icon:I.fork, tr:trendCal(),    act:"metricSheet('cal')"},
     {key:"sleep", label:"Sleep",   icon:I.moon, tr:trendSleep(),  act:"metricSheet('sleep')"},
     {key:"steps", label:"Steps",   icon:I.gauge,tr:trendSteps(),  act:"metricSheet('steps')"},
+    {key:"weight",label:"Weight",  icon:I.spark,tr:trendWeight(), act:"weighSheet()"},
+    {key:"rhr",   label:"Resting HR",icon:I.heart,tr:trendRHR(),  act:"metricSheet('rhr')"},
+    {key:"miles", label:"Miles run",icon:I.run,  tr:trendMiles(), act:"metricSheet('miles')"},
   ];
   if(!tiles.some(function(t){return t.tr&&t.tr.tone!=="none";}))return "";
   return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
@@ -3345,10 +3407,8 @@ function renderToday(){
     '<div class="dots-card"><div class="dots">'+dots+'</div></div>'+
     targetsHTML()+
     todayMetricsHTML()+
-    soreCardHTML()+
-    todayLogHTML()+
-    '<button class="setbtn" style="width:100%;margin-top:8px;padding:13px" onclick="weighSheet()">'+
-      I.spark+' Log a weigh-in</button>';
+    recoveryCardHTML()+
+    todayLogHTML();
   tileBandPulse();
   streakPulse();
   levelRingAnim();
@@ -4927,8 +4987,7 @@ function trackDashHTML(){
     :'<div class="emptyd">No weight logged. <b>Log a weigh-in</b> and the body band, the protein target and the weight measure all switch on.</div>';
   return '<div class="dash" data-tone="'+tone+'">'+
     '<div class="dband"><div class="dvt">'+head+'</div><div class="dvp">'+sub+'</div>'+
-      trackGlanceHTML()+measureRowsHTML()+
-      '<div class="dact"><button class="gh" onclick="weighSheet()">Log a weigh-in</button></div></div>'+
+      trackGlanceHTML()+measureRowsHTML()+'</div>'+
     '<button class="dband dtap" onclick="openDeep(&quot;changing&quot;)"><div class="bandlbl">Body'+
       '<span class="gcarr">'+I.arrow+'</span></div>'+body+'</button>'+
     '</div>';
@@ -7219,6 +7278,55 @@ function vidSwapToday(){
   for(var i=S.sessions.length-1;i>=0;i--){var s=S.sessions[i];
     if(s.date===TODAY&&s.notes==="video-swap")return s;}
   return null;
+}
+function recoveryState(){
+  var act=soreActive();
+  if(act.length){
+    var worst=act.slice().sort(function(a,b){return (soreAge(a)||0)-(soreAge(b)||0);})[0];
+    var age=soreAge(worst)||0,left=Math.max(0,SORE_DAYS-age);
+    var clear=new Date(NOW);clear.setDate(clear.getDate()+left);
+    return {k:"sore",w:"Recovering",tone:"warn",areas:act,left:left,age:age,
+            clear:keyOf(clear),
+            why:act.map(function(k){return SORE[k].n;}).join(", ")};
+  }
+  var gap=0,d=new Date(NOW);
+  for(var i=1;i<=21;i++){d=new Date(NOW);d.setDate(d.getDate()-i);
+    if(didAnything(keyOf(d)))break;gap++;}
+  if(!didAnything(TODAY)&&gap>=4)
+    return {k:"off",w:"Backing off",tone:"amber",gap:gap};
+  var a=weekMetrics(0),b=weekMetrics(1);
+  if(a&&b&&a.moved>=b.moved+2)
+    return {k:"ramp",w:"Ramping",tone:"good",now:a.moved,prev:b.moved};
+  return {k:"steady",w:"Steady",tone:"flat",now:a?a.moved:0};
+}
+function recoveryCardHTML(){
+  var r=recoveryState(),body="",chip="";
+  if(r.k==="sore"){
+    var pct=Math.max(0,Math.min(1,r.age/SORE_DAYS)),C=169.6;
+    chip=r.left>1?(r.left+" days left"):"last day";
+    body='<div class="rcv">'+
+      '<span class="rcvring"><svg width="62" height="62" viewBox="0 0 62 62" aria-hidden="true">'+
+        '<circle cx="31" cy="31" r="27" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
+        '<g transform="rotate(-90 31 31)"><circle cx="31" cy="31" r="27" fill="none" stroke="var(--amber)" '+
+        'stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+(C*(1-pct)).toFixed(1)+'"/></g>'+
+        '</svg><span class="rcvn num">'+r.left+'</span></span>'+
+      '<span class="rcvt"><span class="rcvk">Recovering</span>'+
+        '<span class="rcvw">Clear '+shortDay(r.clear)+'</span>'+
+        '<span class="rcvchips">'+r.areas.map(function(k){
+          return '<i>'+esc(SORE[k].n)+'</i>';}).join("")+'</span></span></div>'+
+      '<button class="srow2" onclick="soreSheet()"><span>What is off, and changing it</span>'+
+        '<span class="srv2">'+I.arrow+'</span></button>';
+  }else{
+    chip=(r.k==="off")?(r.gap+" days quiet"):(r.k==="ramp"?("up "+(r.now-r.prev)+" days"):(r.now+" days moved"));
+    body='<div class="rcv"><span class="rcvt" style="padding-left:2px">'+
+      '<span class="rcvk">'+esc(r.w)+'</span>'+
+      '<span class="rcvw">'+(r.k==="off"?("Nothing logged in "+r.gap+" days")
+        :(r.k==="ramp"?("Ahead of last week")
+        :("Holding your usual week")))+'</span></span></div>'+
+      '<button class="srow2" onclick="soreSheet()"><span>Something hurts</span>'+
+        '<span class="srv2">flag it '+I.arrow+'</span></button>';
+  }
+  return collapsible("Recovering",chip,body,false,I.spark,r.tone);
 }
 function soreCardHTML(){
   var act=soreActive(),n=act.length,lap=soreLapsedToday();
