@@ -1857,7 +1857,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v9.4";
+var VERSION="v9.5";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3018,10 +3018,11 @@ function trendSleep(){
 }
 function trendCal(){
   var g=function(k){var v=(S.nutrition||{})[k];return v?v.c:null;};
-  var vals=tWin(g,6,0),now=tMed(vals),prev=tMed(tWin(g,13,7)),cg=calGlance();
+  var vals=tWin(g,6,0),now=tMed(vals),prev=tMed(tWin(g,13,7)),cg=calVerdict();
   if(vals.length<4)return {tone:"none",word:"Not enough yet",
     foot:(now!=null?("<b>"+tDay()+"</b> "+tNum(g(yKey())||now)+" &middot; "):"")+vals.length+" of 7 days logged",miss:(vals.length<1)};
-  var dir=tDir(now,prev),atMark=(cg&&cg.tone==="good");
+  var sc=cg&&cg.scale;
+  var dir=tDir(now,prev),atMark=!!(sc&&sc.ok&&sc.rate<=0);
   var y=g(yKey());
   return {tone:tTone(atMark,-dir),
     word:dir<0?"Eating lighter":(dir>0?"Eating heavier":"Holding steady"),
@@ -3117,7 +3118,8 @@ function todayMetricsHTML(){
   return '<div class="d3wrap">'+tiles.map(dailyTileHTML).join("")+'</div>';
 }
 function famRing(pct){
-  var C=119.4,capped=(pct==null)?null:Math.max(0,Math.min(100,pct));
+  if(pct==null)return "";
+  var C=119.4,capped=Math.max(0,Math.min(100,pct));
   var off=(capped==null)?C:C*(1-capped/100);
   return '<span class="pring"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="none" stroke="var(--surface-2)" stroke-width="5"/>'+
     '<circle class="pfill" cx="24" cy="24" r="19" fill="none" stroke="var(--tone)" stroke-width="5" stroke-linecap="round" stroke-dasharray="119.4" stroke-dashoffset="119.4" data-off="'+off.toFixed(1)+'" transform="rotate(-90 24 24)"/></svg>'+
@@ -3172,22 +3174,20 @@ function famA(kind){
     var v=calVerdict();
     if(!v.enough)return '<div data-tone="amber">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",null)+
       '<div class="verd" style="margin-top:2px">'+(v.n?("Only "+v.n+" day"+(v.n===1?"":"s")+" logged in the window. Paste a week from Cal AI and this switches on."):"Nothing logged yet. Paste a week from Cal AI and this switches on.")+'</div></div>';
-    var pct=v.maint?Math.round(v.avg/v.maint*100):null;
-    var heroN=(v.gap!=null)?Math.abs(v.gap):v.avg;
-    var heroU=(v.gap!=null)?(v.gap>=0?" under":" over"):" avg";
+    var hd=calHead(v);
     var pts=[],dd=new Date(NOW);dd.setDate(dd.getDate()-13);
-    var defDays=0;
     for(var i=0;i<14;i++){var k=keyOf(dd),c=Math.round(((S.nutrition[k]||{}).c)||0);
-      if(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)defDays++;
-      pts.push({v:c,d:shortDay(k),cls:(c>0&&v.maint&&(v.maint-c)>=CAL_BAND)?"hit":""});dd.setDate(dd.getDate()+1);}
-    return '<div data-tone="'+(v.tone||"flat")+'">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",pct)+
-      (function(){var tc=trendCal(),yv=((S.nutrition[yKey()]||{}).c)||0;
-        return '<div class="hero56 toned num">'+(yv>0?yv.toLocaleString():heroN.toLocaleString())+'<span>'+(yv>0?(" kcal "+tDay().toLowerCase()):heroU)+'</span></div>'+
-        '<div class="verd">'+esc(tc.word)+'. '+(v.gap!=null?(Math.abs(v.gap).toLocaleString()+(v.gap>=0?" under":" over")+" maintenance on average. "):"")+
+      pts.push({v:c,d:shortDay(k),cls:""});dd.setDate(dd.getDate()+1);}
+    return '<div data-tone="'+(v.tone||"flat")+'">'+famHead(I.fork,"Calories","Last "+CAL_DAYS+" days",null)+
+      (function(){var tc=trendCal();
+        return '<div class="hero56 toned num">'+hd.n.toLocaleString()+'<span>'+(hd.day?" kcal yesterday":" kcal a day, avg")+'</span></div>'+
+        '<div class="verd">'+esc(tc.word)+'. '+v.n+' of '+v.windowDays+' days logged. '+
+        (v.scale&&v.scale.ok?('The scale reads <b>'+v.scale.txt+'</b>. '):'')+
         (v.stale?("Last log "+v.age+" days ago.")
-   :(v.conf?"":("Reading "+v.n+" logged day"+(v.n===1?"":"s")+" out of the last "+CAL_DAYS+", so treat the rate as rough.")))+'</div>';})()+
+   :(v.conf?"":("Under "+CAL_MIN_CONF+" days is a provisional read.")))+'</div>';})()+
       famBars(pts,{rule:v.maint,ruleLbl:v.maint?v.maint.toLocaleString():"",axL:"14 days",axR:"yesterday",fmt:function(x){return Math.round(x).toLocaleString()+" kcal";}})+
-      famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[defDays,"deficit days"]])+
+      famStrip([[v.avg.toLocaleString(),"daily avg"],[v.n+" of "+v.windowDays,"days logged"],[(function(){var ps=v.days.filter(function(k){return (S.nutrition[k]||{}).p>0;});
+          return ps.length?(Math.round(ps.reduce(function(a,k){return a+S.nutrition[k].p;},0)/ps.length)+" g"):"&mdash;";})(),"protein avg"]])+
       '<div class="pfoot">Cal AI via Apple Health &middot; through yesterday &middot; rule is maintenance, '+maintenanceBasis()+'</div></div>';
   }
   if(kind==="sleep"){
@@ -4955,7 +4955,7 @@ function trackGlanceHTML(){
   var cv=calVerdict();
   var calGet=function(k){var n=(S.nutrition||{})[k];return (n&&n.c)?n.c:null;};
   out+=glanceChip("Calories",calStat(),
-    cv.enough?(cv.avg.toLocaleString()+" a day"):("log a few days and this reads a rate"),cv.tone||"none",
+    cv.enough?calSub(cv):("log a few days and this switches on"),cv.tone||"none",
     sparkSVG(rollSeries(calGet,CAL_DAYS,"mean",12,7),cv.tone),
     cv.enough?("Calories a day, "+CAL_DAYS+"-day average, sampled weekly across 12 weeks."):null,
     "metricSheet('cal')","Nutrition");
@@ -5058,7 +5058,7 @@ function trCalRow(){
   if(!cv.total)return "";
   return reportize(drawerize(calCardHTML(),I.fork,cv.tone),{title:"Calories",tone:cv.tone,val:calStat(),
     series:(cv.enough&&cv.n>=CAL_MIN_CONF)?cv.days.map(function(k){return Math.round(S.nutrition[k].c);}):null,
-    sub:cv.enough?(cv.avg.toLocaleString()+" a day, "+cv.n+" of the last "+cv.windowDays+" days logged"):("nothing logged in the last "+CAL_DAYS+" days")});
+    sub:calSub(cv)});
 }
 function trSleepRow(){
   var sv=sleepVerdict(),s7=sleepStats(7),s28=sleepStats(28);
@@ -5463,25 +5463,39 @@ function calVerdict(){
   var span=daysBetween(win[0],last)+1;
   var maint=maintenanceCals();
   var gap=maint?(maint-avg):null;
-  var word,tone;
-  if(gap==null){word="";tone="flat";}
-  else if(gap>=CAL_BAND){word="in a deficit";tone="good";}
-  else if(gap<=-CAL_BAND){word="over maintenance";tone="amber";}
-  else {word="at maintenance";tone="flat";}
+  var word="",tone="flat";
   var stale=(age>=4);
   return {enough:true,n:win.length,span:span,avg:avg,maint:maint,gap:gap,word:word,
           conf:conf,windowDays:CAL_DAYS,total:logged.length,
-          tone:(stale||!conf)?"amber":tone,verdictTone:tone,stale:stale,age:age,
+          tone:(stale||!conf)?"amber":tone,stale:stale,age:age,scale:calScale(),
           last:last,lastCal:lastCal,lastGap:maint?(maint-lastCal):null,
           from:win[0],days:win.slice()};
+}
+function calScale(){
+  var ts=trendState();
+  if(!ts||ts.state==="none")return null;
+  if(ts.state==="dead"||ts.state==="gone")return {txt:"no recent weigh-in",rate:null,ok:false};
+  if(ts.state==="thin")return {txt:"too few weigh-ins",rate:null,ok:false};
+  if(ts.state==="flat")return {txt:"level",rate:0,ok:true};
+  var kg=(U()==="kg"),r=ts.rate*(kg?1/2.20462:1),v=Math.round(Math.abs(r)*10)/10;
+  return {txt:(r>0?"+":"-")+v+" "+wLbl()+" a week",rate:ts.rate,ok:true};
 }
 function calTone(){return calVerdict().tone;}
 function calStat(){
   var v=calVerdict();
   if(!v.enough)return v.n?("logged "+v.n+" of the last "+CAL_DAYS):null;
-  if(v.gap==null)return v.avg.toLocaleString();
-  if(Math.abs(v.gap)<CAL_BAND)return "at maintenance";
-  return Math.abs(v.gap)+(v.gap>0?" under":" over");
+  return calHead(v).n.toLocaleString();
+}
+function calHead(v){
+  v=v||calVerdict();
+  var y=Math.round(((S.nutrition||{})[yKey()]||{}).c||0);
+  return y>0?{n:y,day:true}:{n:v.avg,day:false};
+}
+function calSub(v){
+  v=v||calVerdict();
+  if(!v.enough)return "nothing logged in the last "+CAL_DAYS+" days";
+  var h=calHead(v);
+  return (h.day?"yesterday":"avg")+", "+v.n+" of "+v.windowDays+" days logged";
 }
 function calCardHTML(){
   var v=calVerdict(),nut=S.nutrition||{};
@@ -5498,18 +5512,14 @@ function calCardHTML(){
   }
   var vals=v.days.map(function(k){return Math.round(nut[k].c);});
   var labels=v.days.map(function(k,i){return (i===v.days.length-1)?"latest":"";});
-  var rate=(v.gap!=null&&v.gap>0)?(Math.round(v.gap*7/3500*10)/10):null;
-  var head=(v.gap==null)?"Averaging "+v.avg.toLocaleString()+" a day.":
-    (v.gap>=CAL_BAND?("You are <b>"+v.word+"</b>, about <b>"+v.gap+"</b> under maintenance"+(rate?(", which is roughly "+rate+" lb a week"):"")+"."):
-     v.gap<=-CAL_BAND?("You are <b>"+v.word+"</b>, about <b>"+Math.abs(v.gap)+"</b> over."):
-     "You are <b>at maintenance</b>, inside the "+CAL_BAND+" calorie band where the counting error lives.");
+  var head="Averaging <b>"+v.avg.toLocaleString()+"</b> a day over the days you logged.";
   var ps=v.days.filter(function(k){return nut[k].p>0;});
   var pAvg=ps.length?Math.round(ps.reduce(function(a,k){return a+nut[k].p;},0)/ps.length):0;
   var pt=proteinTarget();
   var cover='You logged <b>'+v.n+'</b> of the last <b>'+v.windowDays+'</b> days'+
     (v.from?(', '+fullDate(v.from)+' to '+fullDate(v.last)):'')+
     ', so this is what you logged rather than what you ate. Days you skip tend to be the bigger ones, '+
-    'which means a deficit read this way is a floor, not a ceiling.'+
+    'so the true number is higher than this one.'+
     (v.conf?'':' <b>Under '+CAL_MIN_CONF+' days is a provisional read</b>, which is why it is amber whatever the gap says.')+
     (v.stale?(' The most recent entry is <b>'+v.age+' days</b> old.'):'');
   var picture,pull;
@@ -5521,7 +5531,7 @@ function calCardHTML(){
     picture='<div class="card"><h3><span>Calories</span><span class="t">'+v.n+' of the last '+v.windowDays+' days</span></h3>'+
       v.days.map(function(k){
         var c=Math.round(nut[k].c),g=v.maint?(v.maint-c):null;
-        var tn=(g==null)?"flat":(g>=CAL_BAND?"good":g<=-CAL_BAND?"amber":"flat");
+        var tn="flat";
         var rag=(tn==="good")?"var(--good)":(tn==="amber")?"var(--amber)":"var(--sub)";
         var tint=(tn==="good")?"var(--good-tint)":(tn==="amber")?"var(--amber-tint)":"var(--surface-2)";
         return '<div class="weighrow" style="margin-top:8px">'+
@@ -5532,15 +5542,19 @@ function calCardHTML(){
   }
   return picture+
     '<div class="card" style="'+pull+'">'+
-    '<div class="pzhead" data-tone="'+v.verdictTone+'">'+
-      (v.gap>=CAL_BAND?"In a deficit.":v.gap<=-CAL_BAND?"Over maintenance.":"Holding at maintenance.")+'</div>'+
-    '<div class="pzline">Averaging <b>'+v.avg.toLocaleString()+'</b> a day against a maintenance of <b>'+
-      (v.maint?v.maint.toLocaleString():"--")+'</b>.</div>'+
+    '<div class="pzhead" data-tone="'+(v.tone||"flat")+'">'+
+      (function(){var h=calHead(v);return h.n.toLocaleString()+" kcal "+(h.day?"yesterday":"a day, average");})()+'</div>'+
+    '<div class="lmech" style="margin:2px 0 0">'+
+      '<div class="lmr"><span class="lmk">Daily average</span><span class="lmv num">'+v.avg.toLocaleString()+'<small> kcal</small></span></div>'+
+      '<div class="lmr"><span class="lmk">Maintenance, reference</span><span class="lmv num">'+
+        (v.maint?v.maint.toLocaleString():"&mdash;")+(v.maint?'<small> kcal</small>':'')+'</span></div>'+
+      (v.scale?('<div class="lmr tot"><span class="lmk">The scale, '+(v.scale.ok?"28 days":"lately")+'</span><span class="lmv num">'+v.scale.txt+'</span></div>'):'')+
+    '</div>'+
+    '<div class="ksub" style="margin-top:9px">The scale answers whether you are losing or gaining. This log cannot: photo counting runs 20 to 50 percent low, so the gap against maintenance is a reference, not a verdict.</div>'+
     calWindowRowHTML()+
     moreHTML("The detail",
       '<div class="pzline">'+head+' Maintenance is '+maintenanceBasis()+'.'+
-      (v.lastGap!=null?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>, '+
-        (v.lastGap>0?(v.lastGap+' under'):(Math.abs(v.lastGap)+' over'))+'.'):'')+
+      (v.lastCal?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>.'):'')+
       (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
       '<div class="foot" style="margin-top:10px">'+cover+'</div>')+'</div>';
 }
@@ -5833,10 +5847,6 @@ function stepsVerdict(){
   else if(pct>=12){head="Walking more than usual.";tone="good";}
   else {head="Holding your usual walking.";tone="flat";}
   return {tone:tone,head:head,val:w.avg,pct:pct,base:base};
-}
-function calGlance(){
-  var v=calVerdict();
-  return {val:v.enough?v.avg:null,tone:v.tone,n:v.n,stat:calStat()};
 }
 function weightVerdict(){
   var st=weightStats();
