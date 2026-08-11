@@ -700,19 +700,6 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .chero .lvlw{font-size:24px;font-weight:800;letter-spacing:-.01em;margin:1px 0 4px;color:var(--ink)}
 .chero .lvlw[data-k="base"]{color:var(--sub)}
 .chero .lvlsub{font-size:13px;color:var(--sub);line-height:1.35}
-.movoffer{display:flex;align-items:center;gap:11px;width:100%;min-height:56px;margin-top:12px;
-  padding:11px 13px;border:0;border-radius:12px;background:var(--surface-2);font:inherit;
-  color:inherit;text-align:left;cursor:pointer}
-.movoffer:active{background:var(--line)}
-.movoffer .moi{display:flex;width:32px;height:32px;flex:none;border-radius:9px;align-items:center;
-  justify-content:center;background:var(--accent-tint);color:var(--accent)}
-.movoffer .moi svg{width:15px;height:15px}
-.movoffer .mob{flex:1;min-width:0}
-.movoffer .mon{display:block;font-size:14px;font-weight:600}
-.movoffer .moc{display:block;font-size:12px;color:var(--faint);margin-top:1px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.movoffer .moa{color:var(--faint);flex:none}
-.movoffer .moa svg{width:14px;height:14px}
 .chero .lvlp{font-size:13px;font-weight:600;color:var(--sub);font-variant-numeric:tabular-nums}
 .chero .lvlp b{color:var(--ink);font-weight:800}
 [data-tier="base"]{--tier:#7C8794}
@@ -1257,6 +1244,8 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .odo2body .oseg{display:flex;background:var(--surface-2);border-radius:999px;padding:3px;margin-bottom:15px}
 .odo2body .oseg button{flex:1;height:44px;border:0;border-radius:999px;background:transparent;color:var(--sub);font-size:13px;font-weight:700}
 .odo2body .oseg button.on{background:var(--accent);color:var(--white)}
+.odo2body .oseg.omod{margin-bottom:8px}
+.odo2body .oseg.omod button.on{background:var(--surface);color:var(--ink)}
 .odo2body .octx{font-size:15px;font-weight:650;color:var(--ink);margin-bottom:6px}
 .odo2body .ospan{font-size:13px;font-weight:500;color:var(--sub);letter-spacing:0}
 .odo2body .oN{font-size:52px;font-weight:800;letter-spacing:-.045em;line-height:.92;color:var(--ink);font-variant-numeric:tabular-nums}
@@ -1675,6 +1664,17 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
   border-top:1px solid var(--line);color:var(--sub);font-size:15px;text-align:left}
 .srv2{display:inline-flex;align-items:center;gap:6px;color:var(--faint)}
 .srv2 svg{width:16px;height:16px}
+.mvwrap{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+.mvt{display:flex;flex-direction:column;align-items:center;gap:3px;min-height:74px;padding:10px 6px 9px;
+  background:var(--surface-2);border:0;border-radius:12px;text-align:center;color:var(--ink)}
+.mvt .mvi{display:block;line-height:0;color:var(--accent)}
+.mvt .mvi svg{width:15px;height:15px}
+.mvt .mvn{font-size:14px;font-weight:700;letter-spacing:-.01em}
+.mvt .mvs{font-size:11px;color:var(--faint)}
+.mvt .mvr{display:block;width:100%;height:2.5px;border-radius:2px;background:var(--line-2);overflow:hidden;margin-top:4px}
+.mvt .mvr i{display:block;height:100%;border-radius:2px;background:var(--sub)}
+.mvt.done .mvi{color:var(--good)}
+.mvt.done .mvr i{background:var(--good)}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1853,7 +1853,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v9.2";
+var VERSION="v9.3";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2355,7 +2355,16 @@ function load(){
     try{var v1=JSON.parse(localStorage.getItem("train_v1"));if(v1){var s=seed();s.weigh=v1.weigh||[];s.anchor=v1.anchor||{};s.done=v1.done||{};s.runs=v1.runs||{};return s;}}catch(e){}
     return seed();
   }
-  return Object.assign(seed(),raw);
+  return normaliseStore(Object.assign(seed(),raw));
+}
+function normaliseStore(st){
+  if(!st||!Array.isArray(st.sessions))return st;
+  st.sessions.forEach(function(x){
+    if(!x||x.type!=="lift")return;
+    if(!Array.isArray(x.entries))x.entries=[];
+    x.entries.forEach(function(en){if(en&&!Array.isArray(en.sets))en.sets=[];});
+  });
+  return st;
 }
 var saveWarned=false;
 function save(){invalidateDayIndex();try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
@@ -4069,7 +4078,7 @@ var RUN_RUNGS=[
   {jog:1500,walk:0,  reps:1},
   {jog:1800,walk:0,  reps:1}
 ];
-var RUN_WARM=300,RUN_COOL=300;
+var RUN_WARM=180,RUN_COOL=120;
 function runRungForLevel(lvl){return Math.max(0,Math.min(RUN_RUNGS.length-1,Math.floor((lvl-1)/2)));}
 function runVolumeOf(r,reps){return r.jog*(reps==null?r.reps:reps);}
 function runRecentPeakSec(){
@@ -4131,24 +4140,29 @@ function beginRun(mi){
 }
 function runSteps(s){
   var p=s.pres||runPrescription(false);
+  var mi=Number(s.tgt);if(!isFinite(mi)||mi<=0)mi=Number(runTargetMi())||0;
   var main=s.custom
     ? {role:"The run",title:"Your plan",note:esc(s.custom)}
     : {role:"The run",
-       title:(p.continuous?("Run easy, about "+Math.round(p.runSec/60)+" min")
-                          :(p.reps+" × "+mmss(p.jog)+" run, "+mmss(p.walk)+" walks")),
-       note:(p.continuous
-              ?"Unbroken and conversational. If you cannot say a full sentence, slow down."
-              :"Walk breaks are part of the session, not a failure of it. Let the watch carry the timing.")+
-            (p.why&&p.why.length?" Eased back because "+p.why.join(", and ")+".":"")};
+       title:runTypeName(p,s)+" &middot; "+mi.toFixed(1)+" mi",
+       note:"Start the watch and go. Conversational the whole way; if you cannot say a full "+
+            "sentence, slow down. Walk when you want, it still counts as one run, so leave "+
+            "auto-pause off."+
+            (p&&p.why&&p.why.length?" Eased back because "+p.why.join(", and ")+".":"")};
   return [
-    {role:"Get set",title:"Start the watch",note:"Open the Workout app or Pedometer and start an outdoor run. It does all the measuring. This screen only walks the plan."},
-    {role:"Warm up",title:"Walk, about "+Math.round(RUN_WARM/60)+" min",note:"Brisk. Nothing that feels like running yet.",
+    {role:"Warm up",title:"Walk, about "+Math.round(RUN_WARM/60)+" min",
+     note:"Brisk. Nothing that feels like running yet.",
      vid:pickForSlot("runwarm",0)},
     main,
-    {role:"Cool down",title:"Walk, about "+Math.round(RUN_COOL/60)+" min",note:"Part of the session, not the bit after it."},
-    {role:"Wrap up",title:"Stop the watch",note:"End the recording. Apple's own record lands here by tomorrow."},
-    {role:"Log it",title:"Log the run",note:"Punch in what the watch says. Today goes green the moment you save."}
+    {role:"Cool down and log",title:"Walk, about "+Math.round(RUN_COOL/60)+" min",
+     note:"Then punch in what the watch says. Today goes green the moment you save."}
   ];
+}
+function runTypeName(p,s){
+  if(p&&p.isLong)return "Long";
+  var t=(typeof nextRunTarget==="function")?nextRunTarget():null;
+  if(t&&t.restart)return "Ease back in";
+  return "Easy";
 }
 function runStepNext(){
   var s=runSess();if(!s)return;
@@ -4721,7 +4735,7 @@ function renderLift(){
       '<div class="meta">'+(isBW()?"bodyweight":equipLabel(sessionEquip()))+
         (easingIn()?' &middot; <b>ease-in</b>':'')+' &middot; nothing is owed today</div>'+
       planCardHTML()+
-      ((!scheduled||liftDone)?movementOfferHTML():'')+
+      movementTilesHTML()+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
       '</div>';
@@ -7542,21 +7556,22 @@ function vidLabel(t){
   var s=parts.length?parts[parts.length-1]:"";
   return s.replace(/\s*from Runna\s*$/i,"").trim()||"Guided session";
 }
-function movementOfferHTML(){
-  var tracks=["mobility","recovery","pilates"],names={mobility:"Mobility",recovery:"Stretch",pilates:"Pilates"};
-  var day=Math.floor(new Date(TODAY+"T12:00:00")/86400000);
-  for(var i=0;i<tracks.length;i++){
-    var t=tracks[(day+i)%tracks.length],l=ladderList(t);
-    if(!l.length)continue;
-    var v=l[ladderPos(t)%l.length];
-    if(!v||vDone(v.id))continue;
-    return '<button class="movoffer" onclick="movementPickSheet()">'+
-      '<span class="moi">'+I.play+'</span>'+
-      '<span class="mob"><span class="mon">'+esc(names[t])+' &middot; session '+v.lv+'</span>'+
-      '<span class="moc">'+esc(vidLabel(v.t))+'</span></span>'+
-      '<span class="moa">'+I.arrow+'</span></button>';
-  }
-  return "";
+function movementTilesHTML(){
+  var tracks=[["recovery","Stretch"],["mobility","Mobility"],["pilates","Pilates"]];
+  var cells=tracks.map(function(t){
+    var l=ladderList(t[0]);if(!l.length)return "";
+    var pos=ladderPos(t[0]),v=l[pos%l.length];if(!v)return "";
+    var pct=Math.max(3,Math.round(((pos%l.length)/l.length)*100));
+    var done=vDone(v.id);
+    return '<button class="mvt'+(done?" done":"")+'" onclick="movementPickSheet()" '+
+      'aria-label="'+esc(t[1])+', session '+v.lv+(done?", done today":"")+'">'+
+      '<span class="mvi">'+(done?I.check:I.play)+'</span>'+
+      '<span class="mvn">'+esc(t[1])+'</span>'+
+      '<span class="mvs">'+(done?"done":("Session "+v.lv))+'</span>'+
+      '<span class="mvr"><i style="width:'+pct+'%"></i></span></button>';
+  }).filter(Boolean);
+  if(cells.length<1)return "";
+  return '<div class="mvwrap">'+cells.join("")+'</div>';
 }
 function movementPickSheet(){
   var tracks=[["mobility","Mobility","Joints and range"],["recovery","Stretch","Lengthen and settle"],["pilates","Pilates","Core and control"]];
@@ -9220,6 +9235,14 @@ function levelDeltaHTML(L){
   return '<div class="ldelta" data-d="'+dl.dir+'"><span class="ldv num">'+sign+dl.d.toFixed(1)+'</span>'+
     '<span class="ldl">over 7 days &middot; '+w+'</span></div>';
 }
+function lastLiftDate(){var b=null;(S.sessions||[]).forEach(function(x){
+  if(x&&x.type==="lift"&&(!b||x.date>b))b=x.date;});return b;}
+function lastRunDate(){var b=null;(S.sessions||[]).forEach(function(x){
+  if(x&&x.type==="run"&&(!b||x.date>b))b=x.date;});return b;}
+function sessInLast(type,days){var d=new Date(NOW);d.setDate(d.getDate()-days+1);var k=keyOf(d);
+  return (S.sessions||[]).filter(function(x){return x&&x.type===type&&x.date>=k;}).length;}
+function liftsInLast(d){return sessInLast("lift",d);}
+function runsInLast(d){return sessInLast("run",d);}
 function levelMechanicsHTML(kind,L){
   var isLift=(kind==="lift");
   var unit=isLift?"lb":"mi";
@@ -9230,14 +9253,17 @@ function levelMechanicsHTML(kind,L){
   function fmt(v){return isLift?(v>=1000?(Math.round(v/100)/10)+"k":Math.round(v)+""):(Math.round(v*10)/10)+"";}
   var need=(rhythm>0&&mult>0)?(L.hi/(rhythm*mult))*(isLift?1000:1):null;
   var weeksOn=Math.round(rhythm>0?((rhythm-0.55)/0.45)*8:0);
+  var lastK=isLift?lastLiftDate():lastRunDate();
+  var gap=lastK?daysBetween(lastK,TODAY):null;
+  var freq=isLift?liftsInLast(28):runsInLast(28);
   return '<div class="lmech">'+
+    '<div class="lmr"><span class="lmk">Last '+(isLift?"lift":"run")+'</span><span class="lmv num">'+
+      (gap==null?"&mdash;":(gap===0?"today":(gap===1?"yesterday":(gap+'<small> days ago</small>'))))+'</span></div>'+
+    '<div class="lmr"><span class="lmk">'+(isLift?"Lifts":"Runs")+', last 4 weeks</span><span class="lmv num">'+freq+'</span></div>'+
     '<div class="lmr"><span class="lmk">Weekly '+(isLift?"tonnage":"mileage")+'</span><span class="lmv num">'+fmt(raw)+'<small> '+unit+'</small></span></div>'+
-    '<div class="lmr"><span class="lmk">Rhythm</span><span class="lmv num">&times;'+rhythm.toFixed(2)+'<small> '+(weeksOn>=8?"trained every week":("trained "+weeksOn+" of the last 8 weeks"))+'</small></span></div>'+
-    (mult>1.005?('<div class="lmr"><span class="lmk">Pace and long run</span><span class="lmv num">&times;'+mult.toFixed(2)+'<small> earned</small></span></div>'):'')+
-    '<div class="lmr tot"><span class="lmk">Level '+L.lvl+'</span><span class="lmv num">'+fmt(scored)+'<small> scored</small></span></div>'+
-    (need!=null?('<div class="lmr next"><span class="lmk">Level '+(L.lvl+1)+' needs</span><span class="lmv num">'+fmt(need)+'<small> '+unit+' a week</small></span></div>'):'')+
+    (need!=null?('<div class="lmr next tot"><span class="lmk">Level '+(L.lvl+1)+' needs</span><span class="lmv num">'+fmt(need)+'<small> '+unit+' a week</small></span></div>'):'')+
     '</div>'+
-    (weeksOn<8?('<div class="ksub" style="margin-top:9px">Every extra week you "+(isLift?"lift":"run")+" raises the multiplier, so consistency moves this faster than any single "+(isLift?"heavy session":"long run")+" does.</div>'):'');
+    (need!=null?'<div class="ksub" style="margin-top:9px">At your current consistency.</div>':'');
 }
 function levelToneOf(L,dl){
   if(!dl)return "flat";
@@ -9326,6 +9352,25 @@ function setOdo(p){
 }
 function hms(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
   return h?(h+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)):(m+":"+("0"+x).slice(-2));}
+var ODOM=(function(){try{return localStorage.getItem("train.odoMode")==="step"?"step":"run";}catch(e){return "run";}})();
+function setOdoMode(m){ODOM=(m==="step")?"step":"run";
+  try{localStorage.setItem("train.odoMode",ODOM);}catch(e){}
+  renderCardio();}
+function odoStepsHTML(d){
+  var sum=function(from,to){var t=0,n=0,dd,k;
+    for(var i=from;i>=to;i--){dd=new Date(NOW);dd.setDate(dd.getDate()-i);k=keyOf(dd);
+      var v=(S.steps||{})[k];if(v!=null){t+=v;n++;}}
+    return {t:t,n:n};};
+  var w=sum(6,0),m=sum(29,0);
+  var best=0,bestK=null;Object.keys(S.steps||{}).forEach(function(k){
+    if(S.steps[k]>best){best=S.steps[k];bestK=k;}});
+  var f=function(n){return Math.round(n).toLocaleString();};
+  return '<div class="octx">Steps &middot; <span class="ospan">from Apple Health, through yesterday</span></div>'+
+    '<div class="orow"><span class="ok">Last 7 days</span><span class="ov num">'+f(w.t)+'</span></div>'+
+    '<div class="orow"><span class="ok">Daily average, 7 days</span><span class="ov num">'+(w.n?f(w.t/w.n):"&mdash;")+'</span></div>'+
+    '<div class="orow"><span class="ok">Daily average, 28 days</span><span class="ov num">'+(m.n?f(m.t/m.n):"&mdash;")+'</span></div>'+
+    '<div class="orow"><span class="ok">Best day</span><span class="ov num">'+(bestK?(f(best)+'<small> '+shortDay(bestK)+'</small>'):"&mdash;")+'</span></div>';
+}
 function odoSummary(){
   var d=odoPeriod(ODOP);
   var mi=d.runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
@@ -9339,7 +9384,11 @@ function odoBodyHTML(){
   var seg=["w","all"].map(function(k){
     return '<button class="'+(k===ODOP?"on":"")+'" onclick="setOdo(\''+k+'\')">'+(k==="all"?"All":k.toUpperCase())+'</button>';}).join("");
   var span=odoSpan(d);
-  var body='<div class="oseg">'+seg+'</div>'+
+  var mseg='<div class="oseg omod">'+["run","step"].map(function(k){
+    return '<button class="'+(k===ODOM?"on":"")+'" onclick="setOdoMode(\''+k+'\')">'+
+      (k==="run"?"Running":"Steps")+'</button>';}).join("")+'</div>';
+  if(ODOM==="step")return mseg+odoStepsHTML(d);
+  var body=mseg+'<div class="oseg">'+seg+'</div>'+
     '<div class="octx">'+d.ctx+(span?' <span class="ospan">'+span+'</span>':'')+'</div>'+
     '<div class="oN">'+mi.toFixed(1)+'</div><div class="oU">Miles run</div>'+
     '<div class="orow">'+
@@ -9393,7 +9442,7 @@ function odoBodyHTML(){
 }
 function odoCardHTML(){
   if(!allRuns().length)return "";
-  return collapsible("Your running",'<span class="odosum">'+odoSummary()+'</span>',
+  return collapsible("Your cardio",'<span class="odosum">'+odoSummary()+'</span>',
     '<div class="odo2body odowrap">'+odoBodyHTML()+'</div>',false,I.gauge,kpiDir("miles"));
 }
 function renderCardio(){
