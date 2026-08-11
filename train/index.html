@@ -1675,6 +1675,10 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .mvt .mvr i{display:block;height:100%;border-radius:2px;background:var(--sub)}
 .mvt.done .mvi{color:var(--good)}
 .mvt.done .mvr i{background:var(--good)}
+.gcage{margin-left:6px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--faint);
+  background:var(--surface-2);border-radius:999px;padding:2px 6px;vertical-align:1px}
+.gcage.warn{color:var(--amber);background:var(--amber-tint)}
+.gcage.bad{color:var(--accent);background:var(--accent-tint)}
 .conscard{padding:15px 16px 14px}
 .consh{display:flex;align-items:baseline;margin-bottom:10px}
 .consh .const{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
@@ -1853,7 +1857,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v9.3";
+var VERSION="v9.4";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4909,13 +4913,21 @@ function sparkSVG(pts,tone){
     (last>=0?'<circle class="gsd" cx="'+x(last).toFixed(1)+'" cy="'+y(pts[last]).toFixed(2)+'" r="2.2"/>':"")+
     '</svg>';
 }
-function glanceChip(label,val,sub,tone,spark,readout,act){
+function ageStamp(name){
+  var f=null;freshness().forEach(function(x){if(x.n===name)f=x;});
+  if(!f)return "";
+  if(f.age==null)return '<span class="gcage bad">never</span>';
+  var cls=(f.age>=f.bad)?"bad":((f.age>=f.warn)?"warn":"");
+  var txt=(f.age===0)?"today":(f.age===1?"1d":(f.age+"d"));
+  return '<span class="gcage '+cls+'">'+txt+'</span>';
+}
+function glanceChip(label,val,sub,tone,spark,readout,act,ageOf){
   if(val==null)return "";
   var tag=act?"button":"div";
   return '<'+tag+' class="gch'+(act?" tapp":"")+'" data-tone="'+tone+'"'+
     (act?' onclick="'+act+'" aria-label="'+esc(label)+', open detail"':'')+
     (readout?' data-r="'+esc(readout)+'"':'')+'>'+
-    '<span class="gcl">'+label+(act?'<span class="gcarr">'+I.arrow+'</span>':'')+'</span>'+
+    '<span class="gcl">'+label+(ageOf?ageStamp(ageOf):'')+(act?'<span class="gcarr">'+I.arrow+'</span>':'')+'</span>'+
     '<span class="gcv num">'+(val==null?"&mdash;":val)+'</span>'+
     '<span class="gcs">'+(val==null?"no data":sub)+'</span>'+
     ((val!=null&&spark)?spark:'')+'</'+tag+'>';
@@ -4932,29 +4944,30 @@ function trackGlanceHTML(){
     slTr.tone||"none",
     sparkSVG(rollSeries(slGet,1,"last",28,1),slTr.tone),
     slLastV?("Sleep, each of the last 28 nights. Last night "+hrsTxt(slLastV)+"."):null,
-    "metricSheet('sleep')");
+    "metricSheet('sleep')","Sleep");
   var stv=stepsVerdict(),w=stepsAvgOver(7);
   var stGet=function(k){return (S.steps||{})[k]||null;};
   out+=glanceChip("Steps",w?((w.avg/1000).toFixed(1)+"k"):null,
     (stv.base?((stv.pct>0?"+":"")+stv.pct+"% vs year"):"7 days"),stv.tone||"none",
     sparkSVG(rollSeries(stGet,7,"mean",12,7),stv.tone),
     w?("Steps a day, 7-day average, sampled weekly across 12 weeks. Now "+w.avg.toLocaleString()+"."):null,
-    "metricSheet('steps')");
+    "metricSheet('steps')","Steps");
   var cv=calVerdict();
   var calGet=function(k){var n=(S.nutrition||{})[k];return (n&&n.c)?n.c:null;};
   out+=glanceChip("Calories",calStat(),
     cv.enough?(cv.avg.toLocaleString()+" a day"):("log a few days and this reads a rate"),cv.tone||"none",
     sparkSVG(rollSeries(calGet,CAL_DAYS,"mean",12,7),cv.tone),
     cv.enough?("Calories a day, "+CAL_DAYS+"-day average, sampled weekly across 12 weeks."):null,
-    "metricSheet('cal')");
+    "metricSheet('cal')","Nutrition");
   var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
   var rhrMap={};vitalDays("rhr").forEach(function(p){rhrMap[p.d]=p.v;});
   var rhrGet=function(k){return rhrMap[k]==null?null:rhrMap[k];};
-  var rhrTone=(rw&&ry)?((rw.med-ry.med>=5)?"red":(rw.med-ry.med>=2)?"amber":(rw.med-ry.med<=-3)?"good":"flat"):"none";
-  out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,ry?("year "+Math.round(ry.med)):"28 days",rhrTone,
+  var _ry=rhrYearAgo();
+  var rhrTone=(rw&&_ry!=null)?((rw.med-_ry>=5)?"red":(rw.med-_ry>=2)?"amber":(rw.med-_ry<=-3)?"good":"flat"):"none";
+  out+=glanceChip("Resting HR",rw?Math.round(rw.med):null,(function(){var y=rhrYearAgo();return y!=null?("was "+Math.round(y)+" a year ago"):"28-day median";})(),rhrTone,
     sparkSVG(rollSeries(rhrGet,28,"med",12,28),rhrTone),
     rw?("Resting heart rate, 28-day median, sampled across the last year. Now "+Math.round(rw.med)+"."):null,
-    "metricSheet('rhr')");
+    "metricSheet('rhr')","Vitals");
   var bm=bmi();
   var h=S.profile.heightIn,wMap={};
   trendSeries().forEach(function(p){wMap[p.date]=p.v;});
@@ -4962,12 +4975,12 @@ function trackGlanceHTML(){
   out+=glanceChip("BMI",bm?bm.toFixed(1):null,bm?bmiBand(bm).w:"needs a weigh-in","flat",
     sparkSVG(rollSeries(bmiGet,14,"mean",12,7),"flat"),
     bm?("BMI from the weigh-in trend, 12 weeks. Now "+bm.toFixed(1)+", "+bmiBand(bm).w+"."):null,
-    "metricSheet('bmi')");
+    "metricSheet('bmi')","Weigh-ins");
   var m=weekMetrics(0);
   out+=glanceChip("Miles run",m?m.miles.toFixed(1):null,"this week",(m&&m.miles>0)?"good":"flat",
     sparkSVG(weekSeries("miles"),(m&&m.miles>0)?"good":"flat"),
     m?("Run miles a week, last 12 weeks. This week "+m.miles.toFixed(1)+"."):null,
-    "metricSheet('miles')");
+    "metricSheet('miles')","Sessions");
   return '<div class="glance">'+out+'</div>';
 }
 function trackDashHTML(){
@@ -5359,6 +5372,12 @@ function freshness(){
             hint:S.profile.lastBackup?("last saved "+S.profile.lastBackup):"never exported"});
   out.push({n:"Steps",age:lastS?daysBetween(lastS,TODAY):null,warn:4,bad:10,fix:"healthChoiceSheet()",
             hint:sk.length?(sk.length+" days imported"):"needs an Apple Health export",pending:!sk.length});
+  var slk=Object.keys(S.sleep||{}).sort(),lastSl=slk.length?slk[slk.length-1]:null;
+  out.push({n:"Sleep",age:lastSl?daysBetween(lastSl,TODAY):null,warn:4,bad:10,fix:"healthChoiceSheet()",
+            hint:slk.length?(slk.length+" nights imported"):"needs an Apple Health export",pending:!slk.length});
+  var vk=Object.keys(S.vitals||{}).sort(),lastV=vk.length?vk[vk.length-1]:null;
+  out.push({n:"Vitals",age:lastV?daysBetween(lastV,TODAY):null,warn:4,bad:10,fix:"healthChoiceSheet()",
+            hint:vk.length?(vk.length+" days imported"):"needs an Apple Health export",pending:!vk.length});
   return out;
 }
 function freshnessHTML(){
