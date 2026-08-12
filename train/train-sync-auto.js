@@ -20,8 +20,8 @@
       + '<div style="font-size:17px;font-weight:800;margin-bottom:4px">Sync this device</div>'
       + '<div style="font-size:13px;color:#aab3c0;margin-bottom:14px;line-height:1.4">Enter your Train passphrase once. Your workouts and weigh-ins then sync across every device.</div>'
       + '<input id="tsync-pass" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="passphrase" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #2a313b;background:#0e1116;color:#fff;font-size:15px;margin-bottom:12px">'
-      + '<button id="tsync-go" style="width:100%;padding:12px;border:0;border-radius:10px;background:#e0592e;color:#fff;font-size:15px;font-weight:700">Sync</button>'
-      + '<button id="tsync-skip" style="width:100%;padding:10px;border:0;border-radius:10px;background:transparent;color:#8a93a0;font-size:13px;margin-top:6px">Not now</button></div>';
+      + '<button id="tsync-go" style="width:100%;min-height:44px;padding:12px;border:0;border-radius:10px;background:#e0592e;color:#fff;font-size:15px;font-weight:700">Sync</button>'
+      + '<button id="tsync-skip" style="width:100%;min-height:44px;padding:12px 10px;border:0;border-radius:10px;background:transparent;color:#8a93a0;font-size:13px;margin-top:6px">Not now</button></div>';
     document.body.appendChild(wrap);
     var inp = wrap.querySelector("#tsync-pass");
     function done() { var v = (inp.value || "").trim(); if (!v) { inp.focus(); return; } setToken(v); if (wrap.parentNode) wrap.parentNode.removeChild(wrap); overlayShown = false; cb(); }
@@ -185,6 +185,17 @@
     });
   }
 
+  var reloadedOnce = false;
+  function reloadOnce() {
+    if (reloadedOnce) return;
+    var seen = false;
+    try { seen = !!sessionStorage.getItem("train.reloaded"); } catch (e) {}
+    if (seen) { reloadedOnce = true; return; }
+    reloadedOnce = true;
+    try { sessionStorage.setItem("train.reloaded", "1"); } catch (e) {}
+    try { global.location.reload(); } catch (e) {}
+  }
+
   function pullAndMerge() {
     var t = getToken(); if (!t) return Promise.resolve();
     return fetch(EP + "/pull", { headers: { "Authorization": "Bearer " + t } })
@@ -195,7 +206,7 @@
         if (!S) {
           if ((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length) || srv.progressState) {
             S = bootstrapFromServer(srv); saveState(S); lastSnap = "";
-            if (!sessionStorage.getItem("train.reloaded")) { sessionStorage.setItem("train.reloaded", "1"); global.location.reload(); }
+            reloadOnce();
           }
           return;
         }
@@ -265,10 +276,7 @@
         lastSnap = "";
         if (after !== before) {
           saveState(S);
-          if (!sessionStorage.getItem("train.reloaded")) {
-            sessionStorage.setItem("train.reloaded", "1");
-            global.location.reload();
-          }
+          reloadOnce();
         }
       })
       .catch(function (e) { mark(false, "pull " + (e && e.message)); });

@@ -1816,7 +1816,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v10.1";
+var VERSION="v10.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -6897,7 +6897,13 @@ function setAdjSw(btn){
   if(btn){btn.classList.toggle("on",!!S.profile.adjustable);btn.setAttribute("aria-checked",S.profile.adjustable?"true":"false");}
 }
 function forceUpdate(){
-  var done=function(){try{location.replace(location.pathname+"?u="+Date.now());}catch(e){location.reload();}};
+  var fired=false,timer=null;
+  var done=function(){
+    if(fired)return;
+    fired=true;
+    if(timer)clearTimeout(timer);
+    try{location.replace(location.pathname+"?u="+Date.now());}catch(e){location.reload();}
+  };
   try{
     var jobs=[];
     if(window.caches&&caches.keys)jobs.push(caches.keys().then(function(k){return Promise.all(k.map(function(n){return caches.delete(n);}));}));
@@ -6905,7 +6911,7 @@ function forceUpdate(){
       jobs.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));}));
     if(!jobs.length){done();return;}
     Promise.all(jobs).then(done).catch(done);
-    setTimeout(done,2500);
+    timer=setTimeout(done,2500);
   }catch(e){done();}
 }
 function settingsBodyHTML(){
