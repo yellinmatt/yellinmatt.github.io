@@ -3481,6 +3481,10 @@ function changeSheet(){
   o+=optRow(I.run,"Easy run &middot; 2 mi","Zone-2 base","setToday('run2')");
   o+=optRow(I.run,"Easy run &middot; 3 mi","The longer one","setToday('run3')");
 
+  o+=swapGroupHTML("The watch missed it");
+  o+=optRow(I.run,"Add a walk","Only when the watch did not record it","actSheet('walk')");
+  o+=optRow(I.run,"Add a run","Only when the watch did not record it","actSheet('run')");
+
   o+=swapGroupHTML("Recover, guided");
   [["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]].forEach(function(t){
     var l=ladderList(t[0]);if(!l.length)return;
@@ -7337,8 +7341,6 @@ function bwHeroHTML(){
     (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
       '<button class="big-start'+(resuming&&wp.total?" hasfill":"")+'"'+(resuming&&wp.total?(' style="--fill:'+(wp.done/wp.total).toFixed(3)+'"'):'')+
       ' onclick="startWorkout()">'+I.play+' '+(resuming?("Resume &middot; "+wp.done+"/"+wp.total+" sets"):"Start workout")+'</button>')+
-    '<button class="recwalk" onclick="startRun()">'+I.run+' Or go for a run</button>'+
-    '<button class="recwalk" onclick="actSheet(\'walk\')">'+I.run+' Or log a walk</button>'+
     heroTailHTML()+'</div>';
 }
 function heroTailHTML(){
