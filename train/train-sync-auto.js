@@ -60,7 +60,26 @@
       soreUpdatedAt: stampedAt("sore", S.sore || {}),
       bwLev: S.bwLev || {},
       bwLevUpdatedAt: stampedAt("bwLev", S.bwLev || {}),
+      capTest: Array.isArray(S.capTest) ? S.capTest : [],
+      pedo: S.pedo && typeof S.pedo === "object" ? S.pedo : {},
+      pedoUpdatedAt: stampedAt("pedo", S.pedo || {}),
+      pedoMeta: S.pedoMeta || null,
+      cardioTick: S.cardioTick && typeof S.cardioTick === "object" ? S.cardioTick : {},
+      cardioTickUpdatedAt: stampedAt("cardioTick", S.cardioTick || {}),
+      hardDays: S.hardDays && typeof S.hardDays === "object" ? S.hardDays : {},
+      roundsCfg: { base: (typeof S.roundsBase === "number" ? S.roundsBase : null),
+                   adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null },
+      roundsCfgUpdatedAt: stampedAt("roundsCfg",
+        { base: (typeof S.roundsBase === "number" ? S.roundsBase : null),
+          adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null }),
     };
+  }
+  function unionCapTest(a, b) {
+    var m = {}, out = [], i, t, k;
+    for (i = 0; i < (a || []).length; i++) { t = a[i]; if (t && t.date) { k = t.date + "|" + (t.fam ? 1 : 0); if (!m[k]) { m[k] = 1; out.push(t); } } }
+    for (i = 0; i < (b || []).length; i++) { t = b[i]; if (t && t.date) { k = t.date + "|" + (t.fam ? 1 : 0); if (!m[k]) { m[k] = 1; out.push(t); } } }
+    out.sort(function (x, y) { return String(x.date) < String(y.date) ? -1 : 1; });
+    return out;
   }
   var STAMP_KEY = "train.syncStamps";
   var HEALTH_KEY = "train.syncHealth";
@@ -166,7 +185,7 @@
     var t = getToken(); if (!t) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) { if (r.ok) { lastSnap = snap; mark(true); } else { onUnauthorized(r.status); mark(false, "push " + r.status); } })
@@ -267,6 +286,30 @@
           S.bwLev = srv.bwLev;
           bumpStamp("bwLev", S.bwLev, Number(srv.bwLevUpdatedAt));
         }
+        S.capTest = unionCapTest(S.capTest, srv.capTest);
+        S.hardDays = mergeDone(S.hardDays || {}, srv.hardDays || {});
+        if (srv.pedo && typeof srv.pedo === "object" && !Array.isArray(srv.pedo) &&
+            Number(srv.pedoUpdatedAt || 0) > stampedAt("pedo", S.pedo || {})) {
+          S.pedo = srv.pedo;
+          bumpStamp("pedo", S.pedo, Number(srv.pedoUpdatedAt));
+        }
+        if (!S.pedoMeta && srv.pedoMeta) S.pedoMeta = srv.pedoMeta;
+        if (srv.cardioTick && typeof srv.cardioTick === "object" && !Array.isArray(srv.cardioTick) &&
+            Number(srv.cardioTickUpdatedAt || 0) > stampedAt("cardioTick", S.cardioTick || {})) {
+          S.cardioTick = srv.cardioTick;
+          bumpStamp("cardioTick", S.cardioTick, Number(srv.cardioTickUpdatedAt));
+        }
+        if (srv.roundsCfg && typeof srv.roundsCfg === "object" &&
+            Number(srv.roundsCfgUpdatedAt || 0) > stampedAt("roundsCfg",
+              { base: (typeof S.roundsBase === "number" ? S.roundsBase : null),
+                adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null })) {
+          if (typeof srv.roundsCfg.base === "number") S.roundsBase = srv.roundsCfg.base;
+          S.roundsAdaptDay = srv.roundsCfg.adaptDay || S.roundsAdaptDay;
+          S.wchartWin = srv.roundsCfg.wchartWin || null;
+          bumpStamp("roundsCfg", { base: (typeof S.roundsBase === "number" ? S.roundsBase : null),
+            adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null },
+            Number(srv.roundsCfgUpdatedAt));
+        }
         if (srv.progressState && !hasLocalProg) S.progress = srv.progressState;
         else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
           S.progress = srv.progressState; bumpStamp("progress", S.progress, Number(srv.progressUpdatedAt));
@@ -303,7 +346,17 @@
       vetted: (srv.vetted && typeof srv.vetted === "object") ? srv.vetted : {},
       deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
       weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
-      planPos: 0, override: {}, activeMode: "plan", genWk: null };
+      planPos: 0, override: {}, activeMode: "plan", genWk: null,
+      capTest: Array.isArray(srv.capTest) ? srv.capTest : [],
+      pedo: (srv.pedo && typeof srv.pedo === "object") ? srv.pedo : {},
+      pedoMeta: srv.pedoMeta || null,
+      cardioTick: (srv.cardioTick && typeof srv.cardioTick === "object") ? srv.cardioTick : {},
+      hardDays: (srv.hardDays && typeof srv.hardDays === "object") ? srv.hardDays : {} };
+    if (srv.roundsCfg && typeof srv.roundsCfg === "object") {
+      if (typeof srv.roundsCfg.base === "number") S.roundsBase = srv.roundsCfg.base;
+      if (srv.roundsCfg.adaptDay) S.roundsAdaptDay = srv.roundsCfg.adaptDay;
+      if (srv.roundsCfg.wchartWin) S.wchartWin = srv.roundsCfg.wchartWin;
+    }
     S.sessions.forEach(function (s) { if (s && s.date) S.done[s.date] = true; });
     return S;
   }
