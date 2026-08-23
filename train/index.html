@@ -462,6 +462,19 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .bwrap.tall .bcol .bv{font-size:13px;min-height:15px;letter-spacing:0}
 .bwrap.tall .bcol .bx{font-size:13px;min-height:14px;white-space:nowrap}
 .bbase{height:1px;background:var(--line);margin-top:-14px;position:relative;z-index:0}
+.bwrap.tall .bbase{margin-top:-19px}
+.octx.ostep{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.octx.ostep .oarw{display:flex;align-items:center;justify-content:center;width:44px;height:44px;
+  margin:-11px 0;color:var(--faint);border-radius:10px;flex:none}
+.octx.ostep .oarw svg{width:17px;height:17px}
+.octx.ostep .oarw:active{background:var(--surface-2);color:var(--ink)}
+.octx.ostep .oarw[disabled]{opacity:.28;pointer-events:none}
+.octx.ostep .onow{display:flex;flex-direction:column;align-items:center;gap:1px;flex:1 1 0;min-width:0;
+  padding:5px 4px;border-radius:10px;font:inherit;color:inherit}
+.octx.ostep .onow:active{background:var(--surface-2)}
+.octx.ostep .obk{font-size:13px;font-weight:700;color:var(--accent);letter-spacing:.01em}
+.octx.ostep .ospan{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.octx.ostep .ospannow{flex:1 1 0;text-align:center;min-width:0}
 .brow{display:flex;align-items:flex-end;gap:4px;min-height:calc(var(--bh) + 34px)}
 .bcol{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
 .bcol i{display:block;width:70%;border-radius:3px 3px 2px 2px;background:var(--surface-2)}
@@ -1252,6 +1265,10 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .rnd .mrtrack{stroke:var(--line)}
 .rnd .ahow,.ctick .ahow{margin:-11px 0 -11px -4px}
 .rndctl{display:flex;gap:8px;margin:2px 0 12px}
+.arow[data-band="orange"]{box-shadow:inset 3px 0 0 var(--warn)}
+.arow[data-band="red"]{box-shadow:inset 3px 0 0 var(--bad)}
+.rndctl[data-band="orange"] button:last-child{border-color:var(--warn);color:var(--warn)}
+.rndctl[data-band="red"] button:last-child{border-color:var(--bad);color:var(--bad)}
 .rndctl button{flex:1;min-height:48px;border:1px dashed var(--line-2);border-radius:var(--r-card);
   background:none;color:var(--sub);font-size:14px;font-weight:600;cursor:pointer}
 .rndctl button:active{background:var(--surface-2)}
@@ -1566,7 +1583,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v11.0";
+var VERSION="v12.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1602,6 +1619,25 @@ run:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="14.2" c
 };
 
 var LIB={
+  hspuwall:{name:"Wall handstand push-up",pattern:"v-push",equip:"BW",bw:true,bwl:0.95,diff:"advanced",cue:"heels on the wall, head to the floor, pain-free range only",q:"wall handstand push up form"},
+  sissy:{name:"Sissy squat",pattern:"squat",equip:"BW",bw:true,bwl:0.60,diff:"advanced",cue:"knees travel forward, hips stay extended, hold something",q:"sissy squat form"},
+  slhipthrust:{name:"Single-leg hip thrust",pattern:"hinge",equip:"BW",bw:true,side:true,bwl:0.70,diff:"intermediate",cue:"shoulders on the couch, ribs down, drive to level",q:"single leg hip thrust form"},
+  slidecurl:{name:"Sliding leg curl",pattern:"hinge",equip:"BW",bw:true,bwl:0.65,diff:"intermediate",cue:"heels on a towel, hips up, pull them in",q:"slider hamstring curl form"},
+  slidecurl2:{name:"Sliding leg curl, both legs",pattern:"hinge",equip:"BW",bw:true,bwl:0.40,diff:"beginner",cue:"hips stay up the whole way",q:"towel hamstring curl beginner"},
+  benchdip:{name:"Bench dip",pattern:"h-push",equip:"BW",bw:true,bwl:0.50,diff:"beginner",cue:"hands on the edge, elbows straight back, shoulders down",q:"bench dip form"},
+  dipbar:{name:"Parallel-bar dip",pattern:"h-push",equip:"BW",bw:true,bwl:1.00,diff:"advanced",cue:"lean slight forward, stop where the shoulder is comfortable",q:"parallel bar dip form"},
+  ohextend:{name:"Overhead extension on a table edge",pattern:"isolation",equip:"BW",bw:true,bwl:0.50,diff:"intermediate",cue:"hands on the edge, upper arms beside the ears, hinge at the elbow only",q:"bodyweight overhead triceps extension"},
+  pushnarrowhigh:{name:"Close-grip push-up, hands raised",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on a chair, elbows brush the ribs",q:"elevated close grip push up"},
+  pushkneenarrow:{name:"Knee close-grip push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down is still a push-up, elbows in",q:"knee close grip push up"},
+  ringcurl:{name:"Bodyweight curl on a strap",pattern:"isolation",equip:"BW",bw:true,bwl:0.55,diff:"intermediate",cue:"elbows fixed and high, curl yourself up",q:"bodyweight bicep curl strap"},
+  abwheel:{name:"Ab roll-out",pattern:"core",equip:"BW",bw:true,bwl:0.60,diff:"advanced",cue:"ribs down, do not let the low back arch",q:"ab wheel rollout form"},
+  pullarcher:{name:"Archer pull-up",pattern:"v-pull",equip:"bar",bw:true,bwl:1.15,diff:"advanced",cue:"pull to one hand, the other arm stays long",q:"archer pull up form"},
+  calfstand:{name:"Single-leg calf raise",pattern:"squat",equip:"BW",bw:true,side:true,bwl:1.00,diff:"beginner",cue:"off a step, full stretch at the bottom, pause at the top",q:"single leg calf raise off step"},
+  calfstand2:{name:"Calf raise",pattern:"squat",equip:"BW",bw:true,bwl:0.85,diff:"beginner",cue:"both feet, hand on a wall, full stretch",q:"standing calf raise bodyweight"},
+  calfseated:{name:"Bent-knee calf raise",pattern:"squat",equip:"BW",bw:true,bwl:0.55,diff:"beginner",cue:"kneeling or seated, knee bent about 90, this one is the soleus",q:"seated calf raise bodyweight"},
+  calfpause:{name:"Paused calf raise",pattern:"squat",equip:"BW",bw:true,side:true,bwl:1.00,diff:"intermediate",cue:"three seconds in the stretch before every rep",q:"paused calf raise"},
+  backext:{name:"Prone back extension",pattern:"hinge",equip:"BW",bw:true,bwl:0.30,diff:"beginner",cue:"pelvis and thighs stay down, lift the chest a few inches",q:"prone back extension form"},
+  towelhang:{name:"Towel hang",pattern:"v-pull",equip:"bar",bw:true,bwl:0.35,diff:"intermediate",cue:"support grip only, hang until the hands say stop",q:"towel hang grip training"},
   goblet:{name:"Goblet squat",pattern:"squat",equip:"DB",diff:"beginner",cue:"chest tall, sit between hips",q:"goblet squat proper form"},
   revlunge:{name:"DB reverse lunge",pattern:"squat",equip:"DB",side:true,diff:"beginner",cue:"step back, front heel drives up",q:"dumbbell reverse lunge form"},
   bulgarian:{name:"Bulgarian split squat",pattern:"squat",equip:"DB",side:true,diff:"intermediate",cue:"rear foot elevated, torso tall",q:"bulgarian split squat home form"},
@@ -1609,7 +1645,7 @@ var LIB={
   rdl:{name:"DB Romanian deadlift",pattern:"hinge",equip:"DB",diff:"beginner",cue:"chin tucked, hips back, soft knees",q:"dumbbell romanian deadlift form"},
   slrdl:{name:"Single-leg RDL",pattern:"hinge",equip:"DB",side:true,diff:"intermediate",cue:"hips square, slow and controlled",q:"single leg romanian deadlift dumbbell"},
   hipthrust:{name:"DB hip thrust",pattern:"hinge",equip:"DB",diff:"beginner",cue:"ribs down, squeeze glutes, spare the back",q:"dumbbell hip thrust form"},
-  glutebridge:{name:"Glute bridge",pattern:"hinge",equip:"BW",bw:true,diff:"beginner",cue:"posterior tilt, pause at top",q:"glute bridge exercise form"},
+  glutebridge:{name:"Glute bridge",pattern:"hinge",equip:"BW",bwl:0.3,bw:true,diff:"beginner",cue:"posterior tilt, pause at top",q:"glute bridge exercise form"},
   floorpress:{name:"DB floor press",pattern:"h-push",equip:"DB",diff:"beginner",cue:"elbows ~45, floor caps ROM (shoulder-safe)",q:"dumbbell floor press form"},
   dbbench:{name:"DB bench press",pattern:"h-push",equip:"DB",diff:"beginner",cue:"flat bench, elbows ~45, full ROM, feet down",q:"dumbbell bench press form"},
   barbench:{name:"Barbell bench press",pattern:"h-push",equip:"bar",diff:"intermediate",cue:"shoulder blades pinned, bar to sternum, no bounce",q:"barbell bench press form"},
@@ -1625,27 +1661,26 @@ var LIB={
   csrow:{name:"Chest-supported DB row",pattern:"h-pull",equip:"DB",diff:"beginner",cue:"no lower-back load, retract",q:"chest supported dumbbell row"},
   bandrow:{name:"Band seated row",pattern:"h-pull",equip:"band",bw:true,diff:"beginner",cue:"squeeze blades, tall chest",q:"resistance band seated row"},
   tablerow:{name:"Table row",pattern:"h-pull",equip:"none",bw:true,diff:"beginner",cue:"under a sturdy table, heels down, chest to edge",q:"table row bodyweight back"},
-  invrow:{name:"Inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"intermediate",cue:"body straight, chest to bar",q:"inverted row home form"},
+  invrow:{name:"Inverted row",pattern:"h-pull",equip:"bar",bwl:0.55,bw:true,diff:"intermediate",cue:"body straight, chest to bar",q:"inverted row home form"},
   pullup:{name:"Pull-up (assisted)",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"full hang, no neck cranking",q:"band assisted pull up form"},
   bandpulldown:{name:"Band lat pulldown",pattern:"v-pull",equip:"band",bw:true,diff:"beginner",cue:"pull to collarbone, no shrug",q:"band lat pulldown form"},
-  deadhang:{name:"Dead hang",pattern:"v-pull",equip:"bar",bw:true,unit:"s",diff:"beginner",cue:"decompress, grip, shoulder reset",q:"dead hang benefits how to"},
+  deadhang:{name:"Dead hang",pattern:"v-pull",equip:"bar",bwl:0.35,bw:true,unit:"s",diff:"beginner",cue:"decompress, grip, shoulder reset",q:"dead hang benefits how to"},
   deadbug:{name:"Dead bug",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"ribs down, low back flat",q:"dead bug exercise form"},
-  sideplank:{name:"Side plank",pattern:"core",equip:"BW",bw:true,unit:"s",side:true,diff:"beginner",cue:"stack hips, anti-lateral flexion",q:"side plank proper form"},
+  sideplank:{name:"Side plank",pattern:"core",equip:"BW",bwl:0.4,bw:true,unit:"s",side:true,diff:"beginner",cue:"stack hips, anti-lateral flexion",q:"side plank proper form"},
   suitcase:{name:"Suitcase carry",pattern:"core",equip:"DB",side:true,unit:"s",diff:"beginner",cue:"don't lean, brace hard",q:"suitcase carry exercise"},
   pallof:{name:"Pallof press",pattern:"core",equip:"band",bw:true,side:true,diff:"beginner",cue:"resist rotation, ribs down",q:"pallof press band form"},
   facepull:{name:"Band face pull",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"elbows high, external rotate (shoulder health)",q:"band face pull form"},
   pullapart:{name:"Band pull-apart",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"straight arms, squeeze the shoulder blades, chin tucked",q:"band pull apart form"},
   latraise:{name:"DB lateral raise",pattern:"isolation",equip:"DB",diff:"beginner",cue:"soft elbows, lead with the elbow, stop at shoulder height, no shrug",q:"dumbbell lateral raise form"},
-  ytw:{name:"Prone Y-T-W raises",pattern:"isolation",equip:"BW",bw:true,diff:"beginner",cue:"thumbs up, low traps, no neck",q:"prone y t w raises shoulder"},
-  bwsquat:{name:"Bodyweight squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"sit between hips, chest tall, full depth",q:"bodyweight squat proper form"},
-  bwsplit:{name:"Split squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"tall torso, front heel drives, controlled",q:"bodyweight split squat form"},
+  ytw:{name:"Prone Y-T-W raises",pattern:"isolation",equip:"BW",bwl:0.12,bw:true,diff:"beginner",cue:"thumbs up, low traps, no neck",q:"prone y t w raises shoulder"},
+  bwsquat:{name:"Bodyweight squat",pattern:"squat",equip:"BW",bwl:0.45,bw:true,diff:"beginner",cue:"sit between hips, chest tall, full depth",q:"bodyweight squat proper form"},
+  bwsplit:{name:"Split squat",pattern:"squat",equip:"BW",bwl:0.7,bw:true,side:true,diff:"beginner",cue:"tall torso, front heel drives, controlled",q:"bodyweight split squat form"},
   bwlunge:{name:"Reverse lunge",pattern:"squat",equip:"BW",bw:true,side:true,diff:"beginner",cue:"step back, control the way down",q:"bodyweight reverse lunge form"},
-  pikepush:{name:"Pike push-up",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
-  sglutebridge:{name:"Single-leg glute bridge",pattern:"hinge",equip:"BW",bw:true,side:true,diff:"beginner",cue:"hips level, drive through the heel",q:"single leg glute bridge form"},
+  pikepush:{name:"Pike push-up",pattern:"v-push",neck:true,equip:"BW",bwl:0.62,bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
+  sglutebridge:{name:"Single-leg glute bridge",pattern:"hinge",equip:"BW",bwl:0.5,bw:true,side:true,diff:"beginner",cue:"hips level, drive through the heel",q:"single leg glute bridge form"},
   birddog:{name:"Bird dog",pattern:"core",equip:"BW",bw:true,side:true,diff:"beginner",cue:"reach long, no hip rock, brace",q:"bird dog exercise form"},
-  plank:{name:"Front plank",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"},
+  plank:{name:"Front plank",pattern:"core",equip:"BW",bwl:0.35,bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"},
 
-  pushwall:{name:"Wall push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.20,diff:"beginner",cue:"hands on the wall, body straight, slow on the way in",q:"wall push up proper form"},
   pushbench:{name:"Counter push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.35,diff:"beginner",cue:"kitchen counter height, elbows back not flared",q:"countertop push up form"},
   pushhigh:{name:"Chair push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on the chair seat, hollow body, full range",q:"incline push up proper form"},
   pushknee:{name:"Knee push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down, hips straight, chest to the floor",q:"knee push up proper form"},
@@ -1660,40 +1695,40 @@ var LIB={
   pusharcher:{name:"Archer push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.90,diff:"advanced",cue:"one arm bends, the other stays long, alternate sides",q:"archer push up form"},
   pushonearm:{name:"One-arm push-up negative",pattern:"h-push",equip:"BW",bw:true,side:true,bwl:1.00,diff:"advanced",cue:"feet wide, lower on one arm for five seconds, push up with both",q:"one arm push up progression negative"},
 
-  bwsumo:{name:"Wide-stance squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"feet wide, toes out, sit straight down between the hips",q:"sumo bodyweight squat form"},
-  bwsquattempo:{name:"Slow squat",pattern:"squat",equip:"BW",bw:true,diff:"beginner",cue:"five seconds down, three-second pause at the bottom, stand",q:"tempo bodyweight squat pause"},
+  bwsumo:{name:"Wide-stance squat",pattern:"squat",equip:"BW",bwl:0.45,bw:true,diff:"beginner",cue:"feet wide, toes out, sit straight down between the hips",q:"sumo bodyweight squat form"},
+  bwsquattempo:{name:"Slow squat",pattern:"squat",equip:"BW",bwl:0.45,bw:true,diff:"beginner",cue:"five seconds down, three-second pause at the bottom, stand",q:"tempo bodyweight squat pause"},
   bwrfess:{name:"Rear-foot-elevated split squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"back foot on a chair, tall torso, front heel drives",q:"bulgarian split squat bodyweight form"},
-  bwstepup:{name:"Step-up",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"full foot on the step, no push from the back leg",q:"bodyweight step up form"},
-  bwcossack:{name:"Cossack squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"shift wide onto one leg, other leg long, heel down",q:"cossack squat form beginner"},
-  bwskater:{name:"Skater squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"back knee toward the floor, chest forward, controlled",q:"skater squat progression form"},
-  bwpistolbox:{name:"Box pistol squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"sit to the box on one leg, stand without rocking",q:"box pistol squat progression"},
-  bwpistol:{name:"Pistol squat",pattern:"squat",equip:"BW",bw:true,side:true,diff:"advanced",cue:"full depth on one leg, free leg straight ahead",q:"pistol squat full form"},
+  bwstepup:{name:"Step-up",pattern:"squat",equip:"BW",bwl:0.72,bw:true,side:true,diff:"intermediate",cue:"full foot on the step, no push from the back leg",q:"bodyweight step up form"},
+  bwcossack:{name:"Cossack squat",pattern:"squat",equip:"BW",bwl:0.75,bw:true,side:true,diff:"intermediate",cue:"shift wide onto one leg, other leg long, heel down",q:"cossack squat form beginner"},
+  bwskater:{name:"Skater squat",pattern:"squat",equip:"BW",bwl:0.85,bw:true,side:true,diff:"advanced",cue:"back knee toward the floor, chest forward, controlled",q:"skater squat progression form"},
+  bwpistolbox:{name:"Box pistol squat",pattern:"squat",equip:"BW",bwl:0.9,bw:true,side:true,diff:"advanced",cue:"sit to the box on one leg, stand without rocking",q:"box pistol squat progression"},
+  bwpistol:{name:"Pistol squat",pattern:"squat",equip:"BW",bwl:1,bw:true,side:true,diff:"advanced",cue:"full depth on one leg, free leg straight ahead",q:"pistol squat full form"},
 
-  bwrdl:{name:"Bodyweight RDL",pattern:"hinge",equip:"BW",bw:true,diff:"beginner",cue:"hands sliding down the thighs, soft knees, hinge back until the hamstrings pull",q:"bodyweight romanian deadlift hinge pattern"},
-  bwslrdl:{name:"Single-leg RDL",pattern:"hinge",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"long range, soft knee, weight over the ball of the foot",q:"single leg rdl bodyweight form"},
+  bwrdl:{name:"Bodyweight RDL",pattern:"hinge",equip:"BW",bwl:0.35,bw:true,diff:"beginner",cue:"hands sliding down the thighs, soft knees, hinge back until the hamstrings pull",q:"bodyweight romanian deadlift hinge pattern"},
+  bwslrdl:{name:"Single-leg RDL",pattern:"hinge",equip:"BW",bwl:0.55,bw:true,side:true,diff:"intermediate",cue:"long range, soft knee, weight over the ball of the foot",q:"single leg rdl bodyweight form"},
   bandrdl:{name:"Band RDL",pattern:"hinge",equip:"band",bw:true,diff:"intermediate",cue:"band under the feet, hinge back, flat spine, squeeze at the top",q:"band romanian deadlift form"},
   bandgm:{name:"Band good morning",pattern:"hinge",equip:"band",bw:true,diff:"intermediate",cue:"band across the upper back, hinge to parallel, spine long",q:"band good morning form"},
-  bwhipthrust:{name:"Shoulder-elevated hip thrust",pattern:"hinge",equip:"BW",bw:true,diff:"intermediate",cue:"shoulders on the couch, ribs down, drive the hips to level",q:"bodyweight hip thrust couch form"},
+  bwhipthrust:{name:"Shoulder-elevated hip thrust",pattern:"hinge",equip:"BW",bwl:0.45,bw:true,diff:"intermediate",cue:"shoulders on the couch, ribs down, drive the hips to level",q:"bodyweight hip thrust couch form"},
   nordicband:{name:"Band-assisted Nordic curl",pattern:"hinge",equip:"band",bw:true,diff:"advanced",cue:"heels anchored, band takes some weight, lower as slowly as you can",q:"band assisted nordic hamstring curl"},
-  nordichigh:{name:"High-box Nordic curl",pattern:"hinge",equip:"BW",bw:true,diff:"advanced",cue:"heels anchored, lower slowly to the box, hands catch you",q:"nordic hamstring curl progression beginner"},
+  nordichigh:{name:"High-box Nordic curl",pattern:"hinge",equip:"BW",bwl:0.75,bw:true,diff:"advanced",cue:"heels anchored, lower slowly to the box, hands catch you",q:"nordic hamstring curl progression beginner"},
 
-  invrowhigh:{name:"Inverted row, bar high",pattern:"h-pull",equip:"bar",bw:true,diff:"beginner",cue:"bar at hip height, body straight, chest to the bar",q:"high bar inverted row form"},
+  invrowhigh:{name:"Inverted row, bar high",pattern:"h-pull",equip:"bar",bwl:0.4,bw:true,diff:"beginner",cue:"bar at hip height, body straight, chest to the bar",q:"high bar inverted row form"},
   invrowwide:{name:"Wide inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"intermediate",cue:"hands wide, pull to the sternum, squeeze the mid-back",q:"wide grip inverted row form"},
-  invrowfeet:{name:"Feet-elevated inverted row",pattern:"h-pull",equip:"bar",bw:true,diff:"advanced",cue:"feet up on a chair, body level, full pull",q:"feet elevated inverted row form"},
-  invrowone:{name:"One-arm inverted row",pattern:"h-pull",equip:"bar",bw:true,side:true,diff:"advanced",cue:"one hand on the bar, hips square, no twisting",q:"one arm inverted row progression"},
+  invrowfeet:{name:"Feet-elevated inverted row",pattern:"h-pull",equip:"bar",bwl:0.7,bw:true,diff:"advanced",cue:"feet up on a chair, body level, full pull",q:"feet elevated inverted row form"},
+  invrowone:{name:"One-arm inverted row",pattern:"h-pull",equip:"bar",bwl:1,bw:true,side:true,diff:"advanced",cue:"one hand on the bar, hips square, no twisting",q:"one arm inverted row progression"},
 
   pullneg:{name:"Pull-up negative",pattern:"v-pull",equip:"bar",bw:true,diff:"beginner",cue:"jump to the top, lower for five seconds, repeat",q:"pull up negative progression beginner"},
-  pullband:{name:"Band-assisted pull-up",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"foot in the band, full hang to chin over the bar",q:"band assisted pull up form"},
-  chinup:{name:"Chin-up",pattern:"v-pull",equip:"bar",bw:true,diff:"intermediate",cue:"palms toward you, full hang, chest to the bar",q:"chin up proper form"},
-  pullwide:{name:"Wide-grip pull-up",pattern:"v-pull",equip:"bar",bw:true,diff:"advanced",cue:"hands wide, drive the elbows down, no neck craning",q:"wide grip pull up form"},
+  pullband:{name:"Band-assisted pull-up",pattern:"v-pull",equip:"bar",bwl:0.55,bw:true,diff:"intermediate",cue:"foot in the band, full hang to chin over the bar",q:"band assisted pull up form"},
+  chinup:{name:"Chin-up",pattern:"v-pull",equip:"bar",bwl:0.95,bw:true,diff:"intermediate",cue:"palms toward you, full hang, chest to the bar",q:"chin up proper form"},
+  pullwide:{name:"Wide-grip pull-up",pattern:"v-pull",equip:"bar",bwl:1.05,bw:true,diff:"advanced",cue:"hands wide, drive the elbows down, no neck craning",q:"wide grip pull up form"},
 
-  pikehigh:{name:"Pike push-up, hands raised",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"beginner",cue:"hands on a step, hips high, pain-free range only",q:"elevated pike push up beginner"},
-  pikefeet:{name:"Feet-elevated pike push-up",pattern:"v-push",neck:true,equip:"BW",bw:true,diff:"advanced",cue:"feet on a chair, torso near vertical, head between the hands",q:"elevated pike push up handstand progression"},
+  pikehigh:{name:"Pike push-up, hands raised",pattern:"v-push",neck:true,equip:"BW",bwl:0.45,bw:true,diff:"beginner",cue:"hands on a step, hips high, pain-free range only",q:"elevated pike push up beginner"},
+  pikefeet:{name:"Feet-elevated pike push-up",pattern:"v-push",neck:true,equip:"BW",bwl:0.75,bw:true,diff:"advanced",cue:"feet on a chair, torso near vertical, head between the hands",q:"elevated pike push up handstand progression"},
 
-  hollow:{name:"Hollow hold",pattern:"core",equip:"BW",bw:true,unit:"s",diff:"intermediate",cue:"low back pressed flat, arms and legs long, breathe",q:"hollow body hold form"},
-  legraise:{name:"Lying leg raise",pattern:"core",equip:"BW",bw:true,diff:"beginner",cue:"hands under the hips, lower slowly, no arching",q:"lying leg raise form lower abs"},
+  hollow:{name:"Hollow hold",pattern:"core",equip:"BW",bwl:0.35,bw:true,unit:"s",diff:"intermediate",cue:"low back pressed flat, arms and legs long, breathe",q:"hollow body hold form"},
+  legraise:{name:"Lying leg raise",pattern:"core",equip:"BW",bwl:0.4,bw:true,diff:"beginner",cue:"hands under the hips, lower slowly, no arching",q:"lying leg raise form lower abs"},
   hangknee:{name:"Hanging knee raise",pattern:"core",equip:"bar",bw:true,diff:"intermediate",cue:"dead hang, knees to the chest, no swinging",q:"hanging knee raise form"},
-  plankreach:{name:"Plank shoulder tap",pattern:"core",equip:"BW",bw:true,side:true,diff:"intermediate",cue:"feet wide, tap the opposite shoulder, hips do not rock",q:"plank shoulder tap anti rotation"}
+  plankreach:{name:"Plank shoulder tap",pattern:"core",equip:"BW",bwl:0.45,bw:true,side:true,diff:"intermediate",cue:"feet wide, tap the opposite shoulder, hips do not rock",q:"plank shoulder tap anti rotation"}
 };
 
 function lastSetsFor(exId){
@@ -1767,6 +1802,264 @@ var EASIER={pushfeet:"pushup",pushnarrow:"pushup",pushup:"pushhigh",pushhigh:"pu
             invrowfeet:"invrow",invrow:"invrowhigh",invrowhigh:"tablerow",
             pullup:"deadhang",deadhang:"bandpulldown",
             bwsplit:"bwsquat",sglutebridge:"glutebridge"};
+
+var GROUPS={
+  chest:   {name:"Chest",     prime:"push",  main:"pushup",     alts:["pushwide","pushnarrow","pushfeet","pushdeficit","pushtempo","pusharcher"], reg:["pushmid","pushhigh","pushknee"], sets:3,low:6,high:15,amrap:true},
+  lats:    {name:"Lats",      prime:"pull",  main:"pullup",     alts:["chinup","pullwide","pullarcher"], reg:["pullneg","pullband","deadhang"], sets:3,low:3,high:12,amrap:true},
+  midback: {name:"Mid-back",  prime:"pull",  main:"row1",       alts:["ytw","csrow","bandrow"], reg:["ytw"], sets:3,low:8,high:15,amrap:true},
+  delts:   {name:"Shoulders", prime:"push",  main:"pikepush",   alts:["pikefeet","hspuwall","ytw"], reg:["pikehigh"], sets:3,low:5,high:12,amrap:true},
+  quads:   {name:"Quads",     prime:"quad",  main:"bwsplit",    alts:["bwrfess","bwstepup","bwlunge","bwcossack","bwskater","bwpistolbox","bwpistol","sissy"], reg:["bwsquat","bwsumo"], sets:3,low:6,high:15,amrap:true},
+  hinge:   {name:"Hips",      prime:"hinge", main:"slhipthrust",alts:["sglutebridge","bwhipthrust","bwslrdl","bwrdl"], reg:["glutebridge"], sets:3,low:8,high:15,amrap:true},
+  hams:    {name:"Hamstrings",prime:"ham",   main:"slidecurl",  alts:["nordichigh","nordicband"], reg:["slidecurl2"], sets:3,low:5,high:12,amrap:true},
+  triceps: {name:"Triceps",   prime:"push",  main:"pushdiamond",alts:["benchdip","dipbar","ohextend","pushdeficit"], reg:["pushnarrowhigh","pushkneenarrow"], sets:3,low:6,high:15,amrap:true},
+  biceps:  {name:"Biceps",    prime:"pull",  main:"chinup",     alts:["ringcurl","dbcurl","hammercurl"], reg:["pullband","deadhang"], sets:3,low:4,high:12,amrap:true},
+  core:    {name:"Core",      prime:"core",  main:"hangknee",   alts:["hollow","abwheel","plankreach","sideplank","legraise","deadbug","birddog","plank"], reg:["legraise","plank"], sets:2,low:8,high:15,amrap:true},
+  calves:  {name:"Calves",    prime:"calf",  main:"calfstand",  alts:["calfseated","calfstand2","calfpause"], reg:["calfstand2"], sets:3,low:8,high:20,amrap:true}
+};
+var GROUP_KEYS=["chest","lats","midback","delts","quads","hinge","hams","triceps","biceps","core","calves"];
+
+var GPAY={
+  pushup:{chest:1,triceps:.5,delts:.5}, pushwide:{chest:1,delts:.5}, pushnarrow:{chest:1,triceps:.5},
+  pushfeet:{chest:1,delts:.5,triceps:.5}, pushfeet2:{chest:1,delts:.5,triceps:.5},
+  pushdeficit:{chest:1,triceps:.5,delts:.5}, pushtempo:{chest:1,triceps:.5}, pusharcher:{chest:1,triceps:.5},
+  pushmid:{chest:1,triceps:.5}, pushhigh:{chest:1,triceps:.5}, pushknee:{chest:1,triceps:.5},
+  pushbench:{chest:1,triceps:.5}, pushonearm:{chest:1,triceps:.5},
+  pushdiamond:{triceps:1,chest:.5}, pushnarrowhigh:{triceps:1,chest:.5}, pushkneenarrow:{triceps:1,chest:.5},
+  benchdip:{triceps:1,chest:.5}, dipbar:{triceps:1,chest:.5,delts:.5}, ohextend:{triceps:1},
+  pullup:{lats:1,biceps:.5,midback:.5}, pullwide:{lats:1,midback:.5}, pullarcher:{lats:1,biceps:.5},
+  chinup:{biceps:1,lats:.5}, pullneg:{lats:1,biceps:.5}, pullband:{lats:1,biceps:.5}, deadhang:{lats:1},
+  bandpulldown:{lats:1,biceps:.5},
+  row1:{midback:1,biceps:.5,lats:.5}, csrow:{midback:1,biceps:.5}, bandrow:{midback:1,biceps:.5},
+  ytw:{midback:1,delts:.5}, ringcurl:{biceps:1}, dbcurl:{biceps:1}, hammercurl:{biceps:1},
+  pikepush:{delts:1,triceps:.5}, pikehigh:{delts:1,triceps:.5}, pikefeet:{delts:1,triceps:.5},
+  hspuwall:{delts:1,triceps:.5}, latraise:{delts:1}, kneelpress:{delts:1,triceps:.5},
+  neutralpress:{delts:1,triceps:.5}, bandpress:{delts:1,triceps:.5},
+  bwsplit:{quads:1,hinge:.5}, bwrfess:{quads:1,hinge:.5}, bwstepup:{quads:1,hinge:.5},
+  bwlunge:{quads:1,hinge:.5}, bwcossack:{quads:1}, bwskater:{quads:1,hinge:.5},
+  bwpistolbox:{quads:1}, bwpistol:{quads:1}, bwsquat:{quads:1,hinge:.5}, bwsumo:{quads:1},
+  bwsquattempo:{quads:1}, sissy:{quads:1}, goblet:{quads:1,hinge:.5}, bulgarian:{quads:1,hinge:.5},
+  revlunge:{quads:1,hinge:.5}, stepup:{quads:1,hinge:.5},
+  slhipthrust:{hinge:1,hams:.5}, sglutebridge:{hinge:1,hams:.5}, bwhipthrust:{hinge:1,hams:.5},
+  glutebridge:{hinge:1,hams:.5}, bwrdl:{hinge:1,hams:.5}, bwslrdl:{hinge:1,hams:.5},
+  rdl:{hinge:1,hams:.5}, slrdl:{hinge:1,hams:.5}, hipthrust:{hinge:1,hams:.5},
+  bandrdl:{hinge:1,hams:.5}, bandgm:{hinge:1,hams:.5},
+  slidecurl:{hams:1,hinge:.5}, slidecurl2:{hams:1,hinge:.5}, nordichigh:{hams:1}, nordicband:{hams:1},
+  hangknee:{core:1}, hollow:{core:1}, abwheel:{core:1}, plankreach:{core:1}, sideplank:{core:1},
+  legraise:{core:1}, deadbug:{core:1}, birddog:{core:1}, plank:{core:1}, pallof:{core:1}, suitcase:{core:1},
+  calfstand:{calves:1}, calfstand2:{calves:1}, calfseated:{calves:1}, calfpause:{calves:1}
+};
+var PAT_GROUP_V12={"h-push":"chest","v-push":"delts","h-pull":"midback","v-pull":"lats",
+                   "squat":"quads","hinge":"hinge","core":"core","isolation":"delts"};
+function gpayOf(exId){
+  if(GPAY[exId])return GPAY[exId];
+  var g=PAT_GROUP_V12[(LIB[exId]||{}).pattern];
+  if(!g)return null;
+  var o={};o[g]=1;return o;
+}
+
+function dayFromKey(k){
+  var p=String(k||TODAY).split("-");
+  return new Date(+p[0],+p[1]-1,+p[2]);
+}
+
+function _liftSetsInWindow(days){
+  var out=[],cut=new Date(NOW);cut.setDate(cut.getDate()-(days-1));var cutK=keyOf(cut);
+  S.sessions.forEach(function(s){
+    if(s.type!=="lift"||!s.date||s.date<cutK||s.date>TODAY)return;
+    (s.entries||[]).forEach(function(e){
+      var n=(e.sets||[]).filter(function(x){return x.completed;}).length;
+      if(n)out.push({date:s.date,exId:e.exerciseId,n:n,sets:e.sets});
+    });
+  });
+  return out;
+}
+var _s7Memo=null,_s7Day=null;
+function sets7Map(){
+  if(_s7Memo&&_s7Day===TODAY)return _s7Memo;
+  var m={};GROUP_KEYS.forEach(function(g){m[g]=0;});
+  _liftSetsInWindow(7).forEach(function(r){
+    var pay=gpayOf(r.exId);if(!pay)return;
+    for(var g in pay)if(m[g]!=null)m[g]+=r.n*pay[g];
+  });
+  _s7Day=TODAY;return (_s7Memo=m);
+}
+function sets7(g){return sets7Map()[g]||0;}
+var _dsMemo=null,_dsDay=null;
+function daysSinceMap(){
+  if(_dsMemo&&_dsDay===TODAY)return _dsMemo;
+  var last={};
+  S.sessions.forEach(function(s){
+    if(s.type!=="lift"||!s.date||s.date>TODAY)return;
+    (s.entries||[]).forEach(function(e){
+      if(!(e.sets||[]).some(function(x){return x.completed;}))return;
+      var pay=gpayOf(e.exerciseId);if(!pay)return;
+      for(var g in pay)if(pay[g]>=1&&(!last[g]||s.date>last[g]))last[g]=s.date;
+    });
+  });
+  var m={};GROUP_KEYS.forEach(function(g){m[g]=last[g]?daysBetween(last[g],TODAY):999;});
+  _dsDay=TODAY;return (_dsMemo=m);
+}
+function daysSince(g){return daysSinceMap()[g];}
+function _ledgerReset(){_s7Memo=null;_dsMemo=null;_llMemo=null;}
+
+function groupBand(g){
+  var n=sets7(g);
+  return (n>20)?"red":(n>10)?"orange":(n>=4)?"green":"quiet";
+}
+function bandOfSession(w){
+  var worst="quiet",rank={quiet:0,green:1,orange:2,red:3};
+  ((w||{}).order||[]).forEach(function(o){
+    var b=groupBand(o.g||"");if(rank[b]>rank[worst])worst=b;
+  });
+  return worst;
+}
+
+function barMap(){if(!S.bar||typeof S.bar!=="object")S.bar={};return S.bar;}
+function barActive(g){
+  var b=barMap()[g];
+  if(!b||!b.until)return null;
+  return (TODAY<b.until)?b:null;
+}
+function barLapsedNow(){
+  var m=barMap(),out=[],dirty=false;
+  for(var g in m){
+    var b=m[g];if(!b||!b.until)continue;
+    if(TODAY>=b.until){if(!b.told){out.push(g);}delete m[g];dirty=true;}
+  }
+  if(dirty)save();
+  return out;
+}
+function barSet(g,hours,reason){
+  var d=new Date(NOW);d.setDate(d.getDate()+Math.ceil(hours/24));
+  var m=barMap();
+  var k=keyOf(d);
+  if(m[g]&&m[g].until>=k)return;           /* never shorten an existing bar */
+  m[g]={until:k,reason:reason,on:TODAY,told:false};
+  save();
+}
+function barCloseSession(w){
+  if(!w||w.barApplied)return;
+  var hard=!!w.hard&&(w.rN>1);
+  (w.order||[]).forEach(function(o){
+    var g=o.g;if(!g)return;
+    var b=groupBand(g);
+    if(b==="red")barSet(g,72,"three hard days in a week on this");
+    else if(hard||b==="orange")barSet(g,48,hard?"hard set on this":"a lot of work on this lately");
+  });
+  w.barApplied=true;save();
+}
+
+function groupRoom(g){
+  return Math.min(14,daysSince(g))*1.0 - sets7(g)*0.8;
+}
+function pickGroups(n){
+  n=n||4;
+  var av=GROUP_KEYS.filter(function(g){return !barActive(g);});
+  if(av.length<n)av=GROUP_KEYS.slice();
+  av.sort(function(a,b){return groupRoom(b)-groupRoom(a);});
+  var out=[],used={};
+  av.forEach(function(g){
+    if(out.length>=n)return;
+    var p=GROUPS[g].prime;
+    if(used[p])return;
+    used[p]=true;out.push(g);
+  });
+  if(out.length<n)av.forEach(function(g){if(out.length<n&&out.indexOf(g)<0)out.push(g);});
+  return out;
+}
+
+function groupNeedsFloor(g){
+  var G=GROUPS[g];if(!G)return null;
+  var chain=[G.main].concat(G.alts||[],G.reg||[]);
+  for(var i=0;i<chain.length;i++){
+    var e=LIB[chain[i]];
+    if(e&&e.bw&&e.equip==="BW")return chain[i];
+  }
+  return null;
+}
+function barImpossible(id){
+  var e=LIB[id]||{};
+  return e.equip==="bar"&&e.pattern==="h-pull";
+}
+function groupEx(g){
+  var G=GROUPS[g];if(!G)return null;
+  var id=G.main,e=LIB[id]||{};
+  if(barImpossible(id))id=groupNeedsFloor(g)||id;
+  var guard=0;
+  while(guard++<6){
+    var a=lastAmrap(id);
+    if(a==null||a>=5)break;
+    var reg=(GROUPS[g].reg||[])[0];
+    if(!reg||reg===id)break;
+    id=reg;
+  }
+  return id;
+}
+function groupSwapIds(g){
+  var G=GROUPS[g];if(!G)return [];
+  var seen={},out=[];
+  [].concat(G.alts||[],G.reg||[]).forEach(function(id){
+    if(!id||seen[id]||!LIB[id])return;seen[id]=true;out.push(id);
+  });
+  return out;
+}
+
+function roundsAdaptV12(){
+  if(S.roundsAdaptDay===TODAY)return;
+  var base=roundsBase(),hit=0,floorish=0;
+  for(var i=1;i<=7;i++){var d=new Date(NOW);d.setDate(d.getDate()-i);var s=liftOn(keyOf(d));
+    if(!s)continue;
+    var rx=(typeof s.roundsRx==="number")?s.roundsRx:base;
+    if(sessRounds(s)>=rx)hit++;
+    if(i<=3&&sessRounds(s)===1)floorish++;
+  }
+  var hot=GROUP_KEYS.some(function(g){var b=groupBand(g);return b==="orange"||b==="red";});
+  if(hit>=5&&!hot)base=Math.min(RX_CEIL,base+1);
+  else if(floorish>=2)base=2;
+  S.roundsBase=base;S.roundsAdaptDay=TODAY;save();
+}
+
+function bodyLbNow(){
+  var w=(S.weigh||[]);
+  for(var i=w.length-1;i>=0;i--){var v=w[i]&&(w[i].w||w[i].lb);if(v&&isFinite(v))return v;}
+  return null;
+}
+function unitLoad(exId,setW){
+  var e=LIB[exId]||{};
+  if(e.bw)return (typeof e.bwl==="number")?e.bwl:null;
+  var bw=bodyLbNow();if(!bw)return null;
+  var w=setW||0;if(!w)return null;
+  return w/bw;
+}
+var CAP_WINDOW=56;
+function groupCapability(g){
+  var best=0,seen=false;
+  _liftSetsInWindow(CAP_WINDOW).forEach(function(r){
+    var pay=gpayOf(r.exId);if(!pay||!(pay[g]>=1))return;
+    (r.sets||[]).forEach(function(s){
+      if(!s.completed)return;
+      var reps=s.reps||0;if(reps<=0)return;
+      var u=unitLoad(r.exId,s.weightLb);
+      if(u==null)return;
+      seen=true;
+      var v=reps*u;
+      if((LIB[r.exId]||{}).unit==="s")v=(reps/6)*u;
+      if(v>best)best=v;
+    });
+  });
+  return seen?best:0;
+}
+var LVL_BANDS=[0,6,14,24,36,50,64,78,92,108];
+function capLevelOf(score){if(score==null)return 1;var n=1;while(n<10&&score>=LVL_BANDS[n])n++;return n;}
+function capScoreNow(){
+  var s=0;GROUP_KEYS.forEach(function(g){s+=groupCapability(g);});
+  return s;
+}
+function isHardSet(exId,reps,unit){
+  var best=lastAmrap(exId);
+  if(best==null)return (unit==="s")?(reps>=20):(reps>=5);
+  return reps>=Math.max((unit==="s")?20:5,best*0.9);
+}
 function defaultEquip(){
   var e=(S.profile.equip||["BW"]).slice();if(!e.length)e=["BW"];
   if(!S.profile.barSeeded){
@@ -1921,36 +2214,72 @@ function rampSets(base){
 var LETTERS=["A","B","C"];
 var WARM="leg swings x10/side, arm circles x10, band pull-apart x15, dead bug x8/side";
 var COOL="chin tucks x10, doorway chest stretch 30s/side, dead hang 20s";
+var LEGACY_FIXED_N=["Cat-cow","Wall angels"];
+var LEGACY_ROT_N=["Bird dog","90/90 hip switch","Ankle rocks","World's greatest stretch",
+  "Kneeling hip-flexor rock","Open-book rotation","Glute bridge","Dead bug","Scapular push-ups",
+  "Deep squat rock","Chin tucks","Calf raises"];
+var LEGACY_SLUG={"Cat-cow":"catcow","Wall angels":"wallangels","Bird dog":"birddog",
+  "90/90 hip switch":"hip9090","Ankle rocks":"anklerocks","World\u2019s greatest stretch":"wgs",
+  "World's greatest stretch":"wgs","Kneeling hip-flexor rock":"hipflexrock",
+  "Open-book rotation":"openbook","Glute bridge":"glutebridge","Dead bug":"deadbug",
+  "Scapular push-ups":"scappushup","Deep squat rock":"squatrock","Chin tucks":"chintucks",
+  "Calf raises":"calfraises"};
+function legacyAnchorList(k){
+  var y=k.slice(0,4),day=Math.floor((new Date(k)-new Date(y+"-01-01"))/86400000);
+  var n=LEGACY_ROT_N.length;
+  var a=LEGACY_ROT_N[day%n],b=LEGACY_ROT_N[(day+3)%n];
+  if(b===a)b=LEGACY_ROT_N[(day+4)%n];
+  return LEGACY_FIXED_N.concat([a,b]);
+}
+function anchorMigrate(){
+  var moved=0;
+  for(var k in (S.anchor||{})){
+    var rec=S.anchor[k]; if(!rec||typeof rec!=="object")continue;
+    var numeric=Object.keys(rec).filter(function(x){return /^\d+$/.test(x);});
+    if(!numeric.length)continue;
+    var legacy=legacyAnchorList(k),out={};
+    for(var kk in rec){ if(!/^\d+$/.test(kk)){ out[kk]=rec[kk]; continue; } }
+    numeric.forEach(function(ix){
+      if(!rec[ix])return;
+      var nm=legacy[+ix], sl=nm?LEGACY_SLUG[nm]:null;
+      out[sl||("i"+ix)]=true;
+    });
+    S.anchor[k]=out; moved++;
+  }
+  return moved;
+}
 var ANCHOR_FIXED=[
-  {n:"Cat-cow",d:"x8 slow",q:"cat cow exercise proper form",
+  {n:"Cat-cow",s:"catcow",d:"x8 slow",q:"cat cow exercise proper form",
    h:["On hands and knees, move one vertebra at a time.","Breathe out as you round, in as you arch.","Slow is the point. Eight good ones beat twenty fast."]},
-  {n:"Wall angels",d:"x10",q:"wall angel exercise proper form",r:["shoulder","neck"],
+  {n:"Wall angels",s:"wallangels",d:"x10",q:"wall angel exercise proper form",r:["shoulder","neck"],
    h:["Back to the wall, low back flat against it.","Slide the arms up and down keeping wrists and elbows touching.","Small clean range beats a big cheated one."]}
 ];
+var ANCHOR_STANDING=["wallangels","glutebridge","deadbug","anklerocks"];
+var ANCHOR_STANDING_FROM="2026-08-23";
 var ANCHOR_ROT=[
-  {n:"Bird dog",d:"x8/side",q:"bird dog exercise proper form",
+  {n:"Bird dog",s:"birddog",d:"x8/side",q:"bird dog exercise proper form",
    h:["Hands and knees, spine long and still.","Reach the opposite arm and leg out, not up. The hips stay level.","If the low back moves, you have gone too far."]},
-  {n:"90/90 hip switch",d:"x8/side",q:"90 90 hip switch mobility drill",r:["hip","knee"],
+  {n:"90/90 hip switch",s:"hip9090",d:"x8/side",q:"90 90 hip switch mobility drill",r:["hip","knee"],
    h:["Sit with both knees bent at right angles, one in front, one out to the side.","Rotate the knees over to the other side without using your hands.","Chest tall the whole way."]},
-  {n:"Ankle rocks",d:"x10/side",q:"knee to wall ankle mobility drill",r:["knee"],
+  {n:"Ankle rocks",s:"anklerocks",d:"x10/side",q:"knee to wall ankle mobility drill",r:["knee"],
    h:["Foot a few inches from a wall, drive the knee forward over the toes.","Heel stays glued down. That is the whole drill.","This is the one that makes a deep squat possible."]},
-  {n:"World's greatest stretch",d:"x5/side",q:"worlds greatest stretch proper form",r:["knee","hip"],
+  {n:"World's greatest stretch",s:"wgs",d:"x5/side",q:"worlds greatest stretch proper form",r:["knee","hip"],
    h:["Long lunge, back knee off the floor.","Front elbow down toward the instep, then rotate that arm to the ceiling and follow it with your eyes.","Hip flexor, mid-back and hamstring in one movement."]},
-  {n:"Kneeling hip-flexor rock",d:"x8/side",q:"kneeling hip flexor stretch proper form",r:["knee","hip"],
+  {n:"Kneeling hip-flexor rock",s:"hipflexrock",d:"x8/side",q:"kneeling hip flexor stretch proper form",r:["knee","hip"],
    h:["Half-kneeling, back toe tucked.","Squeeze the back glute, THEN rock forward an inch. The glute is what makes it work.","Ribs down. Do not arch the low back to fake the range."]},
-  {n:"Open-book rotation",d:"x8/side",q:"open book thoracic rotation exercise",r:["shoulder"],
+  {n:"Open-book rotation",s:"openbook",d:"x8/side",q:"open book thoracic rotation exercise",r:["shoulder"],
    h:["Lie on your side, knees bent up, arms stacked out front.","Open the top arm across and let the chest follow. Knees stay down.","Turn from the ribs, not the shoulder."]},
-  {n:"Glute bridge",d:"x12",q:"glute bridge proper form",
+  {n:"Glute bridge",s:"glutebridge",d:"x12",q:"glute bridge proper form",
    h:["On your back, heels close to the hips.","Drive through the heels and squeeze at the top for a second.","Feel it in the glutes, not the low back."]},
-  {n:"Dead bug",d:"x8/side",q:"dead bug exercise proper form",
+  {n:"Dead bug",s:"deadbug",d:"x8/side",q:"dead bug exercise proper form",
    h:["On your back, arms up, knees over the hips.","Lower the opposite arm and leg slowly, keeping the low back pressed down.","The moment the back lifts is the end of your range."]},
-  {n:"Scapular push-ups",d:"x10",q:"scapular push up proper form",r:["shoulder"],
+  {n:"Scapular push-ups",s:"scappushup",d:"x10",q:"scapular push up proper form",r:["shoulder"],
    h:["Push-up position, arms locked straight the whole time.","Only the shoulder blades move: squeeze together, then push apart.","Tiny range. If the elbows bend it is a push-up."]},
-  {n:"Deep squat rock",d:"x8",q:"deep squat rock mobility drill",r:["knee","hip"],
+  {n:"Deep squat rock",s:"squatrock",d:"x8",q:"deep squat rock mobility drill",r:["knee","hip"],
    h:["Sink into the deepest squat you can hold, heels down.","Rock gently forward and back.","Hold a doorframe if the heels lift."]},
-  {n:"Chin tucks",d:"x10",q:"chin tuck exercise neck posture",r:["neck"],
+  {n:"Chin tucks",s:"chintucks",d:"x10",q:"chin tuck exercise neck posture",r:["neck"],
    h:["Make a double chin, sliding the head straight back.","No tilting up or down. It is a slide, not a nod.","This is the one that undoes a day at a desk."]},
-  {n:"Calf raises",d:"x15",q:"standing calf raise proper form",
+  {n:"Calf raises",s:"calfraises",d:"x15",q:"standing calf raise proper form",
    h:["Stand tall, rise all the way onto the toes.","Pause at the top, lower slowly.","Fingertips on a wall for balance is fine."]}
 ];
 function anchorSafe(m,act){
@@ -1958,13 +2287,18 @@ function anchorSafe(m,act){
   for(var i=0;i<m.r.length;i++)if(act.indexOf(m.r[i])>=0)return false;
   return true;
 }
-function anchorList(){
-  var y=TODAY.slice(0,4);var day=Math.floor((new Date(TODAY)-new Date(y+"-01-01"))/86400000);
-  var n=ANCHOR_ROT.length,act=soreActive();
-  if(!act.length){
-    var a=ANCHOR_ROT[day%n],b=ANCHOR_ROT[(day+3)%n];if(b.n===a.n)b=ANCHOR_ROT[(day+4)%n];
-    return ANCHOR_FIXED.concat([a,b]);
+function anchorAll(){return ANCHOR_FIXED.concat(ANCHOR_ROT);}
+function anchorBySlug(s){var a=anchorAll();for(var i=0;i<a.length;i++)if(a[i].s===s)return a[i];return null;}
+function anchorSlugs(k){return anchorList(k).map(function(m){return m.s;});}
+function anchorList(k){
+  k=k||TODAY;
+  if(k<ANCHOR_STANDING_FROM){
+    var was=legacyAnchorList(k).map(function(nm){return anchorBySlug(LEGACY_SLUG[nm]);}).filter(Boolean);
+    if(was.length)return was;
   }
+  var y=k.slice(0,4);var day=Math.floor((new Date(k)-new Date(y+"-01-01"))/86400000);
+  var n=ANCHOR_ROT.length,act=(k===TODAY)?soreActive():[];
+  if(!act.length)return ANCHOR_STANDING.map(anchorBySlug).filter(Boolean);
   var out=[],used={},have={};
   function take(m){used[m.n]=true;(m.r||[]).forEach(function(r){have[r]=(have[r]||0)+1;});return m;}
   function nextRot(seed){
@@ -1979,18 +2313,17 @@ function anchorList(){
     for(var q=0;q<n;q++){var f=ANCHOR_ROT[(seed+q)%n];if(!used[f.n])return take(f);}
     return ANCHOR_ROT[seed%n];
   }
-  var fixedOut=ANCHOR_FIXED.map(function(m){return anchorSafe(m,act)?take(m):null;});
+  var fixedOut=ANCHOR_STANDING.map(anchorBySlug).filter(Boolean)
+    .map(function(m){return anchorSafe(m,act)?take(m):null;});
   fixedOut.forEach(function(m,i){ out.push(m||nextRot(day+7*(i+1))); });
-  out.push(nextRot(day));
-  out.push(nextRot(day+3));
   return out;
 }
 function anchorSwapped(){
   var act=soreActive();if(!act.length)return null;
-  for(var i=0;i<ANCHOR_FIXED.length;i++)if(!anchorSafe(ANCHOR_FIXED[i],act))return act;
+  var st=ANCHOR_STANDING.map(anchorBySlug).filter(Boolean);
+  for(var i=0;i<st.length;i++)if(!anchorSafe(st[i],act))return act;
   return null;
 }
-var ANCHOR=ANCHOR_FIXED.concat([ANCHOR_ROT[0],ANCHOR_ROT[1]]);
 var PACE_MI="9:50-11:00";
 
 var CYCLE=[{k:"lift"},{k:"run"},{k:"lift"},{k:"recover",walk:15},{k:"lift"},{k:"run",long:true},{k:"recover",walk:20,weigh:true}];
@@ -2045,6 +2378,9 @@ function setMotion(v,el){S.profile.motion=v;save();applyMotion();if(el)segSel(el
 var LS="train_v2";
 var S=load();
 if(!S.profile.mode)S.profile.mode="bw";
+var S=load();
+if(!S.profile.mode)S.profile.mode="bw";
+try{anchorMigrate();}catch(e){}
 if(!S.profile.programme)S.profile.programme="bw";
 function isBW(){return (S.profile.programme||"bw")==="bw";}
 if(!S.daySlot)S.daySlot={};
@@ -2078,7 +2414,7 @@ function normaliseStore(st){
   return st;
 }
 var saveWarned=false;
-function save(){invalidateDayIndex();_csMemo={};_llMemo=null;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
+function save(){invalidateDayIndex();_csMemo={};_llMemo=null;_s7Memo=null;_dsMemo=null;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
 
 function keyOf(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 var NOW,TODAY,DOW;
@@ -2230,22 +2566,28 @@ function easyWeight(id){
 
 function workDay(){
   var w=S.wk[TODAY];
-  if(w&&w.v3)return w;
-  var L=letterFor(),tpl=DAYS[L],eq=defaultEquip(),avoid=soreAvoid(),seen={};
-  var order=[];
-  tpl.slots.slice(0,4).forEach(function(sl){
-    var pick=slotExFor(L,sl,eq,avoid);if(!pick)return;
-    var id=pick.id;if(seen[id])return;seen[id]=true;
-    var e=LIB[id],tp=S.progress[id]||{};
+  if(w&&w.v3&&w.v12)return w;
+  var eq=defaultEquip(),avoid=soreAvoid(),seen={};
+  var order=[],groups=pickGroups(4);
+  groups.forEach(function(g){
+    var G=GROUPS[g];if(!G)return;
+    var id=groupEx(g);if(!id||seen[id])return;
+    if(avoid[id]){
+      var alt=[G.main].concat(G.alts||[],G.reg||[]).filter(function(x){return LIB[x]&&!avoid[x];})[0];
+      if(alt)id=alt;
+    }
+    seen[id]=true;
+    var e=LIB[id]||{},tp=S.progress[id]||{};
     var wgt=e.bw?0:(tp.weight!=null?tp.weight:15);
     if(!e.bw&&reentryOn()){var _ew=easyWeight(id);if(_ew!=null&&_ew<wgt)wgt=_ew;}
-    var low=(tp.low!=null?tp.low:pick.sl.low),high=(tp.high!=null?tp.high:pick.sl.high);
-    order.push({exId:id,pat:patGroup(e.pattern)||e.pattern,unit:e.unit||"reps",side:!!e.side,
+    var low=(tp.low!=null?tp.low:G.low),high=(tp.high!=null?tp.high:G.high);
+    order.push({exId:id,g:g,pat:patGroup(e.pattern)||e.pattern,unit:e.unit||"reps",side:!!e.side,
       bw:!!e.bw,low:low,high:high,weight:wgt,reps:low});
   });
   var rx=roundsRx();
-  w={v3:true,letter:L,name:tpl.name,equip:eq.slice(),order:order,rx:rx,rN:rx,done:{},
-     advanced:false,progApplied:false,reentryCounted:false,hard:hardDue()};
+  w={v3:true,v12:true,letter:"Gen",name:groups.map(function(g){return GROUPS[g].name;}).join(", "),
+     groups:groups,equip:eq.slice(),order:order,rx:rx,rN:rx,done:{},
+     advanced:false,progApplied:false,reentryCounted:false,barApplied:false,hard:hardDue()};
   var rec=liftOn(TODAY);
   if(rec){
     (rec.entries||[]).forEach(function(en){
@@ -2819,7 +3161,6 @@ function todayMetricsHTML(){
     {key:"cal",   label:"Calories",icon:I.fork, tr:trendCal(),    act:"metricSheet('cal')"},
     {key:"sleep", label:"Sleep",   icon:I.moon, tr:trendSleep(),  act:"metricSheet('sleep')"},
     {key:"steps", label:"Steps",   icon:I.gauge,tr:trendSteps(),  act:"metricSheet('steps')"},
-    {key:"weight",label:"Weight",  icon:I.spark,tr:trendWeight(), act:"weighSheet()"},
     {key:"rhr",   label:"Resting HR",icon:I.heart,tr:trendRHR(),  act:"metricSheet('rhr')"},
     {key:"miles", label:"Miles run",icon:I.run,  tr:trendMiles(), act:"metricSheet('miles')"},
   ];
@@ -3117,7 +3458,6 @@ function renderToday(){
       '<h3 class="wkh"><span class="wki">'+I.gauge+'</span><span class="wkt">Your week</span>'+
       '<span class="wkchip">Level '+combined+'</span></h3>'+
       '<div class="dots">'+dots+'</div>'+todayLogHTML()+'</div>'+
-    todayMetricsHTML()+
     recoveryCardHTML();
   tileBandPulse();
   streakPulse();
@@ -3169,15 +3509,16 @@ function anchorLogSheet(){
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
 function toggleAnchor(i,btn){
-  var a=S.anchor[TODAY]||{};a[i]=!a[i];if(!a[i])delete a[i];S.anchor[TODAY]=a;
+  var _m=anchorList()[i]; if(!_m)return;
+  var a=S.anchor[TODAY]||{};a[_m.s]=!a[_m.s];if(!a[_m.s])delete a[_m.s];S.anchor[TODAY]=a;
   S.stamps=S.stamps||{nutrition:{},steps:{}};S.stamps.anchor=S.stamps.anchor||{};
   S.stamps.anchor[TODAY]=Date.now();
-  anchorLog("toggle",i,a[i]);
+  anchorLog("toggle",_m.s,a[_m.s]);
   recomputeDone(TODAY);if(isDone(TODAY))advanceCycle();
   save();
   var el=btn||document.querySelector('#v-today .arow[data-i="'+i+'"]');
   if(!el){renderToday();return;}
-  el.classList.toggle("checked",!!a[i]);el.setAttribute("aria-pressed",!!a[i]);
+  el.classList.toggle("checked",!!a[_m.s]);el.setAttribute("aria-pressed",!!a[_m.s]);
   var q=anchorCount(),n=q.tot,ac=q.dn;
   var card=el.closest("details");
   if(card){
@@ -3240,6 +3581,9 @@ function changeSheet(){
   o+=optRow(I.rest,"Recover day &middot; walk only","A 15-minute walk and the morning anchor","setToday('rest')");
   o+=optRow(I.bolt,"Never-zero &middot; 5-min minimum","Rough day? Keep the streak alive","setToday('min')");
   if(S.override[TODAY])o+=optRow(I.swap,"Back to the plan","Use the scheduled session","setToday('clear')");
+
+  o+=swapGroupHTML("Something hurts");
+  o+=optRow(I.spark,"Flag a sore area","Routes the plan around it for "+SORE_DAYS+" days, then lapses on its own","closeSheet();soreSheet()");
   openSheet(o);
 }
 function optRow(ic,title,cap,fn,danger){return '<button class="opt'+(danger?" danger":"")+'" onclick="'+fn+'"><span class="oi">'+ic+'</span><span><div class="on2">'+title+'</div>'+(cap?'<div class="oc">'+cap+'</div>':'')+'</span><span class="oar">'+I.arrow+'</span></button>';}
@@ -3735,7 +4079,7 @@ function roundsAdapt(){
   S.roundsBase=base;S.roundsAdaptDay=TODAY;save();
 }
 function roundsRx(){
-  roundsAdapt();
+  roundsAdaptV12();
   if(zeroDayStreak()>=2)return RX_FLOOR;  /* presented AS the floor and nothing else, no comment */
   if(reentryOn())return Math.max(RX_FLOOR,Math.floor(roundsBase()/2));  /* re-entry: half volume */
   return roundsBase();
@@ -3785,8 +4129,9 @@ function roundTick(r,si){
   else w.done[k]={exId:o.exId,reps:(o.unit==="s"?o.reps:o.reps),w:o.bw?0:o.weight,ts:Date.now()};
   syncRoundsSession(w);
   var nowDone=roundsDoneN(w);
-  if(!w.advanced&&nowDone>=1){w.advanced=true;S.planPos=((S.planPos||0)+1)%3;advanceCycle();syncRoundsSession(w);}
+  if(!w.advanced&&nowDone>=1){w.advanced=true;advanceCycle();syncRoundsSession(w);}
   if(!w.reentryCounted&&liftOn(TODAY)){reentryCount(w.gapBefore!=null?w.gapBefore:daysSinceLift());w.reentryCounted=true;}
+  if(!w.barApplied&&nowDone>=w.rN)barCloseSession(w);
   if(!w.progApplied&&nowDone>=w.rN){
     w.order.forEach(function(o2,i2){
       var sets=[];
@@ -3844,7 +4189,8 @@ function rowSheet(si){
   var w=workDay(),o=w.order[si];if(!o)return;var e=LIB[o.exId]||{};
   var unit=(o.unit==="s")?"seconds":"reps";
   openSheet('<div class="grab"></div><h3>'+esc(e.name||o.exId)+'</h3>'+
-    '<div class="ssub">'+(o.bw?"Bodyweight":"Loaded")+' &middot; '+o.low+' to '+o.high+' '+unit+' at 2 to 3 in reserve</div>'+
+    '<div class="ssub">'+(o.bw?"Bodyweight":"Loaded")+' &middot; '+o.low+' to '+o.high+' '+unit+
+      (o.g&&barActive(o.g)?' &middot; resting this one until '+shortDate(barActive(o.g).until):'')+'</div>'+
     '<div class="rsrow"><span class="rsl">'+(o.unit==="s"?"Seconds":"Reps")+'</span><div class="stp sheetstp">'+
       '<button onclick="rowStep('+si+',\'reps\',-1)" aria-label="fewer '+unit+'">&minus;</button>'+
       '<span class="val num" id="rs-reps">'+o.reps+'</span>'+
@@ -3873,6 +4219,13 @@ function rowSwapSheet(si){
   openSheet('<div class="grab"></div><h3>Swap '+esc(e.name||o.exId)+'</h3>'+
     '<div class="ssub">Same pattern first. The prescription carries over; the numbers start fresh for the new movement.</div>'+
     (e.pattern==="h-push"?'<div class="snote">A floor push-up presses roughly two thirds of bodyweight, well past what the home dumbbells give, so at home the push-up IS the horizontal press. The swap that adds load is a gym bar or machine.</div>':'')+
+    (o.g&&GROUPS[o.g]?('<div class="ssub" style="margin-top:14px">'+esc(GROUPS[o.g].name)+'</div>'+
+      groupSwapIds(o.g).map(function(cid){
+        var ce=LIB[cid]||{};
+        return '<button class="opt" onclick="rowSwap('+si+',\''+cid+'\')">'+
+          '<span class="oi"></span><span><div class="on2">'+esc(ce.name||cid)+'</div>'+
+          '<div class="oc">'+esc(ce.cue||"")+'</div></span></button>';
+      }).join("")):"")+
     exPickList("rowSwap",si,o.exId,e.pattern)+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
 }
@@ -3903,7 +4256,8 @@ function roundRowHTML(w,r,si){
   var dose=(o.unit==="s")?(reps+"s"):((isBand?"band ":(load?load+wLbl()+" ":""))+"x"+reps)+(o.side?"/side":"");
   if(o.swapped===TODAY)dose+=" &middot; swapped";
   var nm=c&&c.exId&&c.exId!==o.exId?((LIB[c.exId]||{}).name||c.exId):(e.name||o.exId);
-  return '<div class="arow'+(on?" checked":"")+'" data-si="'+si+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
+  var band=o.g?groupBand(o.g):"quiet";
+  return '<div class="arow'+(on?" checked":"")+'" data-band="'+band+'" data-si="'+si+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
     ' onclick="roundTick('+r+','+si+')">'+
     '<span class="chk">'+I.check+'</span>'+
     '<span class="atxt"><span class="an">'+esc(nm)+'</span><span class="ad num">'+dose+'</span></span>'+
@@ -3922,7 +4276,7 @@ function roundCardHTML(w,r,wasOpen){
   var rows="";
   if(r===0)rows+=warmupRowHTML(w);
   for(var j=0;j<w.order.length;j++)rows+=roundRowHTML(w,r,j);
-  if(isHard)rows='<div class="tgs">Final round: 0 to 1 in reserve today.</div>'+rows;
+  if(isHard)rows='<div class="tgs">Final round: take the last set of each movement as far as it goes.</div>'+rows;
   return '<details class="rnd'+(full?" alldone":"")+'" data-r="'+r+'"'+(open?' open':'')+'><summary>'+
     '<span class="asum">Round '+(r+1)+(isHard?' &middot; hard':'')+'</span>'+
     '<span class="aright"><span class="acount num">'+n+' of '+tot+'</span>'+
@@ -3931,6 +4285,12 @@ function roundCardHTML(w,r,wasOpen){
     '<circle class="mrtrack" cx="17" cy="17" r="13" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
     '<circle cx="17" cy="17" r="13" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 17 17)"/>'+
     '</svg></span></span></summary><div class="abody">'+rows+'</div></details>';
+}
+function barLapsedLine(){
+  var g=barLapsedNow();
+  if(!g.length)return "";
+  var names=g.map(function(k){return (GROUPS[k]||{}).name||k;});
+  return '<div class="tgs">'+esc(names.join(" and "))+' back in the rotation.</div>';
 }
 function renderLift(){
   refreshDate();
@@ -3944,18 +4304,18 @@ function renderLift(){
     '<div class="cheroR" data-tier="'+t.k+'">'+
       '<div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
       '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
-      '<div class="lvlsub">'+(LL.tested?('capability from your '+shortDate(LL.testDate)+' test'):'ring fills from your rounds')+'</div>'+
+      '<div class="lvlsub">capability from your own best sets</div>'+
     '</div></div>'+
-    '<div class="meta">Day '+esc(w.letter)+' &middot; '+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min &middot; 2 to 3 in reserve</div>'+
+    '<div class="meta">'+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min</div>'+
     (reentryOn()?'<div class="tgs">Re-entry: about half the usual rounds for a session or two. A ramp, not a reset.</div>'
       :(reentryLapsedToday()?'<div class="tgs">Re-entry cleared. The full prescription is back.</div>':''))+
     (doneN>=w.rN?'<div class="done-pill">'+I.check+' '+doneN+' round'+(doneN===1?'':'s')+' in the book</div>':'')+
-    ((!LL.tested||LLS.w==="Retest due")?'<button class="big-start" onclick="capTestStart()">'+I.bolt+' Capability test &middot; 20 min</button>':'')+
+    barLapsedLine()+
   '</div>';
   var _wasOpen={},_host=document.getElementById("v-lift");
   if(_host)_host.querySelectorAll("details.rnd").forEach(function(d){var rr=+d.getAttribute("data-r");if(isFinite(rr))_wasOpen[rr]=d.open;});
   for(var r=0;r<w.rN;r++)h+=roundCardHTML(w,r,_wasOpen);
-  h+='<div class="rndctl">'+
+  h+='<div class="rndctl" data-band="'+bandOfSession(w)+'">'+
     '<button onclick="removeRound()" aria-label="Remove a round">&minus; round</button>'+
     '<button onclick="addRound()" aria-label="Add a round">+ round</button></div>';
   h+=movementHTML();
@@ -5323,6 +5683,7 @@ function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;t
     inW.forEach(function(w){if(!ws[w.date]){S.weigh.push(w);ws[w.date]=true;}});
     S.weigh.sort(function(a,b){return a.date<b.date?-1:1;});
     if(o.anchor){for(var k in o.anchor){if(!S.anchor[k])S.anchor[k]=o.anchor[k];}}
+    try{anchorMigrate();}catch(e){}  /* a v11 device pushes positional keys; convert on arrival */
     if(o.progressState){for(var p in o.progressState){if(!S.progress[p])S.progress[p]=o.progressState[p];}}
   }
   if(o.profile){if(o.profile.bodyweightGoalLb)S.profile.goalLb=o.profile.bodyweightGoalLb;if(o.profile.bodyweightStretchLb)S.profile.stretchLb=o.profile.bodyweightStretchLb;}
@@ -6327,7 +6688,7 @@ function levelSheet(kind){
   if(prev!=null&&isFinite(prev)){
     var d=(L.lvl+L.pips/10)-prev;
     move=(Math.abs(d)<0.05)?"Level held where it was last week."
-      :((d>0?"Up ":"Down ")+Math.abs(d).toFixed(1)+" of a level since last week.");
+      :((d>0?"Up ":"Down ")+Math.abs(d).toFixed(1)+" of a level over the last 7 days.");
   }
   var ep=(kind!=="lift")?easyPaceTrend():null;
   openSheet('<div class="grab"></div><h3>'+(kind==="lift"?"Strength":"Cardio")+' level '+L.lvl+'</h3>'+
@@ -6384,6 +6745,7 @@ function recoveryState(){
 }
 function recoveryCardHTML(){
   var r=recoveryState(),body="",chip="";
+  if(r.k!=="sore"&&r.k!=="off")return "";
   if(r.k==="sore"){
     var pct=Math.max(0,Math.min(1,r.age/SORE_DAYS)),C=169.6;
     chip=r.left>1?(r.left+" days left"):"last day";
@@ -6401,37 +6763,10 @@ function recoveryCardHTML(){
         '<span class="srv2">'+I.arrow+'</span></button>';
   }else{
     chip=(r.k==="off")?(r.gap+" days quiet"):(r.k==="ramp"?("up "+(r.now-r.prev)+" days"):(r.now+" days moved"));
-    var sl=null;try{sl=sleepStats(7);}catch(e){}
-    var w7=null,w90=null,rhr7=null,rhr90=null;
-    try{w7=vitalWindow("rhr",7);w90=vitalWindow("rhr",90);}catch(e){}
-    if(w7&&isFinite(w7.med))rhr7=w7.med;
-    if(w90&&isFinite(w90.med))rhr90=w90.med;
-    var slTxt,slTone="flat";
-    if(sl&&sl.mean>0){var t=sleepTarget().t;
-      slTxt=hrsTxt(sl.mean)+" a night";slTone=sl.mean>=t-0.5?"good":(sl.mean>=t-1.5?"amber":"flat");}
-    else slTxt="no nights recorded";
-    var hrTxt,hrTone="flat";
-    if(rhr7!=null&&rhr90!=null){
-      var d=Math.round(rhr7-rhr90);
-      hrTxt=Math.round(rhr7)+" bpm &middot; "+(d===0?"level with your 90 days":
-        (d>0?("+"+d+" on your 90 days"):(d+" on your 90 days")));
-      hrTone=d<=0?"good":(d<=3?"flat":"amber");
-    } else if(rhr7!=null){hrTxt=Math.round(rhr7)+" bpm";}
-    else hrTxt="no readings yet";
-    var head=(r.k==="off")?("Nothing logged in "+r.gap+" days, so you are rested rather than behind")
-      :(r.k==="ramp"?("Doing more than your usual week. Keep the next one honest rather than harder.")
-      :("Holding your usual week. There is room to add a round."));
+    var head="Nothing logged in "+r.gap+" days, so you are rested rather than behind";
     body='<div class="rcv"><span class="rcvt" style="padding-left:2px">'+
       '<span class="rcvk">'+esc(r.w)+'</span>'+
       '<span class="rcvw">'+head+'</span></span></div>'+
-      '<div class="rcvgrid">'+
-        '<div class="rcvcell" data-tone="'+slTone+'"><span class="rcvcl">Sleep</span>'+
-          '<span class="rcvcv">'+slTxt+'</span>'+
-          '<span class="rcvcc">last 7 nights</span></div>'+
-        '<div class="rcvcell" data-tone="'+hrTone+'"><span class="rcvcl">Resting HR</span>'+
-          '<span class="rcvcv">'+hrTxt+'</span>'+
-          '<span class="rcvcc">takes 4 to 8 weeks to move</span></div>'+
-      '</div>'+
       '<button class="srow2" onclick="soreSheet()"><span>Something hurts</span>'+
         '<span class="srv2">flag it '+I.arrow+'</span></button>';
   }
@@ -6576,74 +6911,6 @@ function corridorRow(o){
       '<span class="corrspan">'+esc(o.span)+'</span></span>'+
     '</button>';
 }
-function targetsHTML(){
-  var c=cardioScore(120);
-  var lo=CARDIO_BAND[0],hi=CARDIO_BAND[1];
-
-  var volTone=c.week>=lo?"good":(c.week>=lo*0.6?"amber":"flat");
-  var volWord=c.week>=hi?"above the band, plenty of movement"
-    :(c.week>=lo?"inside the band":(c.week>=lo*0.6?"building toward the band":"quiet stretch"));
-
-  var vs=c.vigShare*100;
-  var vigTone=vs>=VIG_SHARE*100?"good":(vs>=VIG_SHARE*50?"amber":"flat");
-  var vigWord=vs>=VIG_SHARE*100?"enough hard minutes"
-    :(vs>0?"volume is there, intensity is the gap":"all of it easy so far");
-
-  var tgt=stepTarget().t,hitD=0,haveD=0;
-  c.days.slice(-7).forEach(function(d){if(d.steps!=null){haveD++;if(d.steps>=tgt)hitD++;}});
-  var flTone=hitD>=5?"good":(hitD>=3?"amber":"flat");
-  var flWord=haveD===0?"no step data in yet"
-    :(hitD>=5?"floor is holding":(hitD>=3?"some low days":"the low days are the risk"));
-
-  var mi7=0;
-  (function(){var d=new Date(NOW);d.setDate(d.getDate()-6);var from=keyOf(d);
-    S.sessions.forEach(function(s){if(s.date>=from&&s.date<=TODAY&&isRealRun(s))mi7+=s.distanceMi;});})();
-  var mT=bwTarget("miles"),mTgt=mT?mT.t:0;
-  var miTone=mTgt>0?(mi7>=mTgt?"good":(mi7>=mTgt*0.5?"amber":"flat")):"flat";
-  var miWord=mTgt>0?(mi7>=mTgt?"rung met, the ladder can climb":(mi7>0?"part way up the rung":"quiet week so far"))
-    :"no ladder target yet";
-  var body=
-    corridorRow({label:"Movement",value:Math.round(c.week),fmt:function(v){return tNum(v)+" MET-min";},
-      lo:lo,hi:hi,max:hi*1.35,tone:volTone,verdict:volWord,span:"last 7 days",
-      tap:"cardioWhySheet('vol')"})+
-    (mTgt>0?corridorRow({label:"Miles run",value:Math.round(mi7*10)/10,
-      fmt:function(v){return v.toFixed(1)+" mi";},
-      lo:mTgt,hi:Math.max(mTgt*1.6,mTgt+1),max:Math.max(mTgt*2,mi7*1.15,2),
-      tone:miTone,verdict:miWord,span:"last 7 days · rung "+mTgt.toFixed(1),
-      tap:"cardioWhySheet('miles')"}):"")+
-    corridorRow({label:"Hard minutes",value:Math.round(vs),fmt:function(v){return v+"%";},
-      lo:VIG_SHARE*100,hi:60,max:70,tone:vigTone,verdict:vigWord,span:"share of the last 7 days",
-      tap:"cardioWhySheet('vig')"})+
-    corridorRow({label:"Step floor",value:hitD,fmt:function(v){return v+(v===1?" day":" days");},
-      lo:5,hi:7,max:7,tone:flTone,verdict:flWord,span:"at "+tNum(tgt)+"+, last 7 days",
-      tap:"cardioWhySheet('floor')"});
-
-  return collapsible("Your week",tNum(Math.round(c.week))+" MET-min",
-    '<div class="corrwrap">'+body+'</div>',true,I.gauge,volTone);
-}
-function cardioLevelNum(c){
-  c=c||cardioScore(120);
-  var s=c.level,gate=c.vigShare>=VIG_SHARE;
-  if(s<300)return 1;
-  if(s<600)return 2;
-  if(s<900)return 3;
-  if(s<1200)return gate?4:3;
-  return gate?5:4;
-}
-function cardioWhySheet(which){
-  var c=cardioScore(120),t;
-  if(which==="vol")t={h:"Movement",b:"Every walk and run counted in one unit, MET-minutes, so a walk is not worth less than a run just because it is slower. The band is the World Health Organization's own weekly range, "+tNum(CARDIO_BAND[0])+" to "+tNum(CARDIO_BAND[1])+".",
-    n:"Steps a logged workout already produced are removed before the rest of your steps are counted, so a run is never counted twice. On your record that dedup is worth about 46 percent."};
-  else if(which==="vig")t={h:"Hard minutes",b:"The share of your week spent at 6 METs or above. Volume and intensity are different problems, and a resting heart rate that has risen is a measure of the second one.",
-    n:"This reads recorded workouts only, never the step estimate, because the cadence-to-intensity conversion mislabels roughly three in ten minutes and this is the number that should not be guessed."};
-  else if(which==="miles")t={h:"Miles run",b:"The rung is EARNED, never scheduled: a week you hit raises it one step, three missed weeks lower it, and it opened where your record already was. Walk-runs count.",
-    n:"Progression is capped near 30 percent over a rolling fortnight with a one-mile floor, which is the evidence-backed guard; the 10 percent rule is folklore."};
-  else t={h:"Step floor",b:"How many of the last seven days cleared "+tNum(stepTarget().t)+" steps. The floor rather than the average, because the risk sits in the low days and a median hides them.",
-    n:"Days with no export yet are not counted either way. They are absent, not zero."};
-  openSheet('<div class="grab"></div><h3>'+t.h+'</h3><div class="ssub">'+t.b+'</div>'+
-    '<div class="snote">'+t.n+'</div>'+
-    '<button class="wbtn" style="width:100%;margin-top:14px" onclick="closeSheet()">Close</button>');
-}
 function movementHTML(){
   var tracks=[["mobility","Mobility"],["recovery","Stretch"],["pilates","Pilates"]],cols="",anyLeft=false;
   tracks.forEach(function(t){
@@ -6669,8 +6936,8 @@ function weighedToday(){
   return null;
 }
 function anchorCount(){
-  var a=S.anchor[TODAY]||{},n=anchorList().length,ac=0;
-  for(var k=0;k<n;k++)if(a[k])ac++;
+  var a=S.anchor[TODAY]||{},sl=anchorSlugs(TODAY),n=sl.length,ac=0;
+  for(var k=0;k<n;k++)if(a[sl[k]])ac++;
   var wOn=!!weighedToday();
   return {ac:ac,n:n,wOn:wOn,tot:n+1,dn:ac+(wOn?1:0)};
 }
@@ -6784,7 +7051,7 @@ function bodyBoxHTML(){
   var val=st?(Math.round(st.trend*10)/10)+"":"–";
   var rate=(b.k==="none")?"–":(b.w==="Holding"?"level":b.w+"/wk");
   var word=(b.k==="none")?"not enough yet":"trend, "+((b.c==="weight is level")?"holding":b.c.replace(/^a week, /,""));
-  return '<button class="lvlcard lvlbox lbbody" data-tone="'+b.k+'" onclick="show(\'track\')"'+
+  return '<button class="lvlcard lvlbox lbbody" data-tone="'+b.k+'" onclick="weighSheet()"'+
     ' aria-label="Body, trend '+(st?val+" "+wLbl():"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
     '<span class="lbk">Body</span>'+
     '<span class="lbv num">'+val+'<i class="lbu">'+wLbl()+'</i></span>'+
@@ -6802,16 +7069,17 @@ function levelTrioHTML(){
 }
 function anchorHTML(){
   var a=S.anchor[TODAY]||{},list=anchorList(),rows="",ac=0;
-  list.forEach(function(m,i){var on=!!a[i];if(on)ac++;
-    rows+='<div class="arow'+(on?" checked":"")+'" data-i="'+i+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="toggleAnchor('+i+',this)">'+
+  if(anchorMigrate())a=S.anchor[TODAY]||{};
+  list.forEach(function(m,i){var on=!!a[m.s];if(on)ac++;
+    rows+='<div class="arow'+(on?" checked":"")+'" data-i="'+i+'" data-s="'+esc(m.s)+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="toggleAnchor('+i+',this)">'+
       '<span class="chk">'+I.check+'</span>'+
       '<span class="atxt"><span class="an">'+esc(m.n)+'</span><span class="ad">'+esc(m.d)+'</span></span>'+
-      (anchorLearned(i)?'':'<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>')+
+      (anchorLearned(m.s)?'':'<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>')+
       '</div>';});
-  rows+=anchorWeighRow();
+  rows=anchorWeighRow()+rows;
   var q=anchorCount(),tot=q.tot,dn=q.dn;   /* the one counter; see anchorCount's header */
   var C=2*Math.PI*13,off=C*(1-dn/tot);
-  return '<details class="hanchor'+(dn>=tot?" alldone":"")+'"><summary onclick="anchorToggle(this,event)">'+
+  return '<details class="hanchor'+(dn>=tot?" alldone":"")+'"'+(dn>=tot?"":" open")+'><summary onclick="anchorToggle(this,event)">'+
     '<span class="asum">Morning anchor</span>'+
     '<span class="aright"><span class="acount">'+dn+' of '+tot+'</span>'+
     '<span class="chev">'+I.chevD+'</span>'+
@@ -6877,7 +7145,7 @@ function undoVidDay(){
 }
 function moveSheet(i){
   var m=anchorList()[i];if(!m)return;
-  var a=S.anchor[TODAY]||{},on=!!a[i];
+  var a=S.anchor[TODAY]||{},on=!!a[m.s];
   var cues=(m.h||[]).map(function(c){return '<li>'+c+'</li>';}).join("");
   var url="https://www.youtube.com/results?search_query="+encodeURIComponent(m.q||m.n);
   openSheet('<div class="grab"></div><h3>'+esc(m.n)+'</h3>'+
@@ -7156,8 +7424,10 @@ function doHealth(){var t=(document.getElementById("hj")||{}).value,o;try{o=JSON
   save();closeSheet();toast("Imported "+n+" items from Health.",null);show("track");}
 
 
-function anchorLearned(i){var n=0;for(var k in S.anchor){if(S.anchor[k]&&S.anchor[k][i]){n++;if(n>=5)return true;}}return false;}
-function anchorComplete(k){var a=S.anchor[k]||{},n=anchorList().length;for(var i=0;i<n;i++)if(!a[i])return false;return true;}
+function anchorLearned(s){var n=0;for(var k in S.anchor){if(S.anchor[k]&&S.anchor[k][s]){n++;if(n>=5)return true;}}return false;}
+function anchorComplete(k){var a=S.anchor[k]||{},sl=anchorSlugs(k);
+  if(!sl.length)return false;
+  for(var i=0;i<sl.length;i++)if(!a[sl[i]])return false;return true;}
 function recomputeDone(k){
   var has=S.sessions.some(function(s){return s.date===k;})|| !!S.runs[k];
   var pl=planFor(k)||{type:"none"};
@@ -7501,9 +7771,9 @@ function levelTier(n,kind){
     return {k:"base",w:"Base"};
   }
   if(kind==="cardio"){
-    if(n>=5)return {k:"elite",w:"Elite"};
-    if(n>=4)return {k:"strong",w:"Strong"};
-    if(n>=3)return {k:"built",w:"Built"};
+    if(n>=9)return {k:"elite",w:"Elite"};
+    if(n>=6)return {k:"strong",w:"Strong"};
+    if(n>=4)return {k:"built",w:"Built"};
     return {k:"base",w:"Base"};
   }
   if(n>=70)return {k:"elite",w:"Elite"};
@@ -7518,17 +7788,12 @@ function levelLvSeries(kind){
       s.unshift({w:pt.date,cwm:pt.slow});lv.unshift(Math.floor(pt.slow));}
     return {s:s,lv:lv,model:null};
   }
-  var c=cardioScore(180),TH=[0,300,600,900,1200];
-  var vig=[],tot=[],run=0,runV=0;
-  c.days.forEach(function(d,ix){run+=d.total;runV+=d.vig;
-    if(ix>=7){run-=c.days[ix-7].total;runV-=c.days[ix-7].vig;}
-    tot.push(run);vig.push(runV);});
-  function lvlOf(s,ix){var n=1;while(n<5&&s>=TH[n])n++;
-    if(n>=4&&(tot[ix]>0?(vig[ix]/tot[ix]):0)<VIG_SHARE)n=n-1;
-    return n;}
+  var c=cardioScore(180);
   var s2=[],lv2=[];
   for(var i2=c.series.length-1;i2>=0;i2-=7){var pt=c.series[i2];
-    s2.unshift({w:pt.date,cwm:pt.level});lv2.unshift(lvlOf(pt.level,i2));}
+    var frP=frontierAsOf(pt.date);
+    s2.unshift({w:pt.date,cwm:pt.level});
+    lv2.unshift(cardioLevelNum(frP));}
   return {s:s2,lv:lv2,model:null};
 }
 function levelHeroHTML(kind,L,stWord){
@@ -7537,7 +7802,7 @@ function levelHeroHTML(kind,L,stWord){
   var dtxt="";
   if(lv.length>=9){
     var d=lv[lv.length-1]-lv[lv.length-9];
-    dtxt=(d>0?"Up "+d+" level"+(d===1?"":"s"):d<0?"Down "+Math.abs(d)+" level"+(d===-1?"":"s"):"Level unchanged")+" over 8 weeks.";
+    dtxt=(d>0?"Up "+d+" level"+(d===1?"":"s"):d<0?"Down "+Math.abs(d)+" level"+(d===-1?"":"s"):"Level unchanged")+" over the last 8 weeks.";
   }
   var pips="";for(var i=0;i<10;i++)pips+='<i'+(i<L.pips?' class="on"':'')+' data-r="'+
     esc("Rung "+(i+1)+" of 10 toward Level "+(L.lvl+1)+(i<L.pips?", earned":", not yet"))+'"></i>';
@@ -7566,7 +7831,7 @@ function levelHistoryHTML(kind){
   var wks=peakDate?Math.round(daysBetween(peakDate,TODAY)/7):null;
   var whenTxt=(wks==null)?"":(wks<=0?" this week":wks===1?" a week ago":(wks<9?(" "+wks+" weeks ago"):(" "+Math.round(wks/4.345)+" months ago")));
   var verdict=(now>=peak)?("This is the highest it has been in a year."):
-    ("Peaked at <b>"+peak+"</b>"+whenTxt+", down "+(peak-now)+" since.");
+    ("Peaked at <b>"+peak+"</b>"+(whenTxt?","+whenTxt:"")+", down "+(peak-now)+" since then.");
   var area=pts+' L'+W+' '+H+' L0 '+H+' Z';
   return '<div class="lvhist"><div class="lvht">Level over the last year</div>'+
     '<div class="lvwrap">'+
@@ -7830,21 +8095,72 @@ function weeklyMilesSeries(weeks){
   }
   return out;
 }
+var FRONT_MINSEC=1200;      /* a bout must last this long to set the frontier */
+var FRONT_HALFLIFE=60;      /* days for an unrepeated best to fall halfway to his ordinary pace.
+                               A JUDGEMENT, not a finding: the detraining literature gives the size
+                               of the loss and not its time constant for this measure. Stated here
+                               so a later session tunes it knowingly rather than inheriting it. */
+var CARDIO_MPH=[0,2.2,2.6,3.0,3.4,4.0,5.0,6.0,7.0,8.0];
+function boutMph(s){
+  if(!s)return 0;
+  if(s.type!=="run"&&s.type!=="activity")return 0;
+  var mi=s.distanceMi||0,sec=s.durationSec||0;
+  if(!(mi>0)||!(sec>=FRONT_MINSEC))return 0;
+  var mph=mi/(sec/3600);
+  return (mph>0.8&&mph<13)?mph:0;   /* a GPS fragment and a car ride are not bouts */
+}
+function frontierAsOf(asOf){
+  var xs=(S.sessions||[]).filter(function(s){return s.date&&s.date<=asOf&&boutMph(s)>0;})
+    .sort(function(a,b){return a.date<b.date?-1:1;});
+  if(!xs.length)return {mph:null,best:null,on:null,n:0,last:null,floor:null};
+  var mphOf=function(a){return a.map(boutMph).sort(function(x,y){return x-y;});};
+  var f=0,last=null,best=0,bestOn=null,floor=0,i=0;
+  var erode=function(v,days,fl){return Math.max(fl,v*Math.pow(0.5,days/FRONT_HALFLIFE));};
+  xs.forEach(function(s,idx){
+    if(idx>0){var win=mphOf(xs.slice(Math.max(0,idx-8),idx));floor=win[Math.floor(win.length/2)];}
+    else floor=boutMph(s);
+    var mph=boutMph(s);
+    if(last!==null){var gap=daysBetween(last,s.date);if(gap>0)f=erode(f,gap,floor);}
+    if(mph>f)f=mph;
+    if(mph>best){best=mph;bestOn=s.date;}
+    last=s.date;
+  });
+  var winEnd=mphOf(xs.slice(Math.max(0,xs.length-8)));
+  var floorEnd=winEnd[Math.floor(winEnd.length/2)];
+  var gap=daysBetween(last,asOf);
+  if(gap>0)f=erode(f,gap,floorEnd);
+  return {mph:f,best:best,on:bestOn,n:xs.length,last:last,floor:floorEnd};
+}
+var _frMemo=null,_frMemoDay=null;
+function cardioFrontier(){
+  if(_frMemo!==null&&_frMemoDay===TODAY)return _frMemo;
+  _frMemoDay=TODAY;
+  return (_frMemo=frontierAsOf(TODAY));
+}
+function cardioLevelNum(fr){
+  fr=fr||cardioFrontier();
+  if(fr.mph==null)return 1;
+  var n=1;while(n<10&&fr.mph>=CARDIO_MPH[n])n++;
+  return n;
+}
 function cardioLevel(){
+  var fr=cardioFrontier();
   var c=cardioScore(180);
-  var TH=[0,300,600,900,1200];
-  var lvl=cardioLevelNum(c);
-  var lo=TH[lvl-1],hi=(lvl<5?TH[lvl]:1500),span=Math.max(hi-lo,1);
-  var pips=Math.max(0,Math.min(9,Math.floor(10*(c.level-lo)/span)));
-  var ser=c.series;
-  var back=(ser.length>7)?ser[ser.length-8].level:0;
-  function lvlOf(s){var n=1;while(n<5&&s>=TH[n])n++;return n;}
-  var r=(c.level-back)/Math.max(back,50);
-  return {lvl:lvl,score:Math.round(c.level),lo:lo,hi:hi,span:span,pips:pips,
-    r:r,delta:lvlOf(c.level)-lvlOf(back),vigShare:c.vigShare,week:c.week,cs:c,
-    series:ser.map(function(x){return {date:x.date,slow:x.level};}),
+  var lvl=cardioLevelNum(fr);
+  var lo=CARDIO_MPH[lvl-1],hi=(lvl<10?CARDIO_MPH[lvl]:CARDIO_MPH[9]*1.15);
+  var span=Math.max(hi-lo,0.01);
+  var ring=Math.max(0,Math.min(1,c.week/CARDIO_BAND[0]));
+  var pips=Math.max(0,Math.min(9,Math.floor(ring*10)));
+  var bk=new Date(NOW);bk.setDate(bk.getDate()-28);
+  var back=frontierAsOf(keyOf(bk)).mph;
+  var lvlP=(back==null)?lvl:cardioLevelNum({mph:back});
+  var r=(back&&back>0&&fr.mph!=null)?((fr.mph-back)/back):0;
+  return {lvl:lvl,score:fr.mph==null?0:Math.round(fr.mph*100)/100,lo:lo,hi:hi,span:span,pips:pips,
+    r:r,delta:lvl-lvlP,week:c.week,cs:c,fr:fr,ring:ring,
+    series:c.series.map(function(x){return {date:x.date,slow:x.level};}),
     sessions:allRuns().length};
 }
+
 function daysSinceLoad(kind){
   var best=null;
   S.sessions.forEach(function(x){
@@ -7870,10 +8186,10 @@ function levelStatus(L){
   if(gap!=null&&gap>=10)
     return {w:"Easing",k:"flat",c:"Nothing logged for "+gap+" days, so this is drifting down. Nothing is lost yet."};
   var r=L.r;
-  if(r>=0.20)return {w:"Ramping",k:"good",c:"Doing more than usual. Keep one of them easy."};
-  if(r>=0.06)return {w:"Building",k:"good",c:"Up "+Math.max(1,Math.round(L.delta))+" points in the last four weeks."};
-  if(r>-0.06)return {w:"Holding",k:"flat",c:"Level with where you were a month ago."};
-  if(r>-0.20)return {w:"Easing",k:"flat",c:"Quieter than usual. Nothing has been lost."};
+  if(r>=0.20)return {w:"",k:"good",c:"Doing more than usual. Keep one of them easy."};
+  if(r>=0.06)return {w:"",k:"good",c:"Up "+Math.max(1,Math.round(L.delta))+" level"+(Math.max(1,Math.round(L.delta))===1?"":"s")+" over the last 8 weeks."};
+  if(r>-0.06)return {w:"",k:"flat",c:"Level with where you were a month ago."};
+  if(r>-0.20)return {w:"",k:"flat",c:"Quieter than usual. Nothing has been lost."};
   return {w:"Coming back",k:"flat",c:"A couple of runs gets this climbing again."};
 }
 function lastNLoad(n){var by=dailyLoad(),t=0,d=new Date(NOW);for(var i=0;i<n;i++){t+=by[keyOf(d)]||0;d.setDate(d.getDate()-1);}return t;}
@@ -7900,117 +8216,6 @@ function easyPaceTrend(){
   if(Math.abs(diff)<8)return null;
   return {now:a,prev:bm,diff:diff};
 }
-var CAP_BANDS=[0,15,35,60,90,125,165,210,260,315]; /* app-defined floors, levels 1 to 10 */
-var CAPT=null;
-var CAP_RUNGS={
-  push:[["Wall push-up"],["Hands elevated"],["Knee"],["Floor"],["Narrow floor"],["Feet elevated"],["Archer"]],
-  pull:[["Band-assisted pull-up"],["Bodyweight pull-up"],["Weighted pull-up"]],
-  legs:[["Bodyweight squat"],["Split squat"],["Goblet squat, 25 lb"],["Rear-foot split squat"]]
-};
-var CAP_COPY={
-  push:{t:"Push",p:"The hardest rung you can do for 3 or more clean reps. Top set to 2 in reserve or the first technical failure, whichever comes first. Counted up to 15."},
-  pull:{t:"Pull",p:"Neutral or supinated grip. Max clean reps if under 10; once past 10, the next rung is load, not more reps. Stop at 2 in reserve. Counted up to 15."},
-  legs:{t:"Legs",p:"Top set to 2 in reserve, capped at 12. The unloaded squat is a breathing test long before it is a strength test, so the ladder adds load instead of reps."},
-  trunk:{t:"Trunk",p:"Front plank, one hold, stop at the first form break. This is endurance: it shows beside your level and is never summed into it."}
-};
-function capTestStart(){
-  CAPT={fam:capTests().length===0,step:-1,push:null,pull:null,legs:null,trunk:null};
-  capTestRender();
-}
-function capRungPick(i){var k=["push","pull","legs","trunk"][CAPT.step];
-  CAPT[k]=CAPT[k]||{reps:5};CAPT[k].rung=i+1;capTestRender();}
-function capStep(d){var k=["push","pull","legs","trunk"][CAPT.step];
-  CAPT[k]=CAPT[k]||{rung:null};
-  var cap=(k==="legs")?12:(k==="trunk"?600:15);
-  var lo=(k==="trunk")?5:1,st=(k==="trunk")?5:1;
-  CAPT[k].reps=Math.max(lo,Math.min(cap,(CAPT[k].reps||(k==="trunk"?30:5))+d*st));
-  var el=document.getElementById("cap-reps");if(el)el.textContent=CAPT[k].reps;
-}
-function capNext(){CAPT.step++;capTestRender();}
-function capBack(){CAPT.step--;if(CAPT.step<-1)CAPT.step=-1;capTestRender();}
-function capTestRender(){
-  if(!CAPT)return;
-  if(CAPT.step<0){
-    openSheet('<div class="grab"></div><h3>Capability test</h3>'+
-      '<div class="ssub">About 20 minutes, and it replaces the day’s rounds. Come to it rested, 48 to 72 hours since hard work. Push before pull, tests before anything else.</div>'+
-      '<div class="snote"><b>Never to failure.</b> Every top set stops at 2 in reserve or the first form break. A capped set is the better estimate as well as the safer one.</div>'+
-      (CAPT.fam?'<div class="snote"><b>First time: this run is practice.</b> Its numbers are discarded by design, because one familiarisation removes most of the learning effect. The next run sets your level.</div>':'')+
-      '<button class="sheet-cta" onclick="capNext()">Start with Push</button>'+
-      '<button class="sheet-cta ghost" onclick="CAPT=null;closeSheet()">Not today</button>');
-    return;
-  }
-  if(CAPT.step>=4){capTestSummary();return;}
-  var k=["push","pull","legs","trunk"][CAPT.step],c=CAP_COPY[k],cur=CAPT[k]||{};
-  var body='<div class="grab"></div><h3>'+(CAPT.step+1)+' of 4 &middot; '+c.t+'</h3>'+
-    '<div class="ssub">'+c.p+'</div>';
-  if(CAP_RUNGS[k]){
-    body+=CAP_RUNGS[k].map(function(r,i){
-      return '<div class="arow'+(cur.rung===i+1?" sel":"")+'" role="button" tabindex="0" aria-pressed="'+(cur.rung===i+1)+'" onclick="capRungPick('+i+')">'+
-        '<span class="chk">'+(cur.rung===i+1?I.check:"")+'</span>'+
-        '<span class="atxt"><span class="an">'+r[0]+'</span></span></div>';
-    }).join("");
-  }
-  body+='<div class="rsrow"><span class="rsl">'+(k==="trunk"?"Seconds held":"Reps")+'</span><div class="stp sheetstp">'+
-    '<button onclick="capStep(-1)" aria-label="fewer">&minus;</button>'+
-    '<span class="val num" id="cap-reps">'+(cur.reps||(k==="trunk"?30:5))+'</span>'+
-    '<button onclick="capStep(1)" aria-label="more">+</button></div></div>'+
-    '<button class="sheet-cta" onclick="'+(CAP_RUNGS[k]?'if(!CAPT['+JSON.stringify(k)+']||!CAPT['+JSON.stringify(k)+'].rung){toast("Pick the rung first.",null);}else{if(CAPT['+JSON.stringify(k)+'].reps==null)CAPT['+JSON.stringify(k)+'].reps=5;capNext();}':'if(!CAPT.trunk)CAPT.trunk={reps:30};capNext();')+'">Next</button>'+
-    '<button class="sheet-cta ghost" onclick="capBack()">Back</button>';
-  openSheet(body);
-}
-function pushPercentile(rung,reps){
-  if(rung!==4)return null;   /* the Cooper table speaks to FLOOR push-ups and nothing else */
-  if(reps>=41)return "at or above the 70th percentile for men 20 to 29 (Cooper)";
-  if(reps>=29)return "at or above the 40th percentile for men 20 to 29 (Cooper)";
-  return "below the 40th percentile for men 20 to 29 (Cooper)";
-}
-function capErrorBand(prev,cur){
-  if(!prev||!cur||prev.rung!==cur.rung)return null;
-  var d=(cur.reps||0)-(prev.reps||0);
-  var big=Math.max(5,0.2*(prev.reps||0));
-  if(Math.abs(d)<big)return "inside the error band, call it level";
-  return d>0?("up "+d+", a real move"):("down "+Math.abs(d));
-}
-function capTestSummary(){
-  var t={date:TODAY,fam:CAPT.fam,push:CAPT.push,pull:CAPT.pull,legs:CAPT.legs,trunk:{sec:(CAPT.trunk||{}).reps||0}};
-  var prev=capLatest();
-  var score=capScoreOf(t),lvl=capLevelOf(score);
-  var pc=t.push?pushPercentile(t.push.rung,t.push.reps):null;
-  var lines="";
-  if(CAPT.fam){
-    lines='<div class="snote"><b>Practice run banked.</b> The numbers are discarded by design; the next test sets your level.</div>';
-  }else{
-    lines='<div class="lmech">'+
-      '<div class="lmr"><span class="lmk">Capability score</span><span class="lmv num">'+score+'</span></div>'+
-      '<div class="lmr tot"><span class="lmk">Level</span><span class="lmv num">'+lvl+'<small> of 10, app-defined scale</small></span></div>'+
-      '<div class="lmr"><span class="lmk">Plank</span><span class="lmv num">'+t.trunk.sec+'<small> s, endurance, not summed</small></span></div>'+
-    '</div>';
-    if(pc)lines+='<div class="snote">Floor push-ups: '+pc+'.</div>';
-    if(prev){
-      var eb=[];
-      ["push","pull","legs"].forEach(function(kk){var w=capErrorBand(prev[kk],t[kk]);if(w)eb.push(CAP_COPY[kk].t.toLowerCase()+" "+w);});
-      if(eb.length)lines+='<div class="snote">Against your '+shortDate(prev.date)+' test: '+eb.join("; ")+'.</div>';
-    }
-  }
-  openSheet('<div class="grab"></div><h3>'+(CAPT.fam?"Practice done":"Test done")+'</h3>'+lines+
-    '<button class="sheet-cta" onclick="capTestSave()">Save</button>'+
-    '<button class="sheet-cta ghost" onclick="capBack()">Back</button>');
-}
-function capTestSave(){
-  var t={date:TODAY,fam:CAPT.fam,push:CAPT.push,pull:CAPT.pull,legs:CAPT.legs,trunk:{sec:(CAPT.trunk||{}).reps||0}};
-  S.capTest=capTests().concat([t]);
-  if(!CAPT.fam)S.done[TODAY]=true;   /* the test replaces the day's rounds */
-  CAPT=null;save();closeSheet();renderLift();
-  toast("Saved. "+(t.fam?"The real one sets your level.":"That was the day’s work."),null);
-}
-function capTests(){return Array.isArray(S.capTest)?S.capTest:[];}
-function capLatest(asOf){var out=null;capTests().forEach(function(t){
-  if(t&&!t.fam&&t.date&&(!asOf||t.date<=asOf)&&(!out||t.date>out.date))out=t;});return out;}
-function capScoreOf(t){if(!t)return null;var s=0;
-  [["push",15],["pull",15],["legs",12]].forEach(function(pr){var x=t[pr[0]];
-    if(x&&x.rung)s+=x.rung*Math.min(x.reps||0,pr[1]);});
-  return s;}
-function capLevelOf(score){if(score==null)return 1;var n=1;while(n<10&&score>=CAP_BANDS[n])n++;return n;}
 var RT7=21,HT7=21; /* app-defined ring targets: the 3-round default, daily, and its hard sets */
 function liftDayMap(){
   var by={};
@@ -8029,7 +8234,7 @@ function liftDayMap(){
 function consistencyOn(endKey,by){
   by=by||liftDayMap();
   var R=0,H={push:0,pull:0,lower:0,trunk:0};
-  var d=new Date(endKey||TODAY);
+  var d=dayFromKey(endKey||TODAY);
   for(var i=0;i<7;i++){var k=keyOf(d),x=by[k];
     if(x){R+=x.rounds;H.push+=x.hard.push;H.pull+=x.hard.pull;H.lower+=x.hard.lower;H.trunk+=x.hard.trunk;}
     d.setDate(d.getDate()-1);}
@@ -8041,33 +8246,59 @@ var _llMemo=null,_llMemoDay=null;
 function liftLevel(){
   if(_llMemo&&_llMemoDay===TODAY)return _llMemo;
   var by=liftDayMap();
-  var t=capLatest(),score=capScoreOf(t),lvl=capLevelOf(score);
+  var score=capScoreNow(),lvl=capLevelOf(score);
   var now=consistencyOn(TODAY,by);
   var dP=new Date(NOW);dP.setDate(dP.getDate()-7);
   var prevC=consistencyOn(keyOf(dP),by).C;
-  var tP=capLatest(keyOf(dP)),lvlP=capLevelOf(capScoreOf(tP));
   var pips=Math.min(9,Math.floor(now.C*10));
-  var series=[];
-  var d=new Date(NOW);d.setDate(d.getDate()-119);
-  for(var i=0;i<120;i++){var k=keyOf(d);
-    series.push({date:k,slow:capLevelOf(capScoreOf(capLatest(k)))+consistencyOn(k,by).C});
-    d.setDate(d.getDate()+1);}
+  var series=[],d=new Date(NOW);d.setDate(d.getDate()-119);
+  var lastLv=null;
+  for(var i=0;i<120;i++){
+    var k=keyOf(d);
+    if(i%7===0||i===119)lastLv=capLevelOf(capScoreAsOf(k));
+    series.push({date:k,slow:(lastLv||1)+consistencyOn(k,by).C});
+    d.setDate(d.getDate()+1);
+  }
+  var dP2=keyOf(dP),lvlP=capLevelOf(capScoreAsOf(dP2));
   var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
   _llMemoDay=TODAY;
-  return (_llMemo={lvl:lvl,pips:pips,score:score,tested:!!t,testDate:t?t.date:null,
+  return (_llMemo={lvl:lvl,pips:pips,score:score,tested:true,testDate:null,
           C:now.C,R7:now.R,H7:now.H,r:now.C-prevC,delta:lvl-lvlP,base:roundsBase(),
-          lo:CAP_BANDS[lvl-1],hi:(lvl<10?CAP_BANDS[lvl]:null),span:1,
+          lo:LVL_BANDS[lvl-1],hi:(lvl<10?LVL_BANDS[lvl]:null),span:1,
           series:series,sessions:n});
 }
 function liftLevelStatus(L){
-  if(!L.tested)return {w:"Test to set it",k:"base",
-    c:"The level number comes from a 20-minute capability test, retaken every six weeks. The ring fills from your rounds either way."};
-  if(L.testDate&&daysBetween(L.testDate,TODAY)>=42)return {w:"Retest due",k:"flat",
-    c:"Six weeks since the last capability test. Twenty minutes replaces that day's rounds."};
+  if(!L.sessions)return {w:"Nothing logged yet",k:"base",
+    c:"The number comes from your own all-out sets, weighted by how hard the movement is. Do a round and it starts."};
+  if(reentryOn())return {w:"Coming back",k:"flat",
+    c:"About half the usual rounds for a session or two. A ramp, not a reset."};
   var r=L.r;
   if(r>=0.07)return {w:"Building",k:"good",c:"More rounds banked than a week ago."};
   if(r>-0.07)return {w:"Holding",k:"flat",c:"About level with a week ago."};
   return {w:"Easing",k:"flat",c:"Quieter than a week ago. Nothing has been lost."};
+}
+function capScoreAsOf(asOf){
+  var s=0;
+  GROUP_KEYS.forEach(function(g){
+    var best=0;
+    S.sessions.forEach(function(ss){
+      if(ss.type!=="lift"||!ss.date||ss.date>asOf)return;
+      var cut=dayFromKey(asOf);cut.setDate(cut.getDate()-(CAP_WINDOW-1));
+      if(ss.date<keyOf(cut))return;
+      (ss.entries||[]).forEach(function(e){
+        var pay=gpayOf(e.exerciseId);if(!pay||!(pay[g]>=1))return;
+        (e.sets||[]).forEach(function(x){
+          if(!x.completed)return;
+          var reps=x.reps||0;if(reps<=0)return;
+          var u=unitLoad(e.exerciseId,x.weightLb);if(u==null)return;
+          var v=((LIB[e.exerciseId]||{}).unit==="s")?(reps/6)*u:reps*u;
+          if(v>best)best=v;
+        });
+      });
+    });
+    s+=best;
+  });
+  return s;
 }
 function levelDirOf(kind){
   try{
@@ -8131,9 +8362,13 @@ function odoWindow(p){
     y  :{days:365, ctx:"Last 365 days"}
   }[p];
   if(!W)return {test:function(){return true;},ctx:"All time",from:null,to:TODAY,days:0};
-  var from=back(W.days-1);
-  return {test:function(x){return x.date>=from&&x.date<=TODAY;},
-          ctx:W.ctx,from:from,to:TODAY,days:W.days};
+  var off=(p==="w")?(ODOW*7):0;
+  var to=off?back(off):TODAY;
+  var from=back(off+W.days-1);
+  var ctx=W.ctx;
+  if(off)ctx=(ODOW===1)?"The week before last week":(ODOW+" weeks back");
+  return {test:function(x){return x.date>=from&&x.date<=to;},
+          ctx:ctx,from:from,to:to,days:W.days};
 }
 function odoDay(k,withYear){
   var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],p=k.split("-");
@@ -8168,8 +8403,9 @@ function odoSeries(p){
     return {vals:vals,label:"Last 14 days, one bar a day",first:"14d ago"};
   }
   if(p==="w"){
-    for(i=11;i>=0;i--)vals.push(sum(back(i*7+6),back(i*7)));
-    return {vals:vals,label:"Last 12 weeks, one bar a rolling week",first:"12w ago"};
+    for(i=11;i>=0;i--)vals.push(sum(back((i+ODOW)*7+6),back((i+ODOW)*7)));
+    return {vals:vals,label:ODOW?"12 weeks ending in the selected week":"Last 12 weeks, one bar a rolling week",
+            first:(12+ODOW)+"w ago"};
   }
   if(p==="m"){
     for(i=11;i>=0;i--)vals.push(sum(back(i*30+29),back(i*30)));
@@ -8180,25 +8416,108 @@ function odoSeries(p){
   if(ys.length<2)return null;
   return {vals:ys.map(function(y){return yr[y];}),label:"By calendar year",first:ys[0]};
 }
-function setOdo(p){ODOP=p;odoRefresh();}
+function setOdo(p){
+  if(p!=="w")ODOW=0;
+  ODOP=p;odoRefresh();}
 function hms(s){var h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
   return h?(h+":"+("0"+m).slice(-2)+":"+("0"+x).slice(-2)):(m+":"+("0"+x).slice(-2));}
 var ODOM=(function(){try{return localStorage.getItem("train.odoMode")==="step"?"step":"run";}catch(e){return "run";}})();
+var ODOW=0;
+function odoMaxBack(){
+  var oldest=null;
+  if(ODOM==="step"){
+    var ks=Object.keys(S.steps||{}).sort();
+    if(ks.length)oldest=ks[0];
+  }else{
+    allRuns().forEach(function(r){if(!oldest||r.date<oldest)oldest=r.date;});
+  }
+  if(!oldest)return 0;
+  var days=Math.floor((new Date(TODAY)-new Date(oldest))/86400000);
+  return Math.max(0,Math.floor(days/7));
+}
+function setOdoWeek(n){
+  var mx=odoMaxBack();
+  ODOW=Math.max(0,Math.min(mx,n));       /* no future, and no walking past the record */
+  odoRefresh();
+}
 function setOdoMode(m){ODOM=(m==="step")?"step":"run";
   try{localStorage.setItem("train.odoMode",ODOM);}catch(e){}
+  if(ODOW>odoMaxBack())ODOW=odoMaxBack();
   odoRefresh();}
 function odoRefresh(){
   var html=odoBodyHTML(),sum=odoSummary();
   [].forEach.call(document.querySelectorAll(".odowrap"),function(e){e.innerHTML=html;});
   [].forEach.call(document.querySelectorAll(".odosum"),function(e){e.textContent=sum;});
 }
+function odoLedgerHTML(mode){
+  var rows="",foot="";
+  if(mode==="step"){
+    var yr={},yn={},all=0,days=0;
+    Object.keys(S.steps||{}).forEach(function(k){
+      var v=stepsOn(k); if(v==null||!isFinite(v))return;
+      var y=k.slice(0,4); yr[y]=(yr[y]||0)+v; yn[y]=(yn[y]||0)+1; all+=v; days++;
+    });
+    var ys=Object.keys(yr).sort();
+    if(!ys.length)return "";
+    var mx=Math.max.apply(null,ys.map(function(y){return yr[y];}))||1;
+    var fk=odoStepFmt;   /* one rounder, see odoStepFmt */
+    rows=ys.reverse().map(function(y){
+      return '<div class="yrow"><span class="yy">'+y+'</span>'+
+        '<span class="yb"><i style="width:'+Math.max(2,Math.round(yr[y]/mx*100))+'%"></i></span>'+
+        '<span class="ym num">'+fk(yr[y])+'</span>'+
+        '<span class="yn">'+yn[y]+' day'+(yn[y]===1?'':'s')+'</span></div>';
+    }).join("");
+    foot=fk(all)+' steps all time across '+days+' day'+(days===1?'':'s')+' recorded.';
+  }else{
+    var runs=allRuns(),total=runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
+    var r_yr={},r_yn={};runs.forEach(function(x){var y=x.date.slice(0,4);r_yr[y]=(r_yr[y]||0)+(x.distanceMi||0);r_yn[y]=(r_yn[y]||0)+1;});
+    var r_ys=Object.keys(r_yr).sort();
+    if(!r_ys.length)return "";
+    var r_mx=Math.max.apply(null,r_ys.map(function(y){return r_yr[y];}))||1;
+    rows=r_ys.reverse().map(function(y){
+      return '<div class="yrow"><span class="yy">'+y+'</span>'+
+        '<span class="yb"><i style="width:'+Math.max(2,Math.round(r_yr[y]/r_mx*100))+'%"></i></span>'+
+        '<span class="ym num">'+r_yr[y].toFixed(1)+'<small> mi</small></span>'+
+        '<span class="yn">'+r_yn[y]+' run'+(r_yn[y]===1?'':'s')+'</span></div>';
+    }).join("");
+    foot=total.toFixed(1)+' mi all time across '+runs.length+' runs.';
+  }
+  return '<div class="odosplit"></div><div class="odoct">By calendar year</div>'+rows+
+    '<div class="odofoot">'+foot+'</div>';
+}
+function odoFoldsHTML(mode,d){
+  if(mode==="step"){
+    var w=odoWindow(ODOP),ks=[];
+    Object.keys(S.steps||{}).forEach(function(k){
+      var v=stepsOn(k); if(v==null||!isFinite(v))return;
+      if(w.from&&(k<w.from||k>w.to))return;
+      ks.push({k:k,v:v});
+    });
+    if(!ks.length)return "";
+    ks.sort(function(a,b){return a.k<b.k?1:a.k>b.k?-1:0;});
+    var best=ks.reduce(function(m,x){return x.v>m?x.v:m;},0);
+    var shown=ks.slice(0,5);
+    var fk=odoStepFmt;   /* one rounder, see odoStepFmt */
+    var list=shown.map(function(x){
+      var wpc=Math.max(6,Math.min(100,(x.v/(best||1))*100));
+      return '<div class="rrow"><span class="rdate">'+runDate(x.k)+'</span>'+
+        '<span class="rbar"><i style="width:'+wpc.toFixed(0)+'%"></i></span>'+
+        '<span class="rmi num">'+fk(x.v)+'</span>'+
+        '<span class="rpace num'+((x.v===best)?" best":"")+'">'+(x.v===best?"best":"")+'</span></div>';
+    }).join("");
+    return '<details class="rfold"><summary><span class="rfi">'+I.gauge+'</span><span class="rfn">Every day</span>'+
+      '<span class="rfc">'+ks.length+'</span><span class="rfv">'+fk(best)+' best</span>'+
+      '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+list+'</div></details>';
+  }
+  return "";
+}
 function odoStepsHTML(d,seg){
   var t=odoStepTotals(ODOP);
   var span=odoSpan(d);
   var f=function(n){return Math.round(n).toLocaleString();};
-  var fk=function(n){return n>=10000?((n/1000).toFixed(0)+"k"):n>=1000?((n/1000).toFixed(1)+"k"):String(Math.round(n));};
+  var fk=odoStepFmt;   /* one rounder, see odoStepFmt */
   var body='<div class="oseg">'+seg+'</div>'+
-    '<div class="octx">'+d.ctx+(span?' <span class="ospan">'+span+'</span>':'')+'</div>'+
+    odoCtxHTML(d)+
     '<div class="oN">'+(t.n?fk(t.t):"0")+'</div><div class="oU">Steps</div>'+
     '<div class="orow">'+
       '<div><b>'+t.n+'</b><span>Day'+(t.n===1?'':'s')+' recorded</span></div>'+
@@ -8211,17 +8530,40 @@ function odoStepsHTML(d,seg){
   if(ch&&ch.vals.length>1)
     body+='<div class="odosplit"></div><div class="odoct">'+ch.label+'</div>'+
       barBody(ch.vals,function(v){return fk(v);},"",ch.first);
-  return body;
+  return body+odoFoldsHTML("step",d)+odoLedgerHTML("step");
+}
+function odoCtxHTML(d){
+  var span=odoSpan(d);
+  var plain='<div class="octx">'+d.ctx+(span?' <span class="ospan">'+span+'</span>':'')+'</div>';
+  if(ODOP!=="w")return plain;
+  var mx=odoMaxBack(), older=(ODOW<mx), newer=(ODOW>0);
+  return '<div class="octx ostep">'+
+    '<button class="oarw" onclick="setOdoWeek('+(ODOW+1)+')"'+(older?'':' disabled aria-disabled="true"')+
+      ' aria-label="Show the week before">'+I.chevL+'</button>'+
+    (newer
+      ? '<button class="onow" onclick="setOdoWeek(0)" aria-label="Back to this week">'+
+          '<span class="ospan">'+span+'</span><span class="obk">this week</span></button>'
+      : '<span class="ospan ospannow">'+span+'</span>')+
+    '<button class="oarw" onclick="setOdoWeek('+(ODOW-1)+')"'+(newer?'':' disabled aria-disabled="true"')+
+      ' aria-label="Show the following week">'+I.arrow+'</button>'+
+    '</div>';
+}
+function odoStepFmt(n){
+  n=Math.round(n||0);
+  if(n>=1000000)return (n/1000000).toFixed(1)+"M";
+  if(n>=10000)return (n/1000).toFixed(0)+"k";
+  if(n>=1000)return (n/1000).toFixed(1)+"k";
+  return String(n);
 }
 function odoSummary(){
   var d=odoPeriod(ODOP);
-  var when=(ODOP==="all"?"all time":d.ctx.toLowerCase());
+  var when=(ODOP==="all")?"all time":(ODOW?("wk of "+odoDay(d.from)):"7d");
   if(ODOM==="step"){
     var t=odoStepTotals(ODOP);
-    return (t.n?(t.t>=1000?((t.t/1000).toFixed(1)+"k"):String(Math.round(t.t)))+" steps ":"no steps ")+when;
+    return (t.n?odoStepFmt(t.t)+" steps \u00b7 ":"no steps \u00b7 ")+when;
   }
   var mi=d.runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
-  return mi.toFixed(1)+" mi "+when;
+  return mi.toFixed(1)+" mi \u00b7 "+when;
 }
 function odoStepTotals(p){
   var w=odoWindow(p),t=0,n=0,best=0,bestK=null;
@@ -8240,8 +8582,9 @@ function odoStepSeries(p){
     if(k>=from&&k<=to&&stepsOn(k)!=null)t+=stepsOn(k);});return t;}
   var vals=[],i;
   if(p==="w"){
-    for(i=11;i>=0;i--)vals.push(sum(back(i*7+6),back(i*7)));
-    return {vals:vals,label:"Last 12 weeks, one bar a rolling week",first:"12w ago"};
+    for(i=11;i>=0;i--)vals.push(sum(back((i+ODOW)*7+6),back((i+ODOW)*7)));
+    return {vals:vals,label:ODOW?"12 weeks ending in the selected week":"Last 12 weeks, one bar a rolling week",
+            first:(12+ODOW)+"w ago"};
   }
   var ks=Object.keys(Object.assign({},S.steps||{},S.pedo||{})).sort();
   if(!ks.length)return null;
@@ -8262,7 +8605,7 @@ function odoBodyHTML(){
       (k==="run"?"Running":"Steps")+'</button>';}).join("")+'</div>';
   if(ODOM==="step")return mseg+odoStepsHTML(d,seg);
   var body=mseg+'<div class="oseg">'+seg+'</div>'+
-    '<div class="octx">'+d.ctx+(span?' <span class="ospan">'+span+'</span>':'')+'</div>'+
+    odoCtxHTML(d)+
     '<div class="oN">'+mi.toFixed(1)+'</div><div class="oU">Miles run</div>'+
     '<div class="orow">'+
       '<div><b>'+rs.length+'</b><span>Run'+(rs.length===1?'':'s')+'</span></div>'+
@@ -8278,19 +8621,10 @@ function odoBodyHTML(){
   var ch=odoSeries(ODOP);
   var chart=(ch&&ch.vals.length>1)?('<div class="odosplit"></div><div class="odoct">'+ch.label+'</div>'+
       barBody(ch.vals,function(v){return v.toFixed(1);},"mi",ch.first)):"";
-  var runs=allRuns(),total=runs.reduce(function(a,x){return a+(x.distanceMi||0);},0);
-  var yr={},yn={};runs.forEach(function(x){var y=x.date.slice(0,4);yr[y]=(yr[y]||0)+(x.distanceMi||0);yn[y]=(yn[y]||0)+1;});
-  var ys=Object.keys(yr).sort(),ymax=Math.max.apply(null,ys.map(function(y){return yr[y];}))||1;
-  var yrows=ys.reverse().map(function(y){
-    return '<div class="yrow"><span class="yy">'+y+'</span>'+
-      '<span class="yb"><i style="width:'+Math.max(2,Math.round(yr[y]/ymax*100))+'%"></i></span>'+
-      '<span class="ym num">'+yr[y].toFixed(1)+'<small> mi</small></span>'+
-      '<span class="yn">'+yn[y]+' run'+(yn[y]===1?'':'s')+'</span></div>';
-  }).join("");
-  var foot='<div class="odosplit"></div><div class="odoct">By calendar year</div>'+yrows+
-    '<div class="odofoot">'+total.toFixed(1)+' mi all time across '+runs.length+' runs.</div>';
-  var rs2=rs.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
-  var best=rs2.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
+  var foot=odoLedgerHTML("run");
+  var rs2All=rs.slice().sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0;});
+  var rs2=rs2All.slice(0,5);
+  var best=rs2All.reduce(function(a,r){return (r.paceSecPerMi&&(!a||r.paceSecPerMi<a))?r.paceSecPerMi:a;},0);
   var runList=rs2.length?rs2.map(function(r){
     var pace=r.paceSecPerMi?mmss(r.paceSecPerMi):null;
     var isBest=(pace&&r.paceSecPerMi===best);
@@ -8302,11 +8636,11 @@ function odoBodyHTML(){
       '<span class="rpace num'+(isBest?" best":"")+'">'+(pace||"--")+'</span></button>';
   }).join(""):"";
   var folds="";
-  if(rs2.length){
+  if(rs2All.length){
     folds+='<details class="rfold"><summary><span class="rfi">'+I.run+'</span><span class="rfn">Every run</span>'+
-      '<span class="rfc">'+rs2.length+'</span><span class="rfv">'+(best?mmss(best)+"/mi best":"")+'</span>'+
+      '<span class="rfc">'+rs2All.length+'</span><span class="rfv">'+(best?mmss(best)+"/mi best":"")+'</span>'+
       '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+runList+'</div></details>';
-    var pzp=paceZonesParts(rs2,(d.ctx||"this window").toLowerCase());
+    var pzp=paceZonesParts(rs2All,(d.ctx||"this window").toLowerCase());
     folds+='<details class="rfold"><summary><span class="rfi">'+I.bolt+'</span><span class="rfn">Pace zones</span>'+
       '<span class="rfv">'+esc(pzp.chip)+'</span>'+
       '<span class="rfx">'+I.chevD+'</span></summary><div class="rfb">'+pzp.inner+'</div></details>';
@@ -8332,13 +8666,11 @@ function cardioTicksHTML(){
   var c=cardioTickState();
   var st=c.steps,rn=c.run;
   var _src=stepSrc(TODAY);
-  var stepAd=st.have?(tNum(st.val)+" today &middot; target "+tNum(st.tgt))
-    :(st.yVal!=null?("yesterday "+tNum(st.yVal)+" &middot; export lands later"):"no export yet today");
-  var stepSrcTxt=st.have?(_src==="pedo"?"from Pedometer":"from Apple Health")
-    :(st.on?"by you, until the export lands":"");
+  var stepAd=st.have?(tNum(st.val)+" today")
+    :(st.yVal!=null?("yesterday "+tNum(st.yVal)):"nothing recorded yet");
+  var stepSrcTxt=st.have?(_src==="pedo"?"from Pedometer":"from Apple Health"):"";
   var runAd=rn.met?((rn.mi>0?rn.mi.toFixed(1)+" mi logged":"logged")+" &middot; from the watch")
-    :((rn.ask&&rn.ask.mi>0?("ask: "+rn.ask.mi.toFixed(1)+" mi easy, walk counts"):"walk or run")+
-      (rn.on?" &middot; by you":""));
+    :"walk or run";
   function row(k,label,ad,on,src){
     return '<div class="arow'+(on?" checked":"")+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
       ' aria-label="'+esc(label)+', '+(on?"done":"not done")+(src?", "+esc(src):"")+'"'+
@@ -8359,20 +8691,16 @@ function cardioTicksHTML(){
 function renderCardio(){
   refreshDate();
   var L=cardioLevel(),LS=levelStatus(L),t=levelTier(L.lvl,"cardio");
-  var vs=Math.round((L.vigShare||0)*100),gate=Math.round(VIG_SHARE*100);
   var h='<div class="head"><div><div class="date">Running &amp; walking</div><div class="title">Cardio</div></div>'+
     '<div class="tools">'+streakChipHTML("cardio")+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L,'cardio')+'</div>'+
     '<div class="cheroR" data-tier="'+t.k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
-    '<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'+
-    '<div class="lvlsub">'+(vs>=gate?('intensity gate met &middot; '+vs+'% hard')
-      :('volume is there &middot; '+vs+'% hard against a '+gate+'% gate'))+'</div>'+
+    (LS.w?('<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'):"")+
     '</div></div>'+
     '<div class="chsplit"></div>'+
     cardioTicksHTML()+
     '</div>';
-  h+=targetsHTML();
   h+=odoCardHTML();
   document.getElementById("v-cardio").innerHTML=h;
 }
