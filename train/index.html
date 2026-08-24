@@ -1274,10 +1274,7 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .rnd .abody{padding:4px 20px 12px}
 .rnd .mrtrack{stroke:var(--line)}
 .rnd .ahow,.ctick .ahow{margin:-11px 0 -11px -4px}
-.cardinputs{margin-bottom:12px;padding:14px 15px}
-.cardinputs .wkh{margin:0 0 10px}
-.cardinputs .lmr{padding:7px 0}
-.cardinputs .lmvs{font-variant-numeric:normal}
+.lmvs{font-variant-numeric:normal}
 .lmnote{font-size:11.5px;color:var(--sub);margin:-3px 0 6px;line-height:1.35}
 .rndctl{display:flex;gap:8px;margin:2px 0 12px}
 .arow[data-band="orange"]{box-shadow:inset 3px 0 0 var(--warn)}
@@ -1598,7 +1595,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v12.2";
+var VERSION="v12.3";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -8793,48 +8790,6 @@ function cardioTicksHTML(){
       '</div>'+
     row("run","Run",runAd,rn.on)+'</div></div>';
 }
-function cardioInputsHTML(){
-  var fr, L;
-  try{ fr=cardioFrontier(); L=cardioLevel(); }catch(e){ return ""; }
-  if(!fr) return "";
-  function row(k,v,sub){
-    return '<div class="lmr"><span class="lmk">'+esc(k)+'</span>'+
-      '<span class="lmv num">'+v+'</span></div>'+
-      (sub?('<div class="lmnote">'+esc(sub)+'</div>'):'');
-  }
-  var paceTxt="--", setTxt="not yet", movedTxt="--", easyTxt="--";
-  if(fr.mph!=null&&fr.mph>0){
-    var secPerMi=3600/fr.mph;
-    paceTxt=mmss(Math.round(secPerMi))+'<i class="lbu">/mi</i>';
-  }
-  if(fr.on){
-    var age=daysBetween(fr.on,TODAY);
-    setTxt=(age===0)?"today":(age===1?"yesterday":age+" days ago");
-  }
-  var moved=0,longest=0;
-  try{
-    (S.sessions||[]).forEach(function(s){
-      if(!s.date||s.date>TODAY)return;
-      if(daysBetween(s.date,TODAY)>6)return;
-      if(s.type!=="run"&&s.type!=="activity")return;
-      if(!((s.distanceMi||0)>0||(s.durationSec||0)>=600))return;
-      moved++;
-      if((s.durationSec||0)>longest)longest=s.durationSec||0;
-    });
-  }catch(e){}
-  movedTxt=moved+'<i class="lbu">'+(moved===1?"day":"days")+'</i>';
-  var ep=null; try{ ep=easyPaceTrend(); }catch(e){}
-  if(ep&&ep.now!=null)easyTxt=mmss(Math.round(ep.now))+'<i class="lbu">/mi</i>';
-  return '<div class="card lmech cardinputs">'+
-    '<h3 class="wkh"><span class="wkt">What the number is made of</span></h3>'+
-    row("Best sustained pace",paceTxt,"the fastest you have held for "+Math.round(FRONT_MINSEC/60)+" minutes or more")+
-    row("Set",'<span class="lmvs">'+esc(setTxt)+'</span>',"an unrepeated best eases back toward your usual pace, it never resets")+
-    row("Moved, last 7 days",movedTxt,"this is what fills the ring")+
-    row("Easy pace",easyTxt,ep?"your easy runs over the last 8 weeks":"needs four easy runs in each of two 8-week windows")+
-    row("Longest bout this week",longest?(Math.round(longest/60)+'<i class="lbu">min</i>'):'0<i class="lbu">min</i>',
-        "only bouts of "+Math.round(FRONT_MINSEC/60)+" minutes or more can move the pace above")+
-    '</div>';
-}
 function renderCardio(){
   refreshDate();
   var L=cardioLevel(),LS=levelStatus(L),t=levelTier(L.lvl,"cardio");
@@ -8848,7 +8803,6 @@ function renderCardio(){
     '<div class="chsplit"></div>'+
     cardioTicksHTML()+
     '</div>';
-  h+=cardioInputsHTML();
   h+=odoCardHTML();
   document.getElementById("v-cardio").innerHTML=h;
 }
