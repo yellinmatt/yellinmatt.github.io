@@ -205,6 +205,17 @@
   }
 
   var reloadedOnce = false;
+  function repaintInPlace() {
+    try {
+      if (typeof document === "undefined") return false;
+      if (document.querySelector(".sheet-wrap, .sheet, #sheet, .sheetwrap")) return false;
+      if (document.body && document.body.classList.contains("sheet-open")) return false;
+      if (global.RND_ADV != null) return false;
+      if (typeof global.refreshCurrent === "function") { global.refreshCurrent(); return true; }
+      if (typeof global.renderToday === "function") { global.renderToday(); return true; }
+    } catch (e) {}
+    return false;
+  }
   function reloadOnce() {
     if (reloadedOnce) return;
     var seen = false;
@@ -216,7 +227,7 @@
   }
 
   function pullAndMerge() {
-    var t = getToken(); if (!t) return Promise.resolve();
+    var t = getToken(); if (!t) return Promise.resolve(false);
     return fetch(EP + "/pull", { headers: { "Authorization": "Bearer " + t } })
       .then(function (r) { if (r.ok) { mark(true); } else { onUnauthorized(r.status); mark(false, "pull " + r.status); } return r.ok ? r.json() : null; })
       .then(function (srv) {
@@ -226,8 +237,9 @@
           if ((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length) || srv.progressState) {
             S = bootstrapFromServer(srv); saveState(S); lastSnap = "";
             reloadOnce();
+            return true;
           }
-          return;
+          return false;
         }
         var before = JSON.stringify(S);
         if (!localStorage.getItem(BACKUP_KEY)) { try { localStorage.setItem(BACKUP_KEY, before); } catch (e) {} }
@@ -319,10 +331,12 @@
         lastSnap = "";
         if (after !== before) {
           saveState(S);
-          reloadOnce();
+          if (!reloadedOnce) reloadOnce(); else repaintInPlace();
+          return true;
         }
+        return false;
       })
-      .catch(function (e) { mark(false, "pull " + (e && e.message)); });
+      .catch(function (e) { mark(false, "pull " + (e && e.message)); return false; });
   }
 
   function bootstrapFromServer(srv) {
@@ -362,10 +376,26 @@
   }
   function start() {
     // prompt (in-DOM) + pull first, even with no local state, so ANY device pairs just by entering the passphrase
-    var run = function () { pullAndMerge().then(function () { push(); setInterval(push, POLL_MS); }); };
+    var cycle = function () {
+      return pullAndMerge().then(function (changed) {
+        push();
+        return !!changed;
+      }).catch(function () { return false; });
+    };
+    var run = function () { cycle().then(function () { setInterval(cycle, POLL_MS); }); };
     if (getToken()) run();
     else promptToken(run);
-    if (global.addEventListener) global.addEventListener("online", function () { if (getToken()) { push(); pullAndMerge(); } });
+    if (global.addEventListener) global.addEventListener("online", function () { if (getToken()) { cycle(); } });
+    if (global.document && global.document.addEventListener) {
+      var lastVis = 0;
+      global.document.addEventListener("visibilitychange", function () {
+        if (global.document.hidden || !getToken()) return;
+        var t2 = Date.now();
+        if (t2 - lastVis < 20000) return;
+        lastVis = t2;
+        cycle();
+      });
+    }
   }
 
   if (document.readyState === "complete" || document.readyState === "interactive") setTimeout(start, 500);
@@ -378,5 +408,5 @@
       return { ok: !!h.lastOk && !h.fails, health: h };
     }).catch(function (e) { return { ok: false, reason: String(e && e.message) }; });
   }
-  global.TrainSyncAuto = { start: start, now: now, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
+  global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
 })(typeof window !== "undefined" ? window : this);
