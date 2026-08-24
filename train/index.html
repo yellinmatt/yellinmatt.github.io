@@ -1598,7 +1598,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v12.1";
+var VERSION="v12.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -7035,10 +7035,19 @@ function cardioTickState(){
   var ranToday=S.sessions.some(function(s){return s.date===TODAY&&s.type==="run"&&(s.distanceMi||0)>0;});
   var miToday=0;S.sessions.forEach(function(s){if(s.date===TODAY&&s.type==="run")miToday+=(s.distanceMi||0);});
   var ask=nextRunTarget?nextRunTarget():null;
+  var walkToday=null,walkSecs=0;
+  S.sessions.forEach(function(s){
+    if(s.date!==TODAY)return;
+    if(s.type!=="activity")return;
+    walkSecs+=(s.durationSec||0);
+    walkToday=s;
+  });
+  var walkMet=!!walkToday||(st!=null&&st>=tgt);
+  var walkTicked=!!(ov.walk||ov.steps);
   return {
-    steps:{have:st!=null,val:st,yVal:stY,tgt:tgt,
-           met:(st!=null&&st>=tgt),by:(st!=null?"data":(ov.steps?"you":null)),
-           on:(st!=null?st>=tgt:!!ov.steps)},
+    walk:{have:st!=null,val:st,yVal:stY,tgt:tgt,logged:!!walkToday,secs:walkSecs,
+          met:walkMet,by:(walkMet?"data":(walkTicked?"you":null)),
+          on:(walkMet||walkTicked)},
     run:{ask:ask,mi:miToday,met:ranToday,by:(ranToday?"data":(ov.run?"you":null)),
          on:(ranToday||!!ov.run)}
   };
@@ -7070,7 +7079,8 @@ function dayMarks(k){
   if(!cardioOK&&st!=null&&st>=stepTarget().t)cardioOK=true;
   if(!cardioOK){var ov=(S.cardioTick||{})[k]||{};
     var ranK=S.sessions.some(function(s){return s.date===k&&s.type==="run"&&(s.distanceMi||0)>0;});
-    if((st==null&&ov.steps)||(!ranK&&ov.run))cardioOK=true;}
+    var walkTick=(ov.walk||ov.steps);
+    if((st==null&&walkTick)||(!ranK&&ov.run))cardioOK=true;}
   return {morning:anchorComplete(k),
           strength:S.sessions.some(function(s){return s.date===k&&s.type==="lift";}),
           cardio:cardioOK};
@@ -8731,21 +8741,25 @@ function odoCardHTML(){
 }
 function cardioTickToggle(k){
   var c=cardioTickState();
-  if((k==="steps"&&c.steps.have)||(k==="run"&&c.run.met)){
+  if(k==="steps")k="walk";
+  if((k==="walk"&&c.walk.met)||(k==="run"&&c.run.met)){
     toast("The record already answered this one.",null);return;
   }
   var ov=S.cardioTick=S.cardioTick||{};var t=ov[TODAY]=ov[TODAY]||{};
-  t[k]=!t[k];save();
+  t[k]=!t[k];
+  if(k==="walk"&&t.steps!=null)delete t.steps;
+  save();
   var wrap=document.getElementById("ctickwrap");
   if(wrap)wrap.outerHTML=cardioTicksHTML();else renderCardio();
 }
 function cardioTicksHTML(){
   var c=cardioTickState();
-  var st=c.steps,rn=c.run;
+  var st=c.walk,rn=c.run;
   var _src=stepSrc(TODAY);
-  var stepAd=st.have?(tNum(st.val)+" today")
-    :(st.yVal!=null?("yesterday "+tNum(st.yVal)):"nothing recorded yet");
-  var stepSrcTxt=st.have?(_src==="pedo"?"from Pedometer":"from Apple Health"):"";
+  var stepAd=st.logged?(st.secs>=60?(Math.round(st.secs/60)+" min walk logged"):"walk logged")
+    :(st.have?(tNum(st.val)+" steps today")
+    :(st.yVal!=null?("yesterday "+tNum(st.yVal)+" steps"):"nothing recorded yet"));
+  var stepSrcTxt=(!st.logged&&st.have)?(_src==="pedo"?"from Pedometer":"from Apple Health"):"";
   var runAd;
   if(rn.met){
     runAd=(rn.mi>0?rn.mi.toFixed(1)+" mi logged":"logged")+" &middot; from the watch";
@@ -8754,14 +8768,13 @@ function cardioTicksHTML(){
     try{
       (S.sessions||[]).forEach(function(s){
         if(!s.date||s.date>=TODAY)return;
-        if(s.type!=="run"&&s.type!=="activity")return;
-        if(!((s.distanceMi||0)>0||(s.durationSec||0)>=600))return;
+        if(s.type!=="run"||!((s.distanceMi||0)>0))return;
         if(!_last||s.date>_last)_last=s.date;
       });
     }catch(e){}
     var _gap=_last?daysBetween(_last,TODAY):null;
-    runAd=(_gap==null)?"nothing on record yet"
-      :(_gap===0?"already today":(_gap===1?"last one yesterday":"last one "+_gap+" days ago"));
+    runAd=(_gap==null)?"no runs on record yet"
+      :(_gap===0?"already today":(_gap===1?"last run yesterday":"last run "+_gap+" days ago"));
   }
   function row(k,label,ad,on,src){
     return '<div class="arow'+(on?" checked":"")+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
@@ -8773,12 +8786,12 @@ function cardioTicksHTML(){
   }
   return '<div id="ctickwrap"><div class="lbl">Today</div><div class="ctick">'+
     '<div class="arow'+(st.on?" checked":"")+'" role="button" tabindex="0" aria-pressed="'+st.on+'"'+
-      ' aria-label="Steps, '+(st.on?"done":"not done")+'" onclick="cardioTickToggle(\'steps\')">'+
+      ' aria-label="Walk, '+(st.on?"done":"not done")+'" onclick="cardioTickToggle(\'walk\')">'+
       '<span class="chk">'+I.check+'</span>'+
-      '<span class="atxt"><span class="an">Steps</span><span class="ad num">'+stepAd+(stepSrcTxt?" &middot; "+stepSrcTxt:"")+'</span></span>'+
+      '<span class="atxt"><span class="an">Walk</span><span class="ad num">'+stepAd+(stepSrcTxt?" &middot; "+stepSrcTxt:"")+'</span></span>'+
       '<button class="ahow" onclick="event.stopPropagation();pedoSheet()" aria-label="Enter Pedometer steps">'+I.edit+'</button>'+
       '</div>'+
-    row("run","Run or walk",runAd,rn.on)+'</div></div>';
+    row("run","Run",runAd,rn.on)+'</div></div>';
 }
 function cardioInputsHTML(){
   var fr, L;
