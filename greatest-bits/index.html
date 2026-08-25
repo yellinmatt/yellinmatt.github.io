@@ -16,7 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="search.css?v=202608240225">
+<link rel="stylesheet" href="search.css?v=202608251907">
 <style>
 :root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--maroon:#7a1003;--mut:#8a7a64}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -337,16 +337,35 @@ const COLL=[["carlin","george-carlin","George Carlin"],["pryor","richard-pryor",
 document.getElementById("collage").innerHTML=COLL.map(c=>`<a href="comic.html?c=${c[1]}" title="${c[2]}"><img src="${P[c[0]]}" alt="${c[2]}"></a>`).join("");
 const WORDS=["bit","story","act-out","one-liner","callback","crowd-work"];let wi=0;const sw=document.getElementById("swap");
 setInterval(()=>{wi=(wi+1)%WORDS.length;sw.textContent=WORDS[wi];},2200);
-// Comic-of-the-day data — {id, name, photoKey, era, rank}.
-// Tile uses the full-bleed portrait design; click navigates directly to the comic page (no popup).
-const COTD=[["george-carlin","George Carlin","carlin","1970s","#02"],
-            ["richard-pryor","Richard Pryor","pryor","1970s","#01"],
-            ["dave-chappelle","Dave Chappelle","chappelle","1990s","#09"],
-            ["robin-williams","Robin Williams","williams","1980s","#12"],
-            ["eddie-murphy","Eddie Murphy","murphy","1980s","#25"],
-            ["bill-burr","Bill Burr","burr","1990s","#17"],
-            ["john-mulaney","John Mulaney","mulaney","2000s","#50"]];
-const cd=COTD[Math.floor(Date.now()/864e5)%COTD.length];
+// ---- TODAY'S PICKS (rebuilt 2026-08-25) ----------------------------------
+// PIN overrides the rotation. Set either field to null to hand that tile back to the daily
+// rotation; set `bit` to a slug from the 100 Best Bits list and `comic` to a comic id.
+// Pinned 2026-08-25: Carlin's Seven Words and Tom Segura.
+const PIN={bit:"Seven Words", comic:"tom-segura"};
+
+// Comic-of-the-day roster — {id, name, photoUrl, era, rank, focalY}.
+// focalY is the vertical background-position for THIS portrait: TMDB headshots frame the face at
+// different heights, so one global percentage cropped several of them through the forehead.
+// Lower number = show more of the top of the image.
+const COTD=[
+ ["george-carlin","George Carlin",P.carlin,"1970s","#02","14%"],
+ ["richard-pryor","Richard Pryor",P.pryor,"1970s","#01","12%"],
+ ["dave-chappelle","Dave Chappelle",P.chappelle,"1990s","#09","10%"],
+ ["robin-williams","Robin Williams",P.williams,"1980s","#12","14%"],
+ ["eddie-murphy","Eddie Murphy",P.murphy,"1980s","#25","12%"],
+ ["bill-burr","Bill Burr",P.burr,"1990s","#17","14%"],
+ ["john-mulaney","John Mulaney",P.mulaney,"2000s","#50","12%"],
+ ["chris-rock","Chris Rock",P.rock,"1990s","#05","12%"],
+ ["joan-rivers","Joan Rivers","https://image.tmdb.org/t/p/h632/9Gn4bnMPTMaMhc5aYIcvVJVQKGb.jpg","1960s","#20","14%"],
+ ["norm-macdonald","Norm Macdonald",P.norm,"1990s","#22","12%"],
+ ["mitch-hedberg","Mitch Hedberg","https://image.tmdb.org/t/p/h632/2gmXCVbLLcgLL0CDRT1sIMSaUgg.jpg","1990s","#26","14%"],
+ ["maria-bamford","Maria Bamford","https://image.tmdb.org/t/p/h632/lyBOcGVLKtOEBLmCMSLbNWZLnCQ.jpg","2000s","#41","12%"],
+ ["ali-wong","Ali Wong",P.wong,"2010s","#44","12%"],
+ ["tig-notaro","Tig Notaro",P.tig,"2010s","#37","14%"],
+ ["bo-burnham","Bo Burnham",P.burnham,"2010s","#48","12%"],
+ ["tom-segura","Tom Segura","https://image.tmdb.org/t/p/h632/pTZX2QXdUeJ1bvEWqKYsCF2HKkS.jpg","2010s","#60","12%"]];
+const cdDay=COTD[Math.floor(Date.now()/864e5)%COTD.length];
+const cd=(PIN.comic && COTD.find(c=>c[0]===PIN.comic)) || cdDay;
 
 // Yellow-letter algorithm: highlight ONE letter in the surname for visual rhythm.
 // Priority: stroke letters (I/L/T/J/F/K/Y) — these are visually thin against Anton's chunky letterforms,
@@ -371,7 +390,7 @@ function yellowSurname(name){
   const nm=document.getElementById("cotdName");
   const meta=document.getElementById("cotdMeta");
   if(!tile) return;
-  if(P[cd[2]]) tile.style.backgroundImage="url('"+P[cd[2]]+"')";
+  if(cd[2]){tile.style.backgroundImage="url('"+cd[2]+"')";tile.style.backgroundPosition="center "+(cd[5]||"14%");}
   nm.innerHTML=yellowSurname(cd[1]);
   meta.textContent=cd[3]+" · "+cd[4]+" on the 100 Best";
   tile.setAttribute("href","comic.html?c="+cd[0]);
@@ -389,20 +408,39 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
 // Data loads in two phases: Phase 1 (specials.json) drives the BotD tile + Surprise Me pool;
 // Phase 2 walks per-comic JSONs for the true bit count used in the Index stats only.
 (async function(){
- let comics=null,idx=null,bitsTotal=0,bitPool=null;
- try{const [r1,r2]=await Promise.all([
+ let comics=null,idx=null,lists=null,bitsTotal=0,bitPool=null;
+ try{const [r1,r2,r3]=await Promise.all([
    fetch("data/comedians.json?v="+Date.now()),
-   fetch("data/specials.json?v="+Date.now())
- ]);comics=await r1.json();idx=await r2.json();}catch(e){}
+   fetch("data/specials.json?v="+Date.now()),
+   fetch("data/lists.json?v="+Date.now())
+ ]);comics=await r1.json();idx=await r2.json();lists=await r3.json();}catch(e){}
  // Build the bit pool (verified YouTube IDs only — guard against IG shortcodes)
  if(idx){
    bitPool=[];Object.entries(idx).forEach(([slug,v])=>{(v.bits||[]).forEach(b=>{
      if(b.id && !b.shortcode && /^[A-Za-z0-9_-]{11}$/.test(b.id)) bitPool.push({slug,t:b.t,id:b.id,comicId:v.comicId,comic:v.comic,comicPhoto:v.comicPhoto});
    });});
  }
- // BOTD tile — pick today's bit, wire the click-to-play handler
- if(bitPool && bitPool.length){
-   const b=bitPool[Math.floor(Date.now()/864e5)%bitPool.length];
+ // BOTD tile — pick today's bit, wire the click-to-play handler.
+ // Rebuilt 2026-08-25. It used to draw from bitPool, which is every clip in specials.json in slug
+ // order, so the tile served whatever happened to sit at today's index — on 8/25 that was a Redd
+ // Foxx party record, and the three days either side of it were three more tracks off the same
+ // album. It now draws from the 100 Best Bits, so every day's pick is a canonical bit with a
+ // verified clip, and PIN.bit overrides the rotation outright.
+ const best=(lists&&Array.isArray(lists.best_bits))?lists.best_bits.filter(x=>x&&x.id&&/^[A-Za-z0-9_-]{11}$/.test(x.id)):[];
+ let b=null;
+ if(best.length){
+   const dayPick=best[Math.floor(Date.now()/864e5)%best.length];
+   const pinned=PIN.bit?best.find(x=>x.t===PIN.bit):null;
+   const p=pinned||dayPick;
+   // Resolve the comic id + special slug through specials.json so the tile still deep-links.
+   let slug="",comicId="";
+   if(idx){for(const [k,v] of Object.entries(idx)){if((v.bits||[]).some(x=>x.id===p.id)){slug=k;comicId=v.comicId||"";break;}}}
+   b={slug,t:p.t,id:p.id,comicId,comic:p.who,sp:p.sp,yr:p.yr,rank:p.r};
+ } else if(bitPool&&bitPool.length){                       // fallback if lists.json fails to load
+   const f=bitPool[Math.floor(Date.now()/864e5)%bitPool.length];
+   b={...f,sp:idx&&idx[f.slug]?idx[f.slug].t:"",rank:null};
+ }
+ if(b){
    const tile=document.getElementById("botdTile");
    const player=document.getElementById("botdPlayer");
    const poster=document.getElementById("botdPoster");
@@ -410,11 +448,23 @@ document.getElementById("trk").innerHTML=(names.map(n=>`<span>${n}</span><span c
    const meta=document.getElementById("botdMeta");
    const link=document.getElementById("botdLink");
    if(ttl) ttl.textContent=b.t;
-   if(meta) meta.textContent=(b.comic||"")+(b.comicId?" · ":"")+(idx[b.slug]?.t || "");
+   if(meta) meta.textContent=[b.comic,b.sp&&b.yr?b.sp+" ("+b.yr+")":b.sp,b.rank?"#"+String(b.rank).padStart(2,"0")+" on the 100 Best":""].filter(Boolean).join(" · ");
    if(link){link.textContent="View on comic page →";}
-   tile.setAttribute("href","comic.html?c="+(b.comicId||"")+"#sp-"+b.slug);
-   // Set the poster background if we have a comic photo
-   if(poster && b.comicPhoto){poster.style.backgroundImage="url('https://image.tmdb.org/t/p/h632"+(b.comicPhoto.startsWith("/")?b.comicPhoto:"/"+b.comicPhoto)+"')";}
+   tile.setAttribute("href", b.comicId?("comic.html?c="+b.comicId+(b.slug?"#sp-"+b.slug:"")):"bits.html");
+   // Poster is the clip's OWN YouTube still, which is natively 16:9 and so needs no cropping at
+   // all. The old poster was the comic's 2:3 TMDB portrait squeezed into a 16:9 box at
+   // background-position:center, which cut the head off almost every time. maxres is missing on
+   // older uploads, so preload it and fall back to hqdefault (4:3, whose letterbox bars the
+   // cover-crop removes).
+   if(poster){
+     const set=u=>{poster.style.backgroundImage="url('"+u+"')";};
+     const hq="https://i.ytimg.com/vi/"+b.id+"/hqdefault.jpg";
+     const mx="https://i.ytimg.com/vi/"+b.id+"/maxresdefault.jpg";
+     set(hq);
+     const probe=new Image();
+     probe.onload=()=>{if(probe.naturalWidth>320) set(mx);};
+     probe.src=mx;
+   }
    // Click handler: first click swaps the poster for the YouTube iframe (in-section playback)
    let played=false;
    tile.addEventListener("click",e=>{
@@ -499,7 +549,7 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
   document.getElementById("lbx").addEventListener("click",close);
   lb.addEventListener("click",e=>{if(e.target===lb)close();});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&lb.classList.contains("on"))close();});
-  // "Surprise me again" — reshuffle in place using search.js?v=202608240225's surpriseBit (or window.gbSurprise)
+  // "Surprise me again" — reshuffle in place using search.js?v=202608251907's surpriseBit (or window.gbSurprise)
   document.getElementById("lbagain").addEventListener("click",e=>{e.preventDefault();if(window.gbSurprise)window.gbSurprise();});
 })();
 </script>
@@ -536,6 +586,6 @@ addEventListener("pointerleave",()=>cur.classList.remove("on"));
   m.addEventListener('click',e=>{if(e.target===m)close();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
 })();</script>
-<script src="search.js?v=202608240225" defer></script>
+<script src="search.js?v=202608251907" defer></script>
 </body>
 </html>
