@@ -2249,6 +2249,7 @@ function alloScale(bwLb){
 function capLevelOf(score){if(score==null)return 1;var n=1;while(n<10&&score>=LVL_BANDS[n])n++;return n;}
 function capLevelHeld(score){
   var raw=capLevelOf(score),h=S.lvlHold||{};
+  if(!(score>0)){ if(h.lvl!=null){ S.lvlHold=null; save(); } return raw; }
   if(raw>=(h.lvl||0)){ S.lvlHold={lvl:raw,since:TODAY}; save(); return raw; }
   if(!h.since){ S.lvlHold={lvl:raw,since:TODAY}; save(); return h.lvl||raw; }
   if(daysBetween(h.since,TODAY)>=14){ S.lvlHold={lvl:raw,since:TODAY}; save(); return raw; }
@@ -3834,7 +3835,7 @@ function renderToday(){
     try{_sl=liftLevel().lvl;}catch(e2){}
     combined=Math.max(1,Math.round((_cl+_sl)/2));
   }catch(e){}
-  document.getElementById("v-today").innerHTML=h+hero+todayStatusHTML()+levelTrioHTML()+
+  document.getElementById("v-today").innerHTML=h+hero+levelTrioHTML()+
     '<div class="dots-card">'+
       '<h3 class="wkh"><span class="wki">'+I.gauge+'</span><span class="wkt">Your week</span>'+
       '<span class="wkchip">Level '+combined+'</span></h3>'+
@@ -4466,6 +4467,18 @@ function sessionLengthHTML(){
     '',
     false,I.clock||I.cal,tone);
 }
+function demoSheet(exId){
+  var e=LIB[exId]||{},nm=e.name||exId,v=formVid(exId);
+  var body;
+  if(v){
+    body='<div class="vwrap">'+vidCardHTML(v,true,true)+'</div>';
+  }else{
+    body='<div class="ssub">No clip in the library for this movement yet.</div>'+
+      '<a class="sheet-cta" target="_blank" rel="noopener" href="'+esc(ytSearch(e.q||nm))+'">Find it on YouTube</a>';
+  }
+  openSheet('<div class="grab"></div><h3>'+esc(nm)+'</h3>'+body+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+}
 function movementSheet(id,L){
   var e=LIB[id],t=S.progress[id]||{},pr=prFor(id);
   var hist=[];
@@ -4755,10 +4768,10 @@ function roundRowHTML(w,r,si){
         if(le&&le.e&&le.e.sets){var done=le.e.sets.filter(function(x){return x.completed;});
           if(done.length)last=done[0].reps||null;}}catch(err){}
       var up=(last!=null&&reps>last);
-      var q=(LIB[o.exId]||{}).q||nm;
+      var demoId=(c&&c.exId)?c.exId:o.exId;
       return '<span class="chk">'+I.check+'</span>'+
         '<span class="atxt"><span class="an">'+esc(nm)+'</span></span>'+
-        '<button class="axv" onclick="event.stopPropagation();window.open(ytSearch(\''+esc(q).replace(/'/g,"\\'")+'\'),\'_blank\',\'noopener\')" aria-label="Watch '+esc(nm)+'">'+I.play+'</button>'+
+        '<button class="axv" onclick="event.stopPropagation();demoSheet(\''+esc(demoId)+'\')" aria-label="How to do '+esc(nm)+'">'+I.play+'</button>'+
         '<button class="axn num'+(up?" up":"")+'" onclick="event.stopPropagation();rowSheet('+si+')" aria-label="'+esc(dose)+', tap to change">'+
           esc(dose.replace(/^x/,""))+'</button>';
     })()+
@@ -4804,7 +4817,6 @@ function renderLift(){
     '<div class="cheroR" data-tier="'+t.k+'">'+
       '<div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
       '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
-      '<div class="lvlsub">capability from your own best sets</div>'+
     '</div></div>'+
     '<div class="meta">'+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min</div>'+
     (false?''
@@ -7669,19 +7681,6 @@ function dayMarks(k){
           strength:S.sessions.some(function(s){return s.date===k&&s.type==="lift";}),
           cardio:cardioOK};
 }
-function statusRowHTML(o){
-  return '<button class="strow'+(o.on?" on":"")+'" onclick="'+o.go+'"'+
-    ' aria-label="'+esc(o.label)+', '+(o.on?"done today":"not done today")+'">'+
-    '<span class="strn">'+esc(o.label)+'</span>'+
-    '<span class="straight"><span class="sttag num">'+esc(o.tag)+'</span>'+
-    '<span class="stlight" aria-hidden="true">'+I.check+'</span></span></button>';
-}
-function todayStatusHTML(){
-  var m=dayMarks(TODAY),c=cardioTickState();
-  var sN=(S.wk[TODAY]&&S.wk[TODAY].v3)?S.wk[TODAY].order.length:4;
-  var cTag=m.cardio?"done":(c.run.ask&&c.run.ask.mi>0?(c.run.ask.mi.toFixed(1)+" mi"):"walk or run");
-  return "";
-}
 function bodyLight(){
   var st=null;try{st=weightStats();}catch(e){}
   var w=lastW();
@@ -7720,7 +7719,8 @@ function bodyBoxHTML(){
   var st=null;try{st=weightStats();}catch(e){}
   var pts=[];try{pts=trendSeries().slice(-28).map(function(p){return p.v;});}catch(e){}
   var _cv=null;try{_cv=cutVerdict();}catch(e){}
-  var val=st?(Math.round(st.trend*10)/10)+"":"–";
+  var val=(st&&st.raw!=null)?(Math.round(st.raw*10)/10)+""
+        :(st?(Math.round(st.trend*10)/10)+"":"–");
   var rate="–";
   if(_cv&&_cv.r&&isFinite(_cv.r.lbPerWk)){
     var _lb=_cv.r.lbPerWk;
@@ -7734,7 +7734,7 @@ function bodyBoxHTML(){
       :"holding";
   }else{ word=(b.k==="none")?"not enough yet":"trend"; }
   return '<button class="lvlcard lvlbox lbbody" data-tone="'+b.k+'" onclick="levelSheet(\'body\')"'+
-    ' aria-label="Body, trend '+(st?val+" "+wLbl():"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
+    ' aria-label="Body, '+(st&&st.raw!=null?("latest "+val+" "+wLbl()+(st.trend!=null?(", 7-day mean "+(Math.round(st.trend*10)/10)+" "+wLbl()):"")):"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
     '<span class="lbk">Body</span>'+
     '<span class="lbv num">'+val+'<i class="lbu">'+wLbl()+'</i></span>'+
     '<span class="lbw num">'+esc(rate)+'</span>'+
@@ -9023,7 +9023,7 @@ var _llMemo=null,_llMemoDay=null;
 function liftLevel(){
   if(_llMemo&&_llMemoDay===TODAY)return _llMemo;
   var by=liftDayMap();
-  var score=capScoreNow(),lvl=capLevelOf(score);
+  var score=capScoreNow(),lvl=capLevelHeld(score),cov=capCoverage();
   var now=consistencyOn(TODAY,by);
   var dP=new Date(NOW);dP.setDate(dP.getDate()-7);
   var prevC=consistencyOn(keyOf(dP),by).C;
@@ -9039,7 +9039,7 @@ function liftLevel(){
   var dP2=keyOf(dP),lvlP=capLevelOf(capScoreAsOf(dP2));
   var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
   _llMemoDay=TODAY;
-  return (_llMemo={lvl:lvl,pips:pips,score:score,tested:true,testDate:null,
+  return (_llMemo={lvl:lvl,pips:pips,score:score,tested:true,testDate:null,cov:cov,
           C:now.C,R7:now.R,H7:now.H,r:now.C-prevC,delta:lvl-lvlP,base:roundsBase(),
           lo:LVL_BANDS[lvl-1],hi:(lvl<10?LVL_BANDS[lvl]:null),span:1,
           series:series,sessions:n});
@@ -9126,7 +9126,11 @@ function levelMechanicsHTML(kind,L){
     rows+='<div class="lmr"><span class="lmk">Rounds, last 7 days</span><span class="lmv num">'+(L.R7||0)+'</span></div>'+
       '<div class="lmr"><span class="lmk">Hard sets, last 7 days</span><span class="lmv num">'+(L.H7||0)+'</span></div>'+
       '<div class="lmr'+(L.tested?'':' next tot')+'"><span class="lmk">'+(L.tested?"Capability score":"Level number")+'</span><span class="lmv num">'+
-        (L.tested?tNum(Math.round((L.score||0)*100)/100):'<small>set by the 6-weekly test</small>')+'</span></div>';
+        (L.tested?tNum(Math.round((L.score||0)*100)/100):'<small>set by the 6-weekly test</small>')+'</span></div>'+
+      '<div class="lmr"><span class="lmk">Groups tested</span><span class="lmv num">'+
+        (L.cov?L.cov.tested:0)+'<small> of '+(L.cov?L.cov.total:0)+'</small></span></div>'+
+      ((L.lvl<10&&L.hi!=null)?('<div class="lmr next tot"><span class="lmk">Level '+(L.lvl+1)+' at</span>'+
+        '<span class="lmv num">'+tNum(L.hi)+'</span></div>'):'');
   }else{
     rows+='<div class="lmr"><span class="lmk">This week</span><span class="lmv num">'+tNum(Math.round(L.week||0))+'<small> MET-min</small></span></div>'+
       '<div class="lmr"><span class="lmk">Score</span><span class="lmv num">'+tNum(L.score||0)+'</span></div>'+
@@ -9604,10 +9608,17 @@ function cardioWeekCardsHTML(){
                 unit:"at goal",tap:"levelSheet('cardio')"})+
   '</div>';
 }
+function strengthWorkOn(k){
+  var n=0;
+  var by=liftDayMap(),x=by[k];
+  if(x){var h=x.hard||{};n+=(h.push||0)+(h.pull||0)+(h.lower||0)+(h.trunk||0);}
+  if(puDayReps(k)>0)n+=1;
+  return n;
+}
 function strengthWeekCardHTML(){
   return '<div class="wkrow one">'+
-    wkCardHTML({label:"Strength days",series:wkCounts(strengthOn,6),unit:"days",unit1:"day",
-                tap:"levelSheet('lift')"})+
+    wkCardHTML({label:"Strength days",series:wkCounts(strengthOn,6,strengthWorkOn),
+                unit:"days",unit1:"day",tap:"levelSheet('lift')"})+
   '</div>';
 }
 function cardioTicksHTML(){
