@@ -1648,7 +1648,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v15.0";
+var VERSION="v15.1";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2410,12 +2410,19 @@ var ANCHOR_STANDING_FROM="2026-08-23";
 var ANCHOR_V14=["pogo","banddisloc","wgs","cossack","hip9090","needlethread","catcow","pushups"];
 var ANCHOR_V14_FROM="2026-08-30";
 
-var PU_TEST_DAYS=28, PU_MIN=5, PU_CEIL=24, PU_WEEK_GROWTH=1.10, PU_EARLY_DAY_CAP=50;
+var PU_TEST_DAYS=28, PU_MIN=5, PU_CEIL=24, PU_WEEK_GROWTH=1.10;
+var PU_EARLY_DAY_MULT=2.0, PU_DAY_MULT=2.5;
 function puState(){ if(!S.pushup||typeof S.pushup!=="object")S.pushup={}; if(!S.pushup.log)S.pushup.log={}; return S.pushup; }
 function puMax(){ var p=puState(); return (typeof p.m==="number"&&p.m>0)?p.m:null; }
 function puDayReps(k){ return (puState().log||{})[k]||0; }
 function puWeeksIn(){ var p=puState(); if(!p.start)return 0; return Math.floor(daysBetween(p.start,TODAY)/7); }
-function puFraction(){ return puWeeksIn()<4?0.40:0.475; }
+var PU_TOP_START=0.50, PU_TOP_CAP=0.65, PU_TOP_STEP=0.05, PU_TOP_EVERY=2;
+function puTopFraction(){
+  var w=puWeeksIn();
+  var bumps=Math.floor(w/PU_TOP_EVERY);
+  return Math.min(PU_TOP_CAP,PU_TOP_START+bumps*PU_TOP_STEP);
+}
+function puFraction(){ return puTopFraction(); }
 function puSetsN(){ var w=puWeeksIn(); return w<2?3:(w<4?4:5); }
 function puIsDeload(){ var w=puWeeksIn(); return w>0 && ((w+1)%4===0); }
 function puRetestDue(){ var p=puState(); if(!p.m||!p.mOn)return true; return daysBetween(p.mOn,TODAY)>=PU_TEST_DAYS; }
@@ -2445,20 +2452,28 @@ function puRx(){
   if(!m)return {need:"test",sets:0,reps:0,from:"untested"};
   if(puRetestDue())return {need:"retest",sets:1,reps:0,m:m,from:"retest"};
   if(puRestDay())return {need:"rest",sets:0,reps:0,m:m,from:"rest"};
-  var reps=Math.round(m*puFraction())+(puState().bump||0);
   var deload=puIsDeload();
-  if(deload)reps=Math.round(reps*0.5);
-  reps=Math.max(PU_MIN,Math.min(PU_CEIL,reps));
+  var top=Math.round(m*puTopFraction())+(puState().bump||0);
+  if(deload)top=Math.round(top*0.5);
+  top=Math.max(PU_MIN,Math.min(PU_CEIL,top));
+  var step=Math.max(1,Math.round(m*0.05));
   var sets=puSetsN(), from=deload?"deload":"earned", capped=false;
-  var dayCap=Math.min(Math.round(2.5*m), (puWeeksIn()<8?PU_EARLY_DAY_CAP:1e9));
+  var reps=top;
+  var dayCap=Math.round((puWeeksIn()<8?PU_EARLY_DAY_MULT:PU_DAY_MULT)*m);
   var wc=puWeekCap();
+  function ladderTotal(n){ var t=0; for(var q=0;q<n;q++)t+=Math.max(PU_MIN,top-step*q); return t; }
   if(wc!=null){
     var already=puWindowReps(TODAY,7)-puDayReps(TODAY);
     var room=Math.max(0,wc-already);
-    if(sets*reps>room){ sets=Math.max(1,Math.floor(room/Math.max(1,reps))); capped=true; from="capped"; }
+    while(sets>1&&ladderTotal(sets)>room){ sets--; capped=true; from="capped"; }
   }
-  if(sets*reps>dayCap){ sets=Math.max(1,Math.floor(dayCap/Math.max(1,reps))); capped=true; from="capped"; }
-  return {need:"work",sets:sets,reps:reps,m:m,deload:deload,capped:capped,from:from};
+  while(sets>1&&ladderTotal(sets)>dayCap){ sets--; capped=true; from="capped"; }
+  var ladder=[];
+  for(var i=0;i<sets;i++)ladder.push(Math.max(PU_MIN,top-step*i));
+  var total=ladder.reduce(function(a,x){return a+x;},0);
+  var primer=Math.max(3,Math.round(m*0.20));
+  return {need:"work",sets:sets,reps:reps,top:top,step:step,ladder:ladder,total:total,
+          primer:primer,m:m,deload:deload,capped:capped,from:from};
 }
 function puNoteClean(){
   var p=puState(), y=dayFromKey(TODAY); y.setDate(y.getDate()-1);
@@ -2493,11 +2508,11 @@ function plankGateOpen(){
 var ANCHOR_ROT=[
   {n:"Bird dog",s:"birddog",d:"x8/side",q:"bird dog exercise proper form",
    h:["Hands and knees, spine long and still.","Reach the opposite arm and leg out, not up. The hips stay level.","If the low back moves, you have gone too far."]},
-  {n:"90/90 hip switch",s:"hip9090",d:"x8/side",q:"90 90 hip switch mobility drill",r:["hip","knee"],
+  {n:"90/90 hip switch",s:"hip9090",d:"x8, hold 5s each side",q:"90 90 hip switch mobility drill",r:["hip","knee"],
    h:["Sit with both knees bent at right angles, one in front, one out to the side.","Rotate the knees over to the other side without using your hands.","Chest tall the whole way."]},
   {n:"Ankle rocks",s:"anklerocks",d:"x10/side",q:"knee to wall ankle mobility drill",r:["knee"],
    h:["Foot a few inches from a wall, drive the knee forward over the toes.","Heel stays glued down. That is the whole drill.","This is the one that makes a deep squat possible."]},
-  {n:"World's greatest stretch",s:"wgs",d:"x5/side",q:"worlds greatest stretch proper form",r:["knee","hip"],
+  {n:"World's greatest stretch",s:"wgs",d:"x5/side, pause 3s",q:"worlds greatest stretch proper form",r:["knee","hip"],
    h:["Long lunge, back knee off the floor.","Front elbow down toward the instep, then rotate that arm to the ceiling and follow it with your eyes.","Lunge and rotate only. Do NOT straighten the front leg and reach for the toe: that is a standing forward fold, and the first hour after rising is the one time of day it is contraindicated."]},
   {n:"Kneeling hip-flexor rock",s:"hipflexrock",d:"x8/side",q:"kneeling hip flexor stretch proper form",r:["knee","hip"],
    h:["Half-kneeling, back toe tucked.","Squeeze the back glute, THEN rock forward an inch. The glute is what makes it work.","Ribs down. Do not arch the low back to fake the range."]},
@@ -2519,9 +2534,9 @@ var ANCHOR_ROT=[
    h:["Stay tall, knees almost straight, bounce off the balls of the feet.","Short and springy. The floor should barely know you are there.","Ankles do the work, not the knees."]},
   {n:"Band shoulder dislocations",s:"banddisloc",d:"x10",q:"band shoulder dislocates proper form",r:["shoulder"],
    h:["Wide grip on the band, arms straight the whole way.","Take it overhead and behind, then back. Widen the grip if it pinches.","Straight arms are the drill. Bent elbows are cheating the range."]},
-  {n:"Cossack squats",s:"cossack",d:"x6/side",q:"cossack squat proper form",r:["knee","hip"],
+  {n:"Cossack squats",s:"cossack",d:"x6/side, pause 3s",q:"cossack squat proper form",r:["knee","hip"],
    h:["Wide stance, sit down over one leg, the other stays straight.","Toe of the straight leg can turn up. Heel of the bent leg stays down.","Hold something in front for balance until it is easy."]},
-  {n:"Thread the needle",s:"needlethread",d:"x8/side",q:"thread the needle thoracic rotation",r:["shoulder"],
+  {n:"Thread the needle",s:"needlethread",d:"x6/side, reach and hold 3s",q:"thread the needle thoracic rotation",r:["shoulder"],
    h:["Hands and knees, slide one arm under the other and let the shoulder reach the floor.","Then reach the same arm up and open the chest to the ceiling.","Turn from the mid-back. The hips stay square."]},
   {n:"Push-ups",s:"pushups",d:"ladder",q:"push up proper form",r:["shoulder"],
    h:["Hands slightly wider than the shoulders, elbows tucked to about 45 degrees, never flared out.","Straight line head to ankles the whole set. Hips dropping ends the set.","Down to at least upper arms parallel, full lockout at the top. Two seconds down, one up."]},
@@ -4164,11 +4179,14 @@ function pushupSheet(){
       '<button class="sheet-cta" onclick="closeSheet()">Got it</button></div>');
     return;
   }
-  var tot=rx.sets*rx.reps;
-  openSheet('<div class="grab"></div><h3>'+rx.sets+' x '+rx.reps+'</h3>'+
-    '<div class="ssub">'+(rx.deload?'Deload week, so half volume. ':'')+
-      (rx.capped?'Held back by the weekly cap, which never lets a week climb more than a tenth above the last one. ':'')+
-      'Stop every set with at least five left in you. Never to failure: that is what makes daily safe.</div>'+
+  var tot=rx.total;
+  openSheet('<div class="grab"></div><h3>'+(rx.ladder||[]).join(" &middot; ")+'</h3>'+
+    '<div class="ssub">'+
+      '<b>'+rx.primer+' easy first</b> to warm up, then the ladder. It descends because your capacity does: '+
+      'holding the reps flat would make each set harder than the one before it while the number stayed the same.'+
+      (rx.deload?' Deload week, so half volume.':'')+
+      (rx.capped?' Held back by the weekly cap, which never lets a week climb more than a tenth above the last.':'')+
+      ' Ninety seconds to two minutes between sets. Never to failure.</div>'+
     '<button class="sheet-cta" onclick="puDoneAll()">Done, all '+rx.sets+' sets</button>'+
     '<div class="wfoot"><button onclick="puDonePartial()">I did fewer</button><span>&middot;</span>'+
     '<button onclick="closeSheet()">Cancel</button></div>');
@@ -4181,7 +4199,7 @@ function puSaveMaxFromSheet(){
   toast("Max set to "+v+". Today is "+puRx().sets+" x "+puRx().reps+".",null);
 }
 function puDoneAll(){
-  var rx=puRx();puLog(rx.sets*rx.reps);puNoteClean();
+  var rx=puRx();puLog(rx.total);puNoteClean();
   closeSheet();refreshCurrent();
 }
 function puDonePartial(){
@@ -4189,7 +4207,7 @@ function puDonePartial(){
   openSheet('<div class="grab"></div><h3>How many in total?</h3>'+
     '<div class="ssub">Whatever you actually did. The record is only worth anything if it is true, and a short day is not a failed one.</div>'+
     '<div class="wdial"><button class="wdb" onclick="nudgePU(-1)" aria-label="lower">&minus;</button>'+
-    '<input class="wbig num" id="pu-val" inputmode="numeric" value="'+(rx.sets*rx.reps)+'" aria-label="total reps">'+
+    '<input class="wbig num" id="pu-val" inputmode="numeric" value="'+rx.total+'" aria-label="total reps">'+
     '<button class="wdb" onclick="nudgePU(1)" aria-label="higher">+</button></div>'+
     '<div class="wunit">reps today</div>'+
     '<button class="sheet-cta" onclick="puLogPartial()">Log it</button>'+
@@ -7617,7 +7635,7 @@ function anchorDose(m){
     if(rx.need==="test")return "log your max first";
     if(rx.need==="retest")return "re-test your max";
     if(rx.need==="rest")return "rest day, mobility only";
-    return rx.sets+" x "+rx.reps+(rx.deload?" (deload week)":"")+(rx.capped?" (held by the weekly cap)":"");
+    return (rx.ladder||[]).join(", ")+(rx.deload?" (deload)":"")+(rx.capped?" (capped)":"");
   }
   if(m.s==="plank10")return "6, 4, 2 holds of 10s";
   return m.d;
