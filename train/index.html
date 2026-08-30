@@ -1595,7 +1595,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v14.1";
+var VERSION="v14.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2109,7 +2109,22 @@ function groupCapability(g){
   });
   return seen?best:0;
 }
-var LVL_BANDS=[0,6,14,24,36,50,64,78,92,108];
+var LVL_BANDS_SUM_RETIRED_V142=[0,6,14,24,36,50,64,78,92,108];
+var LVL_BANDS=[0,1,2,3,4.5,6,7.5,9,10.5,12];
+var PUSHUP_NORM={p5:8,p25:22,p50:25,p75:29,p95:40};
+function pushupPercentile(reps){
+  if(!(reps>0))return null;
+  var N=PUSHUP_NORM;
+  var pts=[[0,0],[N.p5,5],[N.p25,25],[N.p50,50],[N.p75,75],[N.p95,95],[N.p95*1.5,99]];
+  for(var i=1;i<pts.length;i++){
+    if(reps<=pts[i][0]){
+      var lo=pts[i-1],hi=pts[i];
+      var t=(reps-lo[0])/Math.max(1,(hi[0]-lo[0]));
+      return Math.round(lo[1]+t*(hi[1]-lo[1]));
+    }
+  }
+  return 99;
+}
 var ALLO_EXP=0.67, ALLO_REF_LB=187;
 function alloScale(bwLb){
   if(!(bwLb>0))return 1;
@@ -2124,6 +2139,11 @@ function capLevelHeld(score){
   return h.lvl;
 }
 function capScoreNow(){
+  var t=0,n=0;
+  GROUP_KEYS.forEach(function(g){var v=groupCapability(g);if(v>0){t+=v;n++;}});
+  return n?(t/n):0;
+}
+function capSumLegacy(){
   var s=0;GROUP_KEYS.forEach(function(g){s+=groupCapability(g);});
   return s;
 }
@@ -8722,7 +8742,7 @@ function liftLevelStatus(L){
   return {w:"Easing",k:"flat",c:"Quieter than a week ago. Nothing has been lost."};
 }
 function capScoreAsOf(asOf){
-  var s=0;
+  var s=0,nTested=0;
   GROUP_KEYS.forEach(function(g){
     var best=0;
     S.sessions.forEach(function(ss){
@@ -8740,9 +8760,9 @@ function capScoreAsOf(asOf){
         });
       });
     });
-    s+=best;
+    if(best>0){ s+=best; nTested++; }
   });
-  return s;
+  return nTested?(s/nTested):0;
 }
 function levelDirOf(kind){
   try{
