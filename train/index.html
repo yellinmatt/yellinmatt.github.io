@@ -1595,7 +1595,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v14.0";
+var VERSION="v14.1";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2788,6 +2788,10 @@ function workDay(){
       if(alt)id=alt;
     }
     seen[id]=true;
+    if(reentryOn()){
+      var _reg=(G.reg||[]).filter(function(x){return LIB[x]&&!avoid[x];})[0];
+      if(_reg&&!seen[_reg]){ delete seen[id]; id=_reg; seen[id]=true; }
+    }
     var e=LIB[id]||{},tp=S.progress[id]||{};
     var wgt=e.bw?0:(tp.weight!=null?tp.weight:15);
     if(!e.bw&&reentryOn()){var _ew=easyWeight(id);if(_ew!=null&&_ew<wgt)wgt=_ew;}
@@ -4521,12 +4525,24 @@ function rowSwap(si,id){
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Swapped. New variant, tracking restarted.",null);
 }
+function warmupDone(){
+  var a=S.anchor[TODAY]||{},sl=anchorSlugs(TODAY),n=0;
+  sl.forEach(function(x){if(a[x])n++;});
+  return sl.length>0&&n>=Math.ceil(sl.length*0.6);
+}
+function warmupDose(){
+  if(warmupDone())return "already done in your morning flow";
+  return "about 5 minutes, easy";
+}
 function warmupRowHTML(w){
   var on=!!w.done.wu;
-  var v=vidsForSlot("warmup")[0];
+  var _wv=vidsForSlot("warmup")||[];
+  var _short=_wv.filter(function(x){return /\b[1-5]\s*(min|minute)/i.test(x.t||"");});
+  var _mid=_wv.filter(function(x){return /\b[6-9]\s*(min|minute)/i.test(x.t||"");});
+  var v=_short[0]||_mid[0]||_wv[0];
   return '<div class="arow'+(on?" checked":"")+'" data-wu="1" role="button" tabindex="0" aria-pressed="'+on+'" onclick="warmTick()">'+
     '<span class="chk">'+I.check+'</span>'+
-    '<span class="atxt"><span class="an">Warm-up</span><span class="ad">60 to 90 seconds, easy</span></span>'+
+    '<span class="atxt"><span class="an">Warm-up</span><span class="ad">'+esc(warmupDose())+'</span></span>'+
     (v?'<button class="ahow" onclick="event.stopPropagation();sessionVidSheet(\''+v.id+'\')" aria-label="Warm-up video">'+I.info+'</button>':'')+
     '</div>';
 }
@@ -8462,6 +8478,24 @@ function boutMph(s){
   if(!mi||!dur||dur<=0)return 0;
   return mi/(dur/3600);
 }
+var STEP_BASE=4000, STEPS_PER_MIN=100, STEPS_PER_MILE=2000;
+function stepBouts(asOf){
+  asOf=asOf||TODAY;
+  var out=[],st=S.steps||{},byDate={};
+  (S.sessions||[]).forEach(function(x){
+    if(!x.date||(x.type!=="run"&&x.type!=="activity"))return;
+    byDate[x.date]=(byDate[x.date]||0)+(x.distanceMi||0);
+  });
+  for(var k in st){
+    if(!k||k>asOf)continue;
+    var raw=+st[k]||0;
+    var used=(byDate[k]||0)*STEPS_PER_MILE;
+    var net=raw-used-STEP_BASE;
+    if(net<=0)continue;
+    out.push({date:k,mins:net/STEPS_PER_MIN,mph:0,w:1,pts:net/STEPS_PER_MIN,steps:true});
+  }
+  return out;
+}
 function cardioBouts(asOf){
   asOf=asOf||TODAY;
   var out=[];
@@ -8481,7 +8515,16 @@ function cardioVolume(asOf){
   var cut=dayFromKey(asOf);cut.setDate(cut.getDate()-(CARDIO_VOL_DAYS-1));
   var cutK=keyOf(cut),v=0;
   cardioBouts(asOf).forEach(function(b){if(b.date>=cutK)v+=b.pts;});
+  stepBouts(asOf).forEach(function(b){if(b.date>=cutK)v+=b.pts;});
   return v;
+}
+function cardioVolumeSplit(asOf){
+  asOf=asOf||TODAY;
+  var cut=dayFromKey(asOf);cut.setDate(cut.getDate()-(CARDIO_VOL_DAYS-1));
+  var cutK=keyOf(cut),b=0,st=0;
+  cardioBouts(asOf).forEach(function(x){if(x.date>=cutK)b+=x.pts;});
+  stepBouts(asOf).forEach(function(x){if(x.date>=cutK)st+=x.pts;});
+  return {bouts:b,steps:st,total:b+st};
 }
 var CARDIO_BEST_MIN_MINUTES=10, CARDIO_BEST_SPAN=60, CARDIO_BEST_TAU=56, CARDIO_BEST_FLOOR=0.5;
 function cardioBest(asOf){
@@ -8501,7 +8544,8 @@ function cardioBest(asOf){
   }
   return {pts:best,on:on};
 }
-var CARDIO_BANDS=[0,60,140,240,360,500,680,900,1150,1450];
+var CARDIO_BANDS=[0,150,300,450,600,800,1000,1200,1500,1900];
+var CARDIO_VIG_GATE_LEVEL=7, CARDIO_VIG_SHARE_MIN=0.10;
 function cardioScoreNow(asOf){
   var v=cardioVolume(asOf),b=cardioBest(asOf);
   return {score:v+b.pts,vol:v,best:b.pts,bestOn:b.on};
@@ -8520,6 +8564,10 @@ function cardioLevelNum(fr){
   fr=fr||cardioFrontier();
   var sc=(fr&&fr.score!=null)?fr.score:cardioScoreNow(TODAY).score;
   var n=1;while(n<10&&sc>=CARDIO_BANDS[n])n++;
+  if(n>CARDIO_VIG_GATE_LEVEL){
+    var c=cardioScore(28);
+    if(!(c&&c.vigShare>=CARDIO_VIG_SHARE_MIN))n=CARDIO_VIG_GATE_LEVEL;
+  }
   return n;
 }
 function cardioLevel(){
