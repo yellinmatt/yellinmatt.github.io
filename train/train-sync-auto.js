@@ -60,6 +60,8 @@
       soreUpdatedAt: stampedAt("sore", S.sore || {}),
       bwLev: S.bwLev || {},
       bwLevUpdatedAt: stampedAt("bwLev", S.bwLev || {}),
+      pushup: S.pushup || {},
+      pushupUpdatedAt: stampedAt("pushup", S.pushup || {}),
       capTest: Array.isArray(S.capTest) ? S.capTest : [],
       pedo: S.pedo && typeof S.pedo === "object" ? S.pedo : {},
       pedoUpdatedAt: stampedAt("pedo", S.pedo || {}),
@@ -192,7 +194,7 @@
     if (Date.now() < nextPushAt) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg, pu: p.pushup });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) {
@@ -307,6 +309,11 @@
             Number(srv.bwLevUpdatedAt || 0) > stampedAt("bwLev", S.bwLev || {})) {
           S.bwLev = srv.bwLev;
           bumpStamp("bwLev", S.bwLev, Number(srv.bwLevUpdatedAt));
+        }
+        if (srv.pushup && typeof srv.pushup === "object" && !Array.isArray(srv.pushup) &&
+            Number(srv.pushupUpdatedAt || 0) > stampedAt("pushup", S.pushup || {})) {
+          S.pushup = srv.pushup;
+          bumpStamp("pushup", S.pushup, Number(srv.pushupUpdatedAt));
         }
         S.capTest = unionCapTest(S.capTest, srv.capTest);
         S.hardDays = mergeDone(S.hardDays || {}, srv.hardDays || {});
