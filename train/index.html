@@ -377,6 +377,11 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .celebrate .ring{width:76px;height:76px;border-radius:50%;background:var(--accent-tint);display:flex;align-items:center;justify-content:center;margin:4px auto 12px;animation:pop .4s ease}
 .celebrate .ring svg{width:36px;height:36px;color:var(--accent)}
 .sumgrid{display:flex;justify-content:center;gap:20px;margin:14px 0 4px}
+.ddrow{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:9px 0;border-bottom:1px solid var(--line)}
+.ddrow:last-of-type{border-bottom:0}
+.ddrow span{font-size:15px;color:var(--sub)}
+.ddrow b{font-size:15px;font-weight:600;color:var(--ink)}
 .sumgrid .sg{text-align:center}.sumgrid .sg b{display:block;font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}.sumgrid .sg span{font-size:13px;color:var(--sub);font-weight:600}
 .ringcard.complete{border-color:var(--accent)}
 .rmeta .rt{font-size:17px;font-weight:700}
@@ -3460,18 +3465,6 @@ function trendCal(){
          (prev!=null?(" &middot; was "+tNum(prev)):""),
     miss:(y==null)};
 }
-function trendWeight(){
-  var wv=weightVerdict(),st=wv.st;
-  if(!st||!st.called||st.rate==null)return {tone:"none",word:"Not enough yet",
-    foot:(st&&st.raw!=null)?("<b>Latest</b> "+st.raw.toFixed(1)+" lb"):"Tap to weigh in",miss:(!st||st.raw==null)};
-  var r=st.rate,dir=(r<-0.25)?1:((r>0.25)?-1:0);
-  var fresh=(st.ageDays!=null&&st.ageDays<1);
-  return {tone:dir>0?"good":(dir===0?"amber":"red"),
-    word:dir>0?"Coming down":(dir===0?"Holding steady":"Creeping up"),
-    foot:(st.raw!=null?("<b>"+(fresh?"Today":"Latest")+"</b> "+st.raw.toFixed(1))
-      :"Tap to weigh in")+(st.to!=null?(" &middot; "+Math.abs(st.to).toFixed(0)+" lb to "+st.goal):""),
-    miss:(st.raw==null)};
-}
 
 function dailyTileHTML(o){
   var t=o.tr||{};
@@ -4833,15 +4826,26 @@ function renderLift(){
 }
 
 function dayDetail(k){
-  var lift=S.sessions.filter(function(s){return s.id===k&&s.type==="lift";})[0];
-  var run=S.sessions.filter(function(s){return s.id===k&&s.type==="run";})[0];
+  var byDay=function(t){return S.sessions.filter(function(s){
+    return (s.date===k||s.id===k)&&s.type===t;})[0];};
+  var lift=byDay("lift");
+  var run=byDay("run");
+  var pu=0;try{pu=(puState().log||{})[k]||0;}catch(e){}
+  var anch=null;try{
+    var _a=(S.anchor||{})[k],_n=0;
+    if(_a){for(var _q in _a)if(_a[_q])_n++;}
+    if(_n)anch={done:_n,of:anchorSlugs(k).length};
+  }catch(e){}
   var m='<div class="grab"></div><h3>'+shortDate(k)+'</h3>';
   if(lift){m+='<div class="ssub">Day '+lift.dayLetter+' &middot; '+mmss(lift.durationSec)+(lift.rpe?' &middot; RPE '+lift.rpe:'')+'</div>';
     lift.entries.forEach(function(e){m+='<div style="padding:9px 0;border-bottom:1px solid var(--line)"><div style="font-weight:700;font-size:14.5px">'+esc(LIB[e.exerciseId]?LIB[e.exerciseId].name:e.exerciseId)+'</div><div style="font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums">'+e.sets.map(function(s){return (LIB[e.exerciseId]&&LIB[e.exerciseId].bw?"":s.weightLb+"x")+s.reps;}).join(", ")+'</div></div>';});
     if(lift.notes)m+='<div style="font-size:13px;color:var(--sub);margin-top:10px">Note: '+esc(lift.notes)+'</div>';
   }else if(run){m+='<div class="ssub">Easy run</div><div class="sumgrid"><div class="sg"><b>'+run.distanceMi+'</b><span>mi</span></div><div class="sg"><b>'+(run.paceSecPerMi?mmss(run.paceSecPerMi):"--")+'</b><span>/mi</span></div><div class="sg"><b>'+esc(run.rpe||"-")+'</b><span>effort</span></div></div>';
-  }else{m+='<div class="ssub">Nothing logged this day.</div>';}
-  if(lift||run)m+='<button class="sheet-cta ghost" onclick="deleteDay(\''+k+'\')">Delete this entry</button>';
+  }
+  if(pu)m+='<div class="ddrow"><span>Push-ups</span><b class="num">'+pu+'</b></div>';
+  if(anch)m+='<div class="ddrow"><span>Morning flow</span><b class="num">'+anch.done+' of '+anch.of+'</b></div>';
+  if(!lift&&!run&&!pu&&!anch)m+='<div class="ssub">Nothing logged this day.</div>';
+  if(lift||run)m+='<button class="sheet-cta ghost" onclick="deleteDay(\''+esc((lift||run).id)+'\')">Delete this entry</button>';
   m+='<button class="sheet-cta'+(lift||run?" ghost":"")+'" onclick="closeSheet()">Close</button>';
   openSheet(m);
 }
@@ -9122,7 +9126,7 @@ function levelMechanicsHTML(kind,L){
     rows+='<div class="lmr"><span class="lmk">Rounds, last 7 days</span><span class="lmv num">'+(L.R7||0)+'</span></div>'+
       '<div class="lmr"><span class="lmk">Hard sets, last 7 days</span><span class="lmv num">'+(L.H7||0)+'</span></div>'+
       '<div class="lmr'+(L.tested?'':' next tot')+'"><span class="lmk">'+(L.tested?"Capability score":"Level number")+'</span><span class="lmv num">'+
-        (L.tested?L.score:'<small>set by the 6-weekly test</small>')+'</span></div>';
+        (L.tested?tNum(Math.round((L.score||0)*100)/100):'<small>set by the 6-weekly test</small>')+'</span></div>';
   }else{
     rows+='<div class="lmr"><span class="lmk">This week</span><span class="lmv num">'+tNum(Math.round(L.week||0))+'<small> MET-min</small></span></div>'+
       '<div class="lmr"><span class="lmk">Score</span><span class="lmv num">'+tNum(L.score||0)+'</span></div>'+
@@ -9528,20 +9532,27 @@ function wkCounts(fn,weeks,amt){
   weeks=weeks||6;
   var out=[],d=new Date(NOW);
   for(var w=0;w<weeks;w++){
-    var n=0,days=0,v=0;
+    var n=0,days=0,v=0,live=false;
     for(var i=0;i<7;i++){
       var k=keyOf(d);
-      if(k<=TODAY){ days++; if(fn(k))n++; v+=(amt?(amt(k)||0):(fn(k)?1:0)); }
+      if(k<=TODAY){
+        days++; if(fn(k))n++; v+=(amt?(amt(k)||0):(fn(k)?1:0));
+        if(!live){
+          if(stepsOn(k)!=null)live=true;
+          else if((S.weigh||[]).some(function(x){return x.date===k;}))live=true;
+          else if((S.sessions||[]).some(function(s){return s.date===k;}))live=true;
+        }
+      }
       d.setDate(d.getDate()-1);
     }
-    out.unshift({n:n,days:days,v:v});
+    out.unshift({n:n,days:days,v:v,live:live});
   }
   return out;
 }
 function wkVerdict(series){
   if(!series.length)return {k:"flat",w:"no record yet"};
   var cur=series[series.length-1];
-  var prior=series.slice(0,-1).filter(function(x){return x.days>0;});
+  var prior=series.slice(0,-1).filter(function(x){return x.live!==false&&x.days>0;});
   if(!prior.length)return {k:"flat",w:"first week on record"};
   function amtOf(x){return (x.v!=null?x.v:x.n);}
   var avg=prior.reduce(function(a,x){return a+amtOf(x);},0)/prior.length;
@@ -9588,7 +9599,7 @@ function strengthOn(k){
 function cardioWeekCardsHTML(){
   return '<div class="wkrow">'+
     wkCardHTML({label:"Runs",series:wkCounts(ranOn,6),unit:"runs",unit1:"run",
-                tap:"runHistorySheet()"})+
+                tap:"pastSheet('cardio')"})+
     wkCardHTML({label:"Step days",series:wkCounts(stepsHitOn,6,function(k){return stepsOn(k)||0;}),
                 unit:"at goal",tap:"levelSheet('cardio')"})+
   '</div>';
