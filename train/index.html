@@ -485,6 +485,16 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .mcf{grid-column:1/-1;font-size:12px;color:var(--faint);margin-top:-4px}
 .mcr[data-tone="good"] .mcf{color:var(--good)}
 .mcr[data-tone="amber"] .mcf{color:var(--warn)}
+.wstrip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:10px 0 2px;
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.wstrip .wsc{padding:10px 8px;border-left:1px solid var(--line);min-width:0}
+.wstrip .wsc:first-child{border-left:0;padding-left:0}
+.wsv{font-size:21px;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.1;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wsv i{font-size:11px;font-weight:600;font-style:normal;color:var(--faint);margin-left:2px}
+.wsk{font-size:11px;color:var(--faint);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wstrip[data-tone="good"] .wsc:first-child .wsv{color:var(--good)}
+.wstrip[data-tone="amber"] .wsc:first-child .wsv{color:var(--warn)}
 .bwrap{position:relative;margin-top:6px}
 .bwrap.tall{margin:10px 0 4px;padding-bottom:2px}
 .bwrap.tall .brow{gap:5px;align-items:flex-end}
@@ -663,6 +673,31 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .tierpill{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--tier);background:color-mix(in srgb,var(--tier) 14%,transparent);border-radius:6px;padding:3px 7px;margin-left:7px;vertical-align:2px}
 .lvlrow{display:grid;grid-template-columns:1fr 1fr}
 
+
+.pastcard{display:flex;flex-direction:column;gap:9px;width:100%;padding:13px 14px;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
+  box-shadow:var(--shadow);margin:10px 0}
+.pastcard:active{background:var(--surface-2)}
+.pchead{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.pclab{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+.pccount{font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.pccount i{font-size:11px;font-weight:600;font-style:normal;color:var(--faint);margin-left:3px}
+.prows{display:flex;flex-direction:column}
+.prow{display:grid;grid-template-columns:62px auto 1fr;align-items:baseline;gap:10px;
+  padding:7px 0;border-top:1px solid var(--line)}
+.prow:first-child{border-top:0}
+.pdate{font-size:12px;color:var(--faint);white-space:nowrap}
+.phead{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
+.psub{font-size:12px;color:var(--faint);text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcfoot{font-size:12px;color:var(--faint)}
+.pslist{max-height:56vh;overflow-y:auto;margin:4px 0 2px}
+.psrow{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:10px;width:100%;
+  text-align:left;background:none;border:0;border-top:1px solid var(--line);padding:11px 2px;min-height:44px}
+.psrow:first-child{border-top:0}
+.psrow:active{background:var(--surface-2)}
+.psd{font-size:14px;color:var(--ink)}
+.psh{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
+.pss{font-size:12px;color:var(--faint);white-space:nowrap}
 .wkrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 .wkrow.one{grid-template-columns:1fr}
 .wkcard{display:flex;flex-direction:column;gap:7px;padding:13px 14px;background:var(--surface);
@@ -1648,7 +1683,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v15.2";
+var VERSION="v16.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3238,10 +3273,23 @@ function weightCardHTML(){
   return '<div class="card">'+head+
     '<div class="wtop"><div><div class="wlab">'+(st.ageDays===0?"Today":st.ageDays===1?"Yesterday":st.ageDays+" days ago")+'</div>'+
     '<div class="wbig num">'+st.raw.toFixed(1)+'<small> '+wLbl()+'</small></div>'+
-    '<div class="wwhen">Smoothed <b>'+st.trend.toFixed(1)+'</b></div></div>'+
-    '<div class="wgoal"><b>'+(st.to>0.3?st.to.toFixed(1):"0")+'</b> '+wLbl()+' to '+st.goal+'</div></div>'+
-    '<div class="pzhead" data-tone="'+(tone==="down"?"good":tone==="up"?"amber":"flat")+'">'+title+'</div>'+
-    '<div class="pzline">'+sub+'</div>'+
+    '</div></div>'+
+    (function(){
+      var cv=null;try{cv=cutVerdict();}catch(e){}
+      var rateTxt="&mdash;",band="",tn=(tone==="down"?"good":tone==="up"?"amber":"flat");
+      if(cv&&cv.r&&isFinite(cv.r.lbPerWk)){
+        var lb=cv.r.lbPerWk;
+        rateTxt=(Math.abs(lb)<0.1)?"level":((lb>0?"&minus;":"+")+Math.abs(lb).toFixed(1));
+        band=(cv.state==="good")?"on band":(cv.state==="fast")?"above band":(cv.state==="slow")?"under band":"holding";
+        tn=(cv.state==="fast")?"amber":(cv.state==="good")?"good":"flat";
+      }
+      return '<div class="wstrip" data-tone="'+tn+'">'+
+        '<div class="wsc"><div class="wsv num">'+rateTxt+'<i>'+wLbl()+'/wk</i></div><div class="wsk">'+esc(band||title.toLowerCase())+'</div></div>'+
+        '<div class="wsc"><div class="wsv num">'+st.trend.toFixed(1)+'<i>'+wLbl()+'</i></div><div class="wsk">7-day mean</div></div>'+
+        '<div class="wsc"><div class="wsv num">'+(st.to>0.3?st.to.toFixed(1):"0")+'<i>'+wLbl()+'</i></div><div class="wsk">to '+st.goal+'</div></div>'+
+      '</div>';
+    })()+
+    ((t.state==="thin"||t.state==="gone"||t.state==="dead")?('<div class="pzline">'+sub+'</div>'):'')+
     trendChart()+
     '<div class="wwin" role="group" aria-label="Chart window">'+
       [["Auto",0],["4w",28],["3m",90],["1y",365]].map(function(o){
@@ -3249,10 +3297,8 @@ function weightCardHTML(){
         return '<button class="wbtn'+(on?" on":"")+'" aria-pressed="'+on+'" onclick="setWWin('+o[1]+')">'+o[0]+'</button>';
       }).join("")+'</div>'+
     weightWindowRowHTML()+
-    moreHTML("The detail",
-      milestoneLine(t)+ladderHTML()+
-      '<div class="foot" style="margin-top:10px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
-      monthYear(S.weigh[0].date)+'. The rate is read from the smoothed average, never from two raw readings.</div>')+
+    '<div class="foot" style="margin-top:8px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
+      monthYear(S.weigh[0].date)+'. The rate reads the smoothed average, never two raw readings.</div>'+
     '</div>';
 }
 function monthYear(k){
@@ -4748,6 +4794,7 @@ function renderLift(){
   h+='<div class="rndctl" data-band="'+bandOfSession(w)+'">'+
     '<button onclick="removeRound()" aria-label="Remove a round">&minus; round</button>'+
     '<button onclick="addRound()" aria-label="Add a round">+ round</button></div>';
+  h+=pastCardHTML("lift");
   h+=movementHTML();
   document.getElementById("v-lift").innerHTML=h;
   RND_ADV=null;
@@ -5074,6 +5121,7 @@ function renderTrack(){
   h+=weightCardHTML();
   h+=calCardHTML();
   h+=proteinCardHTML();
+  h+=odoCardHTML();
   h+='<div class="lbl" style="margin:16px 4px 8px">The trends</div>';
   h+=deepDoorsHTML();
   h+=trackHealthHTML();
@@ -9318,6 +9366,86 @@ function odoBodyHTML(){
   }
   return body+chart+folds+foot;
 }
+function pastItems(kind){
+  var out=[];
+  if(kind==="cardio"){
+    (S.sessions||[]).forEach(function(x){
+      if(!isRealRun(x))return;
+      var mi=x.distanceMi||0,sec=x.durationSec||0;
+      var pace=(mi>0&&sec>0)?Math.round(sec/mi):0;
+      out.push({date:x.date,head:mi.toFixed(2)+" mi",
+        sub:(pace?mmss(pace)+" /mi":"")+(sec?((pace?" \u00b7 ":"")+Math.round(sec/60)+" min"):""),
+        rec:x});
+    });
+  }else{
+    var seen={};
+    (S.sessions||[]).forEach(function(x){
+      if(x.type!=="lift"||!x.date)return;
+      var sets=0,ex=0;
+      (x.entries||[]).forEach(function(e){
+        var n=(e.sets||[]).filter(function(t){return t.completed;}).length;
+        if(n){ex++;sets+=n;}
+      });
+      if(!sets)return;
+      seen[x.date]=true;
+      out.push({date:x.date,head:sets+" set"+(sets===1?"":"s"),
+        sub:ex+" movement"+(ex===1?"":"s")+(typeof sessRounds==="function"&&sessRounds(x)?(" · "+sessRounds(x)+" round"+(sessRounds(x)===1?"":"s")):""),
+        rec:x,lift:true});
+    });
+    var log=(puState().log)||{};
+    for(var k in log){
+      if(!log[k]||seen[k])continue;
+      seen[k]=true;
+      out.push({date:k,head:log[k]+" push-ups",sub:"morning ladder",pu:true});
+    }
+    for(var a in (S.anchor||{})){
+      if(seen[a])continue;
+      var rec=S.anchor[a],n=0;for(var q in rec)if(rec[q])n++;
+      if(!n)continue;
+      out.push({date:a,head:"morning flow",sub:n+" of "+anchorSlugs(a).length+" done",anchor:true});
+    }
+  }
+  out.sort(function(a,b){return a.date<b.date?1:-1;});
+  return out;
+}
+function pastCardHTML(kind){
+  var items=pastItems(kind);
+  if(!items.length)return "";
+  var label=(kind==="cardio")?"Your runs":"Your strength";
+  var cut=dayFromKey(TODAY);cut.setDate(cut.getDate()-27);
+  var cutK=keyOf(cut);
+  var recent=items.filter(function(x){return x.date>=cutK;}).length;
+  var last=items[0];
+  var gap=daysBetween(last.date,TODAY);
+  var rows=items.slice(0,3).map(function(x){
+    return '<span class="prow"><span class="pdate">'+esc(shortDate(x.date))+'</span>'+
+      '<span class="phead num">'+esc(x.head)+'</span>'+
+      '<span class="psub">'+esc(x.sub||"")+'</span></span>';
+  }).join("");
+  return '<button class="pastcard" onclick="pastSheet(\''+kind+'\')"'+
+    ' aria-label="'+esc(label+", "+recent+" in the last 28 days, most recent "+shortDate(last.date)+". Opens the full list.")+'">'+
+    '<span class="pchead"><span class="pclab">'+esc(label)+'</span>'+
+      '<span class="pccount num">'+recent+'<i> in 28d</i></span></span>'+
+    '<span class="prows">'+rows+'</span>'+
+    '<span class="pcfoot">'+(gap===0?"most recent today":(gap===1?"most recent yesterday":"most recent "+gap+" days ago"))+
+      ' &middot; tap for all '+items.length+'</span>'+
+  '</button>';
+}
+function pastSheet(kind){
+  var items=pastItems(kind);
+  var label=(kind==="cardio")?"Every run":"Every strength day";
+  var rows=items.map(function(x){
+    return '<button class="psrow" onclick="pastRowTap(\''+esc(x.date)+'\')">'+
+      '<span class="psd">'+esc(runDate(x.date))+'</span>'+
+      '<span class="psh num">'+esc(x.head)+'</span>'+
+      '<span class="pss">'+esc(x.sub||"")+'</span></button>';
+  }).join("");
+  openSheet('<div class="grab"></div><h3>'+esc(label)+'</h3>'+
+    '<div class="ssub">'+items.length+' on record. Tap any day to open it.</div>'+
+    '<div class="pslist">'+rows+'</div>'+
+    '<div class="wfoot"><button onclick="closeSheet()">Close</button></div>');
+}
+function pastRowTap(k){ closeSheet(); setTimeout(function(){ dayDetail(k); },120); }
 function odoCardHTML(){
   if(!allRuns().length)return "";
   return collapsible("Your cardio",'<span class="odosum">'+odoSummary()+'</span>',
@@ -9467,7 +9595,7 @@ function renderCardio(){
     cardioWeekCardsHTML()+
     cardioTicksHTML()+
     '</div>';
-  h+=odoCardHTML();
+  h+=pastCardHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
 }
 
