@@ -482,9 +482,9 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .mcr[data-dir="up"] .mcd .dirg{color:var(--dir-up)}
 .mcr[data-dir="down"] .mcd .dirg{color:var(--dir-down)}
 .mcr[data-dir="flat"] .mcd .dirg{color:var(--dir-flat)}
-.mcf{grid-column:1/-1;font-size:12px;color:var(--faint);margin-top:-4px}
-.mcr[data-tone="good"] .mcf{color:var(--good)}
-.mcr[data-tone="amber"] .mcf{color:var(--warn)}
+.mcfl{font-weight:600;font-size:12px;color:var(--faint)}
+.mcr[data-tone="good"] .mcfl{color:var(--good)}
+.mcr[data-tone="amber"] .mcfl{color:var(--warn)}
 .wstrip{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin:10px 0 2px;
   border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .wstrip .wsc{padding:10px 8px;border-left:1px solid var(--line);min-width:0}
@@ -698,6 +698,20 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .psd{font-size:14px;color:var(--ink)}
 .psh{font-size:15px;font-weight:600;color:var(--ink);white-space:nowrap}
 .pss{font-size:12px;color:var(--faint);white-space:nowrap}
+.deeplinks{display:flex;gap:8px;margin:12px 0 4px}
+.deeplinks button{flex:1;min-height:44px;border:1px solid var(--line);background:none;
+  border-radius:12px;color:var(--sub);font-size:12px;font-weight:600;padding:6px 4px;
+  font-family:inherit;line-height:1.25}
+.deeplinks button:active{background:var(--surface-2)}
+.rhr{display:flex;flex-direction:column;gap:7px;width:100%;text-align:left}
+.rhr .ch{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:0;width:100%}
+.rhrv{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+.rhrv i{font-size:12px;font-weight:600;font-style:normal;color:var(--faint);margin-left:4px}
+.rhrd{display:flex;align-items:center;gap:4px;color:var(--dir-flat)}
+.rhr[data-dir="up"] .rhrd{color:var(--dir-up)}
+.rhr[data-dir="down"] .rhrd{color:var(--dir-down)}
+.rhrdots{display:block;width:100%}
+.rhrdots svg{width:100%;height:26px;display:block;overflow:visible}
 .wkrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
 .wkrow.one{grid-template-columns:1fr}
 .wkcard{display:flex;flex-direction:column;gap:7px;padding:13px 14px;background:var(--surface);
@@ -1365,6 +1379,15 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .lmvs{font-variant-numeric:normal}
 .lmnote{font-size:11.5px;color:var(--sub);margin:-3px 0 6px;line-height:1.35}
 .rndctl{display:flex;gap:8px;margin:2px 0 12px}
+.arow .axv{width:44px;min-height:44px;flex:none;border:0;background:none;color:var(--faint);
+  display:flex;align-items:center;justify-content:center;border-radius:10px}
+.arow .axv:active{background:var(--surface-2)}
+.arow .axv svg{width:20px;height:20px}
+.arow .axn{flex:none;min-width:56px;min-height:44px;border:0;background:none;padding:0 0 0 6px;
+  text-align:right;font-size:23px;font-weight:700;letter-spacing:-.02em;color:var(--ink);
+  line-height:44px}
+.arow .axn.up{color:var(--good)}
+.arow.checked .axn{color:var(--faint)}
 .arow[data-band="orange"]{box-shadow:inset 3px 0 0 var(--warn)}
 .arow[data-band="red"]{box-shadow:inset 3px 0 0 var(--bad)}
 .rndctl[data-band="orange"] button:last-child{border-color:var(--warn);color:var(--warn)}
@@ -1683,7 +1706,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v16.0";
+var VERSION="v17.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4734,9 +4757,18 @@ function roundRowHTML(w,r,si){
   var band=o.g?groupBand(o.g):"quiet";
   return '<div class="arow'+(on?" checked":"")+'" data-band="'+band+'" data-si="'+si+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
     ' onclick="roundTick('+r+','+si+')">'+
-    '<span class="chk">'+I.check+'</span>'+
-    '<span class="atxt"><span class="an">'+esc(nm)+'</span><span class="ad num">'+dose+'</span></span>'+
-    '<button class="ahow" onclick="event.stopPropagation();rowSheet('+si+')" aria-label="Adjust '+esc(nm)+'">'+I.edit+'</button>'+
+    (function(){
+      var last=null;try{var le=lastEntry(o.exId);
+        if(le&&le.e&&le.e.sets){var done=le.e.sets.filter(function(x){return x.completed;});
+          if(done.length)last=done[0].reps||null;}}catch(err){}
+      var up=(last!=null&&reps>last);
+      var q=(LIB[o.exId]||{}).q||nm;
+      return '<span class="chk">'+I.check+'</span>'+
+        '<span class="atxt"><span class="an">'+esc(nm)+'</span></span>'+
+        '<button class="axv" onclick="event.stopPropagation();window.open(ytSearch(\''+esc(q).replace(/'/g,"\\'")+'\'),\'_blank\',\'noopener\')" aria-label="Watch '+esc(nm)+'">'+I.play+'</button>'+
+        '<button class="axn num'+(up?" up":"")+'" onclick="event.stopPropagation();rowSheet('+si+')" aria-label="'+esc(dose)+', tap to change">'+
+          esc(dose.replace(/^x/,""))+'</button>';
+    })()+
     '</div>';
 }
 function roundCardHTML(w,r,wasOpen){
@@ -5091,8 +5123,8 @@ function macroRow(label,key,unit,floor){
   return '<div class="mcr"'+(tone?' data-tone="'+tone+'"':'')+' data-dir="'+dir+'">'+
     '<span class="mck">'+esc(label)+'</span>'+
     '<span class="mcv num">'+cur.avg+'<i>'+esc(unit)+'</i></span>'+
-    '<span class="mcd"><i class="dirg" aria-hidden="true">'+dirGlyph(dir)+'</i>'+esc(word)+'</span>'+
-    (floor?'<span class="mcf">'+(cur.avg>=floor?"at or above the "+floor+" g floor":"under the "+floor+" g floor")+'</span>':'')+
+    '<span class="mcd"><i class="dirg" aria-hidden="true">'+dirGlyph(dir)+'</i>'+
+      (floor?('<b class="mcfl">'+floor+'</b>'):'')+'</span>'+
     '</div>';
 }
 function proteinCardHTML(){
@@ -5100,14 +5132,44 @@ function proteinCardHTML(){
   var any=macroAvg("p",0)||macroAvg("cb",0)||macroAvg("f",0);
   var head='<h3><span>Macros</span><span class="t">7-day average</span></h3>';
   if(!any)return '<div class="card">'+head+
-    '<div class="anote" style="margin-top:2px">Nothing logged in the last seven days. Cal AI carries the grams; the one worth watching is <b>Protein</b>'+
-    (pt?(', with a floor of '+pt.lo+' g while you are cutting'):'')+'.</div></div>';
+    '<div class="anote" style="margin-top:2px">Nothing logged. <b>Protein</b> floor '+(pt?pt.lo:0)+' g.</div></div>';
   return '<div class="card">'+head+'<div class="mcwrap">'+
     macroRow("Protein","p","g",pt?pt.lo:0)+
     macroRow("Carbs","cb","g",0)+
     macroRow("Fat","f","g",0)+
     macroRow("Fibre","fib","g",30)+
   '</div></div>';
+}
+function rhrHeroStats(){
+  var v=S.vitals||{},cur=[],base=[],d=new Date(NOW);
+  for(var i=0;i<90;i++){
+    var r=v[keyOf(d)];
+    if(r&&r.rhr>0){ if(i<7)cur.push(r.rhr); base.push(r.rhr); }
+    d.setDate(d.getDate()-1);
+  }
+  if(!cur.length||base.length<14)return null;
+  var mean=function(a){return a.reduce(function(x,y){return x+y;},0)/a.length;};
+  var c=mean(cur),b=mean(base);
+  var pts=[],dd=new Date(NOW);dd.setDate(dd.getDate()-27);
+  for(var j=0;j<28;j++){var rr=v[keyOf(dd)];pts.push(rr&&rr.rhr>0?rr.rhr:null);dd.setDate(dd.getDate()+1);}
+  return {cur:Math.round(c),base:Math.round(b),delta:Math.round(c-b),pts:pts};
+}
+function rhrHeroHTML(){
+  var r=rhrHeroStats();if(!r)return "";
+  var dir=(r.delta>=2)?"down":((r.delta<=-2)?"up":"flat");   /* a LOWER resting rate is the good one */
+  var dots=sparkSVG(r.pts,dir==="down"?"amber":"good");
+  return '<button class="card rhr" data-dir="'+dir+'" onclick="openDeep(\'recovering\')"'+
+    ' aria-label="Resting heart rate '+r.cur+', 90-day average '+r.base+'">'+
+    '<span class="ch"><span class="ck">Resting heart rate</span>'+
+      '<span class="ck num rhrd"><i class="dirg">'+dirGlyph(dir)+'</i>'+Math.abs(r.delta)+'</span></span>'+
+    '<span class="rhrv num">'+r.cur+'<i>bpm</i></span>'+
+    '<span class="rhrdots">'+dots+'</span>'+
+  '</button>';
+}
+function deepLinksHTML(){
+  return '<div class="deeplinks">'+["training","recovering","changing"].map(function(k){
+    return '<button onclick="openDeep(\''+k+'\')">'+esc(DEEPG[k].t)+'</button>';
+  }).join("")+'</div>';
 }
 function deepDoorsHTML(){
   return ["training","recovering","changing"].map(function(k){var g=DEEPG[k];
@@ -5122,8 +5184,8 @@ function renderTrack(){
   h+=calCardHTML();
   h+=proteinCardHTML();
   h+=odoCardHTML();
-  h+='<div class="lbl" style="margin:16px 4px 8px">The trends</div>';
-  h+=deepDoorsHTML();
+  h+=rhrHeroHTML();
+  h+=deepLinksHTML();
   h+=trackHealthHTML();
   document.getElementById("v-track").innerHTML=h;
 }
@@ -9427,8 +9489,6 @@ function pastCardHTML(kind){
     '<span class="pchead"><span class="pclab">'+esc(label)+'</span>'+
       '<span class="pccount num">'+recent+'<i> in 28d</i></span></span>'+
     '<span class="prows">'+rows+'</span>'+
-    '<span class="pcfoot">'+(gap===0?"most recent today":(gap===1?"most recent yesterday":"most recent "+gap+" days ago"))+
-      ' &middot; tap for all '+items.length+'</span>'+
   '</button>';
 }
 function pastSheet(kind){
@@ -9509,7 +9569,6 @@ function wkCardHTML(o){
       '<span class="wkdir" aria-hidden="true">'+dirGlyph(v.k)+'</span></span>'+
     '<span class="wkbig num">'+cur.n+'<i class="wku">'+esc(cur.n===1&&o.unit1?o.unit1:o.unit)+'</i></span>'+
     '<span class="wkbars">'+bars+'</span>'+
-    '<span class="wkfoot">'+esc(v.w)+'</span>'+
   '</button>';
 }
 function ranOn(k){
