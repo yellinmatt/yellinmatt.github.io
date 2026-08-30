@@ -96,6 +96,18 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
   .pcol{animation:tRise .44s cubic-bezier(.22,1,.36,1) both}
   .pcol:nth-child(1){animation-delay:.14s}.pcol:nth-child(2){animation-delay:.19s}.pcol:nth-child(3){animation-delay:.24s}
   .lvlcard .lcnum{transition:color .3s ease}
+[data-lvnum].lvmove{animation:lvPop .9s cubic-bezier(.22,1,.36,1) both}
+@keyframes lvPop{0%{transform:scale(1)}22%{transform:scale(1.16)}100%{transform:scale(1)}}
+text[data-lvnum].lvmove{transform-box:fill-box;transform-origin:center;animation:lvPopS .9s cubic-bezier(.22,1,.36,1) both}
+@keyframes lvPopS{0%{transform:scale(1)}22%{transform:scale(1.14)}100%{transform:scale(1)}}
+[data-dir="up"] [data-lvnum].lvmove{color:var(--dir-up)}
+[data-dir="down"] [data-lvnum].lvmove{color:var(--dir-down)}
+svg.lring[data-dir="up"] text[data-lvnum].lvmove{fill:var(--dir-up)}
+svg.lring[data-dir="down"] text[data-lvnum].lvmove{fill:var(--dir-down)}
+@media (prefers-reduced-motion:reduce){
+  [data-lvnum].lvmove,text[data-lvnum].lvmove{animation:none}
+}
+html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lvnum].lvmove{animation:none}
   .streak.bumped{animation:stPulse .8s .3s cubic-bezier(.34,1.4,.5,1) both}
   @keyframes stPulse{0%{transform:scale(1)}35%{transform:scale(1.12)}100%{transform:scale(1)}}
   .big-start.hasfill::before{content:"";position:absolute;inset:0;border-radius:inherit;
@@ -459,6 +471,20 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .frow .fh{font-size:13px;color:var(--faint);flex:1 1 0;min-width:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frow .ft{font-size:15px;font-weight:600;color:var(--ink);flex:0 0 auto;font-variant-numeric:tabular-nums}
 .ffoot{font-size:13px;color:var(--faint);line-height:1.45;margin:8px 0 20px}
+.mcwrap{margin-top:4px}
+.mcr{display:grid;grid-template-columns:auto 1fr auto;align-items:baseline;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--line)}
+.mcr:last-child{border-bottom:0;padding-bottom:2px}
+.mck{font-size:15px;font-weight:600;color:var(--ink)}
+.mcv{font-size:19px;font-weight:700;letter-spacing:-.02em;color:var(--ink);text-align:right}
+.mcv i{font-size:11px;font-weight:600;font-style:normal;color:var(--faint);margin-left:2px}
+.mcd{font-size:12px;color:var(--faint);white-space:nowrap;display:flex;align-items:center;gap:4px}
+.mcr[data-dir="up"] .mcd .dirg{color:var(--dir-up)}
+.mcr[data-dir="down"] .mcd .dirg{color:var(--dir-down)}
+.mcr[data-dir="flat"] .mcd .dirg{color:var(--dir-flat)}
+.mcf{grid-column:1/-1;font-size:12px;color:var(--faint);margin-top:-4px}
+.mcr[data-tone="good"] .mcf{color:var(--good)}
+.mcr[data-tone="amber"] .mcf{color:var(--warn)}
 .bwrap{position:relative;margin-top:6px}
 .bwrap.tall{margin:10px 0 4px;padding-bottom:2px}
 .bwrap.tall .brow{gap:5px;align-items:flex-end}
@@ -489,7 +515,7 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
 .bcol .bv.on{color:var(--accent)}
 .bcol .bx{font-size:13px;font-weight:700;color:var(--faint);min-height:12px}
 .bmean{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2);pointer-events:none}
-.bmean span{position:absolute;right:0;top:-14px;font-size:13px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 3px}
+.bmean span{position:absolute;left:0;right:auto;top:-14px;font-size:13px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 4px;border-radius:3px;z-index:2}
 .hcard .hhead{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px}
 .hcard .hbig{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .hcard .hbig small{font-size:15px;color:var(--faint);font-weight:700}
@@ -636,6 +662,33 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .lring .lprog{stroke:var(--tier,var(--accent))}
 .tierpill{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--tier);background:color-mix(in srgb,var(--tier) 14%,transparent);border-radius:6px;padding:3px 7px;margin-left:7px;vertical-align:2px}
 .lvlrow{display:grid;grid-template-columns:1fr 1fr}
+
+.wkrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.wkrow.one{grid-template-columns:1fr}
+.wkcard{display:flex;flex-direction:column;gap:7px;padding:13px 14px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;
+  min-width:0;width:100%}
+.wkcard:active{background:var(--surface-2)}
+.wkhead{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.wklab{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sub)}
+.wkdir{font-size:11px;line-height:1;color:var(--dir-flat)}
+.wkcard[data-tone="up"] .wkdir{color:var(--dir-up)}
+.wkcard[data-tone="down"] .wkdir{color:var(--dir-down)}
+.wkbig{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--ink);
+  display:flex;align-items:baseline;gap:5px}
+.wkbig .wku{font-size:11px;font-weight:600;font-style:normal;color:var(--faint);letter-spacing:0}
+.wkbars{display:flex;align-items:flex-end;gap:4px;height:30px}
+.wkbars .wkb{flex:1;display:flex;align-items:flex-end;height:100%;min-width:0}
+.wkbars .wkb i{display:block;width:100%;height:var(--h);border-radius:2px;background:var(--line-2);
+  transition:height .5s cubic-bezier(.22,1,.36,1)}
+.wkbars .wkb.cur i{background:var(--ink)}
+.wkcard[data-tone="up"] .wkb.cur i{background:var(--dir-up)}
+.wkcard[data-tone="down"] .wkb.cur i{background:var(--dir-down)}
+.wkfoot{font-size:12px;color:var(--faint);line-height:1.3}
+@media (prefers-reduced-motion:reduce){.wkbars .wkb i{transition:none}}
+html[data-motion="off"] .wkbars .wkb i{transition:none}
+.lbk .lbdone{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-1px}
+.lbk .lbdone svg{width:12px;height:12px;stroke:var(--good);stroke-width:3}
 .lvlcard{display:flex;align-items:center;gap:11px;padding:13px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);text-align:left;min-width:0}
 .lvlcard .lcring{position:relative;width:44px;height:44px;flex:none}
 .lvlcard .lcring .lctrack{stroke:var(--line-2)}
@@ -1595,7 +1648,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v14.3";
+var VERSION="v15.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3240,6 +3293,7 @@ function show(v){
   if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
   if(v==="track")renderTrack();
+  try{ levelNumAnim(document.getElementById("v-"+v)); }catch(e){}
   if(v==="library")renderLibrary();
   if(v==="deep")renderDeep();
   if(!full)CURV=v;
@@ -3708,6 +3762,7 @@ function renderToday(){
   tileBandPulse();
   streakPulse();
   levelRingAnim();
+  levelNumAnim();
 }
 function streakPulse(){
   try{
@@ -4661,6 +4716,7 @@ function renderLift(){
     (doneN>=w.rN?'<div class="done-pill">'+I.check+' '+doneN+' round'+(doneN===1?'':'s')+' in the book</div>':'')+
     barLapsedLine()+
   '</div>';
+  h+=strengthWeekCardHTML();
   var _wasOpen={},_host=document.getElementById("v-lift");
   if(_host)_host.querySelectorAll("details.rnd").forEach(function(d){var rr=+d.getAttribute("data-r");if(isFinite(rr))_wasOpen[rr]=d.open;});
   for(var r=0;r<w.rN;r++)h+=roundCardHTML(w,r,_wasOpen);
@@ -4943,21 +4999,43 @@ function trackHealthHTML(){
 
 
 
-function proteinCardHTML(){
-  var pt=proteinTarget();if(!pt)return "";
+function macroAvg(key,back){
   var t=0,n=0,d=new Date(NOW);
-  for(var i=0;i<7;i++){var r=(S.nutrition||{})[keyOf(d)];if(r&&r.p>0){t+=r.p;n++;}d.setDate(d.getDate()-1);}
-  var avg=n?Math.round(t/n):null;
-  var head='<h3><span>Protein</span><span class="t">'+(n?(n+' logged day'+(n===1?'':'s')+', last 7'):'nothing logged this week')+'</span></h3>';
-  if(avg==null)return '<div class="card">'+head+
-    '<div class="anote" style="margin-top:2px">Cal AI carries the grams; the floor is '+pt.lo+' g for the lean mass in a deficit.</div></div>';
-  var tone=avg>=pt.lo?"good":(avg>=pt.lo*0.8?"amber":"flat");
-  return '<div class="card">'+head+'<div class="corrwrap">'+
-    corridorRow({label:"Protein",span:"logged days, last 7",value:avg,
-      fmt:function(v){return v+" g";},lo:pt.lo,hi:(pt.hi||Math.round(pt.lo*1.25)),
-      max:Math.round((pt.hi||pt.lo*1.25)*1.3),tone:tone,
-      verdict:(avg>=pt.lo?"holding the floor":"under the "+pt.lo+" g floor"),tap:""})+
-    '</div></div>';
+  d.setDate(d.getDate()-(back||0)*7);
+  for(var i=0;i<7;i++){var r=(S.nutrition||{})[keyOf(d)];if(r&&r[key]>0){t+=r[key];n++;}d.setDate(d.getDate()-1);}
+  return n?{avg:Math.round(t/n),n:n}:null;
+}
+function macroRow(label,key,unit,floor){
+  var cur=macroAvg(key,0),prev=macroAvg(key,1);
+  if(!cur)return '<div class="mcr"><span class="mck">'+esc(label)+'</span>'+
+    '<span class="mcv num">&mdash;</span><span class="mcd">nothing logged</span></div>';
+  var dir="flat",word="";
+  if(prev&&prev.avg>0){
+    var r=(cur.avg-prev.avg)/prev.avg;
+    dir=(r>=0.10)?"up":((r<=-0.10)?"down":"flat");
+    word=(dir==="flat")?"steady on last week":((dir==="up")?"up on last week":"down on last week");
+  }else{ word="first week logged"; }
+  var tone=floor?(cur.avg>=floor?"good":"amber"):"";
+  return '<div class="mcr"'+(tone?' data-tone="'+tone+'"':'')+' data-dir="'+dir+'">'+
+    '<span class="mck">'+esc(label)+'</span>'+
+    '<span class="mcv num">'+cur.avg+'<i>'+esc(unit)+'</i></span>'+
+    '<span class="mcd"><i class="dirg" aria-hidden="true">'+dirGlyph(dir)+'</i>'+esc(word)+'</span>'+
+    (floor?'<span class="mcf">'+(cur.avg>=floor?"at or above the "+floor+" g floor":"under the "+floor+" g floor")+'</span>':'')+
+    '</div>';
+}
+function proteinCardHTML(){
+  var pt=proteinTarget();
+  var any=macroAvg("p",0)||macroAvg("cb",0)||macroAvg("f",0);
+  var head='<h3><span>Macros</span><span class="t">7-day average</span></h3>';
+  if(!any)return '<div class="card">'+head+
+    '<div class="anote" style="margin-top:2px">Nothing logged in the last seven days. Cal AI carries the grams; the one worth watching is <b>Protein</b>'+
+    (pt?(', with a floor of '+pt.lo+' g while you are cutting'):'')+'.</div></div>';
+  return '<div class="card">'+head+'<div class="mcwrap">'+
+    macroRow("Protein","p","g",pt?pt.lo:0)+
+    macroRow("Carbs","cb","g",0)+
+    macroRow("Fat","f","g",0)+
+    macroRow("Fibre","fib","g",30)+
+  '</div></div>';
 }
 function deepDoorsHTML(){
   return ["training","recovering","changing"].map(function(k){var g=DEEPG[k];
@@ -5323,13 +5401,12 @@ function calCardHTML(){
         (v.maint?v.maint.toLocaleString():"&mdash;")+(v.maint?'<small> kcal</small>':'')+'</span></div>'+
       (v.scale?('<div class="lmr tot"><span class="lmk">The scale, '+(v.scale.ok?"28 days":"lately")+'</span><span class="lmv num">'+v.scale.txt+'</span></div>'):'')+
     '</div>'+
-    '<div class="ksub" style="margin-top:9px">The scale answers whether you are losing or gaining. This log cannot: photo counting runs 20 to 50 percent low, so the gap against maintenance is a reference, not a verdict.</div>'+
+    '<div class="ksub" style="margin-top:9px">The scale settles this; a photo log cannot.</div>'+
     calWindowRowHTML()+
-    moreHTML("The detail",
-      '<div class="pzline">'+head+' Maintenance is '+maintenanceBasis()+'.'+
-      (v.lastCal?(' Your most recent day, '+fullDate(v.last)+', came in at <b>'+v.lastCal.toLocaleString()+'</b>.'):'')+
-      (pAvg&&pt?(' Protein averaged <b>'+pAvg+' g</b> against a '+pt.lo+' g floor.'):'')+'</div>'+
-      '<div class="foot" style="margin-top:10px">'+cover+'</div>')+'</div>';
+    '<div class="foot" style="margin-top:9px">Logged <b>'+v.n+'</b> of the last <b>'+v.windowDays+'</b> days'+
+      (v.conf?'':', a provisional read')+
+      (v.stale?(', most recent '+v.age+' days old'):'')+'.</div>'+
+    '</div>';
 }
 function calAvgOver(days){
   var t=0,n=0,d=new Date(NOW);d.setDate(d.getDate()-days+1);
@@ -6992,7 +7069,7 @@ function miniLevelHTML(kind){
     '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
       '<circle class="lctrack" cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
       '<g transform="rotate(-90 22 22)"><circle class="lcarc" cx="22" cy="22" r="18" fill="none" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
-      '</svg><span class="lcnum num">'+L.lvl+'</span></span>'+
+      '</svg><span class="lcnum num" data-lvnum="box-'+kind+'" data-lv="'+L.lvl+'">'+L.lvl+'</span></span>'+
     '<span class="lctxt"><span class="lck">'+(kind==="lift"?"Lift":"Cardio")+'</span>'+
     '<span class="lcw"><i class="dirg" aria-hidden="true">'+dirGlyph(_dir)+'</i>'+esc(st.w)+'</span>'+
     '<span class="lct">'+t.w+'</span></span></button>';
@@ -7003,6 +7080,50 @@ function levelPrevLv(kind){
 }
 var RINGC=2*Math.PI*18;
 var _ringPlayed={};  /* per-page-load replay ledger, keyed kind|day|landing */
+var _lvSeen={};
+function lvNumEls(root){
+  var host=root||document;
+  return [].slice.call(host.querySelectorAll("[data-lvnum]"));
+}
+function lvCount(el,from,to,onDone){
+  var reduced=motionOff();
+  from=Math.round(from);to=Math.round(to);
+  if(from===to){el.textContent=to;if(onDone)onDone();return;}
+  var steps=Math.abs(to-from);
+  var per=reduced?260:Math.max(140,Math.min(420,900/Math.max(1,steps)));
+  var dur=Math.min(reduced?2200:2600,steps*per);
+  var t0=null;
+  function ease(x){return reduced?x:(1-Math.pow(1-x,3));}
+  function frame(ts){
+    if(t0==null)t0=ts;
+    var p=Math.min(1,(ts-t0)/dur);
+    el.textContent=Math.round(from+(to-from)*ease(p));
+    if(p<1)requestAnimationFrame(frame);
+    else{el.textContent=to;if(onDone)onDone();}
+  }
+  requestAnimationFrame(frame);
+}
+function levelNumAnim(root){
+  lvNumEls(root).forEach(function(el){
+    var key=el.getAttribute("data-lvnum");
+    var to=parseFloat(el.getAttribute("data-lv"));
+    if(!isFinite(to))return;
+    var seen=_lvSeen[key];
+    var stored=null;
+    try{var raw=localStorage.getItem("train.lvseen."+key);if(raw!=null)stored=parseFloat(raw);}catch(e){}
+    var from=(seen!=null)?seen:(stored!=null&&isFinite(stored)?stored:to);
+    _lvSeen[key]=to;
+    try{localStorage.setItem("train.lvseen."+key,String(to));}catch(e){}
+    var host=el.closest?el.closest("[data-dir]"):null;
+    if(from!==to){
+      var d=(to>from)?"up":"down";
+      if(host)host.setAttribute("data-dir",d);
+      if(el.classList)el.classList.add("lvmove");
+      setTimeout(function(){if(el.classList)el.classList.remove("lvmove");},1400);
+    }
+    lvCount(el,from,to);
+  });
+}
 function levelRingAnim(){
   document.querySelectorAll(".lvlcard").forEach(function(card){
     var arc=card.querySelector(".lcring .lcarc"),num=card.querySelector(".lcnum");
@@ -7014,13 +7135,11 @@ function levelRingAnim(){
     var delta=to-from;
     var LNow=(card.getAttribute("data-kind")==="lift")?liftLevel():cardioLevel();
     if(motionOff()){
-      num.textContent=LNow.lvl;
       arc.setAttribute("stroke-dashoffset",(RINGC*(1-LNow.pips/10)).toFixed(1));
       return;
     }
     var pk=(card.getAttribute("data-kind")||"x")+"|"+TODAY;
     if(_ringPlayed[pk]===to.toFixed(2)){
-      num.textContent=LNow.lvl;
       arc.setAttribute("stroke-dashoffset",(RINGC*(1-LNow.pips/10)).toFixed(1));
       return;
     }
@@ -7422,9 +7541,7 @@ function todayStatusHTML(){
   var m=dayMarks(TODAY),c=cardioTickState();
   var sN=(S.wk[TODAY]&&S.wk[TODAY].v3)?S.wk[TODAY].order.length:4;
   var cTag=m.cardio?"done":(c.run.ask&&c.run.ask.mi>0?(c.run.ask.mi.toFixed(1)+" mi"):"walk or run");
-  return statusRowHTML({label:"Strength",tag:m.strength?"done":(sN+" movements"),
-      on:m.strength,go:"show('lift')"})+
-    statusRowHTML({label:"Cardio",tag:cTag,on:m.cardio,go:"show('cardio')"});
+  return "";
 }
 function bodyLight(){
   var st=null;try{st=weightStats();}catch(e){}
@@ -7449,11 +7566,13 @@ function levelBoxHTML(kind){
     '" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')"'+
     ' aria-label="'+(kind==="lift"?"Strength":"Cardio")+' level '+L.lvl+', '+t.w+', '+
     (_dir==="up"?"rising":_dir==="down"?"falling":"holding")+', '+L.pips+' of 10 toward level '+(L.lvl+1)+'">'+
-    '<span class="lbk">'+(kind==="lift"?"Strength":"Cardio")+'</span>'+
+    '<span class="lbk">'+(kind==="lift"?"Strength":"Cardio")+
+      (dayMarks(TODAY)[kind==="lift"?"strength":"cardio"]?'<i class="lbdone" aria-label="done today">'+I.check+'</i>':'')+
+    '</span>'+
     '<span class="lcring"><svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">'+
       '<circle class="lctrack" cx="22" cy="22" r="18" fill="none" stroke="var(--surface-2)" stroke-width="4"/>'+
       '<g transform="rotate(-90 22 22)"><circle class="lcarc" cx="22" cy="22" r="18" fill="none" stroke-width="4" stroke-linecap="butt" stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></g>'+
-      '</svg><span class="lcnum num">'+L.lvl+'</span></span>'+
+      '</svg><span class="lcnum num" data-lvnum="box-'+kind+'" data-lv="'+L.lvl+'">'+L.lvl+'</span></span>'+
     '<span class="lbw num"><i class="dirg" aria-hidden="true">'+dirGlyph(_dir)+'</i>'+dTxt+'</span>'+
     '<span class="lbp num">'+(kind==="lift"?(L.pips+' of 10 · rounds'):(L.pips+' of 10 to L'+(L.lvl+1)))+'</span></button>';
 }
@@ -7461,9 +7580,20 @@ function bodyBoxHTML(){
   var b=bodyLight();
   var st=null;try{st=weightStats();}catch(e){}
   var pts=[];try{pts=trendSeries().slice(-28).map(function(p){return p.v;});}catch(e){}
+  var _cv=null;try{_cv=cutVerdict();}catch(e){}
   var val=st?(Math.round(st.trend*10)/10)+"":"–";
-  var rate=(b.k==="none")?"–":(b.w==="Holding"?"level":b.w+"/wk");
-  var word=(b.k==="none")?"not enough yet":"trend, "+((b.c==="weight is level")?"holding":b.c.replace(/^a week, /,""));
+  var rate="–";
+  if(_cv&&_cv.r&&isFinite(_cv.r.lbPerWk)){
+    var _lb=_cv.r.lbPerWk;
+    rate=(Math.abs(_lb)<0.1)?"level":((_lb>0?"-":"+")+Math.abs(_lb).toFixed(1)+" lb/wk");
+  }else if(b.k!=="none"){ rate=(b.w==="Holding")?"level":b.w+"/wk"; }
+  var word;
+  if(_cv&&_cv.state!=="unknown"){
+    word=(_cv.state==="good")?"on band, keeps muscle"
+      :(_cv.state==="fast")?"faster than the band"
+      :(_cv.state==="slow")?"under the band"
+      :"holding";
+  }else{ word=(b.k==="none")?"not enough yet":"trend"; }
   return '<button class="lvlcard lvlbox lbbody" data-tone="'+b.k+'" onclick="levelSheet(\'body\')"'+
     ' aria-label="Body, trend '+(st?val+" "+wLbl():"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
     '<span class="lbk">Body</span>'+
@@ -8230,7 +8360,7 @@ function levelHeroHTML(kind,L,stWord){
   }
   var pips="";for(var i=0;i<10;i++)pips+='<i'+(i<L.pips?' class="on"':'')+' data-r="'+
     esc("Rung "+(i+1)+" of 10 toward Level "+(L.lvl+1)+(i<L.pips?", earned":", not yet"))+'"></i>';
-  return '<div class="lvhero"><div class="lvbig num" data-r="'+esc("Level "+L.lvl+" of "+maxL+(dtxt?" \u00b7 "+dtxt:""))+'">'+L.lvl+'</div>'+
+  return '<div class="lvhero"><div class="lvbig num" data-lvnum="big-'+(kind||"x")+'" data-lv="'+L.lvl+'" data-r="'+esc("Level "+L.lvl+" of "+maxL+(dtxt?" \u00b7 "+dtxt:""))+'">'+L.lvl+'</div>'+
     '<div class="lvmeta"><div class="lvtierrow"><span class="tierpill">'+levelTier(L.lvl,kind).w+'</span><span class="lvword">'+esc(stWord||"")+'</span></div>'+
     '<div class="lvpipbar">'+pips+'</div>'+
     '<div class="lvdtxt">'+('<b class="num">'+L.pips+'</b> of 10 to Level '+(L.lvl+1))+(dtxt?' &middot; '+dtxt:'')+'</div>'+
@@ -8826,7 +8956,7 @@ function levelRingHTML(L,kind){
     '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface-2)" stroke-width="8"/>'+
     '<circle class="lprog" cx="48" cy="48" r="40" fill="none" stroke-width="8" stroke-linecap="butt" stroke-dasharray="'+C+'" stroke-dashoffset="'+off.toFixed(2)+'"/>'+
     '<circle cx="48" cy="48" r="40" fill="none" stroke="var(--surface)" stroke-width="8" stroke-dasharray="2 23.13"/></g>'+
-    '<text x="48" y="48" text-anchor="middle" dominant-baseline="central" class="num" style="font-size:34px;font-weight:800;fill:var(--ink);letter-spacing:-.02em">'+L.lvl+'</text></svg>';
+    '<text x="48" y="48" text-anchor="middle" dominant-baseline="central" class="num" data-lvnum="hero-'+(kind||"x")+'" data-lv="'+L.lvl+'" style="font-size:34px;font-weight:800;fill:var(--ink);letter-spacing:-.02em">'+L.lvl+'</text></svg>';
 }
 function lastLiftDate(){var b=null;(S.sessions||[]).forEach(function(x){
   if(x&&x.type==="lift"&&(!b||x.date>b))b=x.date;});return b;}
@@ -9180,6 +9310,82 @@ function cardioTickToggle(k){
   var wrap=document.getElementById("ctickwrap");
   if(wrap)wrap.outerHTML=cardioTicksHTML();else renderCardio();
 }
+function wkCounts(fn,weeks,amt){
+  weeks=weeks||6;
+  var out=[],d=new Date(NOW);
+  for(var w=0;w<weeks;w++){
+    var n=0,days=0,v=0;
+    for(var i=0;i<7;i++){
+      var k=keyOf(d);
+      if(k<=TODAY){ days++; if(fn(k))n++; v+=(amt?(amt(k)||0):(fn(k)?1:0)); }
+      d.setDate(d.getDate()-1);
+    }
+    out.unshift({n:n,days:days,v:v});
+  }
+  return out;
+}
+function wkVerdict(series){
+  if(!series.length)return {k:"flat",w:"no record yet"};
+  var cur=series[series.length-1];
+  var prior=series.slice(0,-1).filter(function(x){return x.days>0;});
+  if(!prior.length)return {k:"flat",w:"first week on record"};
+  function amtOf(x){return (x.v!=null?x.v:x.n);}
+  var avg=prior.reduce(function(a,x){return a+amtOf(x);},0)/prior.length;
+  var rate=cur.days>0?(amtOf(cur)/cur.days*7):0;
+  if(avg<=0)return {k:"flat",w:"nothing to compare against yet"};
+  var d=(rate-avg)/avg;
+  if(d>=0.15)return {k:"up",w:"ahead of your recent weeks"};
+  if(d<=-0.15)return {k:"down",w:"behind your recent weeks"};
+  return {k:"flat",w:"in line with your recent weeks"};
+}
+function wkCardHTML(o){
+  var series=o.series,v=wkVerdict(series),cur=series[series.length-1]||{n:0,days:0,v:0};
+  var max=Math.max(1,series.reduce(function(a,x){return Math.max(a,(x.v!=null?x.v:x.n));},0));
+  var bars="";
+  series.forEach(function(x,i){
+    var last=(i===series.length-1),val=(x.v!=null?x.v:x.n);
+    var h=Math.round((val/max)*100);
+    bars+='<span class="wkb'+(last?" cur":"")+'" style="--h:'+Math.max(val>0?14:5,h)+'%"'+
+      ' data-r="'+esc((last?"this week":(series.length-1-i)+" weeks ago")+": "+x.n+" "+o.unit)+'">'+
+      '<i></i></span>';
+  });
+  return '<button class="wkcard" data-tone="'+v.k+'" onclick="'+(o.tap||"")+'"'+
+    ' aria-label="'+esc(o.label+", "+cur.n+" "+o.unit+" this week, "+v.w)+'">'+
+    '<span class="wkhead"><span class="wklab">'+esc(o.label)+'</span>'+
+      '<span class="wkdir" aria-hidden="true">'+dirGlyph(v.k)+'</span></span>'+
+    '<span class="wkbig num">'+cur.n+'<i class="wku">'+esc(cur.n===1&&o.unit1?o.unit1:o.unit)+'</i></span>'+
+    '<span class="wkbars">'+bars+'</span>'+
+    '<span class="wkfoot">'+esc(v.w)+'</span>'+
+  '</button>';
+}
+function ranOn(k){
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="run"&&(s.distanceMi||0)>0;});
+}
+function stepsHitOn(k){
+  var v=stepsOn(k);
+  if(v==null)return false;
+  return v>=stepTarget().t;
+}
+function strengthOn(k){
+  if(puDayReps(k)>0)return true;
+  var a=S.anchor[k];
+  if(a){for(var x in a){if(a[x])return true;}}
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift";});
+}
+function cardioWeekCardsHTML(){
+  return '<div class="wkrow">'+
+    wkCardHTML({label:"Runs",series:wkCounts(ranOn,6),unit:"runs",unit1:"run",
+                tap:"runHistorySheet()"})+
+    wkCardHTML({label:"Step days",series:wkCounts(stepsHitOn,6,function(k){return stepsOn(k)||0;}),
+                unit:"at goal",tap:"levelSheet('cardio')"})+
+  '</div>';
+}
+function strengthWeekCardHTML(){
+  return '<div class="wkrow one">'+
+    wkCardHTML({label:"Strength days",series:wkCounts(strengthOn,6),unit:"days",unit1:"day",
+                tap:"levelSheet('lift')"})+
+  '</div>';
+}
 function cardioTicksHTML(){
   var c=cardioTickState();
   var st=c.walk,rn=c.run;
@@ -9232,6 +9438,7 @@ function renderCardio(){
     (LS.w?('<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'):"")+
     '</div></div>'+
     '<div class="chsplit"></div>'+
+    cardioWeekCardsHTML()+
     cardioTicksHTML()+
     '</div>';
   h+=odoCardHTML();
