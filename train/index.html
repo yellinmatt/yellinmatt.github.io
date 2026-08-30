@@ -1595,7 +1595,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v14.2";
+var VERSION="v14.3";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4145,6 +4145,37 @@ function puLogPartial(){
   if(!(v>=0)||v>1000){toast("Enter a rep count between 0 and 1000.",null);return;}
   puLog(v);closeSheet();refreshCurrent();
 }
+var CUT_RATE_LO=0.005, CUT_RATE_HI=0.010;
+function cutRate(){
+  function mean7(endK){
+    var d=dayFromKey(endK),t=0,n=0;
+    for(var i=0;i<7;i++){
+      var k=keyOf(d);
+      (S.weigh||[]).forEach(function(w){if(w.date===k){t+=w.w;n++;}});
+      d.setDate(d.getDate()-1);
+    }
+    return n?{m:t/n,n:n}:null;
+  }
+  var now=mean7(TODAY);
+  var back=new Date(NOW);back.setDate(back.getDate()-21);
+  var then=mean7(keyOf(back));
+  if(!now||!then||now.n<2||then.n<2)return null;
+  var lbPerWk=(then.m-now.m)/3;
+  var pct=lbPerWk/Math.max(1,now.m);
+  return {lbPerWk:lbPerWk,pct:pct,now:now.m,then:then.m,nNow:now.n,nThen:then.n};
+}
+function cutVerdict(){
+  var r=cutRate();
+  if(!r)return {state:"unknown",say:"Not enough weigh-ins yet to read a trend."};
+  if(r.lbPerWk<=0)return {state:"flat",r:r,
+    say:"Holding. The seven-day mean is "+r.now.toFixed(1)+" "+wLbl()+"."};
+  if(r.pct<CUT_RATE_LO)return {state:"slow",r:r,
+    say:"Losing about "+r.lbPerWk.toFixed(1)+" a week. Under the band, which is fine if it is what you want."};
+  if(r.pct<=CUT_RATE_HI)return {state:"good",r:r,
+    say:"Losing about "+r.lbPerWk.toFixed(1)+" a week, inside the range that keeps muscle."};
+  return {state:"fast",r:r,
+    say:"Losing about "+r.lbPerWk.toFixed(1)+" a week, above the range that keeps muscle."};
+}
 function weighSheet(dateK){
   var d=dateK||TODAY;
   var lw=lastW(),start=(lw!=null?lw:(U()==="kg"?80:180));
@@ -4625,7 +4656,7 @@ function renderLift(){
       '<div class="lvlsub">capability from your own best sets</div>'+
     '</div></div>'+
     '<div class="meta">'+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min</div>'+
-    (reentryOn()?'<div class="tgs">Re-entry: about half the usual rounds for a session or two. A ramp, not a reset.</div>'
+    (false?''
       :(reentryLapsedToday()?'<div class="tgs">Re-entry cleared. The full prescription is back.</div>':''))+
     (doneN>=w.rN?'<div class="done-pill">'+I.check+' '+doneN+' round'+(doneN===1?'':'s')+' in the book</div>':'')+
     barLapsedLine()+
@@ -4876,16 +4907,19 @@ function renderDeep(){
 
 
 function trackHealthHTML(){
-  var fr=freshness(),s=syncHealth();
+  var frAll=freshness(),s=syncHealth();
+  var fr=frAll.filter(function(f){return f.kind!=="output";});
   var stale=fr.filter(function(f){return !f.pending&&f.age!=null&&f.age>=f.warn;}).length;
   var never=fr.filter(function(f){return f.pending||f.age==null;}).length;
   var ok=fr.length-stale-never;
+  var backupStale=frAll.some(function(f){return f.kind==="output"&&f.age!=null&&f.age>=f.warn;});
   var deadN=fr.filter(function(f){return !f.pending&&f.age==null;}).length;
   var head,tone;
   if(s.rag==="red"){head="Sync has stopped, so these may not be the latest readings.";tone="red";}
   else if(deadN){head=(deadN===1?"One input has never been recorded.":deadN+" inputs have never been recorded.");tone="red";}
   else if(stale){head=(stale===1?"One input has gone quiet.":stale+" inputs have gone quiet.");tone="amber";}
   else if(never){head=(never===1?"One input is not connected yet.":never+" inputs are not connected yet.");tone="amber";}
+  else if(backupStale){head="Every input is current. Your backup is overdue.";tone="amber";}
   else {head="Every input is current.";tone="good";}
   var syncOff=(s.rag==="none"||s.rag==="red");
   if(syncOff) never++; else ok++;
@@ -5103,7 +5137,7 @@ function freshness(){
   out.push({n:"Sessions",age:ls?daysBetween(ls,TODAY):null,warn:4,bad:10,fix:"show('today')",
             hint:S.sessions.length+" logged"});
   var sk=Object.keys(S.steps||{}).sort(),lastS=sk.length?sk[sk.length-1]:null;
-  out.push({n:"Backup",age:backupAgeDays(),warn:21,bad:60,fix:"exportSheet()",
+  out.push({n:"Backup",age:backupAgeDays(),warn:21,bad:60,fix:"exportSheet()",kind:"output",
             hint:S.profile.lastBackup?("last saved "+S.profile.lastBackup):"never exported"});
   out.push({n:"Steps",age:lastS?daysBetween(lastS,TODAY):null,warn:4,bad:10,fix:"healthChoiceSheet()",
             hint:sk.length?(sk.length+" days imported"):"needs an Apple Health export",pending:!sk.length});
@@ -8498,7 +8532,7 @@ function boutMph(s){
   if(!mi||!dur||dur<=0)return 0;
   return mi/(dur/3600);
 }
-var STEP_BASE=4000, STEPS_PER_MIN=100, STEPS_PER_MILE=2000;
+var STEP_BASE=AMBIENT_FLOOR, STEPS_PER_MIN=100, STEPS_PER_MILE=2000;
 function stepBouts(asOf){
   asOf=asOf||TODAY;
   var out=[],st=S.steps||{},byDate={};
@@ -8604,7 +8638,16 @@ function cardioLevel(){
   var r=(backScore>0)?((fr.score-backScore)/backScore):0;
   return {lvl:lvl,score:fr.mph==null?0:Math.round(fr.mph*100)/100,lo:lo,hi:hi,span:span,pips:pips,
     r:r,delta:lvl-lvlP,week:c.week,cs:c,fr:fr,ring:ring,
-    series:c.series.map(function(x){return {date:x.date,slow:x.level};}),
+    series:(function(){
+      var out=[],last=null,d=new Date(NOW);d.setDate(d.getDate()-179);
+      for(var i=0;i<180;i++){
+        var k=keyOf(d);
+        if(i%7===0||i===179)last=cardioScoreNow(k).score;
+        out.push({date:k,slow:(last||0)});
+        d.setDate(d.getDate()+1);
+      }
+      return out;
+    })(),
     sessions:allRuns().length};
 }
 
