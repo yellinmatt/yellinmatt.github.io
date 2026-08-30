@@ -1,3 +1,8 @@
+/* Train service worker.
+   Deliberately NETWORK-FIRST, not cache-first. A cache-first worker on a single-file app is how
+   you end up staring at last week's build with no way to force an update from a phone. Every load
+   tries the network, and the cache exists only so the app still opens when there is no signal.
+   The app's own state lives in localStorage and is never touched here. */
 var CACHE = "train-v11";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 
@@ -22,6 +27,7 @@ self.addEventListener("fetch", function (e) {
   var req = e.request;
   if (req.method !== "GET") return;
   var url = new URL(req.url);
+  /* Same-origin only. Sync calls to the Worker and any YouTube embed must never be intercepted. */
   if (url.origin !== self.location.origin) return;
 
   e.respondWith(
