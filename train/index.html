@@ -2939,9 +2939,32 @@ function easyWeight(id){
   return null;
 }
 
+function routineDayOrder(){
+  var R=theRoutine(),out=[];
+  (R.order||[]).forEach(function(x){
+    var sl=slotFor(x.exId);if(!sl)return;
+    if(x.reps!=null){sl.reps=x.reps;sl.low=Math.min(sl.low,x.reps);sl.high=Math.max(sl.high,x.reps);}
+    if(x.weight!=null&&!sl.bw)sl.weight=x.weight;
+    out.push(sl);
+  });
+  return out;
+}
 function workDay(){
   var w=S.wk[TODAY];
-  if(w&&w.v3&&w.v12)return w;
+  var want=routineOn()?"routine":"gen";
+  if(w&&w.v3&&w.v12&&(w.src||"gen")===want)return w;
+  if(want==="routine"){
+    var R=theRoutine(),ro=routineDayOrder();
+    var rrx=reentryOn()?Math.max(RX_FLOOR,Math.round((R.rN||3)/2)):(R.rN||3);
+    var rw={v3:true,v12:true,src:"routine",letter:"Gen",routine:true,
+      equip:defaultEquip().slice(),order:ro,rx:rrx,rN:rrx,done:{},
+      advanced:false,progApplied:false,reentryCounted:false,barApplied:false,hard:hardDue()};
+    reslotDay(rw);
+    if(R.name)rw.name=R.name;
+    S.wk[TODAY]=rw;
+    rehydrateDay(rw);
+    save();return rw;
+  }
   var eq=defaultEquip(),avoid=soreAvoid(),seen={};
   var order=[],groups=pickGroups(4);
   groups.forEach(function(g){
@@ -2964,21 +2987,21 @@ function workDay(){
       bw:!!e.bw,low:low,high:high,weight:wgt,reps:low});
   });
   var rx=roundsRx();
-  w={v3:true,v12:true,letter:"Gen",name:groups.map(function(g){return GROUPS[g].name;}).join(", "),
+  w={v3:true,v12:true,src:"gen",letter:"Gen",name:groups.map(function(g){return GROUPS[g].name;}).join(", "),
      groups:groups,equip:eq.slice(),order:order,rx:rx,rN:rx,done:{},
      advanced:false,progApplied:false,reentryCounted:false,barApplied:false,hard:hardDue()};
-  var rec=liftOn(TODAY);
-  if(rec){
-    (rec.entries||[]).forEach(function(en){
-      var si=-1;order.forEach(function(o,i){if(o.exId===en.exerciseId)si=i;});
-      if(si<0)return;
-      (en.sets||[]).forEach(function(st,r){
-        if(st.completed)w.done[r+"_"+si]={exId:en.exerciseId,reps:st.reps,w:st.weightLb||0,ts:null};});
-      if((en.sets||[]).length>w.rN)w.rN=Math.min(RX_CEIL,(en.sets||[]).length);
-    });
-    w.advanced=!!rec.advancedRotation;w.reentryCounted=true;
-  }
-  S.wk[TODAY]=w;save();return w;
+  S.wk[TODAY]=w;rehydrateDay(w);save();return w;
+}
+function rehydrateDay(w){
+  var rec=liftOn(TODAY);if(!rec)return;
+  (rec.entries||[]).forEach(function(en){
+    var si=-1;(w.order||[]).forEach(function(o,i){if(o.exId===en.exerciseId)si=i;});
+    if(si<0)return;
+    (en.sets||[]).forEach(function(st,r){
+      if(st.completed)w.done[r+"_"+si]={exId:en.exerciseId,reps:st.reps,w:st.weightLb||0,ts:null};});
+    if((en.sets||[]).length>w.rN)w.rN=Math.min(RX_CEIL,(en.sets||[]).length);
+  });
+  w.advanced=!!rec.advancedRotation;w.reentryCounted=true;
 }
 
 function wkProgress(w){w=w||S.wk[TODAY];if(!w)return {done:0,total:0};
@@ -4114,7 +4137,7 @@ function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.hi
   var allHigh=sets.length>0&&sets.every(function(s){return (s.reps||0)>=o.high;});
   var repMode=(o.bw||!S.profile.adjustable);
   if(allHigh){
-    if(repMode){t.low=o.low;t.high=o.high;t.weight=o.weight;t.ladderStep="reps";}
+    if(repMode||freezeOn()){t.low=o.low;t.high=o.high;t.weight=o.weight;t.ladderStep="reps";}
     else{t.weight=base+inc();t.low=8;t.high=12;t.ladderStep="load";}
   }
   else{t.low=o.low;t.high=o.high;t.weight=repMode?o.weight:base;t.ladderStep=repMode?"reps":"load";}
@@ -4547,6 +4570,28 @@ function movementSheet(id,L){
 
 var RX_FLOOR=1,RX_CEIL=8,RX_DEFAULT=3;
 var SLOT_FLOOR=1,SLOT_CEIL=6;
+
+var ROUTINE_V=1;
+var ROUTINE_SEED={v:ROUTINE_V,name:"Full body",rN:3,order:[
+  {exId:"bwsquat", reps:15},
+  {exId:"pushup",  reps:10},
+  {exId:"kbswing", reps:15},
+  {exId:"pullneg", reps:5},
+  {exId:"deadbug", reps:10}]};
+var FREEZE_DAYS=42;
+var CIRCUIT_TARGET=3;
+function theRoutine(){
+  if(!S.routine||S.routine.v!==ROUTINE_V){
+    S.routine=JSON.parse(JSON.stringify(ROUTINE_SEED));
+    S.routine.started=TODAY;
+    if(!S.freezeUntil){var d=new Date(NOW);d.setDate(d.getDate()+FREEZE_DAYS);S.freezeUntil=keyOf(d);}
+    save();
+  }
+  return S.routine;
+}
+function routineOn(){return S.routineOn!==false;}
+function freezeOn(){return !!(S.freezeUntil&&TODAY<=S.freezeUntil);}
+function freezeLeft(){return S.freezeUntil?Math.max(0,daysBetween(TODAY,S.freezeUntil)):0;}
 function roundsBase(){var b=S.roundsBase;if(typeof b!=="number"||!isFinite(b))b=RX_DEFAULT;return Math.max(2,Math.min(RX_CEIL,b));}
 function patGroup(p){if(p==="h-push"||p==="v-push")return "push";if(p==="h-pull"||p==="v-pull")return "pull";
   if(p==="squat"||p==="hinge")return "lower";if(p==="core")return "trunk";return null;}
@@ -4705,6 +4750,16 @@ function rowSheet(si){
     '<button class="sheet-cta ghost" onclick="closeSheet();movementSheet(\''+o.exId+'\',\''+w.letter+'\')">History and how-to</button>'+
     '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
 }
+function routineWrite(o){
+  if(!routineOn()||!o)return;
+  var R=theRoutine();
+  (R.order||[]).forEach(function(x){
+    if(x.exId!==o.exId)return;
+    x.reps=o.reps;
+    if(!o.bw)x.weight=o.weight;
+  });
+  save();
+}
 function rowStep(si,f,dir){
   var w=workDay(),o=w.order[si];if(!o)return;
   if(f==="reps"){o.reps=Math.max(1,(parseInt(o.reps)||o.low)+dir);
@@ -4713,7 +4768,43 @@ function rowStep(si,f,dir){
     var el2=document.getElementById("rs-w");if(el2)el2.textContent=o.weight;
     var pr=prFor(o.exId);
     if(dir>0&&pr&&pr.w&&o.weight>pr.w*1.2)toast("Above anything on record for this movement. Make the jump deliberate.",null);}
+  routineWrite(o);
   save();renderLift();
+}
+function routineSheet(){
+  var R=theRoutine(),w=workDay();
+  var rows=(R.order||[]).map(function(x){
+    var e=LIB[x.exId]||{};
+    var dose=(e.unit==="s")?(x.reps+"s"):(((!e.bw&&x.weight)?x.weight+wLbl()+" ":"")+"x"+x.reps+(e.side?"/side":""));
+    return srow(esc(e.name||x.exId),'<span class="snv num">'+esc(dose)+'</span>');
+  }).join("");
+  openSheet('<div class="grab"></div><h3>'+esc(R.name||"Your routine")+'</h3>'+
+    sgroup("",rows,"Change any of these from the row itself during a session. It stays changed.")+
+    sgroup("",
+      srow("Rounds",stepCtl("routineRounds(-1)","routineRounds(1)",R.rN||3,"","rt-rn"))+
+      srow("Target a week",'<span class="snv num">'+CIRCUIT_TARGET+'</span>')+
+      (freezeOn()?srow("Progression freeze",'<span class="snv">'+freezeLeft()+' days left</span>'):""),
+      freezeOn()?"Reps climb, loads hold. Ends on its own.":"")+
+    sgroup("",srow("Use the daily generator",swCtl(!routineOn(),"toggleRoutine(this)")),
+      "The old rotation that picks four muscle groups from your record each morning. Kept, off.")+
+    '<button class="sheet-cta" onclick="closeSheet()">Done</button>');
+}
+function routineRounds(d){
+  var R=theRoutine();
+  var v=Math.max(RX_FLOOR,Math.min(RX_CEIL,(R.rN||3)+d));
+  R.rN=v;
+  var w=workDay();
+  if(w.src==="routine"&&wkProgress(w).done===0){w.rN=v;w.rx=v;}
+  save();
+  var el=document.getElementById("rt-rn");if(el)el.textContent=v;
+  renderLift();
+}
+function toggleRoutine(btn){
+  S.routineOn=!routineOn();
+  save();
+  if(btn){btn.classList.toggle("on",!routineOn());btn.setAttribute("aria-checked",!routineOn()?"true":"false");}
+  closeSheet();renderLift();
+  toast(routineOn()?"Back to your routine.":"Daily generator on.",null);
 }
 function rowSwapSheet(si){
   var w=workDay(),o=w.order[si];if(!o)return;var e=LIB[o.exId]||{};
@@ -4744,8 +4835,10 @@ function rowSwap(si,id){
   o.reps=o.low;
   o.swapped=TODAY;
   reslotDay(w);
+  if(routineOn()){var R=theRoutine();
+    if(R.order&&R.order[si]){R.order[si]={exId:o.exId,reps:o.reps};if(!o.bw)R.order[si].weight=o.weight;}}
   syncRoundsSession(w);save();closeSheet();renderLift();
-  toast("Swapped. New variant, tracking restarted.",null);
+  toast("Swapped. It stays in your routine.",null);
 }
 function reslotDay(w){
   var seen={};
@@ -4773,6 +4866,7 @@ function addMovement(_oi,id){
   if((w.order||[]).length>=SLOT_CEIL){toast("Six movements is the ceiling for one round.",null);return;}
   sl.added=TODAY;
   w.order.push(sl);
+  if(routineOn()){var R=theRoutine();(R.order=R.order||[]).push({exId:sl.exId,reps:sl.reps});}
   reslotDay(w);
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Added. Every round now carries it.",null);
@@ -4791,6 +4885,7 @@ function removeMovement(si){
     nd[pr[0]+"_"+(i>si?i-1:i)]=w.done[k];
   });
   w.done=nd;
+  if(routineOn()){var R=theRoutine();if(R.order&&R.order.length>si)R.order.splice(si,1);}
   reslotDay(w);
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Removed from today.",null);
@@ -7145,6 +7240,7 @@ function settingsBodyHTML(){
     srow('Movements use',segCtl([["Bodyweight only","setMode('bw',this)",trainMode()==="bw"],["Add dumbbells","setMode('db',this)",trainMode()==="db"]]),"wide")+
     srow('Adjustable dumbbells',swCtl(!!p.adjustable,"setAdjSw(this)"))+
     srow('Bodyweight counts as',stepCtl("setBwFactor(-5)","setBwFactor(5)",Math.round(bwFactor()*100)+'%',"","bwf-set"))+
+    snav('Your routine',"","closeSheet();routineSheet()")+
     snav('Change kit',"","closeSheet();equipSheet()")+
     snav('2-week ease-in',(easingIn()?"running":"not started"),"startEaseIn()"),
     "Adding dumbbells swaps the movements, not the plan. The bodyweight share is what a rep counts as when working out volume. Ease-in runs lighter for a fortnight, and now starts itself whenever you switch programme.");
@@ -9680,8 +9776,13 @@ function strengthWorkOn(k){
   if(puDayReps(k)>0)n+=1;
   return n;
 }
+function circuitOn(k){
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift"&&sessRounds(s)>=1;});
+}
 function strengthWeekCardHTML(){
-  return '<div class="wkrow one">'+
+  return '<div class="wkrow">'+
+    wkCardHTML({label:"Circuits",series:wkCounts(circuitOn,6),unit:"of "+CIRCUIT_TARGET,
+                target:CIRCUIT_TARGET,tap:"routineSheet()"})+
     wkCardHTML({label:"Strength days",series:wkCounts(strengthOn,6,strengthWorkOn),
                 unit:"days",unit1:"day",tap:"levelSheet('lift')"})+
   '</div>';
