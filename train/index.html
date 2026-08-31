@@ -1391,6 +1391,8 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .arow .axn{flex:none;min-width:56px;min-height:44px;border:0;background:none;padding:0 0 0 6px;
   text-align:right;font-size:23px;font-weight:700;letter-spacing:-.02em;color:var(--ink);
   line-height:44px}
+.arow .axn.word{font-size:15px;font-weight:600;color:var(--sub);letter-spacing:0}
+.arow.checked .axn.word{color:var(--faint)}
 .arow .axn.up{color:var(--good)}
 .arow.checked .axn{color:var(--faint)}
 .arow[data-band="orange"]{box-shadow:inset 3px 0 0 var(--warn)}
@@ -1798,7 +1800,7 @@ var LIB={
   bandpulldown:{name:"Band lat pulldown",pattern:"v-pull",equip:"band",bw:true,bwl:0.3,diff:"beginner",cue:"pull to collarbone, no shrug",q:"band lat pulldown form"},
   deadhang:{name:"Dead hang",pattern:"v-pull",equip:"bar",bwl:0.35,bw:true,unit:"s",diff:"beginner",cue:"decompress, grip, shoulder reset",q:"dead hang benefits how to"},
   deadbug:{name:"Dead bug",pattern:"core",equip:"BW",bw:true,side:true,bwl:0.2,diff:"beginner",cue:"ribs down, low back flat",q:"dead bug exercise form"},
-  sideplank:{name:"Side plank",pattern:"core",equip:"BW",bwl:0.4,bw:true,unit:"s",side:true,diff:"beginner",cue:"stack hips, anti-lateral flexion",q:"side plank proper form"},
+  sideplank:{name:"Side plank",pattern:"core",equip:"BW",bwl:0.4,bw:true,hlo:20,hhi:45,unit:"s",side:true,diff:"beginner",cue:"stack hips, anti-lateral flexion",q:"side plank proper form"},
   suitcase:{name:"Suitcase carry",pattern:"core",equip:"DB",side:true,unit:"s",diff:"beginner",cue:"don't lean, brace hard",q:"suitcase carry exercise"},
   pallof:{name:"Pallof press",pattern:"core",equip:"band",bw:true,side:true,diff:"beginner",cue:"resist rotation, ribs down",q:"pallof press band form"},
   facepull:{name:"Band face pull",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"elbows high, external rotate (shoulder health)",q:"band face pull form"},
@@ -1811,7 +1813,7 @@ var LIB={
   pikepush:{name:"Pike push-up",pattern:"v-push",neck:true,equip:"BW",bwl:0.62,bw:true,diff:"intermediate",cue:"hips high, head between hands, pain-free",q:"pike push up form shoulders"},
   sglutebridge:{name:"Single-leg glute bridge",pattern:"hinge",equip:"BW",bwl:0.5,bw:true,side:true,diff:"beginner",cue:"hips level, drive through the heel",q:"single leg glute bridge form"},
   birddog:{name:"Bird dog",pattern:"core",equip:"BW",bw:true,side:true,bwl:0.2,diff:"beginner",cue:"reach long, no hip rock, brace",q:"bird dog exercise form"},
-  plank:{name:"Front plank",pattern:"core",equip:"BW",bwl:0.35,bw:true,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"},
+  plank:{name:"Front plank",pattern:"core",equip:"BW",bwl:0.35,bw:true,hlo:20,hhi:45,unit:"s",diff:"beginner",cue:"ribs down, squeeze glutes, straight line",q:"front plank proper form"},
 
   pushbench:{name:"Counter push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.35,diff:"beginner",cue:"kitchen counter height, elbows back not flared",q:"countertop push up form"},
   pushhigh:{name:"Chair push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on the chair seat, hollow body, full range",q:"incline push up proper form"},
@@ -1857,7 +1859,7 @@ var LIB={
   pikehigh:{name:"Pike push-up, hands raised",pattern:"v-push",neck:true,equip:"BW",bwl:0.45,bw:true,diff:"beginner",cue:"hands on a step, hips high, pain-free range only",q:"elevated pike push up beginner"},
   pikefeet:{name:"Feet-elevated pike push-up",pattern:"v-push",neck:true,equip:"BW",bwl:0.75,bw:true,diff:"advanced",cue:"feet on a chair, torso near vertical, head between the hands",q:"elevated pike push up handstand progression"},
 
-  hollow:{name:"Hollow hold",pattern:"core",equip:"BW",bwl:0.35,bw:true,unit:"s",diff:"intermediate",cue:"low back pressed flat, arms and legs long, breathe",q:"hollow body hold form"},
+  hollow:{name:"Hollow hold",pattern:"core",equip:"BW",bwl:0.35,bw:true,hlo:15,hhi:40,unit:"s",diff:"intermediate",cue:"low back pressed flat, arms and legs long, breathe",q:"hollow body hold form"},
   legraise:{name:"Lying leg raise",pattern:"core",equip:"BW",bwl:0.4,bw:true,diff:"beginner",cue:"hands under the hips, lower slowly, no arching",q:"lying leg raise form lower abs"},
   hangknee:{name:"Hanging knee raise",pattern:"core",equip:"bar",bw:true,bwl:0.55,diff:"intermediate",cue:"dead hang, knees to the chest, no swinging",q:"hanging knee raise form"},
   plankreach:{name:"Plank shoulder tap",pattern:"core",equip:"BW",bwl:0.45,bw:true,side:true,diff:"intermediate",cue:"feet wide, tap the opposite shoulder, hips do not rock",q:"plank shoulder tap anti rotation"}
@@ -4570,6 +4572,12 @@ function movementSheet(id,L){
 
 var RX_FLOOR=1,RX_CEIL=8,RX_DEFAULT=3;
 var SLOT_FLOOR=1,SLOT_CEIL=6;
+var HOLD_LO=20,HOLD_HI=45;
+function holdRange(id){
+  var e=LIB[id]||{};
+  if(e.unit!=="s")return null;
+  return {low:(e.hlo!=null?e.hlo:HOLD_LO),high:(e.hhi!=null?e.hhi:HOLD_HI)};
+}
 
 var ROUTINE_V=1;
 var ROUTINE_SEED={v:ROUTINE_V,name:"Full body",rN:3,order:[
@@ -4829,8 +4837,9 @@ function rowSwap(si,id){
   var G=GROUPS[ng]||GROUPS[o.g]||{};
   o.exId=id;o.bw=!!e.bw;o.unit=e.unit||"reps";o.side=!!e.side;
   o.g=ng;o.pat=patGroup(e.pattern)||e.pattern;
-  o.low=(t.low!=null?t.low:(G.low!=null?G.low:o.low));
-  o.high=(t.high!=null?t.high:(G.high!=null?G.high:o.high));
+  var H=holdRange(id);
+  o.low=(t.low!=null?t.low:(H?H.low:(G.low!=null?G.low:o.low)));
+  o.high=(t.high!=null?t.high:(H?H.high:(G.high!=null?G.high:o.high)));
   o.weight=e.bw?0:(t.weight!=null?t.weight:(e.defw!=null?e.defw:15));
   o.reps=o.low;
   o.swapped=TODAY;
@@ -4851,7 +4860,9 @@ function slotFor(id){
   var pay=gpayOf(id)||{},t=S.progress[id]||{};
   var g=Object.keys(pay).filter(function(k){return pay[k]>=1;})[0]||null;
   var G=(g&&GROUPS[g])||{};
-  var low=(t.low!=null?t.low:(G.low!=null?G.low:8)),high=(t.high!=null?t.high:(G.high!=null?G.high:15));
+  var H=holdRange(id);
+  var low=(t.low!=null?t.low:(H?H.low:(G.low!=null?G.low:8)));
+  var high=(t.high!=null?t.high:(H?H.high:(G.high!=null?G.high:15)));
   return {exId:id,g:g,pat:patGroup(e.pattern)||e.pattern,unit:e.unit||"reps",side:!!e.side,
     bw:!!e.bw,low:low,high:high,weight:e.bw?0:(t.weight!=null?t.weight:(e.defw!=null?e.defw:15)),reps:low};
 }
@@ -4890,25 +4901,34 @@ function removeMovement(si){
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Removed from today.",null);
 }
-function warmupDone(){
-  var a=S.anchor[TODAY]||{},sl=anchorSlugs(TODAY),n=0;
-  sl.forEach(function(x){if(a[x])n++;});
-  return sl.length>0&&n>=Math.ceil(sl.length*0.6);
-}
-function warmupDose(){
-  if(warmupDone())return "already done in your morning flow";
-  return "about 5 minutes, easy";
+var WARMUPS=[["rope","Jump rope"],["walk","Walk"],["pad","Walking pad"],["run","Easy run"],
+             ["flow","Mobility flow"],["clip","Guided clip"],["other","Something else"]];
+function warmKind(){var w=S.wk[TODAY];return (w&&w.wuKind)||S.wuLast||"rope";}
+function warmName(k){k=k||warmKind();
+  for(var i=0;i<WARMUPS.length;i++)if(WARMUPS[i][0]===k)return WARMUPS[i][1];
+  return "Warm-up";}
+function warmPick(k){var w=workDay();w.wuKind=k;S.wuLast=k;save();closeSheet();renderLift();}
+function warmSheet(){
+  var cur=warmKind();
+  openSheet('<div class="grab"></div><h3>Warm-up</h3>'+
+    WARMUPS.map(function(x){
+      return '<button class="opt'+(x[0]===cur?" sel":"")+'" onclick="warmPick(\''+x[0]+'\')">'+
+        '<span class="oi">'+(x[0]==="clip"?I.play:I.bolt)+'</span>'+
+        '<span><div class="on2">'+esc(x[1])+'</div></span>'+
+        '<span class="oar">'+(x[0]===cur?I.check:I.arrow)+'</span></button>';}).join("")+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
 }
 function warmupRowHTML(w){
-  var on=!!w.done.wu;
+  var on=!!w.done.wu,k=warmKind();
   var _wv=vidsForSlot("warmup")||[];
   var _short=_wv.filter(function(x){return /\b[1-5]\s*(min|minute)/i.test(x.t||"");});
   var _mid=_wv.filter(function(x){return /\b[6-9]\s*(min|minute)/i.test(x.t||"");});
   var v=_short[0]||_mid[0]||_wv[0];
   return '<div class="arow'+(on?" checked":"")+'" data-wu="1" role="button" tabindex="0" aria-pressed="'+on+'" onclick="warmTick()">'+
     '<span class="chk">'+I.check+'</span>'+
-    '<span class="atxt"><span class="an">Warm-up</span><span class="ad">'+esc(warmupDose())+'</span></span>'+
-    (v?'<button class="ahow" onclick="event.stopPropagation();sessionVidSheet(\''+v.id+'\')" aria-label="Warm-up video">'+I.info+'</button>':'')+
+    '<span class="atxt"><span class="an">Warm-up</span></span>'+
+    ((v&&k==="clip")?'<button class="axv" onclick="event.stopPropagation();sessionVidSheet(\''+v.id+'\')" aria-label="Warm-up video">'+I.play+'</button>':'')+
+    '<button class="axn word" onclick="event.stopPropagation();warmSheet()" aria-label="'+esc(warmName(k))+', tap to change">'+esc(warmName(k))+'</button>'+
     '</div>';
 }
 function roundRowHTML(w,r,si){
@@ -4917,7 +4937,6 @@ function roundRowHTML(w,r,si){
   var reps=c?c.reps:o.reps,load=c?c.w:(o.bw?0:o.weight);
   var isBand=((LIB[o.exId]||{}).equip==="band");
   var dose=(o.unit==="s")?(reps+"s"):((isBand?"band ":(load?load+wLbl()+" ":""))+"x"+reps)+(o.side?"/side":"");
-  if(o.swapped===TODAY)dose+=" &middot; swapped";
   var nm=c&&c.exId&&c.exId!==o.exId?((LIB[c.exId]||{}).name||c.exId):(e.name||o.exId);
   var band=o.g?groupBand(o.g):"quiet";
   return '<div class="arow'+(on?" checked":"")+'" data-band="'+band+'" data-si="'+si+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
