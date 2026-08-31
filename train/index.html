@@ -4724,10 +4724,19 @@ function rowSwapSheet(si){
 function rowSwap(si,id){
   var w=workDay(),o=w.order[si],e=LIB[id];if(!o||!e)return;
   var t=S.progress[id]||{};
+  var pay=gpayOf(id)||{},ng=o.g;
+  if(!(pay[ng]>=1))ng=Object.keys(pay).filter(function(k){return pay[k]>=1;})[0]||o.g;
+  var G=GROUPS[ng]||GROUPS[o.g]||{};
   o.exId=id;o.bw=!!e.bw;o.unit=e.unit||"reps";o.side=!!e.side;
+  o.g=ng;o.pat=patGroup(e.pattern)||e.pattern;
+  o.low=(t.low!=null?t.low:(G.low!=null?G.low:o.low));
+  o.high=(t.high!=null?t.high:(G.high!=null?G.high:o.high));
   o.weight=e.bw?0:(t.weight!=null?t.weight:15);
-  o.reps=(t.low!=null?t.low:o.low);
+  o.reps=o.low;
   o.swapped=TODAY;
+  var _sg={};w.groups=(w.order||[]).map(function(x){return x.g;})
+    .filter(function(g){if(!g||_sg[g])return false;_sg[g]=1;return true;});
+  w.name=w.groups.map(function(g){return (GROUPS[g]||{}).name||g;}).join(", ");
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Swapped. New variant, tracking restarted.",null);
 }
