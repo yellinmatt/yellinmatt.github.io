@@ -753,7 +753,13 @@ html[data-motion="off"] .wkbars .wkb i{transition:none}
 [data-dir="up"] .dirg{color:var(--dir-up)}
 [data-dir="down"] .dirg{color:var(--dir-down)}
 [data-dir="flat"] .dirg{color:var(--dir-flat)}
-.lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--tier);font-variant-numeric:tabular-nums}
+.lvlcard .lcnum{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--dir-flat);font-variant-numeric:tabular-nums}
+.lvlcard[data-dir="up"] .lcnum{color:var(--dir-up)}
+.lvlcard[data-dir="down"] .lcnum{color:var(--dir-down)}
+.lvlcard[data-dir="flat"] .lcnum{color:var(--dir-flat)}
+svg.lring[data-dir="up"] text[data-lvnum]{fill:var(--dir-up)}
+svg.lring[data-dir="down"] text[data-lvnum]{fill:var(--dir-down)}
+svg.lring[data-dir="flat"] text[data-lvnum]{fill:var(--dir-flat)}
 .lvlcard .lctxt{min-width:0}
 .lvlcard .lck{display:block;font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
 .lvlcard .lcw{display:block;font-size:13px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -790,6 +796,9 @@ html[data-motion="off"] .wkbars .wkb i{transition:none}
 .ls3.on b{color:var(--rag,var(--ink))}
 .ls3.on span{color:var(--rag,var(--faint));opacity:.85}
 .herorow .wbtn{flex:1}
+.lvdelta{margin-left:10px;font-size:13px;font-weight:700;letter-spacing:0;color:var(--dir-flat);white-space:nowrap}
+.lvdelta[data-dir="up"]{color:var(--dir-up)}
+.lvdelta[data-dir="down"]{color:var(--dir-down)}
 .lring{flex:0 0 104px}
 .lmeta .lt{font-size:15px;font-weight:800;letter-spacing:-.01em}
 .lmeta .ld{font-size:13px;color:var(--sub);line-height:1.5;margin-top:3px}
@@ -3812,7 +3821,7 @@ function renderToday(){
         var _title=_names.length?_names.join(", "):(_w.name||"Strength");
         var _n=(_w.order||[]).length;
         return '<div class="lbl">Today &middot; Strength</div><h2>'+esc(_title)+'</h2>'+
-          '<div class="meta"><b>'+_n+' movement'+(_n===1?'':'s')+'</b> &middot; <b>'+_w.rN+' round'+(_w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(_w.rN)+' min</div>';
+          '';
       })()+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
         '<button class="big-start" onclick="show(\'lift\')">'+I.dumbbell+' Open Strength</button>')+heroTailHTML()+'</div>';
@@ -5010,7 +5019,7 @@ function renderLift(){
   h+='<div class="hero">'+
     '<div class="chero"><div class="cheroL">'+levelRingHTML(LL,'lift')+'</div>'+
     '<div class="cheroR" data-tier="'+t.k+'">'+
-      '<div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
+      '<div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+t.w+'</span>'+levelDeltaHTML("lift")+'</div>'+
       '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
     '</div></div>'+
     (false?''
@@ -7487,7 +7496,7 @@ function heroRingAnim(root,arrive){
       if(raw!=null&&isFinite(parseFloat(raw)))prev=parseFloat(raw);}catch(e){}}
     _lvArc[key]=to;
     try{localStorage.setItem("train.lvarc."+key,String(to));}catch(e){}
-    if(arrive&&prev==null)prev=C_LRING;             /* first sight: fill from empty */
+    if(arrive)prev=(prev!=null&&Math.abs(prev-to)>=0.5)?prev:C_LRING;
     if(prev==null||(!arrive&&Math.abs(prev-to)<0.5))return;
     if(motionOff())return;                          /* already drawn at the truth */
     arc.classList.add("snap");
@@ -7781,7 +7790,6 @@ function bwHeroHTML(){
   var partial=(dnN>0||(w3&&wkProgress(w3).done>0))&&dnN<rxN;
   return '<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
     '<div class="lbl">Today &middot; Strength</div><h2>'+esc(nm)+'</h2>'+
-    '<div class="meta"><b>'+_n+' movement'+(_n===1?'':'s')+'</b> &middot; '+rxN+' round'+(rxN===1?'':'s')+' &middot; ~'+rxMins(rxN)+' min'+(easingIn()?' &middot; <b>ease-in week</b>':'')+'</div>'+
     (dnN>=rxN&&dnN>0?'<div class="done-pill">'+I.check+' '+dnN+' round'+(dnN===1?'':'s')+' in the book</div>':
       '<button class="big-start'+(partial?" hasfill":"")+'"'+(partial?(' style="--fill:'+(dnN/Math.max(rxN,1)).toFixed(3)+'"'):'')+
       ' onclick="show(\'lift\')">'+I.dumbbell+' '+(partial?("Resume &middot; "+dnN+" of "+rxN+" rounds"):"Strength &middot; "+rxN+" round"+(rxN===1?"":"s"))+'</button>')+
@@ -9283,6 +9291,15 @@ function levelDirOf(kind){
   }catch(e){return "flat";}
 }
 function dirGlyph(dir){return dir==="up"?"\u25B2":(dir==="down"?"\u25BC":"\u2013");}
+function levelDeltaHTML(kind){
+  var L=(kind==="lift")?liftLevel():cardioLevel();
+  var prev=levelPrevLv(kind); if(prev==null||!isFinite(prev))return "";
+  var d=(L.lvl+L.pips/10)-prev;
+  var dir=levelDirOf(kind);
+  if(Math.abs(d)<0.05)return '<span class="lvdelta" data-dir="flat">'+dirGlyph("flat")+' holding</span>';
+  return '<span class="lvdelta" data-dir="'+dir+'">'+dirGlyph(dir)+' '+
+    (d>0?"+":"\u2212")+Math.abs(d).toFixed(1)+' this week</span>';
+}
 function levelRingHTML(L,kind){
   var C=251.33,off=C*(1-L.pips/10);
   var _t=levelTier(L.lvl,kind);
@@ -9635,13 +9652,31 @@ function odoBodyHTML(){
 function pastItems(kind){
   var out=[];
   if(kind==="cardio"){
+    var seenC={};
     (S.sessions||[]).forEach(function(x){
-      if(!isRealRun(x))return;
-      var mi=x.distanceMi||0,sec=x.durationSec||0;
-      var pace=(mi>0&&sec>0)?Math.round(sec/mi):0;
-      out.push({date:x.date,head:mi.toFixed(2)+" mi",
-        sub:(pace?mmss(pace)+" /mi":"")+(sec?((pace?" \u00b7 ":"")+Math.round(sec/60)+" min"):""),
-        rec:x});
+      if(!x.date)return;
+      if(isRealRun(x)){
+        var mi=x.distanceMi||0,sec=x.durationSec||0;
+        var pace=(mi>0&&sec>0)?Math.round(sec/mi):0;
+        seenC[x.date]=true;
+        out.push({date:x.date,head:mi.toFixed(2)+" mi",
+          sub:"Run"+((pace?" \u00b7 "+mmss(pace)+" /mi":"")+(sec?(" \u00b7 "+Math.round(sec/60)+" min"):"")),
+          rec:x});
+      }else if(x.type==="activity"){
+        var mn=Math.round((x.durationSec||0)/60);
+        seenC[x.date]=true;
+        out.push({date:x.date,head:(mn?mn+" min":"logged"),
+          sub:esc(x.activity||"Activity"),rec:x});
+      }else if(x.type==="run"){
+        var sc=Math.round((x.durationSec||0)/60);
+        seenC[x.date]=true;
+        out.push({date:x.date,head:(sc?sc+" min":"logged"),sub:"Cardio · no distance",rec:x});
+      }
+    });
+    Object.keys(S.steps||{}).forEach(function(k){
+      if(seenC[k]||k>TODAY)return;
+      var v=stepsOn(k); if(v==null||!stepsHitOn(k))return;
+      out.push({date:k,head:tNum(v),sub:"Steps · goal met",rec:null});
     });
   }else{
     var seen={};
@@ -9677,7 +9712,7 @@ function pastItems(kind){
 function pastCardHTML(kind){
   var items=pastItems(kind);
   if(!items.length)return "";
-  var label=(kind==="cardio")?"Your runs":"Your strength";
+  var label=(kind==="cardio")?"Your cardio":"Your strength";
   var cut=dayFromKey(TODAY);cut.setDate(cut.getDate()-27);
   var cutK=keyOf(cut);
   var recent=items.filter(function(x){return x.date>=cutK;}).length;
@@ -9792,6 +9827,18 @@ function cardioDayOn(k){
   if((S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";}))return true;
   return stepsHitOn(k);
 }
+function cardioDoneWhat(k){
+  var run=null,act=null;
+  (S.sessions||[]).forEach(function(s){
+    if(s.date!==k)return;
+    if(isRealRun(s))run=s; else if(s.type==="activity")act=s;
+  });
+  if(run)return (run.distanceMi||0).toFixed(2)+" mi run logged";
+  if(act)return (esc(act.activity||"Activity"))+" logged"+
+    ((act.durationSec||0)>=60?(" \u00b7 "+Math.round(act.durationSec/60)+" min"):"");
+  var v=stepsOn(k);
+  return v!=null?(tNum(v)+" steps, goal met"):"Cardio done";
+}
 function cardioWeekCardsHTML(){
   return '<div class="wkrow">'+
     wkCardHTML({label:"Walks & runs",series:wkCounts(cardioDayOn,6),unit:"days",unit1:"day",
@@ -9826,9 +9873,10 @@ function renderCardio(){
     '<div class="tools">'+streakChipHTML("cardio")+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
   h+='<div class="hero"><div class="chero"><div class="cheroL">'+levelRingHTML(L,'cardio')+'</div>'+
-    '<div class="cheroR" data-tier="'+t.k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
+    '<div class="cheroR" data-tier="'+t.k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+t.w+'</span>'+levelDeltaHTML("cardio")+'</div>'+
     (LS.w?('<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'):"")+
     '</div></div>'+
+    (cardioDayOn(TODAY)?('<div class="done-pill">'+I.check+' '+esc(cardioDoneWhat(TODAY))+'</div>'):"")+
     '</div>'+
     cardioWeekCardsHTML();
   h+=pastCardHTML("cardio");
