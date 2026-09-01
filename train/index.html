@@ -4122,8 +4122,10 @@ function workedWeight(sets){
   });
   return best;
 }
+function fixedLoad(id){var e=(LIB[id]||{});return e.equip==="KB"||e.equip==="band";}
+function repLever(o){return !!(o.bw||!S.profile.adjustable||fixedLoad(o.exId));}
 function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.high,weight:o.weight};
-  var did=(o.bw||!S.profile.adjustable)?null:workedWeight(sets);
+  var did=repLever(o)?null:workedWeight(sets);
   var asked=parseFloat(o.weight)||0;
   var base=(did!=null)?did:asked;
   if(did!=null&&Math.abs(did-asked)>=0.5){t.fromLogged={did:did,asked:asked,date:TODAY};}
@@ -4131,13 +4133,13 @@ function applyProgression(o,sets){var t=S.progress[o.exId]||{low:o.low,high:o.hi
   var cs=coachState();
   if(cs.k==="red"||cs.k==="layoff"){
     t.low=o.low;t.high=o.high;
-    t.weight=(o.bw||!S.profile.adjustable)?o.weight:Math.max(0,base-inc());
-    t.ladderStep=(o.bw||!S.profile.adjustable)?"reps":"load";
+    t.weight=repLever(o)?o.weight:Math.max(0,base-inc());
+    t.ladderStep=repLever(o)?"reps":"load";
     S.progress[o.exId]=t;return;
   }
-  if(cs.k==="amber"){t.low=o.low;t.high=o.high;t.weight=(o.bw||!S.profile.adjustable)?o.weight:base;t.ladderStep="hold";S.progress[o.exId]=t;return;}
+  if(cs.k==="amber"){t.low=o.low;t.high=o.high;t.weight=repLever(o)?o.weight:base;t.ladderStep="hold";S.progress[o.exId]=t;return;}
   var allHigh=sets.length>0&&sets.every(function(s){return (s.reps||0)>=o.high;});
-  var repMode=(o.bw||!S.profile.adjustable);
+  var repMode=repLever(o);
   if(allHigh){
     if(repMode||freezeOn()){t.low=o.low;t.high=o.high;t.weight=o.weight;t.ladderStep="reps";}
     else{t.weight=base+inc();t.low=8;t.high=12;t.ladderStep="load";}
