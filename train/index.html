@@ -9723,22 +9723,19 @@ function cardioTickToggle(k){
 }
 function wkCounts(fn,weeks,amt){
   weeks=weeks||6;
-  var out=[],d=new Date(NOW);
-  for(var w=0;w<weeks;w++){
+  var out=[];
+  for(var back=weeks-1;back>=0;back--){
     var n=0,days=0,v=0,live=false;
-    for(var i=0;i<7;i++){
-      var k=keyOf(d);
-      if(k<=TODAY){
-        days++; if(fn(k))n++; v+=(amt?(amt(k)||0):(fn(k)?1:0));
-        if(!live){
-          if(stepsOn(k)!=null)live=true;
-          else if((S.weigh||[]).some(function(x){return x.date===k;}))live=true;
-          else if((S.sessions||[]).some(function(s){return s.date===k;}))live=true;
-        }
+    weekDays(back).forEach(function(k){
+      if(k>TODAY)return;                       /* the rest of this week has not happened yet */
+      days++; if(fn(k))n++; v+=(amt?(amt(k)||0):(fn(k)?1:0));
+      if(!live){
+        if(stepsOn(k)!=null)live=true;
+        else if((S.weigh||[]).some(function(x){return x.date===k;}))live=true;
+        else if((S.sessions||[]).some(function(s){return s.date===k;}))live=true;
       }
-      d.setDate(d.getDate()-1);
-    }
-    out.unshift({n:n,days:days,v:v,live:live});
+    });
+    out.push({n:n,days:days,v:v,live:live,start:weekStartKey(back)});
   }
   return out;
 }
@@ -9749,6 +9746,7 @@ function wkVerdict(series){
   if(!prior.length)return {k:"flat",w:"first week on record"};
   function amtOf(x){return (x.v!=null?x.v:x.n);}
   var avg=prior.reduce(function(a,x){return a+amtOf(x);},0)/prior.length;
+  if(cur.days<3)return {k:"flat",w:"early in the week"};
   var rate=cur.days>0?(amtOf(cur)/cur.days*7):0;
   if(avg<=0)return {k:"flat",w:"nothing to compare against yet"};
   var d=(rate-avg)/avg;
