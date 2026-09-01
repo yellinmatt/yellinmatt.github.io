@@ -4595,6 +4595,13 @@ function theRoutine(){
     if(!S.freezeUntil){var d=new Date(NOW);d.setDate(d.getDate()+FREEZE_DAYS);S.freezeUntil=keyOf(d);}
     save();
   }
+  if(!S.routine.holdFix){
+    (S.routine.order||[]).forEach(function(x){
+      var H=holdRange(x.exId);
+      if(H&&x.reps!=null&&x.reps<H.low)x.reps=H.low;
+    });
+    S.routine.holdFix=TODAY;save();
+  }
   return S.routine;
 }
 function routineOn(){return S.routineOn!==false;}
