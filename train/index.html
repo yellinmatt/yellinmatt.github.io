@@ -3420,7 +3420,7 @@ function show(v){
   if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
   if(v==="track")renderTrack();
-  try{ levelNumAnim(document.getElementById("v-"+v)); }catch(e){}
+  try{ var _hv=document.getElementById("v-"+v); levelNumAnim(_hv); heroRingAnim(_hv); }catch(e){}
   if(v==="library")renderLibrary();
   if(v==="deep")renderDeep();
   if(!full)CURV=v;
@@ -5007,7 +5007,7 @@ function renderLift(){
     '</div></div>'+
     '<div class="meta">'+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min</div>'+
     (false?''
-      :(reentryLapsedToday()?'<div class="tgs">Re-entry cleared. The full prescription is back.</div>':''))+
+      :'')+
     (doneN>=w.rN?'<div class="done-pill">'+I.check+' '+doneN+' round'+(doneN===1?'':'s')+' in the book</div>':'')+
     barLapsedLine()+
   '</div>';
@@ -5022,6 +5022,7 @@ function renderLift(){
   h+=pastCardHTML("lift");
   h+=movementHTML();
   document.getElementById("v-lift").innerHTML=h;
+  try{ var _hl=document.getElementById("v-lift"); levelNumAnim(_hl); heroRingAnim(_hl); }catch(e){}
   RND_ADV=null;
 }
 
@@ -7464,6 +7465,29 @@ function levelNumAnim(root){
     lvCount(el,from,to);
   });
 }
+var _lvArc={};
+function heroRingAnim(root){
+  var host=root||document;
+  [].slice.call(host.querySelectorAll("svg.lring")).forEach(function(sv){
+    var arc=sv.querySelector(".lprog"),txt=sv.querySelector("[data-lvnum]");
+    if(!arc||!txt)return;
+    var key=txt.getAttribute("data-lvnum")||"x";
+    var to=parseFloat(arc.getAttribute("stroke-dashoffset"));
+    if(!isFinite(to))return;
+    var prev=_lvArc[key];
+    if(prev==null){try{var raw=localStorage.getItem("train.lvarc."+key);
+      if(raw!=null&&isFinite(parseFloat(raw)))prev=parseFloat(raw);}catch(e){}}
+    _lvArc[key]=to;
+    try{localStorage.setItem("train.lvarc."+key,String(to));}catch(e){}
+    if(prev==null||Math.abs(prev-to)<0.5)return;   /* nothing moved: do not replay */
+    if(motionOff())return;                          /* already drawn at the truth */
+    arc.classList.add("snap");
+    arc.setAttribute("stroke-dashoffset",prev.toFixed(2));
+    void arc.getBoundingClientRect();               /* commit the start before releasing it */
+    arc.classList.remove("snap");
+    requestAnimationFrame(function(){arc.setAttribute("stroke-dashoffset",to.toFixed(2));});
+  });
+}
 function levelRingAnim(){
   document.querySelectorAll(".lvlcard").forEach(function(card){
     var arc=card.querySelector(".lcring .lcarc"),num=card.querySelector(".lcnum");
@@ -7810,32 +7834,6 @@ function anchorWeighRow(){
     '<span class="atxt"><span class="an">Weigh in</span>'+
     '<span class="ad">'+(on?(w.w+" "+wLbl()+" logged"):"first thing, before breakfast")+'</span></span>'+
     '</div>';
-}
-function cardioTickState(){
-  var ov=((S.cardioTick||{})[TODAY])||{};
-  var st=stepsOn(TODAY);
-  var yd=new Date(NOW);yd.setDate(yd.getDate()-1);var ydk=keyOf(yd);
-  var stY=stepsOn(ydk);
-  var tgt=stepTarget().t;
-  var ranToday=S.sessions.some(function(s){return s.date===TODAY&&s.type==="run"&&(s.distanceMi||0)>0;});
-  var miToday=0;S.sessions.forEach(function(s){if(s.date===TODAY&&s.type==="run")miToday+=(s.distanceMi||0);});
-  var ask=nextRunTarget?nextRunTarget():null;
-  var walkToday=null,walkSecs=0;
-  S.sessions.forEach(function(s){
-    if(s.date!==TODAY)return;
-    if(s.type!=="activity")return;
-    walkSecs+=(s.durationSec||0);
-    walkToday=s;
-  });
-  var walkMet=!!walkToday||(st!=null&&st>=tgt);
-  var walkTicked=!!(ov.walk||ov.steps);
-  return {
-    walk:{have:st!=null,val:st,yVal:stY,tgt:tgt,logged:!!walkToday,secs:walkSecs,
-          met:walkMet,by:(walkMet?"data":(walkTicked?"you":null)),
-          on:(walkMet||walkTicked)},
-    run:{ask:ask,mi:miToday,met:ranToday,by:(ranToday?"data":(ov.run?"you":null)),
-         on:(ranToday||!!ov.run)}
-  };
 }
 function stepsOn(k){var p=(S.pedo||{})[k];return p!=null?p:((S.steps||{})[k]);}
 function stepSrc(k){return ((S.pedo||{})[k]!=null)?"pedo":((((S.steps||{})[k])!=null)?"apple":null);}
@@ -9708,19 +9706,6 @@ function odoCardHTML(){
   return collapsible("Your cardio",'<span class="odosum">'+odoSummary()+'</span>',
     '<div class="odo2body odowrap">'+odoBodyHTML()+'</div>',false,I.gauge,kpiDir("miles"));
 }
-function cardioTickToggle(k){
-  var c=cardioTickState();
-  if(k==="steps")k="walk";
-  if((k==="walk"&&c.walk.met)||(k==="run"&&c.run.met)){
-    toast("The record already answered this one.",null);return;
-  }
-  var ov=S.cardioTick=S.cardioTick||{};var t=ov[TODAY]=ov[TODAY]||{};
-  t[k]=!t[k];
-  if(k==="walk"&&t.steps!=null)delete t.steps;
-  save();
-  var wrap=document.getElementById("ctickwrap");
-  if(wrap)wrap.outerHTML=cardioTicksHTML();else renderCardio();
-}
 function wkCounts(fn,weeks,amt){
   weeks=weeks||6;
   var out=[];
@@ -9783,8 +9768,6 @@ function stepsHitOn(k){
 }
 function strengthOn(k){
   if(puDayReps(k)>0)return true;
-  var a=S.anchor[k];
-  if(a){for(var x in a){if(a[x])return true;}}
   return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift";});
 }
 function cardioWeekCardsHTML(){
@@ -9792,7 +9775,7 @@ function cardioWeekCardsHTML(){
     wkCardHTML({label:"Runs",series:wkCounts(ranOn,6),unit:"runs",unit1:"run",
                 tap:"pastSheet('cardio')"})+
     wkCardHTML({label:"Step days",series:wkCounts(stepsHitOn,6,function(k){return stepsOn(k)||0;}),
-                unit:"at goal",tap:"levelSheet('cardio')"})+
+                unit:"at goal",tap:"pedoSheet()"})+
   '</div>';
 }
 function strengthWorkOn(k){
@@ -9813,47 +9796,6 @@ function strengthWeekCardHTML(){
                 unit:"days",unit1:"day",tap:"levelSheet('lift')"})+
   '</div>';
 }
-function cardioTicksHTML(){
-  var c=cardioTickState();
-  var st=c.walk,rn=c.run;
-  var _src=stepSrc(TODAY);
-  var stepAd=st.logged?(st.secs>=60?(Math.round(st.secs/60)+" min walk logged"):"walk logged")
-    :(st.have?(tNum(st.val)+" steps today")
-    :(st.yVal!=null?("yesterday "+tNum(st.yVal)+" steps"):"nothing recorded yet"));
-  var stepSrcTxt=(!st.logged&&st.have)?(_src==="pedo"?"from Pedometer":"from Apple Health"):"";
-  var runAd;
-  if(rn.met){
-    runAd=(rn.mi>0?rn.mi.toFixed(1)+" mi logged":"logged")+" &middot; from the watch";
-  }else{
-    var _last=null;
-    try{
-      (S.sessions||[]).forEach(function(s){
-        if(!s.date||s.date>=TODAY)return;
-        if(s.type!=="run"||!((s.distanceMi||0)>0))return;
-        if(!_last||s.date>_last)_last=s.date;
-      });
-    }catch(e){}
-    var _gap=_last?daysBetween(_last,TODAY):null;
-    runAd=(_gap==null)?"no runs on record yet"
-      :(_gap===0?"already today":(_gap===1?"last run yesterday":"last run "+_gap+" days ago"));
-  }
-  function row(k,label,ad,on,src){
-    return '<div class="arow'+(on?" checked":"")+'" role="button" tabindex="0" aria-pressed="'+on+'"'+
-      ' aria-label="'+esc(label)+', '+(on?"done":"not done")+(src?", "+esc(src):"")+'"'+
-      ' onclick="cardioTickToggle(\''+k+'\')">'+
-      '<span class="chk">'+I.check+'</span>'+
-      '<span class="atxt"><span class="an">'+esc(label)+'</span><span class="ad num">'+ad+'</span></span>'+
-      '</div>';
-  }
-  return '<div id="ctickwrap"><div class="lbl">Today</div><div class="ctick">'+
-    '<div class="arow'+(st.on?" checked":"")+'" role="button" tabindex="0" aria-pressed="'+st.on+'"'+
-      ' aria-label="Walk, '+(st.on?"done":"not done")+'" onclick="cardioTickToggle(\'walk\')">'+
-      '<span class="chk">'+I.check+'</span>'+
-      '<span class="atxt"><span class="an">Walk</span><span class="ad num">'+stepAd+(stepSrcTxt?" &middot; "+stepSrcTxt:"")+'</span></span>'+
-      '<button class="ahow" onclick="event.stopPropagation();pedoSheet()" aria-label="Enter Pedometer steps">'+I.edit+'</button>'+
-      '</div>'+
-    row("run","Run",runAd,rn.on)+'</div></div>';
-}
 function renderCardio(){
   refreshDate();
   var L=cardioLevel(),LS=levelStatus(L),t=levelTier(L.lvl,"cardio");
@@ -9866,10 +9808,10 @@ function renderCardio(){
     '</div></div>'+
     '<div class="chsplit"></div>'+
     cardioWeekCardsHTML()+
-    cardioTicksHTML()+
     '</div>';
   h+=pastCardHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
+  try{ var _hc=document.getElementById("v-cardio"); levelNumAnim(_hc); heroRingAnim(_hc); }catch(e){}
 }
 
 try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist();}catch(e){}
