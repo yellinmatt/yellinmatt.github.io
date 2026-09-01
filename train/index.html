@@ -739,6 +739,7 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .wkfoot.ok{color:var(--good)}
 .wksrc{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
   color:var(--sub);padding:2px 6px;border-radius:99px;background:var(--surface-2)}
+.wksrc.est{background:transparent;box-shadow:inset 0 0 0 1px var(--line-2)}
 .wkbars.hasrule{position:relative}
 .wkbars .wkrule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--line-2);
   pointer-events:none;z-index:1}
@@ -2487,7 +2488,7 @@ var ANCHOR_V14=["pogo","banddisloc","wgs","cossack","hip9090","needlethread","ca
 var ANCHOR_V14_FROM="2026-08-30";
 var ANCHOR_V19=["water","pogo","neckrot","banddisloc","cossack","wgs","needlethread","hip9090","catcow","pushups"];
 var ANCHOR_V19_FROM="2026-09-01";
-var STRETCH_FLOW=["pogo","banddisloc","cossack","wgs","needlethread","hip9090","catcow"];
+var STRETCH_FLOW=["pogo","neckrot","banddisloc","cossack","wgs","needlethread","hip9090","catcow"];
 var ANCHOR_V20=["water","stretch","pushups"];
 var ANCHOR_V20_FROM="2026-09-01";
 
@@ -9894,11 +9895,30 @@ function milesWeekCardHTML(){
     foot:(goal>0?(hit?("clear of "+goal.toFixed(1)+" mi this week"):(wk.toFixed(1)+" of "+goal.toFixed(1)+" mi this week")):"no weekly target set"),
     footOk:hit});
 }
+function stepRatio(){
+  var d=dayFromKey(TODAY),n=0,t=0;
+  for(var i=0;i<45&&n<14;i++){
+    var k=keyOf(d);d.setDate(d.getDate()-1);
+    var rec=stepsOn(k),v=(S.vitals||{})[k];
+    if(rec==null||!v||!v.walkRunMi||!v.stepLen)continue;
+    var imp=v.walkRunMi*63360/v.stepLen;
+    if(imp<=0)continue;
+    t+=rec/imp;n++;
+  }
+  return n>=4?(t/n):0.86;
+}
+function stepsEst(k){
+  var v=(S.vitals||{})[k];
+  if(!v||!v.walkRunMi||!v.stepLen)return null;
+  var n=Math.round(v.walkRunMi*63360/v.stepLen*stepRatio());
+  return (n>0&&n<60000)?n:null;
+}
 function stepsDayCardHTML(){
-  var d=dayFromKey(TODAY),latest=null,latestV=null;
+  var d=dayFromKey(TODAY),latest=null,latestV=null,est=false;
   for(var i=0;i<10&&latest===null;i++){
     var k=keyOf(d),v=stepsOn(k);
     if(v!=null&&v>0){latest=k;latestV=v;}
+    else{var e=stepsEst(k);if(e!=null){latest=k;latestV=e;est=true;}}
     d.setDate(d.getDate()-1);
   }
   var st=stepTarget(),goal=st?st.t:0;
@@ -9910,7 +9930,7 @@ function stepsDayCardHTML(){
   }
   var days=[],dd=dayFromKey(latest);dd.setDate(dd.getDate()-6);
   for(var j=0;j<7;j++){var kk=keyOf(dd);days.push({k:kk,v:stepsOn(kk)});dd.setDate(dd.getDate()+1);}
-  var dir=(goal>0&&latestV>=goal)?"up":"flat";
+  var dir=(!est&&goal>0&&latestV>=goal)?"up":"flat";
   var peak=days.reduce(function(a,x){return Math.max(a,x.v||0);},0);
   var max=Math.max((goal||0)*1.06,peak,1);
   var bars=days.map(function(x,ix){
@@ -9919,17 +9939,23 @@ function stepsDayCardHTML(){
       ' data-r="'+esc(shortDay(x.k)+": "+(x.v!=null?tNum(x.v)+" steps":"no export"))+'"><i></i></span>';
   }).join("");
   var rule=(goal>0&&goal<=max)?('<i class="wkrule" style="bottom:'+((goal/max)*100).toFixed(1)+'%"></i>'):"";
-  var hit=(goal>0&&latestV>=goal);
+  var hit=(!est&&goal>0&&latestV>=goal);
   var when=(latest===TODAY)?"today":shortDay(latest);
-  var foot=goal>0
-    ? (hit?("clear of "+tNum(goal)+" \u00b7 "+when)
-          :(tNum(goal-latestV)+" short of "+tNum(goal)+" \u00b7 "+when))
-    : when;
+  var foot;
+  if(est){
+    foot="no count from Health \u00b7 rebuilt from your "+((S.vitals||{})[latest].walkRunMi).toFixed(2)+" mi \u00b7 tap to log the real one";
+  }else{
+    foot=goal>0
+      ? (hit?("clear of "+tNum(goal)+" \u00b7 "+when)
+            :(tNum(goal-latestV)+" short of "+tNum(goal)+" \u00b7 "+when))
+      : when;
+  }
   var manual=((S.pedo||{})[latest]!=null);
+  var srcWord=est?"est":(manual?"pedometer":"health");
   return '<button class="wkcard" data-tone="'+dir+'" onclick="pedoSheet()"'+
-    ' aria-label="Steps, '+esc(tNum(latestV)+" on "+when+", "+(hit?"goal met":"under the "+tNum(goal)+" goal")+", from "+(manual?"your manual entry":"Apple Health"))+'">'+
+    ' aria-label="Steps, '+esc(tNum(latestV)+" on "+when+", "+(hit?"goal met":"under the "+tNum(goal)+" goal")+", from "+(est?"an estimate from your distance and stride":(manual?"your manual entry":"Apple Health")))+'">'+
     '<span class="wkhead"><span class="wklab">Steps</span>'+
-      '<span class="wksrc">'+(manual?"pedometer":"health")+'</span></span>'+
+      '<span class="wksrc'+(est?" est":"")+'">'+srcWord+'</span></span>'+
     '<span class="wkbig num">'+tNum(latestV)+'<i class="wku">steps</i></span>'+
     '<span class="wkbars hasrule">'+rule+bars+'</span>'+
     '<span class="wkfoot'+(hit?" ok":"")+'">'+esc(foot)+'</span>'+
