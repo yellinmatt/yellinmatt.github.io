@@ -27,7 +27,7 @@
   --line:#E7E9ED; --line-2:#D8DCE2;
   --accent:#FF4E2B; --accent-press:#E63E1E; --accent-tint:#FFE9E3;
   --good:#12A150; --good-tint:#E4F6EC; --amber:#B7791F; --amber-tint:#FBF1DD;
-  --dir-up:#0E7C3F; --dir-down:#C2410C; --dir-flat:#5C636E;
+  --dir-up:#0E7C3F; --dir-down:#C62828; --dir-flat:#B26A00;
   --nav-bg:rgba(245,246,248,.86); --restbar-bg:#14181E; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(16,17,22,.42);
   --shadow:0 1px 2px rgba(16,17,22,.04), 0 3px 12px rgba(16,17,22,.06);
   --shadow-lg:0 12px 44px rgba(16,17,22,.18);
@@ -41,8 +41,8 @@
     --line:#242A32; --line-2:#30363F;
     --accent:#FF5C3A; --accent-press:#FF7053; --accent-tint:#3A1E17;
     --good:#34D399; --good-tint:#12271E; --amber:#F0C36B; --amber-tint:#2A2213;
-  --dir-up:#3DDC97; --dir-down:#FF8A7A; --dir-flat:#A8B0BC;
-    --dir-up:#3DDC97; --dir-down:#FF8A7A; --dir-flat:#A8B0BC;
+  --dir-up:#3DDC97; --dir-down:#FF6B6B; --dir-flat:#FFB020;
+    --dir-up:#3DDC97; --dir-down:#FF6B6B; --dir-flat:#FFB020;
     --nav-bg:rgba(11,13,17,.86); --restbar-bg:#1E242C; --restbar-ink:#FFFFFF; --on-good:#FFFFFF; --scrim:rgba(0,0,0,.6);
     --shadow:0 1px 2px rgba(0,0,0,.5), 0 8px 24px rgba(0,0,0,.45);
     --shadow-lg:0 16px 52px rgba(0,0,0,.6);
@@ -3420,7 +3420,11 @@ function show(v){
   if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
   if(v==="track")renderTrack();
-  try{ var _hv=document.getElementById("v-"+v); levelNumAnim(_hv); heroRingAnim(_hv); }catch(e){}
+  if(v!==CURV){
+    _ringPlayed={};
+    try{ levelRingAnim(); }catch(e){}
+  }
+  try{ var _hv=document.getElementById("v-"+v); levelNumAnim(_hv); heroRingAnim(_hv,true); }catch(e){}
   if(v==="library")renderLibrary();
   if(v==="deep")renderDeep();
   if(!full)CURV=v;
@@ -3860,16 +3864,20 @@ function renderToday(){
         '<i class="dpip dmk'+(mk.cardio?" on":"")+'">C</i>'+
       '</span>'+
       '</button>';}
+  var _wkMoved=0,_wkElapsed=0;
+  weekDays(0).forEach(function(_k){
+    if(_k>TODAY)return;
+    _wkElapsed++;
+    if(movedOn(_k))_wkMoved++;
+  });
   var combined=1;
   try{
-    var _cl=cardioLevel().lvl,_sl=1;
-    try{_sl=liftLevel().lvl;}catch(e2){}
-    combined=Math.max(1,Math.round((_cl+_sl)/2));
+    combined=null;
   }catch(e){}
   document.getElementById("v-today").innerHTML=h+hero+levelTrioHTML()+
     '<div class="dots-card">'+
       '<h3 class="wkh"><span class="wki">'+I.gauge+'</span><span class="wkt">Your week</span>'+
-      '<span class="wkchip">Level '+combined+'</span></h3>'+
+      '<span class="wkchip">'+_wkMoved+' of '+_wkElapsed+'</span></h3>'+
       '<div class="dots">'+dots+'</div>'+
       '<div class="dkey"><span><i class="dmk on">M</i> morning</span><span><i class="dmk on">S</i> strength</span><span><i class="dmk on">C</i> cardio</span></div>'+
       todayLogHTML()+'</div>'+
@@ -5005,7 +5013,6 @@ function renderLift(){
       '<div class="lvlk">Level '+LL.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
       '<div class="lvlw" data-k="'+LLS.k+'">'+esc(LLS.w)+'</div>'+
     '</div></div>'+
-    '<div class="meta">'+esc(w.name)+' &middot; <b>'+w.rN+' round'+(w.rN===1?'':'s')+'</b> &middot; ~'+rxMins(w.rN)+' min</div>'+
     (false?''
       :'')+
     (doneN>=w.rN?'<div class="done-pill">'+I.check+' '+doneN+' round'+(doneN===1?'':'s')+' in the book</div>':'')+
@@ -7466,7 +7473,8 @@ function levelNumAnim(root){
   });
 }
 var _lvArc={};
-function heroRingAnim(root){
+var C_LRING=251.33;
+function heroRingAnim(root,arrive){
   var host=root||document;
   [].slice.call(host.querySelectorAll("svg.lring")).forEach(function(sv){
     var arc=sv.querySelector(".lprog"),txt=sv.querySelector("[data-lvnum]");
@@ -7479,7 +7487,8 @@ function heroRingAnim(root){
       if(raw!=null&&isFinite(parseFloat(raw)))prev=parseFloat(raw);}catch(e){}}
     _lvArc[key]=to;
     try{localStorage.setItem("train.lvarc."+key,String(to));}catch(e){}
-    if(prev==null||Math.abs(prev-to)<0.5)return;   /* nothing moved: do not replay */
+    if(arrive&&prev==null)prev=C_LRING;             /* first sight: fill from empty */
+    if(prev==null||(!arrive&&Math.abs(prev-to)<0.5))return;
     if(motionOff())return;                          /* already drawn at the truth */
     arc.classList.add("snap");
     arc.setAttribute("stroke-dashoffset",prev.toFixed(2));
@@ -9750,11 +9759,13 @@ function wkCardHTML(o){
       ' data-r="'+esc((last?"this week":(series.length-1-i)+" weeks ago")+": "+x.n+" "+o.unit)+'">'+
       '<i></i></span>';
   });
+  var _big=(o.big==="v")?(cur.v!=null?cur.v:cur.n):cur.n;
+  var _bigTxt=(o.big==="v")?tNum(Math.round(_big)):String(_big);
   return '<button class="wkcard" data-tone="'+v.k+'" onclick="'+(o.tap||"")+'"'+
-    ' aria-label="'+esc(o.label+", "+cur.n+" "+o.unit+" this week, "+v.w)+'">'+
+    ' aria-label="'+esc(o.label+", "+_bigTxt+" "+o.unit+" this week, "+v.w)+'">'+
     '<span class="wkhead"><span class="wklab">'+esc(o.label)+'</span>'+
       '<span class="wkdir" aria-hidden="true">'+dirGlyph(v.k)+'</span></span>'+
-    '<span class="wkbig num">'+cur.n+'<i class="wku">'+esc(cur.n===1&&o.unit1?o.unit1:o.unit)+'</i></span>'+
+    '<span class="wkbig num">'+_bigTxt+'<i class="wku">'+esc(_big===1&&o.unit1?o.unit1:o.unit)+'</i></span>'+
     '<span class="wkbars">'+bars+'</span>'+
   '</button>';
 }
@@ -9770,12 +9781,24 @@ function strengthOn(k){
   if(puDayReps(k)>0)return true;
   return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift";});
 }
+function movedOn(k){
+  if(strengthOn(k)||ranOn(k)||stepsHitOn(k))return true;
+  var a=(S.anchor||{})[k];
+  if(a){for(var x in a){if(a[x])return true;}}
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";});
+}
+function cardioDayOn(k){
+  if(ranOn(k))return true;
+  if((S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";}))return true;
+  return stepsHitOn(k);
+}
 function cardioWeekCardsHTML(){
   return '<div class="wkrow">'+
-    wkCardHTML({label:"Runs",series:wkCounts(ranOn,6),unit:"runs",unit1:"run",
+    wkCardHTML({label:"Walks & runs",series:wkCounts(cardioDayOn,6),unit:"days",unit1:"day",
                 tap:"pastSheet('cardio')"})+
-    wkCardHTML({label:"Step days",series:wkCounts(stepsHitOn,6,function(k){return stepsOn(k)||0;}),
-                unit:"at goal",tap:"pedoSheet()"})+
+    wkCardHTML({label:"Steps",series:wkCounts(function(k){return (stepsOn(k)||0)>0;},6,
+                function(k){return stepsOn(k)||0;}),
+                unit:"steps",big:"v",tap:"pedoSheet()"})+
   '</div>';
 }
 function strengthWorkOn(k){
@@ -9806,9 +9829,8 @@ function renderCardio(){
     '<div class="cheroR" data-tier="'+t.k+'"><div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
     (LS.w?('<div class="lvlw" data-k="'+LS.k+'">'+esc(LS.w)+'</div>'):"")+
     '</div></div>'+
-    '<div class="chsplit"></div>'+
-    cardioWeekCardsHTML()+
-    '</div>';
+    '</div>'+
+    cardioWeekCardsHTML();
   h+=pastCardHTML("cardio");
   document.getElementById("v-cardio").innerHTML=h;
   try{ var _hc=document.getElementById("v-cardio"); levelNumAnim(_hc); heroRingAnim(_hc); }catch(e){}
