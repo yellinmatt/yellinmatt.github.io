@@ -83,14 +83,7 @@ html[data-motion="off"] *{animation:none!important;transition:none!important}
   @keyframes tRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   .view.on{animation:vIn .3s cubic-bezier(.22,1,.36,1) both}
   @keyframes vIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-  .dots .dot.done{animation:dStamp .5s cubic-bezier(.34,1.5,.5,1) both}
-  .dots .dot:nth-child(1){animation-delay:.18s}.dots .dot:nth-child(2){animation-delay:.22s}
-  .dots .dot:nth-child(3){animation-delay:.26s}.dots .dot:nth-child(4){animation-delay:.3s}
-  .dots .dot:nth-child(5){animation-delay:.34s}.dots .dot:nth-child(6){animation-delay:.38s}
-  .dots .dot:nth-child(7){animation-delay:.42s}
-  @keyframes dStamp{0%{opacity:0;transform:scale(.55)}62%{transform:scale(1.13)}100%{opacity:1;transform:none}}
-  .dots .dot.today{animation:dRing .55s .4s cubic-bezier(.22,1,.36,1) both}
-  @keyframes dRing{from{box-shadow:0 0 0 0 transparent}to{box-shadow:none}}
+
   .pcbar i{animation:barFill .75s .3s cubic-bezier(.22,1,.36,1) both;transform-origin:left center}
   @keyframes barFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
   .pcol{animation:tRise .44s cubic-bezier(.22,1,.36,1) both}
@@ -227,26 +220,31 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .miniring svg{transform:rotate(-90deg)}
 
 .dots-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:15px 12px;margin-bottom:12px}
-.dots{display:flex;justify-content:space-between}
-.dkey{display:flex;justify-content:center;gap:14px;margin-top:11px;padding-top:10px;
-  border-top:1px solid var(--line);font-size:11px;color:var(--sub)}
-.dkey span{display:flex;align-items:center;gap:5px}
-.dkey i.dmk{display:inline-block;width:13px;height:13px;border-radius:4px;font-style:normal;
-  font-size:8.5px;font-weight:800;line-height:13px;text-align:center;color:var(--white);background:var(--accent)}
-.dot{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1}
-.dot .dw{font-size:13px;font-weight:700;color:var(--faint)}
-.dot .di{width:30px;height:30px;border-radius:50%;background:var(--surface-2);color:var(--faint);display:flex;align-items:center;justify-content:center}
-.dot .di svg{width:15px;height:15px}
-.dot.done .di{background:var(--accent);color:var(--white)}
-.dot.today .di{background:var(--surface);border:2px solid var(--accent);color:var(--accent)}
-.dot.today.done .di{background:var(--accent);border-color:var(--accent);color:var(--white)}
-.dot.today .dw{color:var(--accent)}
-.dot.rest .di{background:transparent;border:1px dashed var(--line-2)}
-.dot.ahead .di{opacity:.72}  /* a DOT, not words: opacity is fine here and states.py allows it */
-.dot.missed .di{opacity:1;background:none;box-shadow:inset 0 0 0 1.5px var(--line);color:var(--line-2)}
-.dot{position:relative}
-.dot::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:44px;height:44px;border-radius:50%}
+.flist{display:flex;flex-direction:column;gap:2px;margin-top:12px}
+.flrow{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)}
+.flrow:last-child{border-bottom:0}
+.fln{flex:0 0 20px;font-size:12px;font-weight:800;color:var(--faint);line-height:19px;text-align:center}
+.fltx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.flnm{font-size:15px;font-weight:700;color:var(--ink)}
+.fld{font-size:12px;font-weight:600;color:var(--sub)}
+.flc{font-size:12px;color:var(--faint);line-height:1.35;margin-top:2px}
+.wgrid{display:flex;flex-direction:column;gap:5px}
+.wgrow{display:grid;grid-template-columns:66px repeat(7,1fr) 18px;align-items:center;
+  column-gap:4px}
+.wgl{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--sub);white-space:nowrap}
+.wgn{font-size:12px;font-weight:800;color:var(--sub);text-align:right;letter-spacing:-.01em}
+.wghead{margin-bottom:2px}
+.wgd{font-size:12px;font-weight:700;color:var(--sub);background:none;border:0;padding:0;
+  text-align:center;position:relative;font-family:inherit}
+.wgd.today{color:var(--accent)}
+.wgd.ahead{color:var(--line-2)}
+.wgd::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:100%;height:44px}
+.wgm{display:block;height:9px;border-radius:3px;background:transparent;
+  box-shadow:inset 0 0 0 1.25px var(--line)}
+.wgm.on{background:var(--accent);box-shadow:none}
+.wgm.ahead{box-shadow:none;border:1px dashed var(--line-2);height:7px;border-radius:2px}
 
 .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:12px}
 .card h3,.trend h3{font-size:13px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint);display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -555,9 +553,8 @@ details[open]>summary .chev{transform:rotate(180deg)}
   details:not([open])>summary .chev{animation:nudge 2.4s ease-in-out 3}
 
 @keyframes nudge{0%,88%,100%{transform:translateY(0)}92%{transform:translateY(2px)}96%{transform:translateY(0)}}
-.dot.ahead .dl{color:var(--faint)}
-.dot .dl{font-size:13px;font-weight:700;color:var(--faint);letter-spacing:.01em;white-space:nowrap}
-.dot.today .dl{color:var(--accent)}
+
+
 .hcard[data-sm="1"] .hcol i{width:15px;height:15px;border-radius:4px}
 .hcard[data-sm="1"] .hgrid{gap:5px}
 .hcard[data-sm="1"] .hcol{gap:5px}
@@ -739,6 +736,12 @@ circle[data-r]:hover,circle[data-r]:focus{r:4}
 .wkcard[data-tone="up"] .wkb.cur i{background:var(--dir-up)}
 .wkcard[data-tone="down"] .wkb.cur i{background:var(--dir-down)}
 .wkfoot{font-size:12px;color:var(--faint);line-height:1.3}
+.wkfoot.ok{color:var(--good)}
+.wksrc{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--sub);padding:2px 6px;border-radius:99px;background:var(--surface-2)}
+.wkbars.hasrule{position:relative}
+.wkbars .wkrule{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--line-2);
+  pointer-events:none;z-index:1}
 @media (prefers-reduced-motion:reduce){.wkbars .wkb i{transition:none}}
 html[data-motion="off"] .wkbars .wkb i{transition:none}
 .lbk .lbdone{display:inline-flex;align-items:center;margin-left:5px;vertical-align:-1px}
@@ -1180,7 +1183,6 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .vdiag .vdn{font-size:13px;color:var(--faint);margin-top:5px}
 .vdiag iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
 
-.dot{position:relative}
 
 .vdst{font-size:13px;font-weight:800;letter-spacing:.03em;padding:2px 6px;border-radius:5px;background:var(--surface-2);color:var(--faint);margin-left:6px}
 .vdst.good{background:var(--good-tint);color:var(--good)}
@@ -1249,6 +1251,10 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .libtile .ltc.gd{color:var(--good)}
 
 .lstat3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.lstat4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+.lstat4 .ls3{padding:10px 8px}
+.lstat4 .ls3 b{font-size:17px;letter-spacing:-.02em}
+.lstat4 .ls3 span{font-size:12px}
 .ls3{background:var(--surface-2);border-radius:11px;padding:11px 12px}
 .ls3 b{display:block;font-size:20px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
 .ls3 span{display:block;font-size:13px;font-weight:600;color:var(--faint);margin-top:2px}
@@ -1366,17 +1372,6 @@ html[data-theme="light"]{--seg-chip:#FFFFFF}
 .wkt{flex:1 1 0;min-width:0}
 .wkchip{flex:0 0 auto;padding:4px 9px;border-radius:99px;background:var(--surface-2);
   font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--sub)}
-.dpips{display:flex;align-items:center;justify-content:center;gap:2px;margin-top:7px}
-.dpips i.dmk{width:11px;height:11px;border-radius:3px;font-style:normal;font-size:8px;
-  font-weight:800;line-height:11px;text-align:center;letter-spacing:0;
-  color:var(--line-2);background:transparent;box-shadow:inset 0 0 0 1.25px var(--line);}
-.dpips i.dmk.on{color:var(--white);background:var(--accent);box-shadow:none}
-.dot.today .dpips i.dmk{box-shadow:inset 0 0 0 1.25px var(--line-2)}
-.dpips i,.dpips .dan{display:block;width:8px;height:4px;border-radius:0;
-  background:transparent;box-shadow:inset 0 0 0 1px var(--line-2)}
-.dpips i:first-child{border-radius:2px 0 0 2px}
-.dpips i:last-child{border-radius:0 2px 2px 0}
-.dpips i.on,.dpips .dan.on{background:var(--sub);box-shadow:none}
 .rnd{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-card);
   box-shadow:var(--shadow);margin-bottom:8px}
 .rnd>summary{list-style:none;cursor:pointer;display:flex;align-items:center;
@@ -2490,6 +2485,11 @@ var ANCHOR_STANDING=["wallangels","glutebridge","deadbug","anklerocks"];
 var ANCHOR_STANDING_FROM="2026-08-23";
 var ANCHOR_V14=["pogo","banddisloc","wgs","cossack","hip9090","needlethread","catcow","pushups"];
 var ANCHOR_V14_FROM="2026-08-30";
+var ANCHOR_V19=["water","pogo","neckrot","banddisloc","cossack","wgs","needlethread","hip9090","catcow","pushups"];
+var ANCHOR_V19_FROM="2026-09-01";
+var STRETCH_FLOW=["pogo","banddisloc","cossack","wgs","needlethread","hip9090","catcow"];
+var ANCHOR_V20=["water","stretch","pushups"];
+var ANCHOR_V20_FROM="2026-09-01";
 
 var PU_TEST_DAYS=28, PU_MIN=5, PU_CEIL=24, PU_WEEK_GROWTH=1.10;
 var PU_EARLY_DAY_MULT=2.0, PU_DAY_MULT=2.5;
@@ -2619,14 +2619,20 @@ var ANCHOR_ROT=[
    h:["Stand tall, rise all the way onto the toes.","Pause at the top, lower slowly.","Fingertips on a wall for balance is fine."]},
   {n:"Pogo jumps",s:"pogo",d:"x20",q:"pogo jumps drill proper form",r:["knee"],
    h:["Stay tall, knees almost straight, bounce off the balls of the feet.","Short and springy. The floor should barely know you are there.","Ankles do the work, not the knees."]},
-  {n:"Band shoulder dislocations",s:"banddisloc",d:"x10",q:"band shoulder dislocates proper form",r:["shoulder"],
-   h:["Wide grip on the band, arms straight the whole way.","Take it overhead and behind, then back. Widen the grip if it pinches.","Straight arms are the drill. Bent elbows are cheating the range."]},
+  {n:"Shoulder pass-through",s:"banddisloc",d:"x10, band, towel or no hands",q:"band shoulder dislocates proper form",r:["shoulder"],
+   h:["Band, towel or broomstick held wide, arms straight the whole way. Empty hands work too.","Take it overhead and behind, then back. Widen the grip if it pinches.","Straight arms are the drill. Bent elbows are cheating the range."]},
   {n:"Cossack squats",s:"cossack",d:"x6/side, pause 3s",q:"cossack squat proper form",r:["knee","hip"],
    h:["Wide stance, sit down over one leg, the other stays straight.","Toe of the straight leg can turn up. Heel of the bent leg stays down.","Hold something in front for balance until it is easy."]},
   {n:"Thread the needle",s:"needlethread",d:"x6/side, reach and hold 3s",q:"thread the needle thoracic rotation",r:["shoulder"],
    h:["Hands and knees, slide one arm under the other and let the shoulder reach the floor.","Then reach the same arm up and open the chest to the ceiling.","Turn from the mid-back. The hips stay square."]},
   {n:"Push-ups",s:"pushups",d:"ladder",q:"push up proper form",r:["shoulder"],
    h:["Hands slightly wider than the shoulders, elbows tucked to about 45 degrees, never flared out.","Straight line head to ankles the whole set. Hips dropping ends the set.","Down to at least upper arms parallel, full lockout at the top. Two seconds down, one up."]},
+  {n:"Stretch",s:"stretch",d:"the flow",sheet:"stretchSheet",q:"morning mobility flow",
+   h:["Seven movements, head to toe, in one order so you never have to choose the next one.","Tap the row to see them. Once you know it, stop tapping and just do it."]},
+  {n:"Drink water",s:"water",d:"1 glass",nohow:true,
+   h:["A full glass before anything else.","It is the cheapest item on this list and the one you will skip first."]},
+  {n:"Neck counter-rotation",s:"neckrot",d:"x5/side, pause 3s",q:"cervical thoracic counter rotation stretch neck",r:["neck","shoulder"],
+   h:["Hands over the opposite elbows so the forearms make a box out in front of the chest.","Take the whole box round to one side, and turn your head far the other way.","Turn until you FEEL it, never until it stops. Pause three seconds, then swap.","If it sparks a headache, stop and tell the app the neck is sore."]},
   {n:"Plank",s:"plank10",d:"10s holds",q:"forearm plank proper form",
    h:["Forearms down, straight line head to heels, ribs down and glutes squeezed.","Ten seconds of real tension beats a minute of sagging.","The moment the hips drop, the set is over."]}
 ];
@@ -2640,8 +2646,8 @@ function anchorBySlug(s){var a=anchorAll();for(var i=0;i<a.length;i++)if(a[i].s=
 function anchorSlugs(k){return anchorList(k).map(function(m){return m.s;});}
 function anchorList(k){
   k=k||TODAY;
-  if(k>=ANCHOR_V14_FROM){
-    var v14=ANCHOR_V14.slice();
+  if(k>=ANCHOR_V20_FROM||k>=ANCHOR_V19_FROM||k>=ANCHOR_V14_FROM){
+    var v14=(k>=ANCHOR_V20_FROM?ANCHOR_V20:(k>=ANCHOR_V19_FROM?ANCHOR_V19:ANCHOR_V14)).slice();
     if(plankGateOpen())v14.push("plank10");
     var act14=(k===TODAY)?soreActive():[];
     var lst=v14.map(anchorBySlug).filter(Boolean);
@@ -2687,7 +2693,7 @@ function anchorList(k){
 }
 function anchorSwapped(){
   var act=soreActive();if(!act.length)return null;
-  var st=(TODAY>=ANCHOR_V14_FROM?ANCHOR_V14:ANCHOR_STANDING).map(anchorBySlug).filter(Boolean);
+  var st=(TODAY>=ANCHOR_V20_FROM?ANCHOR_V20:(TODAY>=ANCHOR_V19_FROM?ANCHOR_V19:(TODAY>=ANCHOR_V14_FROM?ANCHOR_V14:ANCHOR_STANDING))).map(anchorBySlug).filter(Boolean);
   for(var i=0;i<st.length;i++)if(!anchorSafe(st[i],act))return act;
   return null;
 }
@@ -2805,14 +2811,6 @@ function sessionDayIndex(){
   S.sessions.forEach(function(s){SDIX[s.date]=true;});
   for(var r in (S.runs||{}))if(S.runs[r])SDIX[r]=true;
   return SDIX;
-}
-function dayStatus(k){
-  var pl=planFor(k)||{type:"none"};
-  var didLift=S.sessions.some(function(x){return x.date===k&&x.type==="lift";});
-  var didRun=S.sessions.some(function(x){return x.date===k&&(x.type==="run"||x.distanceMi);});
-  var moved=isDone(k);
-  var metPlan=(pl.type==="lift")?didLift:(pl.type==="run")?didRun:moved;
-  return {plan:pl,moved:moved,didLift:didLift,didRun:didRun,metPlan:metPlan,partial:(moved&&!metPlan)};
 }
 function didAnything(k){
   if(S.done[k])return true;
@@ -3349,12 +3347,13 @@ function weightCardHTML(){
       if(cv&&cv.r&&isFinite(cv.r.lbPerWk)){
         var lb=cv.r.lbPerWk;
         rateTxt=(Math.abs(lb)<0.1)?"level":((lb>0?"&minus;":"+")+Math.abs(lb).toFixed(1));
-        band=(cv.state==="good")?"on band":(cv.state==="fast")?"above band":(cv.state==="slow")?"under band":"holding";
-        tn=(cv.state==="fast")?"amber":(cv.state==="good")?"good":"flat";
+        band=(cv.state==="good")?"on band":(cv.state==="fast")?"above band":(cv.state==="slow")?"under band"
+             :(cv.state==="up")?"climbing":"holding";
+        tn=(cv.state==="up")?"amber":(cv.state==="fast")?"amber":(cv.state==="good")?"good":"flat";
       }
       return '<div class="wstrip" data-tone="'+tn+'">'+
         '<div class="wsc"><div class="wsv num">'+rateTxt+'<i>'+wLbl()+'/wk</i></div><div class="wsk">'+esc(band||title.toLowerCase())+'</div></div>'+
-        '<div class="wsc"><div class="wsv num">'+st.trend.toFixed(1)+'<i>'+wLbl()+'</i></div><div class="wsk">7-day mean</div></div>'+
+        '<div class="wsc"><div class="wsv num">'+st.trend.toFixed(1)+'<i>'+wLbl()+'</i></div><div class="wsk">trend</div></div>'+
         '<div class="wsc"><div class="wsv num">'+(st.to>0.3?st.to.toFixed(1):"0")+'<i>'+wLbl()+'</i></div><div class="wsk">to '+st.goal+'</div></div>'+
       '</div>';
     })()+
@@ -3367,7 +3366,7 @@ function weightCardHTML(){
       }).join("")+'</div>'+
     weightWindowRowHTML()+
     '<div class="foot" style="margin-top:8px">'+st.n.toLocaleString()+' weigh-in'+(st.n===1?'':'s')+' on file, back to '+
-      monthYear(S.weigh[0].date)+'. The rate reads the smoothed average, never two raw readings.</div>'+
+      monthYear(S.weigh[0].date)+'. The rate is a fit over your raw readings, never two of them.</div>'+
     '</div>';
 }
 function monthYear(k){
@@ -3382,13 +3381,19 @@ function weightAvgOver(days){
   return n?{avg:t/n,n:n}:null;
 }
 function weightWindowRowHTML(){
-  var a=weightAvgOver(7),b=weightAvgOver(28),c=weightAvgOver(90);
-  if(!a&&!b&&!c)return "";
+  var a=weightAvgOver(3),b=weightAvgOver(7),c=weightAvgOver(21),d=weightAvgOver(90);
+  if(!a&&!b&&!c&&!d)return "";
   var cell=function(x,lbl,on){
     return '<div class="ls3'+(on?" on":"")+'"><b class="num">'+(x?x.avg.toFixed(1):"&mdash;")+'</b>'+
       '<span>'+lbl+(x?(" &middot; "+x.n):"")+'</span></div>';};
+  var line="";
+  if(a&&d&&Math.abs(d.avg-a.avg)>=0.1){
+    var g=d.avg-a.avg;
+    line="Last 3 days sit <b>"+Math.abs(g).toFixed(1)+" "+wLbl()+"</b> "+(g>0?"under":"over")+" the 90-day average.";
+  }
   return '<div class="odoct" style="margin-top:12px">Average weight by window</div>'+
-    '<div class="lstat3">'+cell(a,"7 days",true)+cell(b,"28 days",false)+cell(c,"90 days",false)+'</div>';
+    '<div class="lstat4">'+cell(a,"3 days",true)+cell(b,"7 days",false)+cell(c,"21 days",false)+cell(d,"90 days",false)+'</div>'+
+    (line?('<div class="foot" style="margin-top:8px">'+line+'</div>'):'');
 }
 function ladderHTML(){
   var st=weightStats();if(!st)return "";
@@ -3852,27 +3857,30 @@ function renderToday(){
       heroTailHTML()+'</div>';
     }
   }
-  // week strip: each day says what it is, so the plan is readable at a glance
-  var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var dots="";
-  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d),dw=d.getDay();
-    var ds=dayStatus(k),pl=planFor(k),dn=ds.moved,isT=(k===TODAY),mk=dayMarks(k);
-    var _open=(!pl||pl.type==="open"||pl.type==="none");
-    var ic=_open?(dn?I.check:"")
-      :(pl.type==="lift"?I.dumbbell:pl.type==="run"?I.run:I.rest);
-  var lab=(pl&&pl.type!=="open")?(pl.type==="lift"?"Lift":pl.type==="run"?((pl.dist||2)+" mi"):"Recover"):(dn?"Done":"-");
-    var anch=anchorComplete(k);
-    var past=(k<TODAY);
-    var _hit=_open?dn:ds.metPlan;
-    dots+='<button class="dot'+(_hit?" done":"")+(isT?" today":"")+(!_hit&&!isT?(past?" missed":" ahead"):"")+'" data-k="'+k+'" onclick="dayDetail(\''+k+'\')"'+
-      ' aria-label="'+DWL[dw]+': '+[mk.morning?"morning":"",mk.strength?"strength":"",mk.cardio?"cardio":""].filter(Boolean).join(", ")+(mk.morning||mk.strength||mk.cardio?" done":"nothing logged")+'">'+
-      '<span class="dw">'+DWL[dw]+'</span><div class="di">'+(ds.metPlan?I.check:ic)+'</div>'+
-      '<span class="dl">'+lab+'</span>'+
-      '<span class="dpips" aria-hidden="true">'+
-        '<i class="dan dmk'+(mk.morning?" on":"")+'">M</i>'+
-        '<i class="dpip dmk'+(mk.strength?" on":"")+'">S</i>'+
-        '<i class="dpip dmk'+(mk.cardio?" on":"")+'">C</i>'+
-      '</span>'+
-      '</button>';}
+  var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));
+  var wkKeys=[],wkMk=[];
+  for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);var k=keyOf(d);
+    wkKeys.push({k:k,dw:d.getDay()});wkMk.push(dayMarks(k));}
+  var wgHead='<span class="wgl"></span>';
+  wkKeys.forEach(function(o){
+    var isT=(o.k===TODAY);
+    wgHead+='<button class="wgd'+(isT?" today":"")+(o.k>TODAY?" ahead":"")+'" data-k="'+o.k+'"'+
+      ' onclick="dayDetail(\''+o.k+'\')" aria-label="'+DWL[o.dw]+', open the day">'+DWL[o.dw]+'</button>';});
+  wgHead+='<span class="wgn"></span>';
+  function wgRowHTML(label,key,cls){
+    var cells="",n=0;
+    wkKeys.forEach(function(o,ix){
+      var on=!!wkMk[ix][key],future=(o.k>TODAY);
+      if(on&&!future)n++;
+      cells+='<span class="wgc" data-k="'+o.k+'"><i class="'+cls+' wgm'+(on?" on":"")+
+        (future?" ahead":"")+'"></i></span>';});
+    return '<div class="wgrow" role="row" aria-label="'+label+', '+n+' of the days so far">'+
+      '<span class="wgl">'+label+'</span>'+cells+'<span class="wgn num">'+n+'</span></div>';
+  }
+  var dots='<div class="wgrow wghead" role="row">'+wgHead+'</div>'+
+    wgRowHTML("Morning","morning","dan")+
+    wgRowHTML("Strength","strength","dpip")+
+    wgRowHTML("Cardio","cardio","dpip");
   var _wkMoved=0,_wkElapsed=0;
   weekDays(0).forEach(function(_k){
     if(_k>TODAY)return;
@@ -3887,8 +3895,7 @@ function renderToday(){
     '<div class="dots-card">'+
       '<h3 class="wkh"><span class="wki">'+I.gauge+'</span><span class="wkt">Your week</span>'+
       '<span class="wkchip">'+_wkMoved+' of '+_wkElapsed+'</span></h3>'+
-      '<div class="dots">'+dots+'</div>'+
-      '<div class="dkey"><span><i class="dmk on">M</i> morning</span><span><i class="dmk on">S</i> strength</span><span><i class="dmk on">C</i> cardio</span></div>'+
+      '<div class="wgrid" role="table" aria-label="This week by stream">'+dots+'</div>'+
       todayLogHTML()+'</div>'+
     recoveryCardHTML();
   tileBandPulse();
@@ -3973,7 +3980,7 @@ function toggleAnchor(i,btn){
     }
   }
   var full=(q.ac>=q.n);
-  document.querySelectorAll('.dot[data-k="'+TODAY+'"] .dan').forEach(function(el){el.classList.toggle("on",full);});
+  document.querySelectorAll('.wgc[data-k="'+TODAY+'"] .dan').forEach(function(el){el.classList.toggle("on",full);});
 }
 
 
@@ -4341,28 +4348,20 @@ function puLogPartial(){
 }
 var CUT_RATE_LO=0.005, CUT_RATE_HI=0.010;
 function cutRate(){
-  function mean7(endK){
-    var d=dayFromKey(endK),t=0,n=0;
-    for(var i=0;i<7;i++){
-      var k=keyOf(d);
-      (S.weigh||[]).forEach(function(w){if(w.date===k){t+=w.w;n++;}});
-      d.setDate(d.getDate()-1);
-    }
-    return n?{m:t/n,n:n}:null;
-  }
-  var now=mean7(TODAY);
-  var back=new Date(NOW);back.setDate(back.getDate()-21);
-  var then=mean7(keyOf(back));
-  if(!now||!then||now.n<2||then.n<2)return null;
-  var lbPerWk=(then.m-now.m)/3;
-  var pct=lbPerWk/Math.max(1,now.m);
-  return {lbPerWk:lbPerWk,pct:pct,now:now.m,then:then.m,nNow:now.n,nThen:then.n};
+  var st=null;try{st=weightStats();}catch(e){}
+  if(!st||st.rate==null||!isFinite(st.rate))return null;
+  var ref=st.trend;
+  var lbPerWk=-st.rate;
+  var pct=lbPerWk/Math.max(1,ref);
+  return {lbPerWk:lbPerWk,pct:pct,now:ref,win:st.win,n:st.fitN,se:st.se};
 }
 function cutVerdict(){
   var r=cutRate();
   if(!r)return {state:"unknown",say:"Not enough weigh-ins yet to read a trend."};
+  if(r.lbPerWk<=-0.15)return {state:"up",r:r,
+    say:"Climbing about "+Math.abs(r.lbPerWk).toFixed(1)+" a week. The trend is "+r.now.toFixed(1)+" "+wLbl()+"."};
   if(r.lbPerWk<=0)return {state:"flat",r:r,
-    say:"Holding. The seven-day mean is "+r.now.toFixed(1)+" "+wLbl()+"."};
+    say:"Holding. The trend is "+r.now.toFixed(1)+" "+wLbl()+"."};
   if(r.pct<CUT_RATE_LO)return {state:"slow",r:r,
     say:"Losing about "+r.lbPerWk.toFixed(1)+" a week. Under the band, which is fine if it is what you want."};
   if(r.pct<=CUT_RATE_HI)return {state:"good",r:r,
@@ -5959,7 +5958,7 @@ function sleepTarget(){return {t:RESEARCH.sleepHours};}
 
 var BW={
   miles:    {seed:null, grow:1.10, ceil:1.30, step:0.25, cap:12,    floor:2},
-  steps:    {seed:7000, grow:1.05, ceil:1.25, step:250, cap:12000, floor:5000, hitDays:5},
+  steps:    {seed:8000, grow:1.00, ceil:1.00, step:250, cap:8000,  floor:8000, hitDays:5},
   sessions: {seed:3,    grow:1.00, ceil:1.00, step:1,   cap:3,     floor:2},
   weeksBack:52, alpha:0.5
 };
@@ -7932,13 +7931,14 @@ function bodyBoxHTML(){
   }else if(b.k!=="none"){ rate=(b.w==="Holding")?"level":b.w+"/wk"; }
   var word;
   if(_cv&&_cv.state!=="unknown"){
-    word=(_cv.state==="good")?"on band, keeps muscle"
-      :(_cv.state==="fast")?"faster than the band"
-      :(_cv.state==="slow")?"under the band"
+    word=(_cv.state==="good")?"on band"
+      :(_cv.state==="fast")?"too fast"
+      :(_cv.state==="slow")?"under band"
+      :(_cv.state==="up")?"climbing"
       :"holding";
   }else{ word=(b.k==="none")?"not enough yet":"trend"; }
   return '<button class="lvlcard lvlbox lbbody" data-tone="'+b.k+'" onclick="levelSheet(\'body\')"'+
-    ' aria-label="Body, '+(st&&st.raw!=null?("latest "+val+" "+wLbl()+(st.trend!=null?(", 7-day mean "+(Math.round(st.trend*10)/10)+" "+wLbl()):"")):"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
+    ' aria-label="Body, '+(st&&st.raw!=null?("latest "+val+" "+wLbl()+(st.trend!=null?(", trend "+(Math.round(st.trend*10)/10)+" "+wLbl()):"")):"no data")+', '+esc(b.w)+' '+esc(b.c)+'">'+
     '<span class="lbk">Body</span>'+
     '<span class="lbv num">'+val+'<i class="lbu">'+wLbl()+'</i></span>'+
     '<span class="lbw num">'+esc(rate)+'</span>'+
@@ -7964,6 +7964,7 @@ function anchorDose(m){
       (rx.deload?" (deload)":"")+(rx.capped?" (capped)":"");
   }
   if(m.s==="plank10")return "6, 4, 2 holds of 10s";
+  if(m.s==="stretch")return STRETCH_FLOW.length+" moves, pogo to cat-cow";
   return m.d;
 }
 function anchorHTML(){
@@ -7973,7 +7974,8 @@ function anchorHTML(){
     rows+='<div class="arow'+(on?" checked":"")+'" data-i="'+i+'" data-s="'+esc(m.s)+'" role="button" tabindex="0" aria-pressed="'+on+'" onclick="toggleAnchor('+i+',this)">'+
       '<span class="chk">'+I.check+'</span>'+
       '<span class="atxt"><span class="an">'+esc(m.n)+'</span><span class="ad">'+esc(anchorDose(m))+'</span></span>'+
-      (anchorLearned(m.s)?'':'<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>')+
+      (m.sheet?('<button class="ahow" onclick="event.stopPropagation();'+m.sheet+'()" aria-label="Show the stretch flow">'+I.info+'</button>')
+       :(m.nohow||anchorLearned(m.s)?'':'<button class="ahow" onclick="event.stopPropagation();moveSheet('+i+')" aria-label="How to do '+esc(m.n)+'">'+I.info+'</button>'))+
       '</div>';});
   rows=anchorWeighRow()+rows;
   var q=anchorCount(),tot=q.tot,dn=q.dn;   /* the one counter; see anchorCount's header */
@@ -8055,6 +8057,36 @@ function moveSheet(i){
     '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
 }
 function toggleAnchorFrom(i){toggleAnchor(i,null);closeSheet();renderToday();}
+function stretchFlowList(){
+  var act=soreActive(),out=[],used={};
+  STRETCH_FLOW.forEach(function(s){ var m=anchorBySlug(s); if(m){used[m.s]=true;out.push(m);} });
+  if(!act.length)return out;
+  return out.map(function(m){
+    if(anchorSafe(m,act))return m;
+    for(var j=0;j<ANCHOR_ROT.length;j++){
+      var c=ANCHOR_ROT[j];
+      if(used[c.s]||c.s==="neckrot"||c.s==="pushups"||c.s==="plank10"||!anchorSafe(c,act))continue;
+      used[c.s]=true; return c;
+    }
+    return m;
+  });
+}
+function stretchSheet(){
+  var list=stretchFlowList(),sw=soreActive();
+  var rows=list.map(function(m,i){
+    return '<div class="flrow">'+
+      '<span class="fln num">'+(i+1)+'</span>'+
+      '<span class="fltx"><span class="flnm">'+esc(m.n)+'</span>'+
+        '<span class="fld">'+esc(m.d)+'</span>'+
+        ((m.h&&m.h[0])?('<span class="flc">'+esc(m.h[0])+'</span>'):'')+'</span>'+
+    '</div>';}).join("");
+  openSheet('<div class="grab"></div><h3>The morning flow</h3>'+
+    '<div class="ssub">Standing, to lunge, to floor, to hands and knees. The order is the point: you never decide what comes next because your body is already there.</div>'+
+    (sw.length?('<div class="pzline">Swapped today for a sore '+esc(sw.join(", "))+'.</div>'):'')+
+    '<div class="flist">'+rows+'</div>'+
+    '<div class="foot" style="margin-top:10px">Once you know it, you do not need this sheet. Tick the row and go.</div>'+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Close</button>');
+}
 function frAdjSw(btn){
   S.profile.adjustable=!S.profile.adjustable;save();
   if(btn){btn.classList.toggle("on",!!S.profile.adjustable);btn.setAttribute("aria-checked",S.profile.adjustable?"true":"false");}
@@ -9791,7 +9823,8 @@ function wkCardHTML(o){
     var last=(i===series.length-1),val=(x.v!=null?x.v:x.n);
     var h=Math.round((val/max)*100);
     bars+='<span class="wkb'+(last?" cur":"")+'" style="--h:'+Math.max(val>0?14:5,h)+'%"'+
-      ' data-r="'+esc((last?"this week":(series.length-1-i)+" weeks ago")+": "+x.n+" "+o.unit)+'">'+
+      ' data-r="'+esc((last?"this week":(series.length-1-i)+" weeks ago")+": "+
+        ((o.big==="v")?tNum(Math.round(val)):val)+" "+o.unit)+'">'+
       '<i></i></span>';
   });
   var _big=(o.big==="v")?(cur.v!=null?cur.v:cur.n):cur.n;
@@ -9802,6 +9835,7 @@ function wkCardHTML(o){
       '<span class="wkdir" aria-hidden="true">'+dirGlyph(v.k)+'</span></span>'+
     '<span class="wkbig num">'+_bigTxt+'<i class="wku">'+esc(_big===1&&o.unit1?o.unit1:o.unit)+'</i></span>'+
     '<span class="wkbars">'+bars+'</span>'+
+    (o.foot?('<span class="wkfoot'+(o.footOk?" ok":"")+'">'+o.foot+'</span>'):'')+
   '</button>';
 }
 function ranOn(k){
@@ -9841,12 +9875,65 @@ function cardioDoneWhat(k){
 }
 function cardioWeekCardsHTML(){
   return '<div class="wkrow">'+
-    wkCardHTML({label:"Walks & runs",series:wkCounts(cardioDayOn,6),unit:"days",unit1:"day",
-                tap:"pastSheet('cardio')"})+
-    wkCardHTML({label:"Steps",series:wkCounts(function(k){return (stepsOn(k)||0)>0;},6,
-                function(k){return stepsOn(k)||0;}),
-                unit:"steps",big:"v",tap:"pedoSheet()"})+
+    milesWeekCardHTML()+
+    stepsDayCardHTML()+
   '</div>';
+}
+function milesOn(k){
+  var t=0;
+  (S.sessions||[]).forEach(function(s){if(s.date===k&&isRealRun(s))t+=(s.distanceMi||0);});
+  return t;
+}
+function milesWeekCardHTML(){
+  var L=null;try{L=bwLadder("miles");}catch(e){}
+  var goal=(L&&L.t)?L.t:0;
+  var wk=0;weekDays(0).forEach(function(k){if(k<=TODAY)wk+=milesOn(k);});
+  var hit=(goal>0&&wk>=goal);
+  return wkCardHTML({label:"Miles run",series:wkCounts(function(k){return milesOn(k)>0;},6,milesOn),
+    unit:"mi",big:"v",tap:"pastSheet('cardio')",
+    foot:(goal>0?(hit?("clear of "+goal.toFixed(1)+" mi this week"):(wk.toFixed(1)+" of "+goal.toFixed(1)+" mi this week")):"no weekly target set"),
+    footOk:hit});
+}
+function stepsDayCardHTML(){
+  var d=dayFromKey(TODAY),latest=null,latestV=null;
+  for(var i=0;i<10&&latest===null;i++){
+    var k=keyOf(d),v=stepsOn(k);
+    if(v!=null&&v>0){latest=k;latestV=v;}
+    d.setDate(d.getDate()-1);
+  }
+  var st=stepTarget(),goal=st?st.t:0;
+  if(latest===null){
+    return '<button class="wkcard" data-tone="flat" onclick="pedoSheet()" aria-label="Steps, no records yet">'+
+      '<span class="wkhead"><span class="wklab">Steps</span></span>'+
+      '<span class="wkbig num">&mdash;</span>'+
+      '<span class="wkfoot">No step records yet. They arrive with the next Health export.</span></button>';
+  }
+  var days=[],dd=dayFromKey(latest);dd.setDate(dd.getDate()-6);
+  for(var j=0;j<7;j++){var kk=keyOf(dd);days.push({k:kk,v:stepsOn(kk)});dd.setDate(dd.getDate()+1);}
+  var dir=(goal>0&&latestV>=goal)?"up":"flat";
+  var peak=days.reduce(function(a,x){return Math.max(a,x.v||0);},0);
+  var max=Math.max((goal||0)*1.06,peak,1);
+  var bars=days.map(function(x,ix){
+    var last=(ix===days.length-1),h=Math.round(((x.v||0)/max)*100);
+    return '<span class="wkb'+(last?" cur":"")+'" style="--h:'+Math.max(x.v?14:5,h)+'%"'+
+      ' data-r="'+esc(shortDay(x.k)+": "+(x.v!=null?tNum(x.v)+" steps":"no export"))+'"><i></i></span>';
+  }).join("");
+  var rule=(goal>0&&goal<=max)?('<i class="wkrule" style="bottom:'+((goal/max)*100).toFixed(1)+'%"></i>'):"";
+  var hit=(goal>0&&latestV>=goal);
+  var when=(latest===TODAY)?"today":shortDay(latest);
+  var foot=goal>0
+    ? (hit?("clear of "+tNum(goal)+" \u00b7 "+when)
+          :(tNum(goal-latestV)+" short of "+tNum(goal)+" \u00b7 "+when))
+    : when;
+  var manual=((S.pedo||{})[latest]!=null);
+  return '<button class="wkcard" data-tone="'+dir+'" onclick="pedoSheet()"'+
+    ' aria-label="Steps, '+esc(tNum(latestV)+" on "+when+", "+(hit?"goal met":"under the "+tNum(goal)+" goal")+", from "+(manual?"your manual entry":"Apple Health"))+'">'+
+    '<span class="wkhead"><span class="wklab">Steps</span>'+
+      '<span class="wksrc">'+(manual?"pedometer":"health")+'</span></span>'+
+    '<span class="wkbig num">'+tNum(latestV)+'<i class="wku">steps</i></span>'+
+    '<span class="wkbars hasrule">'+rule+bars+'</span>'+
+    '<span class="wkfoot'+(hit?" ok":"")+'">'+esc(foot)+'</span>'+
+  '</button>';
 }
 function strengthWorkOn(k){
   var n=0;
@@ -9858,12 +9945,25 @@ function strengthWorkOn(k){
 function circuitOn(k){
   return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift"&&sessRounds(s)>=1;});
 }
+function strengthWorkedOn(k){return strengthWorkOn(k)>0;}
+function puWeekReps(k){return puDayReps(k);}
+function puDidOn(k){return puDayReps(k)>0;}
+function puFootText(){
+  var p=puState(),m=puMax();
+  if(!m)return "no max on file &middot; test it to start the plan";
+  var since=p.mOn?daysBetween(p.mOn,TODAY):null;
+  var due=(since==null)?null:Math.max(0,PU_TEST_DAYS-since);
+  return "max <b>"+m+"</b> tested "+(since===0?"today":since===1?"yesterday":since+"d ago")+
+    (due===0?" &middot; retest due":(due!=null?(" &middot; retest in "+due+"d"):""));
+}
 function strengthWeekCardHTML(){
+  var pDue=puRetestDue()&&!!puMax();
   return '<div class="wkrow">'+
     wkCardHTML({label:"Circuits",series:wkCounts(circuitOn,6),unit:"of "+CIRCUIT_TARGET,
                 target:CIRCUIT_TARGET,tap:"routineSheet()"})+
-    wkCardHTML({label:"Strength days",series:wkCounts(strengthOn,6,strengthWorkOn),
-                unit:"days",unit1:"day",tap:"levelSheet('lift')"})+
+    wkCardHTML({label:"Push-ups",series:wkCounts(puDidOn,6,puWeekReps),
+                unit:"reps",unit1:"rep",big:"v",foot:puFootText(),footOk:pDue,
+                tap:"pushupSheet()"})+
   '</div>';
 }
 function renderCardio(){
