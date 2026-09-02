@@ -4906,9 +4906,17 @@ function slotFor(id){
   return {exId:id,g:g,pat:patGroup(e.pattern)||e.pattern,unit:e.unit||"reps",side:!!e.side,
     bw:!!e.bw,low:low,high:high,weight:e.bw?0:(t.weight!=null?t.weight:(e.defw!=null?e.defw:15)),reps:low};
 }
+var ADD_KEEP=false;
+function addKeepToggle(btn){
+  ADD_KEEP=!ADD_KEEP;
+  if(btn){btn.classList.toggle("on",ADD_KEEP);btn.setAttribute("aria-checked",ADD_KEEP?"true":"false");}
+}
 function addMovementSheet(){
+  ADD_KEEP=false;
   openSheet('<div class="grab"></div><h3>Add a movement</h3>'+
-    '<div class="ssub">It joins today only, as another row in every round. Nothing else moves.</div>'+
+    '<div class="ssub">It joins every round of today\'s session. Today only, unless you keep it.</div>'+
+    (routineOn()?sgroup("",srow("Keep it in my routine",swCtl(ADD_KEEP,"addKeepToggle(this)")),
+      "Off means today only: tomorrow serves the routine you already have."):"")+
     exPickList("addMovement",-1,null,null)+
     '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
 }
@@ -4916,14 +4924,18 @@ function addMovement(_oi,id){
   var w=workDay(),sl=slotFor(id);if(!sl)return;
   if((w.order||[]).length>=SLOT_CEIL){toast("Six movements is the ceiling for one round.",null);return;}
   sl.added=TODAY;
+  var keep=(routineOn()&&ADD_KEEP);
+  sl.tmp=!keep;
   w.order.push(sl);
-  if(routineOn()){var R=theRoutine();(R.order=R.order||[]).push({exId:sl.exId,reps:sl.reps});}
+  if(keep){var R=theRoutine();(R.order=R.order||[]).push({exId:sl.exId,reps:sl.reps});}
   reslotDay(w);
   syncRoundsSession(w);save();closeSheet();renderLift();
-  toast("Added. Every round now carries it.",null);
+  toast(keep?"Added to your routine. Every round carries it from now on."
+            :"Added for today. Every round today carries it; tomorrow is unchanged.",null);
 }
 function removeMovement(si){
   var w=workDay();
+  var wasTmp=!!((w.order||[])[si]||{}).tmp;
   if((w.order||[]).length<=SLOT_FLOOR){toast("One movement is the floor.",null);return;}
   for(var r=0;r<w.rN;r++)if((w.done||{})[roundKey(r,si)]){
     toast("That movement has work in it. Untick it first.",null);return;}
@@ -4936,7 +4948,7 @@ function removeMovement(si){
     nd[pr[0]+"_"+(i>si?i-1:i)]=w.done[k];
   });
   w.done=nd;
-  if(routineOn()){var R=theRoutine();if(R.order&&R.order.length>si)R.order.splice(si,1);}
+  if(routineOn()&&!wasTmp){var R=theRoutine();if(R.order&&R.order.length>si)R.order.splice(si,1);}
   reslotDay(w);
   syncRoundsSession(w);save();closeSheet();renderLift();
   toast("Removed from today.",null);
