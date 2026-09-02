@@ -52,6 +52,8 @@
       vetted: S.vetted && typeof S.vetted === "object" ? S.vetted : {},
       profile: S.profile || null,
       profileUpdatedAt: stampedAt("profile", S.profile),
+      routine: S.routine || null,
+      routineUpdatedAt: stampedAt("routine", S.routine || null),
       cursor: { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 },
       cursorUpdatedAt: stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 }),
       progressState: S.progress || null,
@@ -294,6 +296,13 @@
         S.vetted = mergeFill(S.vetted || {}, srv.vetted);
         if (srv.profile && Number(srv.profileUpdatedAt || 0) > stampedAt("profile", S.profile)) {
           S.profile = srv.profile; bumpStamp("profile", S.profile, Number(srv.profileUpdatedAt));
+        }
+        if (srv.routine && typeof srv.routine === "object" && Array.isArray(srv.routine.order) &&
+            srv.routine.order.length &&
+            Number(srv.routineUpdatedAt || 0) > stampedAt("routine", S.routine || null)) {
+          S.routine = srv.routine;
+          bumpStamp("routine", S.routine, Number(srv.routineUpdatedAt));
+          try { if (S.wk && S.wk[TODAY] && (S.wk[TODAY].src || "gen") === "routine") delete S.wk[TODAY]; } catch (e) {}
         }
         if (srv.cursor && Number(srv.cursorUpdatedAt || 0) > stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 })) {
           S.planPos = srv.cursor.planPos || 0; S.cycleNext = srv.cursor.cycleNext || 0;
