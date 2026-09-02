@@ -3131,7 +3131,8 @@ function weightStats(){
   var band=(U()==="kg")?1.134:2.5;
   return {trend:T,raw:latest.w,rawDate:latest.date,goal:goal,to:T-goal,toRaw:latest.w-goal,
     ageDays:ageDays,recent:rec,n:S.weigh.length,
-    rate:chosen?chosen.fit.rate:null,se:use?use.fit.se:null,win:use?use.win:null,
+    rate:chosen?chosen.fit.rate:null,fitRate:use?use.fit.rate:null,
+    se:use?use.fit.se:null,win:use?use.win:null,
     fitN:use?use.fit.n:0,gate:use?use.gate:null,called:!!chosen,
     inBand:Math.abs(T-goal)<=band,band:band,stale:ageDays>10,
     minTrend:effortMin(tr).v,minTrendDate:effortMin(tr).date,
@@ -4355,7 +4356,8 @@ function cutRate(){
   var rate=st.rate;
   if(rate==null||!isFinite(rate)){
     if(st.ageDays>=11||!st.win||st.recent<3)return null;
-    rate=0;
+    rate=st.fitRate;
+    if(rate==null||!isFinite(rate))return null;
   }
   var ref=st.trend;
   var lbPerWk=-rate;
