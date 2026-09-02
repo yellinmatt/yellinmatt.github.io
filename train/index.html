@@ -1719,7 +1719,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v17.0";
+var VERSION="v22.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3481,7 +3481,7 @@ function yKey(){var d=new Date(NOW);d.setDate(d.getDate()-1);return keyOf(d);}
 function tTone(atMark,dir){return atMark?(dir>=0?"good":"amber"):(dir>0?"amber":(dir===0?"amber":"red"));}
 
 function trendSteps(){
-  var g=function(k){return stepsOn(k);};
+  var g=function(k){return stepsDone(k);};
   var now=tMed(tWin(g,6,0)),prev=tMed(tWin(g,13,7)),st=stepTarget();
   if(now==null)return {tone:"none",word:"Not enough yet",foot:"No steps recorded",miss:1};
   var dir=tDir(now,prev),atMark=!!(st&&now>=st.t);
@@ -3688,18 +3688,24 @@ function famA(kind){
     var st=stepTarget(),s7s=stepsAvgOver(7);
     if(!s7s)return '<div data-tone="flat">'+famHead(I.gauge,"Steps","Last 7 days",null)+'<div class="verd" style="margin-top:2px">Nothing recorded yet.</div></div>';
     var tone2=(!st)?"flat":(s7s.got<4?"amber":s7s.avg>=st.t?"good":s7s.avg>=st.t*0.8?"amber":"red");
-    var hit=0,pts3=[],d3=new Date(NOW);d3.setDate(d3.getDate()-6);
-    for(var q=0;q<7;q++){var sv=stepsOn(keyOf(d3))||0;
+    var hit=0,pts3=[],d3=new Date(NOW);d3.setDate(d3.getDate()-7);
+    for(var q=0;q<7;q++){var sv=stepsDone(keyOf(d3))||0;
       if(st&&sv>=st.t)hit++;
       pts3.push({v:sv,d:shortDay(keyOf(d3)),cls:(sv>0&&st)?(sv>=st.t?"hit":"miss"):""});d3.setDate(d3.getDate()+1);}
     return '<div data-tone="'+tone2+'">'+famHead(I.gauge,"Steps","Last 7 days",st?Math.round(s7s.avg/st.t*100):null)+
-      (function(){var tp=trendSteps(),yv=stepsOn(yKey())||0;
-        return '<div class="hero56 num">'+(yv||s7s.avg).toLocaleString()+
-          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+(yv?("on "+tDay()):"7-day avg")+'</span></div>'+
+      (function(){var tp=trendSteps(),yv=stepsOn(yKey())||0,tv=stepsOn(TODAY);
+        var lead=(tv!=null?tv:(yv||s7s.avg));
+        var tstamp=((S.stamps||{}).steps||{})[TODAY];
+        var asOf="";
+        if(tv!=null&&tstamp){var _d=new Date(tstamp);
+          asOf=", to "+_d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});}
+        var lbl=(tv!=null?("so far today"+asOf):(yv?("on "+tDay()):"7-day avg"));
+        return '<div class="hero56 num">'+lead.toLocaleString()+
+          '<span style="font-size:13px;font-weight:600;color:var(--faint);letter-spacing:0"> &nbsp;'+lbl+'</span></div>'+
         '<div class="verd">'+esc(tp.word)+'. '+(st?(hit+" of "+s7s.got+" recorded days cleared the "+st.t.toLocaleString()+" rung."):"No rung yet: it derives from your 28-day median.")+'</div>';})()+
       famBars(pts3,{rule:st?st.t:0,ruleLbl:st?st.t.toLocaleString():"",axL:"7 days",axR:"yesterday"})+
       famStrip([[s7s.avg.toLocaleString(),"7-day avg"],[hit+" of "+s7s.got,"days at rung"],[st?st.t.toLocaleString():"&mdash;","the rung"]])+
-      '<div class="pfoot">Apple Health &middot; through yesterday &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
+      '<div class="pfoot">Apple Health &middot; bars and averages are complete days; the figure above updates as today goes &middot; the rung climbs itself: 28-day median &times; 1.15'+(st&&st.capped?", capped at the 7,000 ceiling":"")+'</div></div>';
   }
   if(kind==="rhr"){
     var rw=vitalWindow("rhr",28),ry=vitalWindow("rhr",365);
@@ -5793,8 +5799,8 @@ function stepsAvg(days){
   return n?{avg:Math.round(t/n),days:n}:null;
 }
 function stepsAvgOver(days){
-  var t=0,n=0,d=new Date(NOW);d.setDate(d.getDate()-days+1);
-  for(var i=0;i<days;i++){var v=stepsOn(keyOf(d));if(v){t+=v;n++;}d.setDate(d.getDate()+1);}
+  var t=0,n=0,d=new Date(NOW);d.setDate(d.getDate()-days);
+  for(var i=0;i<days;i++){var v=stepsDone(keyOf(d));if(v){t+=v;n++;}d.setDate(d.getDate()+1);}
   return n?{avg:Math.round(t/n),got:n}:null;
 }
 function weeklyStepsSeries(weeks){
@@ -5802,7 +5808,7 @@ function weeklyStepsSeries(weeks){
   d.setDate(d.getDate()-((d.getDay()+6)%7)-7*(weeks-1));
   for(var i=0;i<weeks;i++){
     var t=0,n=0,c=new Date(d);
-    for(var j=0;j<7;j++){var k=keyOf(c);if(k<=TODAY){var v=stepsOn(k);if(v){t+=v;n++;}}c.setDate(c.getDate()+1);}
+    for(var j=0;j<7;j++){var k=keyOf(c);if(k<=TODAY){var v=stepsDone(k);if(v){t+=v;n++;}}c.setDate(c.getDate()+1);}
     out.push({w:keyOf(d),avg:n?Math.round(t/n):0,days:n});
     d.setDate(d.getDate()+7);
   }
@@ -5947,8 +5953,8 @@ function sleepVerdict(){
 }
 var RESEARCH={stepsPlateau:12000,stepsFloor:5000,stepsRung:1.10,sleepHours:7};
 function stepMedian(days){
-  var v=[],d=new Date(NOW);d.setDate(d.getDate()-days+1);
-  for(var i=0;i<days;i++){var x=stepsOn(keyOf(d));if(x)v.push(x);d.setDate(d.getDate()+1);}
+  var v=[],d=new Date(NOW);d.setDate(d.getDate()-days);
+  for(var i=0;i<days;i++){var x=stepsDone(keyOf(d));if(x)v.push(x);d.setDate(d.getDate()+1);}
   if(!v.length)return null;
   v.sort(function(a,b){return a-b;});
   var m=Math.floor(v.length/2);
@@ -7861,6 +7867,7 @@ function anchorWeighRow(){
     '</div>';
 }
 function stepsOn(k){var p=(S.pedo||{})[k];return p!=null?p:((S.steps||{})[k]);}
+function stepsDone(k){return (k>=TODAY)?null:stepsOn(k);}
 function stepSrc(k){return ((S.pedo||{})[k]!=null)?"pedo":((((S.steps||{})[k])!=null)?"apple":null);}
 function pedoSheet(){
   var cur=(S.pedo||{})[TODAY],ap=(S.steps||{})[TODAY];
