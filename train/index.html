@@ -230,10 +230,11 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .flc{font-size:12px;color:var(--faint);line-height:1.35;margin-top:2px}
 .wgrid{display:flex;flex-direction:column;gap:5px}
 .wgrow{display:grid;grid-template-columns:66px repeat(7,1fr) 18px;align-items:center;
-  column-gap:4px}
+  column-gap:0}
 .wgl{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:var(--sub);white-space:nowrap}
-.wgn{font-size:12px;font-weight:800;color:var(--sub);text-align:right;letter-spacing:-.01em}
+  color:var(--sub);white-space:nowrap;padding-right:4px}
+.wgn{font-size:12px;font-weight:800;color:var(--sub);text-align:right;letter-spacing:-.01em;
+  padding-left:4px}
 .wghead{margin-bottom:2px}
 .wgd{font-size:12px;font-weight:700;color:var(--sub);background:none;border:0;padding:0;
   text-align:center;position:relative;font-family:inherit}
@@ -241,7 +242,7 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .wgd.ahead{color:var(--line-2)}
 .wgd::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   width:100%;height:44px}
-.wgm{display:block;height:9px;border-radius:3px;background:transparent;
+.wgm{display:block;height:9px;border-radius:3px;background:transparent;margin:0 2px;
   box-shadow:inset 0 0 0 1.25px var(--line)}
 .wgm.on{background:var(--accent);box-shadow:none}
 .wgm.ahead{box-shadow:none;border:1px dashed var(--line-2);height:7px;border-radius:2px}
@@ -3684,7 +3685,7 @@ function famA(kind){
   }
   if(kind==="steps"){
     var st=stepTarget(),s7s=stepsAvgOver(7);
-    if(!s7s)return '<div data-tone="flat">'+famHead(I.gauge,"Steps","Last 7 days",null)+'<div class="verd" style="margin-top:2px">No step records yet. They arrive with the next Health export.</div></div>';
+    if(!s7s)return '<div data-tone="flat">'+famHead(I.gauge,"Steps","Last 7 days",null)+'<div class="verd" style="margin-top:2px">Nothing recorded yet.</div></div>';
     var tone2=(!st)?"flat":(s7s.got<4?"amber":s7s.avg>=st.t?"good":s7s.avg>=st.t*0.8?"amber":"red");
     var hit=0,pts3=[],d3=new Date(NOW);d3.setDate(d3.getDate()-6);
     for(var q=0;q<7;q++){var sv=stepsOn(keyOf(d3))||0;
@@ -4350,9 +4351,14 @@ function puLogPartial(){
 var CUT_RATE_LO=0.005, CUT_RATE_HI=0.010;
 function cutRate(){
   var st=null;try{st=weightStats();}catch(e){}
-  if(!st||st.rate==null||!isFinite(st.rate))return null;
+  if(!st)return null;
+  var rate=st.rate;
+  if(rate==null||!isFinite(rate)){
+    if(st.ageDays>=11||!st.win||st.recent<3)return null;
+    rate=0;
+  }
   var ref=st.trend;
-  var lbPerWk=-st.rate;
+  var lbPerWk=-rate;
   var pct=lbPerWk/Math.max(1,ref);
   return {lbPerWk:lbPerWk,pct:pct,now:ref,win:st.win,n:st.fitN,se:st.se};
 }
@@ -9925,8 +9931,7 @@ function stepsDayCardHTML(){
   if(latest===null){
     return '<button class="wkcard" data-tone="flat" onclick="pedoSheet()" aria-label="Steps, no records yet">'+
       '<span class="wkhead"><span class="wklab">Steps</span></span>'+
-      '<span class="wkbig num">&mdash;</span>'+
-      '<span class="wkfoot">No step records yet. They arrive with the next Health export.</span></button>';
+      '<span class="wkfoot">Nothing recorded yet.</span></button>';
   }
   var days=[],dd=dayFromKey(latest);dd.setDate(dd.getDate()-6);
   for(var j=0;j<7;j++){var kk=keyOf(dd);days.push({k:kk,v:stepsOn(kk)});dd.setDate(dd.getDate()+1);}
