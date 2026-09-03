@@ -54,6 +54,10 @@
       profileUpdatedAt: stampedAt("profile", S.profile),
       routine: S.routine || null,
       routineUpdatedAt: stampedAt("routine", S.routine || null),
+      progs: S.progs || null,
+      progsUpdatedAt: stampedAt("progs", S.progs || null),
+      prog: S.prog || null,
+      progUpdatedAt: stampedAt("prog", S.prog || null),
       cursor: { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 },
       cursorUpdatedAt: stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 }),
       progressState: S.progress || null,
@@ -303,6 +307,17 @@
           S.routine = srv.routine;
           bumpStamp("routine", S.routine, Number(srv.routineUpdatedAt));
           try { if (S.wk && S.wk[TODAY] && (S.wk[TODAY].src || "gen") === "routine") delete S.wk[TODAY]; } catch (e) {}
+        }
+        if (srv.progs && typeof srv.progs === "object" &&
+            srv.progs.circuit && Array.isArray(srv.progs.circuit.order) && srv.progs.circuit.order.length &&
+            Number(srv.progsUpdatedAt || 0) > stampedAt("progs", S.progs || null)) {
+          S.progs = srv.progs;
+          bumpStamp("progs", S.progs, Number(srv.progsUpdatedAt));
+        }
+        if (srv.prog && typeof srv.prog === "string" &&
+            Number(srv.progUpdatedAt || 0) > stampedAt("prog", S.prog || null)) {
+          S.prog = srv.prog;
+          bumpStamp("prog", S.prog, Number(srv.progUpdatedAt));
         }
         if (srv.cursor && Number(srv.cursorUpdatedAt || 0) > stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 })) {
           S.planPos = srv.cursor.planPos || 0; S.cycleNext = srv.cursor.cycleNext || 0;
