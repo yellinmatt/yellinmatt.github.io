@@ -449,6 +449,17 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .vtick.on .vtb{background:var(--good);border-color:var(--good);color:var(--white)}
 .vcard.vdone{border-color:var(--good)}
 .vcard.vfocus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-tint)}
+.planrow{display:flex;align-items:center;gap:11px;min-height:52px;padding:7px 2px;border-top:1px solid var(--line);
+text-decoration:none;color:var(--text)}
+.planrow:first-of-type{border-top:0}
+.planrow .pdot{display:flex;width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--line-2);
+align-items:center;justify-content:center;color:transparent}
+.planrow .pdot svg{width:13px;height:13px}
+.planrow.pdone .pdot{background:var(--good);border-color:var(--good);color:var(--white)}
+.planrow .pnm{flex:1;min-width:0;font-weight:650}
+.planrow.pdone .pnm{color:var(--sub)}
+.planrow .par{flex:none;width:18px;height:18px;color:var(--sub)}
+.planrow .par svg{width:18px;height:18px}
 .vesc{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--surface-2);color:var(--sub);font:inherit;font-size:13px;font-weight:600;text-align:center;text-decoration:none}
 .vface,.vframe{display:block;width:100%;aspect-ratio:16/9;border:0}
 .vface{background:linear-gradient(140deg,var(--surface-2),var(--accent-tint));display:flex;align-items:center;justify-content:center}
@@ -1720,7 +1731,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v24.0";
+var VERSION="v25.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3818,6 +3829,38 @@ function moreHTML(label,inner){
   return '<details class="more"><summary>'+label+'<span class="chev">'+I.chevD+'</span></summary>'+
     '<div class="moreb">'+inner+'</div></details>';
 }
+var PLAN_CACHE=null,PLAN_TRIED=false;
+function planItemsFor(k){
+  if(!PLAN_CACHE||!PLAN_CACHE.days)return null;
+  var d=PLAN_CACHE.days[k];
+  if(!d||d.blocked||!d.items||!d.items.length)return null;
+  return d.items;
+}
+function renderPlanHost(){
+  var host=document.getElementById("planhost");if(!host)return;
+  var items=planItemsFor(TODAY);
+  if(!items){host.innerHTML="";return;}
+  var rows=items.map(function(it){
+    var did=planItemDone(it.stream);
+    return '<a class="planrow'+(did?" pdone":"")+'" href="d/'+esc(it.file)+'">'+
+      '<span class="pdot">'+(did?I.check:"")+'</span>'+
+      '<span class="pnm">'+esc(it.title)+'</span>'+
+      '<span class="par">'+I.arrow+'</span></a>';
+  }).join("");
+  host.innerHTML='<div class="card"><div class="sectlbl" style="margin:0 0 8px">Today&rsquo;s plan</div>'+rows+'</div>';
+}
+function planItemDone(stream){
+  if(stream==="lift")return S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";});
+  var want=stream==="cardio"?/^(Walk|Easy|Intervals)/i:(stream==="pilates"?/^Pilates session/i:/^Mobility session/i);
+  return S.sessions.some(function(s){return s.date===TODAY&&s.type==="activity"&&want.test(s.activity||"");});
+}
+function loadPlan(){
+  if(PLAN_TRIED)return;PLAN_TRIED=true;
+  try{
+    fetch("d/plan.json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;})
+      .then(function(j){if(j){PLAN_CACHE=j;renderPlanHost();}}).catch(function(){});
+  }catch(e){}
+}
 function renderToday(){
   refreshDate();
   var plan=todayPlan(),done=isDone(TODAY),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),runDone=!!S.runs[TODAY]||S.sessions.some(function(s){return s.date===TODAY&&s.type==="run";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
@@ -3826,6 +3869,7 @@ function renderToday(){
   var h='<div class="head"><div><div class="date">'+fmtDate(NOW)+'</div><div class="title">'+greet+'</div></div>'+
     '<div class="tools">'+streakChipHTML("all")+
     '<button class="iconbtn" onclick="settingsSheet()" aria-label="Settings">'+I.gear+'</button></div></div>';
+  h+='<div id="planhost"></div>';
   // hero
   var hero='';
   if(plan.type==="open"){hero=bwHeroHTML();}
@@ -3914,6 +3958,8 @@ function renderToday(){
   streakPulse();
   levelRingAnim();
   levelNumAnim();
+  renderPlanHost();
+  loadPlan();
 }
 function streakPulse(){
   try{
