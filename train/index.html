@@ -448,6 +448,7 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .vtick.on{background:var(--good-tint);color:var(--good)}
 .vtick.on .vtb{background:var(--good);border-color:var(--good);color:var(--white)}
 .vcard.vdone{border-color:var(--good)}
+.vcard.vfocus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-tint)}
 .vesc{display:block;width:100%;padding:10px;border:0;border-top:1px solid var(--line);background:var(--surface-2);color:var(--sub);font:inherit;font-size:13px;font-weight:600;text-align:center;text-decoration:none}
 .vface,.vframe{display:block;width:100%;aspect-ratio:16/9;border:0}
 .vface{background:linear-gradient(140deg,var(--surface-2),var(--accent-tint));display:flex;align-items:center;justify-content:center}
@@ -1719,7 +1720,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v23.0";
+var VERSION="v24.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -7258,6 +7259,7 @@ var LIBGROUPS=[
   ["library", "Needs kit",     "waiting on a roller, a ball or a club"]
 ];
 var LIBOPEN=null;
+var LIBFOCUS=null;
 function libSlotVids(slot){
   return (slot==="library")
     ? VID.filter(function(v){return !vidKitOK(v);})
@@ -7281,6 +7283,7 @@ function renderLibrary(){
 }
 function libOpen(slot){
   LIBOPEN=(LIBOPEN===slot)?null:slot;
+  LIBFOCUS=null;                         /* a hand-opened shelf is not the link's question */
   stopAllVideo();renderLibrary();
   if(LIBOPEN){var el=document.getElementById("libbody");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
 }
@@ -7291,6 +7294,10 @@ function libBody(slot){
   var yt=vs.filter(function(v){return v.src!=="onnit";});
   function sect(label,list){
     if(!list.length)return "";
+    if(LIBFOCUS){
+      var fi=list.findIndex(function(v){return v.id===LIBFOCUS;});
+      if(fi>0)list=[list[fi]].concat(list.slice(0,fi),list.slice(fi+1));
+    }
     var inner="";list.slice(0,60).forEach(function(v){inner+=vidCardHTML(v);});
     return '<div class="sectlbl" style="margin:16px 2px 8px">'+label+' &middot; '+list.length+'</div>'+
       '<div class="vgrid">'+inner+'</div>'+
@@ -7336,7 +7343,7 @@ function vidCardHTML(v,wide,hideTick){
   var slot="vp-"+(++vseq);
   var on=vDone(v.id);
   return '<div class="vcard'+(wide?" wide":"")+(on?" vdone":"")+'" data-c="'+v.c+'" id="'+slot+'">'+
-    '<div class="vratio"><button class="vface" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
+    '<div class="vratio"><button class="vface" data-vid="'+v.id+'" onclick="playVid(\''+v.id+'\',\''+slot+'\')" aria-label="Play '+esc(v.t)+'">'+
       '<span class="vplay">'+I.play+'</span><span class="vfl">'+(vpnOn()?"Opens in YouTube":"Tap to play")+'</span></button></div>'+
     '<div class="vmeta"><div class="vt">'+esc(v.t)+'</div>'+
     '<div class="va">'+esc(v.a)+(vidMinsTxt(v)?(' &middot; '+vidMinsTxt(v)):'')+
@@ -10215,6 +10222,49 @@ if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").c
 if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||TODAY;S.profile.programStart=S.profile.programStart||TODAY;save();}
 document.addEventListener("visibilitychange",function(){if(!document.hidden){refreshDate();if(document.getElementById("v-today").classList.contains("on"))renderToday();}});
 renderToday();
+
+var COURSE_SERIES={
+  mobility:/^Mobility for Runners/i,
+  pilates :/^Pilates for Runners/i,
+  stretch :/^Stretch . Stability for Runners/i   /* the real title carries an ampersand */
+};
+function courseVid(name,n){
+  var re=COURSE_SERIES[name];if(!re)return null;
+  var list=VID.filter(function(v){return re.test(v.t||"");});
+  if(!list.length)return null;
+  var want=Number(n);
+  var hit=list.filter(function(v){return Number(v.lv)===want;})[0];
+  return hit||list[0];
+}
+function courseSlotFor(id){
+  for(var i=0;i<LIBGROUPS.length;i++){
+    var s=LIBGROUPS[i][0];
+    if(libSlotVids(s).some(function(x){return x.id===id;}))return s;
+  }
+  return "course";
+}
+function openCourse(name,n){
+  var v=courseVid(name,n);
+  show("library");
+  if(!v)return;                          /* the shelf is still the right place to land */
+  LIBOPEN=courseSlotFor(v.id);LIBFOCUS=v.id;renderLibrary();
+  requestAnimationFrame(function(){
+    var b=document.querySelector('.vface[data-vid="'+v.id+'"]');
+    if(!b)return;
+    var card=b.closest(".vcard");if(!card)return;
+    card.classList.add("vfocus");
+    card.scrollIntoView({block:"center"});
+  });
+}
+function routeFromHash(){
+  var raw=(location.hash||"").replace(/^#/,"");
+  if(!raw)return;                        /* no hash is not a route, leave Today alone */
+  var p=raw.split("/"),v=p[0],arg=p[1]||"";
+  if(COURSE_SERIES[v]){openCourse(v,arg||1);return;}
+  show(v);                               /* unknown view names fall back to today inside show() */
+}
+window.addEventListener("hashchange",routeFromHash);
+routeFromHash();
 
 
 
