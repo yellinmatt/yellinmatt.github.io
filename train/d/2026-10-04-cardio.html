@@ -135,7 +135,10 @@ text-align:right;padding:0 13px;font-size:19px;font-weight:700;border:1px solid 
 .pace{font-size:13px;color:var(--faint);text-align:right;margin-top:10px;min-height:16px}
 </style>
 <script>
-var DATE="2026-10-04", PAGE="cardio";
+var SLOT="2026-10-04", PAGE="cardio";
+var SLOTID=SLOT+"-"+PAGE;
+function today(){var d=new Date(),p=function(n){return (n<10?"0":"")+n;};
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
 var I={"check":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12.5l4.2 4.2L19 7\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","chevD":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","play":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M7 5l12 7-12 7V5Z\" fill=\"currentColor\"/></svg>"};
 
 var LS="train_v2";
@@ -150,7 +153,7 @@ function logSession(rec,date){
   try{ if(window.TrainSyncAuto && typeof window.TrainSyncAuto.now==="function") window.TrainSyncAuto.now(); }catch(e){}
   return true;
 }
-function pkey(){return "trainday."+DATE+"."+PAGE;}
+function pkey(){return "trainday."+SLOT+"."+PAGE;}
 function loadProg(){try{return JSON.parse(localStorage.getItem(pkey()))||{};}catch(e){return {};}}
 function saveProg(p){try{localStorage.setItem(pkey(),JSON.stringify(p));}catch(e){}}
 function noStore(){
@@ -308,12 +311,12 @@ function finish(kind){
   var mn=parseFloat(document.getElementById("mins").value||"0")||0;
   if(kind==="floor"){mn=mn||FLOORMIN;}
   if(!mn)mn=MINS;
-  var isRun=(MODE==="run");
-  var rec={id:DATE+"-cardio",date:DATE,type:isRun?"run":"activity",
+  var isRun=(MODE==="run"), D=today();
+  var rec={id:SLOTID,slot:SLOTID,date:D,type:isRun?"run":"activity",
     activity:isRun?"Run":TITLE,durationSec:Math.round(mn*60),notes:"day-page "+kind};
   if(mi>0)rec.distanceMi=mi;
   if(IV)rec.intervals=countOf(ivOn);
-  var ok=logSession(rec,DATE);
+  var ok=logSession(rec,D);
   if(!ok){noStore();return;}
   markDone(mi>0?(mi.toFixed(1)+" mi in "+Math.round(mn)+" min"):(Math.round(mn)+" min logged"));
 }

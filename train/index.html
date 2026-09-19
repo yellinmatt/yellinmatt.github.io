@@ -3841,7 +3841,7 @@ function renderPlanHost(){
   var items=planItemsFor(TODAY);
   if(!items){host.innerHTML="";return;}
   var rows=items.map(function(it){
-    var did=planItemDone(it.stream);
+    var did=planItemDone(it.stream,it.file);
     return '<a class="planrow'+(did?" pdone":"")+'" href="d/'+esc(it.file)+'">'+
       '<span class="pdot">'+(did?I.check:"")+'</span>'+
       '<span class="pnm">'+esc(it.title)+'</span>'+
@@ -3849,7 +3849,9 @@ function renderPlanHost(){
   }).join("");
   host.innerHTML='<div class="card"><div class="sectlbl" style="margin:0 0 8px">Today&rsquo;s plan</div>'+rows+'</div>';
 }
-function planItemDone(stream){
+function planItemDone(stream,file){
+  var slot=file?String(file).replace(/\.html$/,""):null;
+  if(slot&&S.sessions.some(function(s){return s.slot===slot;}))return true;
   if(stream==="lift")return S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";});
   var want=stream==="cardio"?/^(Walk|Easy|Intervals)/i:(stream==="pilates"?/^Pilates session/i:/^Mobility session/i);
   return S.sessions.some(function(s){return s.date===TODAY&&s.type==="activity"&&want.test(s.activity||"");});
@@ -8637,7 +8639,7 @@ function todayLogHTML(){
   var rows="";
   items.forEach(function(s){
     var ic,name,cap;
-    if(s.type==="lift"){ic=I.dumbbell;name=(s.dayLetter==="Gen"?"Custom workout":"Day "+s.dayLetter+" strength");var n=0;s.entries.forEach(function(e){n+=e.sets.length;});cap=n+' sets &middot; '+mmss(s.durationSec)+(s.rpe?' &middot; RPE '+s.rpe:'');}
+    if(s.type==="lift"){ic=I.dumbbell;name=(s.dayLetter==="Gen"?"Custom workout":(s.dayLetter?"Day "+s.dayLetter+" strength":(esc(s.activity||"Strength"))));var n=0;(s.entries||[]).forEach(function(e){n+=((e&&e.sets)||[]).length;});cap=n+' sets &middot; '+mmss(s.durationSec)+(s.rpe?' &middot; RPE '+s.rpe:'');}
     else if(s.type==="run"&&!((s.distanceMi||0)>0)){ic=I.run;name="Cardio";cap=mmss(s.durationSec||0)+' &middot; no distance recorded';}
     else if(s.type==="run"){ic=I.run;name="Easy run";cap=(s.distanceMi||0)+' mi'+(s.paceSecPerMi?' &middot; '+mmss(s.paceSecPerMi)+'/mi':'')+(s.rpe?' &middot; '+esc(s.rpe):'');}
     else{ic=(s.activity==="Walk")?I.run:I.bolt;name=esc(s.activity||"Workout");cap=Math.round((s.durationSec||0)/60)+' min';}
