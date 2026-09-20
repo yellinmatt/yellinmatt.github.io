@@ -1731,7 +1731,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v25.1";
+var VERSION="v25.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4673,6 +4673,7 @@ var ROUTINE_SEED={v:ROUTINE_V,name:"Full body",rN:3,order:[
   {exId:"kbswing", reps:15},
   {exId:"bandpulldown", reps:12},  /* 2026-09-20: was pullneg. */
   {exId:"deadbug", reps:10}]};
+var BLOCK_V=1;  /* one-time profile migration for the 2026-09-20 eight-week block. */
 var PROG_V=2;  /* 2 = 2026-09-20 eight-week block reseed of fullbody. Bump to reseed again. */
 var PROG_KEYS=["circuit","ppl","fullbody"];
 var PROG_DAYS={push:"Push",pull:"Pull",legs:"Legs"};
@@ -4718,6 +4719,13 @@ function theProgs(){
     S.progs.circuit.key="circuit";
     if(S.progs.circuit.restSec==null)S.progs.circuit.restSec=PROG_SEEDS.circuit.restSec;
     if(!S.progs.circuit.name)S.progs.circuit.name=PROG_SEEDS.circuit.name;
+    save();
+  }
+  if((S.profile.blockV||0)<BLOCK_V){
+    S.profile.programme="weights";
+    S.profile.programmeStart=TODAY;
+    S.profile.adjustable=true;
+    S.profile.blockV=BLOCK_V;
     save();
   }
   PROG_KEYS.forEach(function(k){
