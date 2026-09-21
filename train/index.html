@@ -1731,7 +1731,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v25.3";
+var VERSION="v25.4";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1775,6 +1775,7 @@ var LIB={
   benchdip:{name:"Bench dip",pattern:"h-push",equip:"BW",bw:true,bwl:0.50,diff:"beginner",cue:"hands on the edge, elbows straight back, shoulders down",q:"bench dip form"},
   dipbar:{name:"Parallel-bar dip",pattern:"h-push",equip:"BW",bw:true,bwl:1.00,diff:"advanced",cue:"lean slight forward, stop where the shoulder is comfortable",q:"parallel bar dip form"},
   ohextend:{name:"Overhead extension on a table edge",pattern:"isolation",equip:"BW",bw:true,bwl:0.50,diff:"intermediate",cue:"hands on the edge, upper arms beside the ears, hinge at the elbow only",q:"bodyweight overhead triceps extension"},
+  dbohext:{name:"DB overhead triceps extension",pattern:"isolation",equip:"DB",diff:"beginner",cue:"seated, one dumbbell in both hands, elbows by the ears, lower behind the head, press up",q:"seated dumbbell overhead triceps extension form"},  /* 2026-09-21: the plan names this; the day pages serve it in place of the table-edge version. */
   pushnarrowhigh:{name:"Close-grip push-up, hands raised",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on a chair, elbows brush the ribs",q:"elevated close grip push up"},
   pushkneenarrow:{name:"Knee close-grip push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down is still a push-up, elbows in",q:"knee close grip push up"},
   ringcurl:{name:"Bodyweight curl on a strap",pattern:"isolation",equip:"BW",bw:true,bwl:0.55,diff:"intermediate",cue:"elbows fixed and high, curl yourself up",q:"bodyweight bicep curl strap"},
@@ -3863,9 +3864,15 @@ function loadPlan(){
   if(PLAN_TRIED)return;PLAN_TRIED=true;
   try{
     fetch("d/plan.json",{cache:"no-cache"}).then(function(r){return r.ok?r.json():null;})
-      .then(function(j){if(j){PLAN_CACHE=j;renderPlanHost();}}).catch(function(){});
+      .then(function(j){if(j){PLAN_CACHE=j;renderPlanHost();
+        var lv=document.getElementById("v-lift"); if(lv&&lv.classList.contains("on")&&planLiftToday())renderLift();}}).catch(function(){});
   }catch(e){}
 }
+var LIFT_OWN=false;
+function planLiftToday(){var it=planItemsFor(TODAY);if(!it)return null;
+  for(var i=0;i<it.length;i++)if(it[i].stream==="lift")return it[i];return null;}
+function openLiftToday(){var it=planLiftToday();if(it){location.href="d/"+it.file;return;}show("lift");}
+function liftOwn(){LIFT_OWN=true;renderLift();}
 function renderToday(){
   refreshDate();
   var plan=todayPlan(),done=isDone(TODAY),liftDone=S.sessions.some(function(s){return s.date===TODAY&&s.type==="lift";}),runDone=!!S.runs[TODAY]||S.sessions.some(function(s){return s.date===TODAY&&s.type==="run";}),wp=wkProgress(),resuming=(S.wk[TODAY]&&wp.done>0&&!liftDone);
@@ -3890,7 +3897,7 @@ function renderToday(){
           '';
       })()+
       (liftDone?'<div class="done-pill">'+I.check+' Session complete</div>':
-        '<button class="big-start" onclick="show(\'lift\')">'+I.dumbbell+' Open Strength</button>')+heroTailHTML()+'</div>';
+        '<button class="big-start" onclick="openLiftToday()">'+I.dumbbell+' Open Strength</button>')+heroTailHTML()+'</div>';
   }else if(plan.type==="run"){
     hero='<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
       '<div class="lbl">Today &middot; Run</div><h2>'+esc(plan.label||"Easy")+' run &middot; '+plan.dist+' mi</h2>'+
@@ -5277,6 +5284,16 @@ function renderLift(){
     barLapsedLine()+
   '</div>';
   h+=strengthWeekCardHTML();
+  var _pl=(!LIFT_OWN)?planLiftToday():null;
+  if(!PLAN_TRIED)loadPlan();
+  if(_pl){
+    h+='<div class="card" id="lifthandoff"><div class="sectlbl" style="margin:0 0 6px">Today&rsquo;s session</div>'+
+      '<div style="font-size:17px;font-weight:700;margin-bottom:12px">'+esc(_pl.title.replace(/^Lift - /,""))+'</div>'+
+      '<a class="big-start" style="text-decoration:none" href="d/'+esc(_pl.file)+'">'+I.dumbbell+' Open today&rsquo;s session</a>'+
+      '<button onclick="liftOwn()" style="display:block;width:100%;min-height:44px;margin-top:8px;border-radius:12px;'+
+      'background:none;border:1px dashed var(--line-2);color:var(--sub);font:inherit;font-size:14px;font-weight:600">Train without the plan</button></div>';
+  }
+  h+='<div id="appsession"'+(_pl?' style="display:none"':'')+'>';
   h+='<button class="progctl" onclick="progSheet()" aria-label="Change programme"'+
      ' style="display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;'+
      'text-align:left;margin:2px 0 12px;min-height:44px;padding:10px 14px;border-radius:12px;'+
@@ -5293,6 +5310,7 @@ function renderLift(){
     '<button onclick="removeRound()" aria-label="Remove a round">&minus; round</button>'+
     '<button onclick="addRound()" aria-label="Add a round">+ round</button></div>';
   h+='<div class="rndctl"><button onclick="addMovementSheet()" aria-label="Add a movement to today">+ movement</button></div>';
+  h+='</div>';
   h+=pastCardHTML("lift");
   h+=movementHTML();
   document.getElementById("v-lift").innerHTML=h;
