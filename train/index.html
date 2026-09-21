@@ -145,7 +145,7 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .sdrow .sdi{display:flex;width:30px;height:30px;flex:none;border-radius:9px;background:var(--surface);color:var(--accent);align-items:center;justify-content:center}
 .sdrow .sdi svg{width:15px;height:15px}
 .sdrow .sdt{flex:1;min-width:0}
-.sdrow .sdt b{display:block;font-size:13px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sdrow .sdt b{display:block;font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;white-space:normal;overflow-wrap:break-word}
 .sdrow .sdt span{display:block;font-size:13px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sdrow .sda{flex:none;color:var(--faint);display:flex}
 .sesday.gd .sdrow{border-color:var(--good);background:var(--good-tint)}
@@ -1731,7 +1731,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v25.2";
+var VERSION="v25.3";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -4678,7 +4678,7 @@ var PROG_V=2;  /* 2 = 2026-09-20 eight-week block reseed of fullbody. Bump to re
 var PROG_KEYS=["circuit","ppl","fullbody"];
 var PROG_DAYS={push:"Push",pull:"Pull",legs:"Legs"};
 var PROG_SEEDS={
-  circuit:{v:PROG_V,key:"circuit",name:"Circuit",rN:3,restSec:45,
+  circuit:{v:ROUTINE_V,key:"circuit",name:"Circuit",rN:3,restSec:45,
     blurb:"Five movements, three laps, short rest. The one that survives a bad week.",
     order:[{exId:"bwsquat",reps:15},{exId:"pushup",reps:10},{exId:"kbswing",reps:15},
            {exId:"bandpulldown",reps:12},{exId:"deadbug",reps:10}]},
@@ -4760,8 +4760,10 @@ function theRoutine(){
             order:P.days[dk],_p:P,_day:dk};
   }
   if(!S.routine||S.routine.v!==ROUTINE_V){
-    S.routine=JSON.parse(JSON.stringify(ROUTINE_SEED));
+    S.routine=JSON.parse(JSON.stringify(PROG_SEEDS.circuit));
+    S.routine.v=ROUTINE_V;
     S.routine.started=TODAY;
+    S.progs.circuit=S.routine;
     save();
   }
   if(!S.routine.holdFix){
