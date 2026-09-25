@@ -198,6 +198,7 @@ function logSession(rec,date){
   var S=loadS(); if(!S||!S.sessions) return false;
   S.sessions=S.sessions||[]; S.done=S.done||{};
   S.sessions=S.sessions.filter(function(x){return x.id!==rec.id;});
+  if(!rec.draft) S.sessions.filter(function(x){return x&&x.draft&&x.slot===rec.slot;}).forEach(function(x){tombId(S,x.id);});
   S.sessions.push(rec); S.done[date]=true;
   try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return false;}
   try{ if(window.TrainSyncAuto && typeof window.TrainSyncAuto.now==="function") window.TrainSyncAuto.now(); }catch(e){}
@@ -213,6 +214,55 @@ function noStore(){
   var app=document.querySelector(".app"); app.insertBefore(w,app.children[1]);
   [].forEach.call(document.querySelectorAll(".cta"),function(b){if(!b.classList.contains("ghost"))b.disabled=true;});
 }
+function tombId(S,id){S.deleted=S.deleted||[];S.deleted.push({id:String(id),at:Date.now()});
+  S.sessions=(S.sessions||[]).filter(function(x){return !x||String(x.id)!==String(id);});}
+function isDead(S,id){return (S.deleted||[]).some(function(t){return t&&String(t.id)===String(id);});}
+function localDay(ts){var d=new Date(ts),q=function(n){return (n<10?"0":"")+n;};
+  return d.getFullYear()+"-"+q(d.getMonth()+1)+"-"+q(d.getDate());}
+function draftFrom(slotId,slotDate,p,focus){
+  var done=p.done||{}, keys=Object.keys(done); if(!keys.length) return null;
+  var by={},ids=[],rounds={},ts=null;
+  keys.forEach(function(k){var ri=k.split(":"),r=+ri[0],i=+ri[1],c=done[k];
+    var cell=(c&&typeof c==="object")?c:((p.cells&&p.cells[r]&&p.cells[r][i])||(p.order&&p.order[i])||{});
+    var id=cell.exId||(p.order&&p.order[i]&&p.order[i].exId); if(!id) return;
+    if(c&&c.ts&&(ts==null||c.ts<ts)) ts=c.ts;
+    rounds[r]=1;
+    if(!by[id]){by[id]=[];ids.push(id);}
+    by[id].push({weightLb:+cell.w||0,reps:+cell.reps||0,completed:true});});
+  if(!ids.length) return null;
+  var meta={};(p.order||[]).forEach(function(o){if(o&&!meta[o.exId])meta[o.exId]=o;});
+  var entries=ids.map(function(id){var o=meta[id]||{};
+    return {exerciseId:id,targetLow:o.lo!=null?o.lo:null,targetHigh:o.hi!=null?o.hi:null,
+      targetWeightLb:o.w!=null?o.w:null,sets:by[id],bw:!!o.bw,unit:o.unit||"reps"};});
+  var date=ts?localDay(ts):slotDate;
+  return {id:slotId+"~draft"+(p.draftRev||0),slot:slotId,date:date,type:"lift",
+    activity:"Full body"+(focus?", "+focus:""),durationSec:0,notes:"day-page autosave",
+    rounds:Object.keys(rounds).length,focus:focus||null,entries:entries,warmup:!!p.wu,
+    feel:null,twinge:false,draft:true};
+}
+function putDraft(S,rec){
+  if(!rec) return false;
+  if(S.sessions.some(function(x){return x&&x.slot===rec.slot&&!x.draft;})) return false;
+  if(isDead(S,rec.id)||isDead(S,rec.slot)) return false;   /* he deleted this session once; never resurrect it */
+  var prev=S.sessions.filter(function(x){return x&&x.id===rec.id;})[0];
+  if(prev&&JSON.stringify(prev)===JSON.stringify(rec)) return false;
+  S.sessions=S.sessions.filter(function(x){return !x||x.id!==rec.id;});
+  S.sessions.push(rec); S.done=S.done||{}; S.done[rec.date]=true; return true;
+}
+function syncNow(){try{ if(window.TrainSyncAuto&&typeof window.TrainSyncAuto.now==="function") window.TrainSyncAuto.now(); }catch(e){}}
+function sweepOrphans(){
+  var S=loadS(); if(!S||!S.sessions) return 0; var n=0;
+  for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
+    if(!k||k.indexOf("trainday.")!==0||k.slice(-5)!==".lift") continue;
+    var slotDate=k.slice(9,-5), p=null;
+    if(Date.now()-Date.parse(slotDate+"T12:00:00")>30*86400000) continue;   /* a month is rescue; older is archaeology */
+    try{p=JSON.parse(localStorage.getItem(k));}catch(e){}
+    if(!p||!p.done) continue;
+    if(putDraft(S,draftFrom(slotDate+"-lift",slotDate,p,p.focus||null))) n++;}
+  if(n){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return 0;} syncNow();}
+  return n;
+}
+try{ sweepOrphans(); }catch(e){}
 function markDone(msg){
   var d=document.getElementById("doneflag");
   d.innerHTML='<div class="done-pill">'+"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12.5l4.2 4.2L19 7\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"+' '+msg+'</div>';
