@@ -9,7 +9,7 @@
      his health data. frame-src is nocookie only, img-src excludes ytimg so nothing reaches Google
      until he taps play, and connect-src carries self for the sync client plus the Worker. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; frame-src https://www.youtube-nocookie.com; connect-src 'self' https://train-sync.yellinmatt.workers.dev; form-action 'none'; base-uri 'none'">
-<title>Lift, pull focus  2026-10-07</title>
+<title>Lift, push focus</title>
 <style>
 :root{--bg:#0B0D11;--surface:#14181E;--surface-2:#1E242C;--ink:#F3F5F8;--sub:#9BA3AF;--faint:#6B7079;
 --white:#FFF;--line:#242A32;--line-2:#30363F;--accent:#FF5C3A;--accent-tint:#3A1E17;--good:#34D399;
@@ -165,6 +165,9 @@ font:inherit;font-weight:700;display:flex;align-items:center;justify-content:cen
 text-align:right;padding:0 13px;font-size:19px;font-weight:700;border:1px solid transparent}
 .fld:focus{outline:none;border-color:var(--accent)}
 .pace{font-size:13px;color:var(--faint);text-align:right;margin-top:10px;min-height:16px}
+.planbtn{flex:none;min-height:44px;padding:0 14px;border-radius:12px;border:1px solid var(--line-2);
+background:var(--surface-2);color:var(--ink);font-size:14px;font-weight:700;margin-top:6px}
+.nextup{margin-top:10px;font-size:14px;color:var(--sub);line-height:1.45;text-align:center}
 @media (min-width:700px){
   .app{max-width:820px;padding:0 28px}
   .head .title{font-size:34px}
@@ -185,10 +188,21 @@ text-align:right;padding:0 13px;font-size:19px;font-weight:700;border:1px solid 
   .sheet{left:0;right:0;margin:0 auto;bottom:24px;width:600px;max-width:calc(100% - 48px);border-radius:20px;padding:18px 26px 24px}
 }</style>
 <script>
-var SLOT="2026-10-07", PAGE="lift";
-var SLOTID=SLOT+"-"+PAGE;
 function today(){var d=new Date(),p=function(n){return (n<10?"0":"")+n;};
   return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
+var PAGE="push";
+var SLOT=(function(){
+  var t=today(), y=new Date(Date.now()-86400000), p=function(n){return (n<10?"0":"")+n;};
+  var yd=y.getFullYear()+"-"+p(y.getMonth()+1)+"-"+p(y.getDate());
+  try{ var raw=localStorage.getItem("trainday."+yd+"."+PAGE), pr=raw?JSON.parse(raw):null;
+    var S0=JSON.parse(localStorage.getItem("train_v2")||"null");
+    var logged=S0&&S0.sessions&&S0.sessions.some(function(x){return x&&x.slot===yd+"-"+PAGE&&!x.draft;});
+    if(pr&&pr.done&&Object.keys(pr.done).length&&!logged){
+      var ts=0;for(var k in pr.done){var c=pr.done[k];if(c&&c.ts&&c.ts>ts)ts=c.ts;}
+      if(ts&&Date.now()-ts<18*3600000) return yd; }
+  }catch(e){}
+  return t; })();
+var SLOTID=SLOT+"-"+PAGE;
 var I={"check":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12.5l4.2 4.2L19 7\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","chevD":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M6 9l6 6 6-6\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>","play":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M7 5l12 7-12 7V5Z\" fill=\"currentColor\"/></svg>"};
 
 var LS="train_v2";
@@ -253,19 +267,21 @@ function syncNow(){try{ if(window.TrainSyncAuto&&typeof window.TrainSyncAuto.now
 function sweepOrphans(){
   var S=loadS(); if(!S||!S.sessions) return 0; var n=0;
   for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);
-    if(!k||k.indexOf("trainday.")!==0||k.slice(-5)!==".lift") continue;
-    var slotDate=k.slice(9,-5), p=null;
+    if(!k||k.indexOf("trainday.")!==0) continue;
+    var km=/^trainday\.(\d{4}-\d{2}-\d{2})\.(lift|push|pull|legs)$/.exec(k); if(!km) continue;
+    var slotDate=km[1], sfx=km[2], p=null;
     if(Date.now()-Date.parse(slotDate+"T12:00:00")>30*86400000) continue;   /* a month is rescue; older is archaeology */
     try{p=JSON.parse(localStorage.getItem(k));}catch(e){}
     if(!p||!p.done) continue;
-    if(putDraft(S,draftFrom(slotDate+"-lift",slotDate,p,p.focus||null))) n++;}
+    if(sfx!=="lift"&&slotDate===SLOT&&sfx===PAGE) continue;   /* the session open on this page autosaves itself */
+    if(putDraft(S,draftFrom(slotDate+"-"+sfx,slotDate,p,p.focus||(sfx!=="lift"?sfx:null)))) n++;}
   if(n){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return 0;} syncNow();}
   return n;
 }
 try{ sweepOrphans(); }catch(e){}
 function markDone(msg){
   var d=document.getElementById("doneflag");
-  d.innerHTML='<div class="done-pill">'+"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12.5l4.2 4.2L19 7\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"+' '+msg+'</div>';
+  d.innerHTML='<div class="done-pill">'+"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M5 12.5l4.2 4.2L19 7\" stroke=\"currentColor\" stroke-width=\"2.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg>"+' '+msg.split('<div')[0]+'</div>'+(msg.indexOf('<div')>=0?msg.slice(msg.indexOf('<div')):'');
   var c=document.getElementById("ctas"); if(c) c.style.display="none";
 }
 function openSheet(html){
@@ -294,10 +310,10 @@ document.addEventListener("DOMContentLoaded",function(){ if(!haveStore()) noStor
 </head><body>
 <div class="app">
 <div class="head"><div>
-  <div class="date">Wednesday, October 7</div>
-  <div class="title">Full body, pull focus</div>
+  <div class="date" id="ldate"></div>
+  <div class="title">Full body, push focus</div>
   <div class="sub" id="meta"></div>
-</div></div>
+</div><button class="planbtn" id="planbtn" aria-label="Edit the saved plan for this workout">Edit plan</button></div>
 
 <div id="rounds"></div>
 
@@ -316,13 +332,42 @@ document.addEventListener("DOMContentLoaded",function(){ if(!haveStore()) noStor
 <div id="doneflag"></div>
 
 <script>
-var RX_CEIL=8, RX_FLOOR=1, REST=105, FOCUS="pull";
-var W={rN:3, order:[{"exId":"csrow","name":"Chest-supported DB row","cue":"no lower-back load, retract","reps":8,"lo":8,"hi":12,"upTo":null,"start":20,"ladder":"db","band":false,"w":0,"q":"chest supported dumbbell row","vid":"vmX58YYK3-8","bw":false,"unit":"reps"},{"exId":"dbbench","name":"DB bench press","cue":"flat bench, elbows ~45, full ROM, feet down","reps":8,"lo":8,"hi":12,"upTo":null,"start":20,"ladder":"db","band":false,"w":0,"q":"dumbbell bench press form","vid":null,"bw":false,"unit":"reps"},{"exId":"bandpulldown","name":"Band lat pulldown","cue":"pull to collarbone, no shrug","reps":12,"lo":12,"hi":15,"upTo":null,"start":0,"ladder":null,"band":true,"w":0,"q":"band lat pulldown form","vid":"BEHY9CwiWPI","bw":true,"unit":"reps"},{"exId":"rdl","name":"DB Romanian deadlift","cue":"chin tucked, hips back, soft knees","reps":10,"lo":10,"hi":15,"upTo":null,"start":20,"ladder":"db","band":false,"w":0,"q":"dumbbell romanian deadlift form","vid":"hQgFixeXdZo","bw":false,"unit":"reps"},{"exId":"pullover","name":"DB straight-arm pullover","cue":"supine, head supported, arms long, stretch the lat","reps":12,"lo":12,"hi":15,"upTo":null,"start":10,"ladder":"db","band":false,"w":0,"q":"dumbbell straight arm pullover form","vid":null,"bw":false,"unit":"reps"},{"exId":"bandcurl","name":"Band biceps curl","cue":"stand on the band, elbows pinned to the ribs, slow on the way down","reps":10,"lo":10,"hi":15,"upTo":2,"start":0,"ladder":null,"band":true,"w":0,"q":"resistance band bicep curl form","vid":null,"bw":true,"unit":"reps"},{"exId":"dbohext","name":"DB overhead triceps extension","cue":"seated, one dumbbell in both hands, elbows by the ears, lower behind the head, press up","reps":12,"lo":12,"hi":15,"upTo":2,"start":10,"ladder":"db","band":false,"w":0,"q":"seated dumbbell overhead triceps extension form","vid":null,"bw":false,"unit":"reps"}], done:{}, wu:false, alts:{"csrow":[{"exId":"row1","name":"1-arm DB row","cue":"flat back, elbow to hip","bw":false,"unit":"reps","band":false,"vid":"DMo3HJoawrU","ladder":"db"},{"exId":"bandrow","name":"Band seated row","cue":"squeeze blades, tall chest","bw":true,"unit":"reps","band":true,"vid":"5gMOQKL-SLM","ladder":null},{"exId":"invrow","name":"Inverted row","cue":"body straight, chest to bar","bw":true,"unit":"reps","band":false,"vid":"KOaCM1HMwU0","ladder":null},{"exId":"invrowhigh","name":"Inverted row, bar high","cue":"bar at hip height, body straight, chest to the bar","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"invrowwide","name":"Wide inverted row","cue":"hands wide, pull to the sternum, squeeze the mid-back","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"invrowfeet","name":"Feet-elevated inverted row","cue":"feet up on a chair, body level, full pull","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"invrowone","name":"One-arm inverted row","cue":"one hand on the bar, hips square, no twisting","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null}],"dbbench":[{"exId":"benchdip","name":"Bench dip","cue":"hands on the edge, elbows straight back, shoulders down","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"dipbar","name":"Parallel-bar dip","cue":"lean slight forward, stop where the shoulder is comfortable","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pushnarrowhigh","name":"Close-grip push-up, hands raised","cue":"hands on a chair, elbows brush the ribs","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pushkneenarrow","name":"Knee close-grip push-up","cue":"knees down is still a push-up, elbows in","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"floorpress","name":"DB floor press","cue":"elbows ~45, floor caps ROM (shoulder-safe)","bw":false,"unit":"reps","band":false,"vid":"riT31sLb8HU","ladder":"db"},{"exId":"barbench","name":"Barbell bench press","cue":"shoulder blades pinned, bar to sternum, no bounce","bw":false,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"kbfloorpress","name":"Kettlebell close-grip floor press","cue":"bell on the chest, elbows tight to the ribs, press straight up -- triceps do this one","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"kb"},{"exId":"pushup","name":"Push-up","cue":"hollow body, elbows back","bw":true,"unit":"reps","band":false,"vid":"IODxDxX7oi4","ladder":null}],"bandpulldown":[{"exId":"pullarcher","name":"Archer pull-up","cue":"pull to one hand, the other arm stays long","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"towelhang","name":"Towel hang","cue":"support grip only, hang until the hands say stop","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pullover","name":"DB straight-arm pullover","cue":"supine, head supported, arms long, stretch the lat","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"pullup","name":"Pull-up (assisted)","cue":"full hang, no neck cranking","bw":true,"unit":"reps","band":false,"vid":"B_VkNQS5YLs","ladder":null},{"exId":"deadhang","name":"Dead hang","cue":"decompress, grip, shoulder reset","bw":true,"unit":"s","band":false,"vid":"rOCrfoiYVu0","ladder":null},{"exId":"pullneg","name":"Pull-up negative","cue":"jump to the top, lower for five seconds, repeat","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pullband","name":"Band-assisted pull-up","cue":"foot in the band, full hang to chin over the bar","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"chinup","name":"Chin-up","cue":"palms toward you, full hang, chest to the bar","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null}],"rdl":[{"exId":"slhipthrust","name":"Single-leg hip thrust","cue":"shoulders on the couch, ribs down, drive to level","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"slidecurl","name":"Sliding leg curl","cue":"heels on a towel, hips up, pull them in","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"slidecurl2","name":"Sliding leg curl, both legs","cue":"hips stay up the whole way","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"backext","name":"Prone back extension","cue":"pelvis and thighs stay down, lift the chest a few inches","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"slrdl","name":"Single-leg RDL","cue":"hips square, slow and controlled","bw":false,"unit":"reps","band":false,"vid":"Zfr6wizR8rs","ladder":"db"},{"exId":"hipthrust","name":"DB hip thrust","cue":"ribs down, squeeze glutes, spare the back","bw":false,"unit":"reps","band":false,"vid":"29OfN4ztW_g","ladder":"db"},{"exId":"glutebridge","name":"Glute bridge","cue":"posterior tilt, pause at top","bw":true,"unit":"reps","band":false,"vid":"tl6xvm4-Qk0","ladder":null},{"exId":"kbswing","name":"Kettlebell swing","cue":"hips snap, arms are rope, the bell floats -- never a squat and never a front raise","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"kb"}],"pullover":[{"exId":"pullarcher","name":"Archer pull-up","cue":"pull to one hand, the other arm stays long","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"towelhang","name":"Towel hang","cue":"support grip only, hang until the hands say stop","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pullup","name":"Pull-up (assisted)","cue":"full hang, no neck cranking","bw":true,"unit":"reps","band":false,"vid":"B_VkNQS5YLs","ladder":null},{"exId":"bandpulldown","name":"Band lat pulldown","cue":"pull to collarbone, no shrug","bw":true,"unit":"reps","band":true,"vid":"BEHY9CwiWPI","ladder":null},{"exId":"deadhang","name":"Dead hang","cue":"decompress, grip, shoulder reset","bw":true,"unit":"s","band":false,"vid":"rOCrfoiYVu0","ladder":null},{"exId":"pullneg","name":"Pull-up negative","cue":"jump to the top, lower for five seconds, repeat","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"pullband","name":"Band-assisted pull-up","cue":"foot in the band, full hang to chin over the bar","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"chinup","name":"Chin-up","cue":"palms toward you, full hang, chest to the bar","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null}],"bandcurl":[{"exId":"ohextend","name":"Overhead extension on a table edge","cue":"hands on the edge, upper arms beside the ears, hinge at the elbow only","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"dbohext","name":"DB overhead triceps extension","cue":"seated, one dumbbell in both hands, elbows by the ears, lower behind the head, press up","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"ringcurl","name":"Bodyweight curl on a strap","cue":"elbows fixed and high, curl yourself up","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"dbcurl","name":"DB biceps curl","cue":"elbows pinned to ribs, no swing, slow lower","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"hammercurl","name":"DB hammer curl","cue":"neutral grip, elbows still, brachialis and forearm","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"facepull","name":"Band face pull","cue":"elbows high, external rotate (shoulder health)","bw":true,"unit":"reps","band":true,"vid":"CSP7YpPv3ds","ladder":null},{"exId":"pullapart","name":"Band pull-apart","cue":"straight arms, squeeze the shoulder blades, chin tucked","bw":true,"unit":"reps","band":true,"vid":null,"ladder":null},{"exId":"latraise","name":"DB lateral raise","cue":"soft elbows, lead with the elbow, stop at shoulder height, no shrug","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"}],"dbohext":[{"exId":"ohextend","name":"Overhead extension on a table edge","cue":"hands on the edge, upper arms beside the ears, hinge at the elbow only","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"ringcurl","name":"Bodyweight curl on a strap","cue":"elbows fixed and high, curl yourself up","bw":true,"unit":"reps","band":false,"vid":null,"ladder":null},{"exId":"dbcurl","name":"DB biceps curl","cue":"elbows pinned to ribs, no swing, slow lower","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"hammercurl","name":"DB hammer curl","cue":"neutral grip, elbows still, brachialis and forearm","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"},{"exId":"bandcurl","name":"Band biceps curl","cue":"stand on the band, elbows pinned to the ribs, slow on the way down","bw":true,"unit":"reps","band":true,"vid":null,"ladder":null},{"exId":"facepull","name":"Band face pull","cue":"elbows high, external rotate (shoulder health)","bw":true,"unit":"reps","band":true,"vid":"CSP7YpPv3ds","ladder":null},{"exId":"pullapart","name":"Band pull-apart","cue":"straight arms, squeeze the shoulder blades, chin tucked","bw":true,"unit":"reps","band":true,"vid":null,"ladder":null},{"exId":"latraise","name":"DB lateral raise","cue":"soft elbows, lead with the elbow, stop at shoulder height, no shrug","bw":false,"unit":"reps","band":false,"vid":null,"ladder":"db"}]}};
+var RX_CEIL=8, RX_FLOOR=1, REST=105, FOCUS="push";
+var BASE=[{"exId":"dbbench","reps":6,"lo":6,"hi":10,"own":true,"t":{"dbbench":{"lb":20,"reps":10,"top":1,"at":"promoted-2026-09-27"}}},{"exId":"revlunge","reps":10,"lo":10,"hi":15,"own":true,"upTo":3,"t":{"revlunge":{"lb":20,"reps":10,"top":0,"at":"promoted-2026-09-27"}}},{"exId":"row1","reps":8,"lo":8,"hi":12,"own":true,"upTo":3,"t":{"row1":{"lb":20,"reps":8,"top":0,"at":"promoted-2026-09-27"}}},{"exId":"rdl","reps":10,"lo":10,"hi":15,"own":true,"upTo":3,"t":{"rdl":{"lb":20,"reps":10,"top":0,"at":"promoted-2026-09-27"}}},{"exId":"neutralpress","reps":8,"lo":8,"hi":12,"own":true,"upTo":3,"t":{"inclinepress":{"lb":20,"reps":11,"top":0,"at":"promoted-2026-09-27"}}},{"exId":"dbcurl","reps":15,"lo":15,"hi":20,"own":true,"upTo":2,"t":{"dbcurl":{"lb":10,"reps":16,"top":0,"at":"promoted-2026-09-27"}}},{"exId":"abwheel","reps":5,"lo":5,"hi":10,"own":true,"upTo":2,"t":{"abwheel":{"lb":null,"reps":5,"top":0,"at":"promoted-2026-09-27"}}}], LIBM={"hspuwall":{"n":"Wall handstand push-up","c":"heels on the wall, head to the floor, pain-free range only","e":"BW","bw":true,"u":"reps","q":"wall handstand push up form","p":"v-push","v":null},"sissy":{"n":"Sissy squat","c":"knees travel forward, hips stay extended, hold something","e":"BW","bw":true,"u":"reps","q":"sissy squat form","p":"squat","v":null},"slhipthrust":{"n":"Single-leg hip thrust","c":"shoulders on the couch, ribs down, drive to level","e":"BW","bw":true,"u":"reps","q":"single leg hip thrust form","p":"hinge","v":null},"slidecurl":{"n":"Sliding leg curl","c":"heels on a towel, hips up, pull them in","e":"BW","bw":true,"u":"reps","q":"slider hamstring curl form","p":"hinge","v":null},"slidecurl2":{"n":"Sliding leg curl, both legs","c":"hips stay up the whole way","e":"BW","bw":true,"u":"reps","q":"towel hamstring curl beginner","p":"hinge","v":null},"benchdip":{"n":"Bench dip","c":"hands on the edge, elbows straight back, shoulders down","e":"BW","bw":true,"u":"reps","q":"bench dip form","p":"h-push","v":null},"dipbar":{"n":"Parallel-bar dip","c":"lean slight forward, stop where the shoulder is comfortable","e":"BW","bw":true,"u":"reps","q":"parallel bar dip form","p":"h-push","v":null},"ohextend":{"n":"Overhead extension on a table edge","c":"hands on the edge, upper arms beside the ears, hinge at the elbow only","e":"BW","bw":true,"u":"reps","q":"bodyweight overhead triceps extension","p":"isolation","v":null},"dbohext":{"n":"DB overhead triceps extension","c":"seated, one dumbbell in both hands, elbows by the ears, lower behind the head, press up","e":"DB","bw":false,"u":"reps","q":"seated dumbbell overhead triceps extension form","p":"isolation","v":null},"pushnarrowhigh":{"n":"Close-grip push-up, hands raised","c":"hands on a chair, elbows brush the ribs","e":"BW","bw":true,"u":"reps","q":"elevated close grip push up","p":"h-push","v":null},"pushkneenarrow":{"n":"Knee close-grip push-up","c":"knees down is still a push-up, elbows in","e":"BW","bw":true,"u":"reps","q":"knee close grip push up","p":"h-push","v":null},"ringcurl":{"n":"Bodyweight curl on a strap","c":"elbows fixed and high, curl yourself up","e":"BW","bw":true,"u":"reps","q":"bodyweight bicep curl strap","p":"isolation","v":null},"abwheel":{"n":"Ab roll-out","c":"ribs down, do not let the low back arch","e":"BW","bw":true,"u":"reps","q":"ab wheel rollout form","p":"core","v":null},"pullarcher":{"n":"Archer pull-up","c":"pull to one hand, the other arm stays long","e":"bar","bw":true,"u":"reps","q":"archer pull up form","p":"v-pull","v":null},"calfstand":{"n":"Single-leg calf raise","c":"off a step, full stretch at the bottom, pause at the top","e":"BW","bw":true,"u":"reps","q":"single leg calf raise off step","p":"squat","v":null},"calfstand2":{"n":"Calf raise","c":"both feet, hand on a wall, full stretch","e":"BW","bw":true,"u":"reps","q":"standing calf raise bodyweight","p":"squat","v":null},"calfseated":{"n":"Bent-knee calf raise","c":"kneeling or seated, knee bent about 90, this one is the soleus","e":"BW","bw":true,"u":"reps","q":"seated calf raise bodyweight","p":"squat","v":null},"calfpause":{"n":"Paused calf raise","c":"three seconds in the stretch before every rep","e":"BW","bw":true,"u":"reps","q":"paused calf raise","p":"squat","v":null},"backext":{"n":"Prone back extension","c":"pelvis and thighs stay down, lift the chest a few inches","e":"BW","bw":true,"u":"reps","q":"prone back extension form","p":"hinge","v":null},"towelhang":{"n":"Towel hang","c":"support grip only, hang until the hands say stop","e":"bar","bw":true,"u":"reps","q":"towel hang grip training","p":"v-pull","v":null},"goblet":{"n":"Goblet squat","c":"chest tall, sit between hips","e":"DB","bw":false,"u":"reps","q":"goblet squat proper form","p":"squat","v":"CkFzgR55gho"},"revlunge":{"n":"DB reverse lunge","c":"step back, front heel drives up","e":"DB","bw":false,"u":"reps","q":"dumbbell reverse lunge form","p":"squat","v":"sjlsISvHyZs"},"bulgarian":{"n":"Bulgarian split squat","c":"rear foot elevated, torso tall","e":"DB","bw":false,"u":"reps","q":"bulgarian split squat home form","p":"squat","v":"hPlKPjohFS0"},"stepup":{"n":"DB step-up","c":"full foot on step, no back-leg push","e":"DB","bw":false,"u":"reps","q":"dumbbell step up form","p":"squat","v":"aKj-6hgiViA"},"rdl":{"n":"DB Romanian deadlift","c":"chin tucked, hips back, soft knees","e":"DB","bw":false,"u":"reps","q":"dumbbell romanian deadlift form","p":"hinge","v":"hQgFixeXdZo"},"slrdl":{"n":"Single-leg RDL","c":"hips square, slow and controlled","e":"DB","bw":false,"u":"reps","q":"single leg romanian deadlift dumbbell","p":"hinge","v":"Zfr6wizR8rs"},"hipthrust":{"n":"DB hip thrust","c":"ribs down, squeeze glutes, spare the back","e":"DB","bw":false,"u":"reps","q":"dumbbell hip thrust form","p":"hinge","v":"29OfN4ztW_g"},"glutebridge":{"n":"Glute bridge","c":"posterior tilt, pause at top","e":"BW","bw":true,"u":"reps","q":"glute bridge exercise form","p":"hinge","v":"tl6xvm4-Qk0"},"floorpress":{"n":"DB floor press","c":"elbows ~45, floor caps ROM (shoulder-safe)","e":"DB","bw":false,"u":"reps","q":"dumbbell floor press form","p":"h-push","v":"riT31sLb8HU"},"dbbench":{"n":"DB bench press","c":"flat bench, elbows ~45, full ROM, feet down","e":"DB","bw":false,"u":"reps","q":"dumbbell bench press form","p":"h-push","v":null},"barbench":{"n":"Barbell bench press","c":"shoulder blades pinned, bar to sternum, no bounce","e":"bar","bw":false,"u":"reps","q":"barbell bench press form","p":"h-push","v":null},"dbcurl":{"n":"DB biceps curl","c":"elbows pinned to ribs, no swing, slow lower","e":"DB","bw":false,"u":"reps","q":"dumbbell biceps curl form","p":"isolation","v":null},"hammercurl":{"n":"DB hammer curl","c":"neutral grip, elbows still, brachialis and forearm","e":"DB","bw":false,"u":"reps","q":"dumbbell hammer curl form","p":"isolation","v":null},"bandcurl":{"n":"Band biceps curl","c":"stand on the band, elbows pinned to the ribs, slow on the way down","e":"band","bw":true,"u":"reps","q":"resistance band bicep curl form","p":"isolation","v":null},"kbswing":{"n":"Kettlebell swing","c":"hips snap, arms are rope, the bell floats -- never a squat and never a front raise","e":"KB","bw":false,"u":"reps","q":"kettlebell swing hardstyle form","p":"hinge","v":null},"kbfloorpress":{"n":"Kettlebell close-grip floor press","c":"bell on the chest, elbows tight to the ribs, press straight up -- triceps do this one","e":"KB","bw":false,"u":"reps","q":"kettlebell floor press form","p":"h-push","v":null},"kbsquat":{"n":"Kettlebell goblet squat","c":"bell at the chest, elbows inside the knees, sit between the hips","e":"KB","bw":false,"u":"reps","q":"kettlebell goblet squat form","p":"squat","v":null},"pushup":{"n":"Push-up","c":"hollow body, elbows back","e":"BW","bw":true,"u":"reps","q":"proper push up form","p":"h-push","v":"IODxDxX7oi4"},"inclinepress":{"n":"DB incline press","c":"45 incline, no elbow flare","e":"DB","bw":false,"u":"reps","q":"dumbbell incline press form","p":"h-push","v":"0f6-uCUKqgA"},"pullover":{"n":"DB straight-arm pullover","c":"supine, head supported, arms long, stretch the lat","e":"DB","bw":false,"u":"reps","q":"dumbbell straight arm pullover form","p":"v-pull","v":null},"farmcarry":{"n":"Farmer carry","c":"tall, ribs down, do not shrug","e":"DB","bw":false,"u":"s","q":"farmer carry form","p":"core","v":null},"feetpush":{"n":"Feet-elevated push-up","c":"harder press, no more load","e":"BW","bw":true,"u":"reps","q":"feet elevated push up","p":"h-push","v":"SKPab2YC8BE"},"kneelpress":{"n":"Half-kneeling DB press","c":"ribs down, no shrug, pain-free ROM","e":"DB","bw":false,"u":"reps","q":"half kneeling dumbbell press form","p":"v-push","v":"d3CRIDSCOhw"},"neutralpress":{"n":"Neutral-grip DB press","c":"neutral grip, shoulder-friendly","e":"DB","bw":false,"u":"reps","q":"neutral grip dumbbell shoulder press","p":"v-push","v":"LED1bhzkfLU"},"bandpress":{"n":"Band overhead press","c":"control the way down, ribs down, no neck jut","e":"band","bw":true,"u":"reps","q":"resistance band overhead press","p":"v-push","v":"Zli1UXH9ZeE"},"row1":{"n":"1-arm DB row","c":"flat back, elbow to hip","e":"DB","bw":false,"u":"reps","q":"one arm dumbbell row form","p":"h-pull","v":"DMo3HJoawrU"},"csrow":{"n":"Chest-supported DB row","c":"no lower-back load, retract","e":"DB","bw":false,"u":"reps","q":"chest supported dumbbell row","p":"h-pull","v":"vmX58YYK3-8"},"bandrow":{"n":"Band seated row","c":"squeeze blades, tall chest","e":"band","bw":true,"u":"reps","q":"resistance band seated row","p":"h-pull","v":"5gMOQKL-SLM"},"invrow":{"n":"Inverted row","c":"body straight, chest to bar","e":"bar","bw":true,"u":"reps","q":"inverted row home form","p":"h-pull","v":"KOaCM1HMwU0"},"pullup":{"n":"Pull-up (assisted)","c":"full hang, no neck cranking","e":"bar","bw":true,"u":"reps","q":"band assisted pull up form","p":"v-pull","v":"B_VkNQS5YLs"},"bandpulldown":{"n":"Band lat pulldown","c":"pull to collarbone, no shrug","e":"band","bw":true,"u":"reps","q":"band lat pulldown form","p":"v-pull","v":"BEHY9CwiWPI"},"deadhang":{"n":"Dead hang","c":"decompress, grip, shoulder reset","e":"bar","bw":true,"u":"s","q":"dead hang benefits how to","p":"v-pull","v":"rOCrfoiYVu0"},"deadbug":{"n":"Dead bug","c":"ribs down, low back flat","e":"BW","bw":true,"u":"reps","q":"dead bug exercise form","p":"core","v":"0XVbn86Btj0"},"sideplank":{"n":"Side plank","c":"stack hips, anti-lateral flexion","e":"BW","bw":true,"u":"s","q":"side plank proper form","p":"core","v":"pVh3zBMGrfA"},"suitcase":{"n":"Suitcase carry","c":"don't lean, brace hard","e":"DB","bw":false,"u":"s","q":"suitcase carry exercise","p":"core","v":"y-hn_Ha1-RE"},"pallof":{"n":"Pallof press","c":"resist rotation, ribs down","e":"band","bw":true,"u":"reps","q":"pallof press band form","p":"core","v":"y1fOBVtANdM"},"facepull":{"n":"Band face pull","c":"elbows high, external rotate (shoulder health)","e":"band","bw":true,"u":"reps","q":"band face pull form","p":"isolation","v":"CSP7YpPv3ds"},"pullapart":{"n":"Band pull-apart","c":"straight arms, squeeze the shoulder blades, chin tucked","e":"band","bw":true,"u":"reps","q":"band pull apart form","p":"isolation","v":null},"latraise":{"n":"DB lateral raise","c":"soft elbows, lead with the elbow, stop at shoulder height, no shrug","e":"DB","bw":false,"u":"reps","q":"dumbbell lateral raise form","p":"isolation","v":null},"ytw":{"n":"Prone Y-T-W raises","c":"thumbs up, low traps, no neck","e":"BW","bw":true,"u":"reps","q":"prone y t w raises shoulder","p":"isolation","v":"QdGTI4Lshg4"},"bwsquat":{"n":"Bodyweight squat","c":"sit between hips, chest tall, full depth","e":"BW","bw":true,"u":"reps","q":"bodyweight squat proper form","p":"squat","v":"gsNoPYwWXeM"},"bwsplit":{"n":"Split squat","c":"tall torso, front heel drives, controlled","e":"BW","bw":true,"u":"reps","q":"bodyweight split squat form","p":"squat","v":"hXpGSa5HYqY"},"bwlunge":{"n":"Reverse lunge","c":"step back, control the way down","e":"BW","bw":true,"u":"reps","q":"bodyweight reverse lunge form","p":"squat","v":"Ry-wqegeKlE"},"pikepush":{"n":"Pike push-up","c":"hips high, head between hands, pain-free","e":"BW","bw":true,"u":"reps","q":"pike push up form shoulders","p":"v-push","v":"lIZ_C4VJnmc"},"sglutebridge":{"n":"Single-leg glute bridge","c":"hips level, drive through the heel","e":"BW","bw":true,"u":"reps","q":"single leg glute bridge form","p":"hinge","v":"b1zTCyGJXCQ"},"birddog":{"n":"Bird dog","c":"reach long, no hip rock, brace","e":"BW","bw":true,"u":"reps","q":"bird dog exercise form","p":"core","v":"QABW99qPiNM"},"plank":{"n":"Front plank","c":"ribs down, squeeze glutes, straight line","e":"BW","bw":true,"u":"s","q":"front plank proper form","p":"core","v":"lismOShjHnA"},"pushbench":{"n":"Counter push-up","c":"kitchen counter height, elbows back not flared","e":"BW","bw":true,"u":"reps","q":"countertop push up form","p":"h-push","v":null},"pushhigh":{"n":"Chair push-up","c":"hands on the chair seat, hollow body, full range","e":"BW","bw":true,"u":"reps","q":"incline push up proper form","p":"h-push","v":null},"pushknee":{"n":"Knee push-up","c":"knees down, hips straight, chest to the floor","e":"BW","bw":true,"u":"reps","q":"knee push up proper form","p":"h-push","v":null},"pushmid":{"n":"Low-step push-up","c":"hands on a low step or two thick books, elbows back","e":"BW","bw":true,"u":"reps","q":"low incline push up form","p":"h-push","v":null},"pushwide":{"n":"Wide push-up","c":"hands wider than the shoulders, chest leads, shorter range","e":"BW","bw":true,"u":"reps","q":"wide grip push up form chest","p":"h-push","v":null},"pushdiamond":{"n":"Diamond push-up","c":"hands together under the chest, elbows tight to the ribs, triceps do the work","e":"BW","bw":true,"u":"reps","q":"diamond push up triceps form","p":"h-push","v":null},"pushnarrow":{"n":"Close-grip push-up","c":"hands under the shoulders, elbows brush the ribs, triceps emphasis","e":"BW","bw":true,"u":"reps","q":"close grip push up triceps","p":"h-push","v":null},"pushtempo":{"n":"Slow push-up","c":"four seconds down, pause an inch off the floor, drive up","e":"BW","bw":true,"u":"reps","q":"tempo push up slow eccentric","p":"h-push","v":null},"pushfeet":{"n":"Feet-elevated push-up","c":"feet on a low step, ribs down, no sag","e":"BW","bw":true,"u":"reps","q":"feet elevated push up form","p":"h-push","v":null},"pushfeet2":{"n":"Decline push-up","c":"feet on the chair seat, hollow body throughout","e":"BW","bw":true,"u":"reps","q":"decline push up proper form","p":"h-push","v":null},"pushdeficit":{"n":"Deficit push-up","c":"hands on two books, chest sinks below them, full stretch","e":"BW","bw":true,"u":"reps","q":"deficit push up deep range","p":"h-push","v":null},"pusharcher":{"n":"Archer push-up","c":"one arm bends, the other stays long, alternate sides","e":"BW","bw":true,"u":"reps","q":"archer push up form","p":"h-push","v":null},"pushonearm":{"n":"One-arm push-up negative","c":"feet wide, lower on one arm for five seconds, push up with both","e":"BW","bw":true,"u":"reps","q":"one arm push up progression negative","p":"h-push","v":null},"bwsumo":{"n":"Wide-stance squat","c":"feet wide, toes out, sit straight down between the hips","e":"BW","bw":true,"u":"reps","q":"sumo bodyweight squat form","p":"squat","v":null},"bwsquattempo":{"n":"Slow squat","c":"five seconds down, three-second pause at the bottom, stand","e":"BW","bw":true,"u":"reps","q":"tempo bodyweight squat pause","p":"squat","v":null},"bwrfess":{"n":"Rear-foot-elevated split squat","c":"back foot on a chair, tall torso, front heel drives","e":"BW","bw":true,"u":"reps","q":"bulgarian split squat bodyweight form","p":"squat","v":null},"bwstepup":{"n":"Step-up","c":"full foot on the step, no push from the back leg","e":"BW","bw":true,"u":"reps","q":"bodyweight step up form","p":"squat","v":null},"bwcossack":{"n":"Cossack squat","c":"shift wide onto one leg, other leg long, heel down","e":"BW","bw":true,"u":"reps","q":"cossack squat form beginner","p":"squat","v":null},"bwskater":{"n":"Skater squat","c":"back knee toward the floor, chest forward, controlled","e":"BW","bw":true,"u":"reps","q":"skater squat progression form","p":"squat","v":null},"bwpistolbox":{"n":"Box pistol squat","c":"sit to the box on one leg, stand without rocking","e":"BW","bw":true,"u":"reps","q":"box pistol squat progression","p":"squat","v":null},"bwpistol":{"n":"Pistol squat","c":"full depth on one leg, free leg straight ahead","e":"BW","bw":true,"u":"reps","q":"pistol squat full form","p":"squat","v":null},"bwrdl":{"n":"Bodyweight RDL","c":"hands sliding down the thighs, soft knees, hinge back until the hamstrings pull","e":"BW","bw":true,"u":"reps","q":"bodyweight romanian deadlift hinge pattern","p":"hinge","v":null},"bwslrdl":{"n":"Single-leg RDL","c":"long range, soft knee, weight over the ball of the foot","e":"BW","bw":true,"u":"reps","q":"single leg rdl bodyweight form","p":"hinge","v":null},"bandrdl":{"n":"Band RDL","c":"band under the feet, hinge back, flat spine, squeeze at the top","e":"band","bw":true,"u":"reps","q":"band romanian deadlift form","p":"hinge","v":null},"bandgm":{"n":"Band good morning","c":"band across the upper back, hinge to parallel, spine long","e":"band","bw":true,"u":"reps","q":"band good morning form","p":"hinge","v":null},"bwhipthrust":{"n":"Shoulder-elevated hip thrust","c":"shoulders on the couch, ribs down, drive the hips to level","e":"BW","bw":true,"u":"reps","q":"bodyweight hip thrust couch form","p":"hinge","v":null},"nordicband":{"n":"Band-assisted Nordic curl","c":"heels anchored, band takes some weight, lower as slowly as you can","e":"band","bw":true,"u":"reps","q":"band assisted nordic hamstring curl","p":"hinge","v":null},"nordichigh":{"n":"High-box Nordic curl","c":"heels anchored, lower slowly to the box, hands catch you","e":"BW","bw":true,"u":"reps","q":"nordic hamstring curl progression beginner","p":"hinge","v":null},"invrowhigh":{"n":"Inverted row, bar high","c":"bar at hip height, body straight, chest to the bar","e":"bar","bw":true,"u":"reps","q":"high bar inverted row form","p":"h-pull","v":null},"invrowwide":{"n":"Wide inverted row","c":"hands wide, pull to the sternum, squeeze the mid-back","e":"bar","bw":true,"u":"reps","q":"wide grip inverted row form","p":"h-pull","v":null},"invrowfeet":{"n":"Feet-elevated inverted row","c":"feet up on a chair, body level, full pull","e":"bar","bw":true,"u":"reps","q":"feet elevated inverted row form","p":"h-pull","v":null},"invrowone":{"n":"One-arm inverted row","c":"one hand on the bar, hips square, no twisting","e":"bar","bw":true,"u":"reps","q":"one arm inverted row progression","p":"h-pull","v":null},"pullneg":{"n":"Pull-up negative","c":"jump to the top, lower for five seconds, repeat","e":"bar","bw":true,"u":"reps","q":"pull up negative progression beginner","p":"v-pull","v":null},"pullband":{"n":"Band-assisted pull-up","c":"foot in the band, full hang to chin over the bar","e":"bar","bw":true,"u":"reps","q":"band assisted pull up form","p":"v-pull","v":null},"chinup":{"n":"Chin-up","c":"palms toward you, full hang, chest to the bar","e":"bar","bw":true,"u":"reps","q":"chin up proper form","p":"v-pull","v":null},"pullwide":{"n":"Wide-grip pull-up","c":"hands wide, drive the elbows down, no neck craning","e":"bar","bw":true,"u":"reps","q":"wide grip pull up form","p":"v-pull","v":null},"pikehigh":{"n":"Pike push-up, hands raised","c":"hands on a step, hips high, pain-free range only","e":"BW","bw":true,"u":"reps","q":"elevated pike push up beginner","p":"v-push","v":null},"pikefeet":{"n":"Feet-elevated pike push-up","c":"feet on a chair, torso near vertical, head between the hands","e":"BW","bw":true,"u":"reps","q":"elevated pike push up handstand progression","p":"v-push","v":null},"hollow":{"n":"Hollow hold","c":"low back pressed flat, arms and legs long, breathe","e":"BW","bw":true,"u":"s","q":"hollow body hold form","p":"core","v":null},"legraise":{"n":"Lying leg raise","c":"hands under the hips, lower slowly, no arching","e":"BW","bw":true,"u":"reps","q":"lying leg raise form lower abs","p":"core","v":null},"hangknee":{"n":"Hanging knee raise","c":"dead hang, knees to the chest, no swinging","e":"bar","bw":true,"u":"reps","q":"hanging knee raise form","p":"core","v":null},"plankreach":{"n":"Plank shoulder tap","c":"feet wide, tap the opposite shoulder, hips do not rock","e":"BW","bw":true,"u":"reps","q":"plank shoulder tap anti rotation","p":"core","v":null}}, PROG_RN=4, PROG_KEY="fullbody";
+var RANGE_F={"dbbench":[6,10],"floorpress":[6,10],"bulgarian":[10,15],"csrow":[8,12],"row1":[8,12],"rdl":[10,15],"inclinepress":[8,12],"neutralpress":[8,12],"facepull":[15,20],"pallof":[10,12]}, START={"dbohext":10,"dbbench":20,"floorpress":20,"csrow":20,"row1":20,"rdl":20,"pullover":10,"inclinepress":17.5,"neutralpress":12.5,"bulgarian":10,"hipthrust":30,"goblet":25,"farmcarry":30};
+var ASWAP={"ohextend":"dbohext"}, FSWAP={};
+var OHW=3, WROUNDS={"0":2,"1":3,"2":3}, TANK={"0":"4-5 reps in the tank","1":"4 in the tank","2":"3-4 in the tank","3":"2-3 in the tank","4":"2-3 in the tank","5":"2-3 in the tank","6":"3-4 in the tank","7":"1-2 in the tank","8":"1-2 in the tank"}, CUE3={"neutralpress":"FIRST, the wall screen: reach both arms overhead against a wall, ribs down, no chin poke. If you cannot, swap this for incline press. Seated, back supported, neutral grip"};
+var BLOCK_START="2026-09-21";
+function wkOf(d){return Math.floor((Date.parse(d+"T12:00:00")-Date.parse(BLOCK_START+"T12:00:00"))/86400000/7);}
+var WK=Math.max(0,wkOf(SLOT));
+var EFFORT=TANK[WK]||TANK[8];
+function libOf(id){return LIBM[id]||{n:id,c:"",e:"BW",bw:false,u:"reps",q:id,p:"",v:null};}
+function ladderE(e){return e==="DB"?"db":(e==="KB"?"kb":null);}
+function progKey(S){return (S&&S.prog)||PROG_KEY||"fullbody";}
+function canonRows(S){var P=S&&S.progs&&S.progs[progKey(S)];var d=P&&P.days&&P.days[FOCUS];
+  return JSON.parse(JSON.stringify((d&&d.length)?d:BASE));}
+function shownId(m,wk){var id=ASWAP[m.exId]||m.exId; if(!m.own) id=FSWAP[id]||id;
+  if(id==="neutralpress"&&wk<OHW) id="inclinepress"; return id;}
+function rangeOf(m,id){if(m.lo!=null&&m.hi!=null)return [m.lo,m.hi];
+  return RANGE_F[id]||RANGE_F[m.exId]||[m.reps||10,(m.reps||10)+2];}
+function orderFrom(rows,wk,rN){return rows.map(function(m){
+  var id=shownId(m,wk), l=libOf(id), rg=rangeOf(m,id), t=(m.t&&m.t[id])||null;
+  var clamp=function(r){return Math.max(rg[0],Math.min(rg[1],r));};
+  return {exId:id, planId:m.exId, name:l.n, cue:(wk===OHW&&CUE3[id])||l.c, q:l.q, vid:l.v,
+    lo:rg[0], hi:rg[1], reps:t&&t.reps!=null?clamp(t.reps):rg[0],
+    upTo:(m.upTo&&m.upTo<rN)?m.upTo:null, start:START[id]||0,
+    ladder:ladderE(l.e), band:l.e==="band", bw:!!l.bw, unit:l.u||"reps",
+    w:t&&t.lb!=null?t.lb:0, fixed:!!(t&&t.lb!=null), bandUp:!!(t&&t.bandUp)};});}
+function altsFor(ids){var out={};ids.forEach(function(id){var p=libOf(id).p;
+  out[id]=Object.keys(LIBM).filter(function(k){return k!==id&&p&&LIBM[k].p===p;}).slice(0,8).map(function(k){var l=LIBM[k];
+    return {exId:k,name:l.n,cue:l.c,bw:l.bw,unit:l.u,band:l.e==="band",vid:l.v,ladder:ladderE(l.e)};});});return out;}
+var RN0=(WROUNDS[WK]!=null)?WROUNDS[WK]:PROG_RN;
+var W={rN:RN0, order:orderFrom(canonRows(loadS()),WK,RN0), done:{}, wu:false};
+W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1790345009438";
-var BLOCK_START="2026-09-21", EFFORT="3-4 in the tank";
+var BUILD="1790540286531";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -334,6 +379,7 @@ function resolveLoads(){
   var lifts=sess.filter(function(x){return x&&x.type==="lift"&&x.date>=BLOCK_START&&x.id!==SLOTID&&x.slot!==SLOTID&&x.entries;})
     .sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
   W.order.forEach(function(o){
+    if(o.fixed) return;   /* the canonical plan already names this row's load and reps */
     var hist=[];
     lifts.forEach(function(x){x.entries.forEach(function(e){
       if(e.exerciseId!==o.exId)return;
@@ -360,6 +406,7 @@ function resolveLoads(){
   });
 }
 resolveLoads();
+(function(){var el=document.getElementById("ldate");if(el)el.textContent=new Date(SLOT+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})+" · week "+WK;})();
 (function(){ var p=loadProg();
   var started=p&&p.done&&Object.keys(p.done).length>0;
   if(p&&(p.build===BUILD||started)&&p.order&&p.order.length){ W.rN=p.rN||W.rN; W.order=p.order; W.done=p.done||{}; W.wu=!!p.wu; W.cells=p.cells||null; }
@@ -534,7 +581,8 @@ function numSheet(r,si,what){
   });
 }
 function swapSheet(r,si){
-  var o=C(r,si), list=(W.alts[W.order[si].exId]||[]).concat(W.alts[o.exId]||[]).filter(function(a,i,arr){
+  var o=C(r,si); if(!W.alts[o.exId]){var ax=altsFor([o.exId]);W.alts[o.exId]=ax[o.exId];}
+  var list=(W.alts[W.order[si].exId]||[]).concat(W.alts[o.exId]||[]).filter(function(a,i,arr){
     return a.exId!==o.exId&&arr.findIndex(function(b){return b.exId===a.exId;})===i;});
   if(!list.length){alert("No swap in your kit for that pattern.");return;}
   openSheet('<h3>Swap '+esc(o.name)+'</h3><div class="ssub">Same pattern, kit you own</div>'+
@@ -616,12 +664,16 @@ function finish(kind){
     return {exerciseId:id,targetLow:o?o.lo:null,targetHigh:o?o.hi:null,
       targetWeightLb:o?(o.w||0):null,sets:by[id],bw:!!(o&&o.bw),unit:(o&&o.unit)||"reps"};});
   var D=today();
-  var ok=logSession({id:SLOTID,slot:SLOTID,date:D,type:"lift",activity:"Full body, "+"pull",
-    durationSec:n*179,notes:"day-page "+kind,rounds:n,focus:"pull",
+  var t0=null;Object.keys(W.done).forEach(function(k){var c=W.done[k];if(c&&c.ts&&(t0==null||c.ts<t0))t0=c.ts;});
+  var t1=Date.now(), dur=t0?Math.min(10800,Math.max(60,Math.round((t1-t0)/1000))):0;
+  var ok=logSession({id:SLOTID,slot:SLOTID,date:D,type:"lift",activity:"Full body, "+FOCUS,
+    durationSec:dur,startedAt:t0,endedAt:t1,notes:"workout-page "+kind,rounds:n,focus:FOCUS,
     entries:entries, warmup:W.wu, feel:FEEL.feel, twinge:FEEL.twinge},D);
   if(!ok){noStore();return;}
   restStop();
-  markDone(kind==="floor"?"Floor logged. One round is a kept day.":n+" round"+(n===1?"":"s")+" in the book");
+  var nx=[];try{nx=advancePlan(entries);}catch(e){}
+  markDone((kind==="floor"?"Floor logged. One round is a kept day.":n+" round"+(n===1?"":"s")+" in the book")+
+    (nx.length?'<div class="nextup">Next time: '+nx.map(esc).join(" · ")+'</div>':''));
 }
 var FEEL={feel:null,twinge:false};
 function feelSheet(kind){
@@ -638,6 +690,110 @@ function feelSheet(kind){
     if(b.hasAttribute("data-feel")){FEEL.feel=b.getAttribute("data-feel");closeSheet();finish(kind);}
   });
 }
+function stepW(ladder,w,dir){var L=ladder==="kb"?KB_LADDER:(ladder==="db"?DB_LADDER:null);if(!L)return w;
+  if(dir>0){for(var i=0;i<L.length;i++)if(L[i]>w)return L[i];return L[L.length-1];}
+  for(var j=L.length-1;j>=0;j--)if(L[j]<w)return L[j];return L[0];}
+function planDoc(S){S.progs=S.progs||{};var key=progKey(S);var P=S.progs[key];
+  if(!P){P={v:2,key:key,name:"Full body, rotating emphasis",rN:PROG_RN,restSec:REST,rotate:["push","pull","legs"],days:{}};S.progs[key]=P;}
+  P.days=P.days||{}; if(!P.days[FOCUS]||!P.days[FOCUS].length) P.days[FOCUS]=JSON.parse(JSON.stringify(BASE));
+  return P;}
+function savePlan(S){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return false;} syncNow(); return true;}
+function advancePlan(entries){
+  var S=loadS(); if(!S) return []; var P=planDoc(S), rows=P.days[FOCUS], out=[];
+  rows.forEach(function(m){
+    var id=shownId(m,WK), e=null; entries.forEach(function(x){if(x.exerciseId===id)e=x;}); if(!e) return;
+    var sets=(e.sets||[]).filter(function(t){return t.completed!==false;}); if(!sets.length) return;
+    var l=libOf(id), lad=ladderE(l.e), rg=rangeOf(m,id), lo=rg[0], hi=rg[1];
+    var clamp=function(r){return Math.max(lo,Math.min(hi,r));};
+    var w=Math.max.apply(null,sets.map(function(t){return +t.weightLb||0;}));
+    var r=Math.min.apply(null,sets.map(function(t){return +t.reps||0;}));
+    m.t=m.t||{}; var cur=m.t[id]||{}; var nx={lb:w>0?w:(cur.lb!=null?cur.lb:null),reps:clamp(r),top:0,at:SLOT};
+    if(FEEL.twinge||FEEL.feel==="hard"){ nx.top=cur.top||0; }
+    else if(r>=hi){ var top=(cur.top||0)+1;
+      if(top>=2||FEEL.feel==="easy"){ if(lad&&w>0){nx.lb=stepW(lad,w,1);nx.reps=lo;}
+        else if(l.e==="band"){nx.bandUp=true;nx.reps=lo;} else nx.reps=hi; }
+      else {nx.reps=hi;nx.top=top;} }
+    else nx.reps=clamp(r+1);
+    m.t[id]=nx;
+    out.push(l.n+" "+(nx.lb>0?nx.lb+" lb x ":"")+nx.reps+(l.u==="s"?"s":""));
+  });
+  P.days[FOCUS]=rows; savePlan(S); return out;
+}
+var PE=null;
+function peLine(m){var id=shownId(m,WK),l=libOf(id),rg=rangeOf(m,id),t=(m.t&&m.t[id])||{};
+  return (t.lb>0?t.lb+" lb · ":"")+rg[0]+"-"+rg[1]+(l.u==="s"?"s":" reps")+(t.reps!=null?" (next "+t.reps+")":"")+" · "+(m.upTo?m.upTo+" rounds":"every round");}
+function planSheet(){
+  if(!PE) PE=canonRows(loadS());
+  openSheet('<h3>Edit the '+esc(FOCUS)+' plan</h3><div class="ssub">This is the saved plan every '+esc(FOCUS)+' day starts from. Changes you make in a session stay in that session; changes here stick.</div>'+
+    PE.map(function(m,i){var id=shownId(m,WK);return '<button class="optrow" data-pe="'+i+'"><span class="on2">'+(i+1)+'. '+esc(libOf(id).n)+
+      '<div class="oc">'+esc(peLine(m))+(id!==m.exId?' · stands in for '+esc(libOf(m.exId).n)+' until week '+OHW:'')+'</div></span></button>';}).join("")+
+    '<button class="sheet-cta ghost" id="peadd">+ Add a movement</button>'+
+    '<button class="sheet-cta ghost" id="pecopy">Copy today&rsquo;s session into the plan</button>'+
+    '<button class="sheet-cta" id="pesave">Save plan</button>'+
+    '<button class="sheet-cta ghost" id="pecancel">Cancel</button>');
+  var s=document.getElementById("sheet");
+  s.addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+    if(b.hasAttribute("data-pe")){peRow(+b.getAttribute("data-pe"));return;}
+    if(b.id==="peadd"){peAdd();return;}
+    if(b.id==="pecopy"){PE=copyToday();planSheet();return;}
+    if(b.id==="pecancel"){PE=null;closeSheet();return;}
+    if(b.id==="pesave"){peSave();return;}});
+}
+function peRow(i){
+  var m=PE[i], id=shownId(m,WK), l=libOf(id), lad=ladderE(l.e), rg=rangeOf(m,id);
+  m.lo=rg[0]; m.hi=rg[1]; m.t=m.t||{}; var t=m.t[id]=m.t[id]||{};
+  var stp=function(k,label,val){return '<div class="rsrow"><span class="rsl">'+label+'</span><div class="stp"><button data-k="'+k+'" data-d="-1">&minus;</button><span class="val num" id="pv-'+k+'">'+val+'</span><button data-k="'+k+'" data-d="1">+</button></div></div>';};
+  openSheet('<h3>'+esc(l.n)+'</h3><div class="ssub">Saved plan, '+esc(FOCUS)+' day</div>'+
+    (lad?stp("lb","Load per dumbbell (lb)",t.lb!=null?t.lb:0):'')+
+    stp("lo","Rep range, low",m.lo)+stp("hi","Rep range, high",m.hi)+
+    stp("nx","Next session reps",t.reps!=null?t.reps:m.lo)+
+    stp("up","Rounds (0 = every round)",m.upTo||0)+
+    '<button class="sheet-cta ghost" id="peswap">Swap for another movement</button>'+
+    '<div class="rndctl" style="margin-top:8px"><button id="peup">Move up</button><button id="pedn">Move down</button></div>'+
+    '<button class="sheet-cta ghost" id="perm">Remove from the plan</button>'+
+    '<button class="sheet-cta" id="peback">Back to the plan</button>');
+  var s=document.getElementById("sheet");
+  s.addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+    var k=b.getAttribute("data-k");
+    if(k){var d=+b.getAttribute("data-d");
+      if(k==="lb")t.lb=stepW(lad,t.lb||0,d);
+      if(k==="lo")m.lo=Math.max(1,Math.min(m.hi,m.lo+d));
+      if(k==="hi")m.hi=Math.max(m.lo,m.hi+d);
+      if(k==="nx")t.reps=Math.max(m.lo,Math.min(m.hi,(t.reps!=null?t.reps:m.lo)+d));
+      if(k==="up"){var u=(m.upTo||0)+d;u=Math.max(0,Math.min(PROG_RN,u));m.upTo=u||undefined;if(!u)delete m.upTo;}
+      m.reps=m.lo; t.top=0;
+      var v={lb:t.lb,lo:m.lo,hi:m.hi,nx:t.reps,up:m.upTo||0}[k]; var el=document.getElementById("pv-"+k); if(el)el.textContent=v; return;}
+    if(b.id==="peswap"){peSwap(i);return;}
+    if(b.id==="peup"&&i>0){PE.splice(i-1,0,PE.splice(i,1)[0]);planSheet();return;}
+    if(b.id==="pedn"&&i<PE.length-1){PE.splice(i+1,0,PE.splice(i,1)[0]);planSheet();return;}
+    if(b.id==="perm"){if(PE.length<=1){alert("One movement is the floor.");return;}PE.splice(i,1);planSheet();return;}
+    if(b.id==="peback"){planSheet();return;}});
+}
+function pickSheet(title,list,cb){
+  openSheet('<h3>'+esc(title)+'</h3><div class="ssub">Kit you own</div>'+list.map(function(a,j){return '<button class="optrow" data-pk="'+j+'"><span class="on2">'+esc(a.name)+'<div class="oc">'+esc(a.cue||"")+'</div></span></button>';}).join("")+
+    '<button class="sheet-cta ghost" id="pkback">Back</button>');
+  document.getElementById("sheet").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
+    if(b.id==="pkback"){planSheet();return;} if(b.hasAttribute("data-pk"))cb(list[+b.getAttribute("data-pk")]);});
+}
+function peSwap(i){var m=PE[i],id=shownId(m,WK),al=altsFor([id])[id]||[];
+  if(!al.length){alert("No swap in your kit for that pattern.");return;}
+  pickSheet("Swap "+libOf(id).n,al,function(a){var rg=rangeOf(m,id);PE[i]={exId:a.exId,reps:rg[0],lo:rg[0],hi:rg[1],own:true,upTo:m.upTo,t:{}};if(!PE[i].upTo)delete PE[i].upTo;peRow(i);});}
+function peAdd(){var seen={};PE.forEach(function(m){seen[shownId(m,WK)]=1;});
+  var pool=Object.keys(LIBM).filter(function(k){return !seen[k];}).map(function(k){var l=LIBM[k];return {exId:k,name:l.n,cue:l.c};})
+    .sort(function(a,b){return a.name<b.name?-1:1;});
+  pickSheet("Add to the plan",pool,function(a){PE.push({exId:a.exId,reps:10,lo:10,hi:12,own:true,upTo:2,t:{}});peRow(PE.length-1);});}
+function copyToday(){var last=W.cells[W.rN-1]||W.cells[0]||[];
+  return W.order.map(function(o,i){var c=(W.cells[W.rN-1]&&W.cells[W.rN-1][i])||(W.cells[0]&&W.cells[0][i])||o;
+    var planId=(o.planId==="neutralpress"&&c.exId==="inclinepress")?"neutralpress":c.exId;
+    var row={exId:planId,reps:c.lo||o.lo,lo:c.lo||o.lo,hi:c.hi||o.hi,own:true,t:{}};
+    if(o.upTo)row.upTo=o.upTo;
+    row.t[c.exId]={lb:c.w>0?c.w:null,reps:c.reps,top:0,at:SLOT};return row;});}
+function peSave(){var S=loadS();if(!S){noStore();return;}
+  var P=planDoc(S); P.days[FOCUS]=PE; if(!savePlan(S)){alert("Could not save on this device.");return;}
+  PE=null; closeSheet();
+  if(!Object.keys(W.done).length){ try{localStorage.removeItem(pkey());}catch(e){} location.reload(); }
+  else alert("Plan saved. Today's session keeps what you already set; the next one starts from the new plan.");}
+document.getElementById("planbtn").addEventListener("click",function(){PE=null;planSheet();});
 document.getElementById("fullbtn").addEventListener("click",function(){feelSheet("full");});
 document.getElementById("floorbtn").addEventListener("click",function(){feelSheet("floor");});
 render();
