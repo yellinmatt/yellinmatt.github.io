@@ -57,6 +57,9 @@ display:flex;align-items:center;justify-content:flex-end}
 .lrow{display:grid;grid-template-columns:22px minmax(0,1fr) 34px 60px 48px;column-gap:6px;align-items:center;
 padding:9px 0;border-bottom:1px solid var(--line);width:100%;text-align:left;cursor:pointer}
 .lrow:last-child{border-bottom:0}
+.lrow,.optrow{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.lrow.dragging,.optrow.dragging{background:var(--surface-2);box-shadow:var(--shadow);border-radius:10px;position:relative;z-index:5;transform:scale(1.02);transition:transform .12s}
+body.dragmode{touch-action:none;overscroll-behavior:none}
 .lrow .chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--line-2);display:flex;
 align-items:center;justify-content:center;transition:.15s}
 .lrow .chk svg{width:14px;height:14px;opacity:0;transition:.15s}
@@ -379,7 +382,7 @@ W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1790542546483";
+var BUILD="1790542946096";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -513,6 +516,7 @@ function render(){
 }
 
 document.addEventListener("click",function(ev){
+  if(Date.now()-DRAG_EAT_CLICK<250)return;
   var t=ev.target.closest("button, .lrow");
   if(!t)return;
   var rs=function(a){var p=String(t.getAttribute(a)).split(":");return [+p[0],+p[1]];};
@@ -573,6 +577,57 @@ document.getElementById("rmround").addEventListener("click",function(){
   W.rN--; W.cells.length=W.rN; W.order.forEach(function(o){if(o.upTo!=null&&o.upTo>W.rN)o.upTo=W.rN;});
   render();
 });
+
+var DRAG=null, DRAG_EAT_CLICK=0;
+function dragArm(ev,row,listSel,itemSel,onDrop){
+  if(ev.button!=null&&ev.button!==0)return;
+  var sx=ev.clientX, sy=ev.clientY;
+  var st={row:row,list:row.closest(listSel),itemSel:itemSel,onDrop:onDrop,live:false,id:ev.pointerId,sy:sy,
+    t:setTimeout(function(){st.live=true;row.classList.add("dragging");document.body.classList.add("dragmode");
+      if(navigator.vibrate)try{navigator.vibrate(10);}catch(e){}},300)};
+  st.sx=sx; DRAG=st;
+}
+function dragMove(ev){var d=DRAG;if(!d)return;
+  if(!d.live){if(Math.abs(ev.clientY-d.sy)>8||Math.abs(ev.clientX-d.sx)>8){clearTimeout(d.t);DRAG=null;}return;}
+  ev.preventDefault();
+  var items=[].slice.call(d.list.querySelectorAll(d.itemSel)), y=ev.clientY;
+  for(var i=0;i<items.length;i++){var it=items[i];if(it===d.row)continue;var b=it.getBoundingClientRect(),mid=b.top+b.height/2;
+    var rb=d.row.getBoundingClientRect();
+    if(y<mid&&rb.top>b.top){it.parentNode.insertBefore(d.row,it);break;}
+    if(y>mid&&rb.top<b.top){it.parentNode.insertBefore(d.row,it.nextSibling);break;}}
+}
+function dragEnd(){var d=DRAG;if(!d)return;clearTimeout(d.t);DRAG=null;
+  if(!d.live)return;
+  d.row.classList.remove("dragging");document.body.classList.remove("dragmode");DRAG_EAT_CLICK=Date.now();
+  d.onDrop([].slice.call(d.list.querySelectorAll(d.itemSel)),d.row);
+}
+document.addEventListener("pointermove",dragMove,{passive:false});
+document.addEventListener("touchmove",function(ev){if(DRAG&&DRAG.live)ev.preventDefault();},{passive:false});
+document.addEventListener("pointerup",dragEnd);
+document.addEventListener("pointercancel",function(){if(DRAG&&DRAG.live)dragEnd();else if(DRAG){clearTimeout(DRAG.t);DRAG=null;}});
+document.addEventListener("contextmenu",function(ev){if(DRAG)ev.preventDefault();});
+document.addEventListener("click",function(ev){if(Date.now()-DRAG_EAT_CLICK<250){ev.stopPropagation();ev.preventDefault();}},true);
+function reorderMove(from,beforeSi,afterSi){
+  var n=W.order.length, arr=[];for(var i=0;i<n;i++)if(i!==from)arr.push(i);
+  var at=(beforeSi!=null)?arr.indexOf(beforeSi):arr.indexOf(afterSi)+1; if(at<0)return;
+  arr.splice(at,0,from);
+  var inv={};arr.forEach(function(old,nw){inv[old]=nw;});
+  W.order=arr.map(function(i){return W.order[i];});
+  W.cells=W.cells.map(function(row){return arr.map(function(i){return row[i];});});
+  var nd={};Object.keys(W.done).forEach(function(k){var p=k.split(":");nd[rkey(+p[0],inv[+p[1]])]=W.done[k];});W.done=nd;
+  render(); syncNow();
+}
+document.addEventListener("pointerdown",function(ev){
+  var pr=ev.target.closest("#sheet .optrow[data-pe]");
+  if(pr&&PE){dragArm(ev,pr,"#sheet",".optrow[data-pe]",function(items){
+    var nw=items.map(function(it){return PE[+it.getAttribute("data-pe")];});PE=nw;planSheet();});return;}
+  if(ev.target.closest("button"))return;
+  var row=ev.target.closest(".rnd .lrow[data-si]");
+  if(row){dragArm(ev,row,".abody",".lrow[data-si]",function(items,moved){
+    var vis=items.map(function(it){return +it.getAttribute("data-si");}), from=+moved.getAttribute("data-si"), pos=vis.indexOf(from);
+    if(vis.length<2){render();return;}
+    reorderMove(from,pos<vis.length-1?vis[pos+1]:null,pos>0?vis[pos-1]:null);});}
+},true);
 
 function numSheet(r,si,what){
   var o=C(r,si), isLoad=(what==="load");
@@ -733,7 +788,7 @@ function peLine(m){var id=shownId(m,WK),l=libOf(id),rg=rangeOf(m,id),t=(m.t&&m.t
   return (t.lb>0?t.lb+" lb · ":"")+rg[0]+"-"+rg[1]+(l.u==="s"?"s":" reps")+(t.reps!=null?" (next "+t.reps+")":"")+" · "+(m.upTo?m.upTo+" rounds":"every round");}
 function planSheet(){
   if(!PE) PE=canonRows(loadS());
-  openSheet('<h3>Edit the '+esc(FOCUS)+' plan</h3><div class="ssub">This is the saved plan every '+esc(FOCUS)+' day starts from. Changes you make in a session stay in that session; changes here stick.</div>'+
+  openSheet('<h3>Edit the '+esc(FOCUS)+' plan</h3><div class="ssub">This is the saved plan every '+esc(FOCUS)+' day starts from. Changes you make in a session stay in that session; changes here stick. Hold and drag a movement to reorder.</div>'+
     PE.map(function(m,i){var id=shownId(m,WK);return '<button class="optrow" data-pe="'+i+'"><span class="on2">'+(i+1)+'. '+esc(libOf(id).n)+
       '<div class="oc">'+esc(peLine(m))+(id!==m.exId?' · stands in for '+esc(libOf(m.exId).n)+' until week '+OHW:'')+'</div></span></button>';}).join("")+
     '<button class="sheet-cta ghost" id="peadd">+ Add a movement</button>'+
