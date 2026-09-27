@@ -137,6 +137,7 @@ color:#fff;font-size:17px;font-weight:800;margin-top:14px}
 .optrow{display:flex;align-items:center;gap:12px;width:100%;padding:13px 0;border-bottom:1px solid var(--line);
 text-align:left;font-size:15px}
 .optrow .on2{flex:1;font-weight:600}
+.libq{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:transparent;color:inherit;margin-top:4px}
 .optrow .oc{font-size:13px;color:var(--faint);font-weight:400}
 .cta{display:block;width:100%;min-height:54px;border-radius:var(--r-btn);background:var(--accent);
 color:#fff;font-size:17px;font-weight:800;margin-top:10px}
@@ -359,15 +360,26 @@ function orderFrom(rows,wk,rN){return rows.map(function(m){
     ladder:ladderE(l.e), band:l.e==="band", bw:!!l.bw, unit:l.u||"reps",
     w:t&&t.lb!=null?t.lb:0, fixed:!!(t&&t.lb!=null), bandUp:!!(t&&t.bandUp)};});}
 function altsFor(ids){var out={};ids.forEach(function(id){var p=libOf(id).p;
-  out[id]=Object.keys(LIBM).filter(function(k){return k!==id&&p&&LIBM[k].p===p;}).slice(0,8).map(function(k){var l=LIBM[k];
-    return {exId:k,name:l.n,cue:l.c,bw:l.bw,unit:l.u,band:l.e==="band",vid:l.v,ladder:ladderE(l.e)};});});return out;}
+  out[id]=Object.keys(LIBM).filter(function(k){return k!==id&&p&&LIBM[k].p===p;}).map(altOf);});return out;}
+function altOf(k){var l=LIBM[k];return {exId:k,name:l.n,cue:l.c,bw:l.bw,unit:l.u,band:l.e==="band",vid:l.v,ladder:ladderE(l.e)};}
+function searchLib(q,skip){q=(q||"").toLowerCase().trim();if(!q)return [];var ws=q.split(/s+/);
+  return Object.keys(LIBM).filter(function(k){if(skip&&skip[k])return false;var l=LIBM[k],h=(l.n+" "+l.p+" "+l.e+" "+k).toLowerCase();
+    return ws.every(function(w){return h.indexOf(w)>=0;});}).map(altOf).sort(function(a,b){return a.name<b.name?-1:1;});}
+function optRows(list,attr){return list.map(function(a,i){return '<button class="optrow" '+attr+'="'+i+'"><span class="on2">'+esc(a.name)+
+  '<div class="oc">'+esc(a.cue||"")+'</div></span></button>';}).join("");}
+var SEARCHBOX='<input id="libq" class="libq" type="search" autocomplete="off" placeholder="Search every movement">'+
+  '<div id="libres"></div>';
+function wireSearch(skip,onPick){var res=[],inp=document.getElementById("libq"),box=document.getElementById("libres");
+  inp.addEventListener("input",function(){res=searchLib(inp.value,skip);
+    box.innerHTML=inp.value.trim()?(res.length?optRows(res,"data-any"):'<div class="ssub" style="margin-top:8px">Nothing matches.</div>'):"";});
+  box.addEventListener("click",function(ev){var b=ev.target.closest("[data-any]");if(!b)return;ev.stopPropagation();onPick(res[+b.getAttribute("data-any")]);});}
 var RN0=(WROUNDS[WK]!=null)?WROUNDS[WK]:PROG_RN;
 var W={rN:RN0, order:orderFrom(canonRows(loadS()),WK,RN0), done:{}, wu:false};
 W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1790540286532";
+var BUILD="1790542546483";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -584,39 +596,36 @@ function swapSheet(r,si){
   var o=C(r,si); if(!W.alts[o.exId]){var ax=altsFor([o.exId]);W.alts[o.exId]=ax[o.exId];}
   var list=(W.alts[W.order[si].exId]||[]).concat(W.alts[o.exId]||[]).filter(function(a,i,arr){
     return a.exId!==o.exId&&arr.findIndex(function(b){return b.exId===a.exId;})===i;});
-  if(!list.length){alert("No swap in your kit for that pattern.");return;}
-  openSheet('<h3>Swap '+esc(o.name)+'</h3><div class="ssub">Same pattern, kit you own</div>'+
-    list.map(function(a,i){return '<button class="optrow" data-alt="'+i+'"><span class="on2">'+esc(a.name)+
-      '<div class="oc">'+esc(a.cue||"")+'</div></span></button>';}).join("")+
-    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
-  document.getElementById("sheet").addEventListener("click",function(ev){
-    var b=ev.target.closest("[data-alt]");if(!b)return;
-    var a=list[+b.getAttribute("data-alt")];
+  var pick=function(a){
     forward(r,si,function(c){c.exId=a.exId;c.name=a.name;c.cue=a.cue;c.q=a.name;c.vid=a.vid||null;c.band=!!a.band;c.bw=!!a.bw;
       c.unit=a.unit||"reps";c.bandUp=false;
       if(a.ladder!==c.ladder){c.ladder=a.ladder||null;c.w=(a.ladder==="db"?10:(a.ladder==="kb"?12:0));}});
-    closeSheet();render();
-  });
+    closeSheet();render();};
+  var skip={};skip[o.exId]=1;
+  openSheet('<h3>Swap '+esc(o.name)+'</h3>'+SEARCHBOX+
+    '<div class="ssub" style="margin-top:14px">Comparable, same pattern</div>'+
+    (list.length?optRows(list,"data-alt"):'<div class="ssub">None in your kit. Search above.</div>')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
+  wireSearch(skip,pick);
+  document.getElementById("sheet").addEventListener("click",function(ev){
+    var b=ev.target.closest("[data-alt]");if(!b)return; pick(list[+b.getAttribute("data-alt")]);});
 }
 function addMvSheet(){
   var seen={};W.order.forEach(function(o){seen[o.exId]=1;});
   var pool=[];Object.keys(W.alts).forEach(function(k){(W.alts[k]||[]).forEach(function(a){
     if(!seen[a.exId]&&!pool.some(function(p){return p.exId===a.exId;}))pool.push(a);});});
   pool=pool.slice(0,14);
-  if(!pool.length){alert("Nothing left in your kit to add.");return;}
-  openSheet('<h3>Add a movement</h3><div class="ssub">Today only. It does not change next week.</div>'+
-    pool.map(function(a,i){return '<button class="optrow" data-add="'+i+'"><span class="on2">'+esc(a.name)+
-      '<div class="oc">'+esc(a.cue||"")+'</div></span></button>';}).join("")+
-    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
-  document.getElementById("sheet").addEventListener("click",function(ev){
-    var b=ev.target.closest("[data-add]");if(!b)return;
-    var a=pool[+b.getAttribute("data-add")];
-    var nm={exId:a.exId,name:a.name,cue:a.cue,reps:10,lo:10,hi:12,upTo:null,band:!!a.band,vid:a.vid||null,
+  var add=function(a){    var nm={exId:a.exId,name:a.name,cue:a.cue,reps:10,lo:10,hi:12,upTo:null,band:!!a.band,vid:a.vid||null,
       w:(a.ladder==="db"?10:(a.ladder==="kb"?12:0)),ladder:a.ladder||null,q:a.name,
       bw:!!a.bw,unit:a.unit||"reps",tmp:true};
     W.order.push(nm); for(var q=0;q<W.rN;q++)W.cells[q].push(mkCell(nm));
-    closeSheet();render();
-  });
+    closeSheet();render();};
+  openSheet('<h3>Add a movement</h3><div class="ssub">Today only. It does not change next week.</div>'+SEARCHBOX+
+    (pool.length?'<div class="ssub" style="margin-top:14px">Suggested</div>'+optRows(pool,"data-add"):'')+
+    '<button class="sheet-cta ghost" onclick="closeSheet()">Cancel</button>');
+  wireSearch(seen,add);
+  document.getElementById("sheet").addEventListener("click",function(ev){
+    var b=ev.target.closest("[data-add]");if(!b)return; add(pool[+b.getAttribute("data-add")]);});
 }
 document.getElementById("addmv").addEventListener("click",addMvSheet);
 function demoSheet(r,si){
@@ -769,19 +778,19 @@ function peRow(i){
     if(b.id==="perm"){if(PE.length<=1){alert("One movement is the floor.");return;}PE.splice(i,1);planSheet();return;}
     if(b.id==="peback"){planSheet();return;}});
 }
-function pickSheet(title,list,cb){
-  openSheet('<h3>'+esc(title)+'</h3><div class="ssub">Kit you own</div>'+list.map(function(a,j){return '<button class="optrow" data-pk="'+j+'"><span class="on2">'+esc(a.name)+'<div class="oc">'+esc(a.cue||"")+'</div></span></button>';}).join("")+
+function pickSheet(title,list,cb,skip){
+  openSheet('<h3>'+esc(title)+'</h3>'+SEARCHBOX+'<div class="ssub" style="margin-top:14px">'+(list.length&&skip&&list.length<Object.keys(LIBM).length-Object.keys(skip).length?'Comparable, same pattern':'Kit you own')+'</div>'+optRows(list,"data-pk")+
     '<button class="sheet-cta ghost" id="pkback">Back</button>');
+  wireSearch(skip||{},cb);
   document.getElementById("sheet").addEventListener("click",function(ev){var b=ev.target.closest("button");if(!b)return;
     if(b.id==="pkback"){planSheet();return;} if(b.hasAttribute("data-pk"))cb(list[+b.getAttribute("data-pk")]);});
 }
-function peSwap(i){var m=PE[i],id=shownId(m,WK),al=altsFor([id])[id]||[];
-  if(!al.length){alert("No swap in your kit for that pattern.");return;}
-  pickSheet("Swap "+libOf(id).n,al,function(a){var rg=rangeOf(m,id);PE[i]={exId:a.exId,reps:rg[0],lo:rg[0],hi:rg[1],own:true,upTo:m.upTo,t:{}};if(!PE[i].upTo)delete PE[i].upTo;peRow(i);});}
+function peSwap(i){var m=PE[i],id=shownId(m,WK),al=altsFor([id])[id]||[],sk={};sk[id]=1;
+  pickSheet("Swap "+libOf(id).n,al,function(a){var rg=rangeOf(m,id);PE[i]={exId:a.exId,reps:rg[0],lo:rg[0],hi:rg[1],own:true,upTo:m.upTo,t:{}};if(!PE[i].upTo)delete PE[i].upTo;peRow(i);},sk);}
 function peAdd(){var seen={};PE.forEach(function(m){seen[shownId(m,WK)]=1;});
   var pool=Object.keys(LIBM).filter(function(k){return !seen[k];}).map(function(k){var l=LIBM[k];return {exId:k,name:l.n,cue:l.c};})
     .sort(function(a,b){return a.name<b.name?-1:1;});
-  pickSheet("Add to the plan",pool,function(a){PE.push({exId:a.exId,reps:10,lo:10,hi:12,own:true,upTo:2,t:{}});peRow(PE.length-1);});}
+  pickSheet("Add to the plan",pool,function(a){PE.push({exId:a.exId,reps:10,lo:10,hi:12,own:true,upTo:2,t:{}});peRow(PE.length-1);},seen);}
 function copyToday(){var last=W.cells[W.rN-1]||W.cells[0]||[];
   return W.order.map(function(o,i){var c=(W.cells[W.rN-1]&&W.cells[W.rN-1][i])||(W.cells[0]&&W.cells[0][i])||o;
     var planId=(o.planId==="neutralpress"&&c.exId==="inclinepress")?"neutralpress":c.exId;
