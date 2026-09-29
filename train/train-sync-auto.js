@@ -153,7 +153,8 @@
       ? s.sets.filter(function (x) { return x && (x.done || x.completed || x.reps != null || x.weight != null); }).length
       : Number(s.completedSets || 0);
     var d = Number(s.duration || s.durationSec || s.durationMs || 0) || 0;
-    return sets * 1e9 + d;
+    var watch = s.durSrc === "watch" ? 5e8 : 0;
+    return sets * 1e9 + watch + d;
   }
   function unionSessions(a, b, tomb) {
     var dead = {};
