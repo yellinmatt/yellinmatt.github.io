@@ -1731,7 +1731,7 @@ details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 
 <script>
 "use strict";
-var VERSION="v25.5";
+var VERSION="v25.6";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -1772,10 +1772,12 @@ var LIB={
   slhipthrust:{name:"Single-leg hip thrust",pattern:"hinge",equip:"BW",bw:true,side:true,bwl:0.70,diff:"intermediate",cue:"shoulders on the couch, ribs down, drive to level",q:"single leg hip thrust form"},
   slidecurl:{name:"Sliding leg curl",pattern:"hinge",equip:"BW",bw:true,bwl:0.65,diff:"intermediate",cue:"heels on a towel, hips up, pull them in",q:"slider hamstring curl form"},
   slidecurl2:{name:"Sliding leg curl, both legs",pattern:"hinge",equip:"BW",bw:true,bwl:0.40,diff:"beginner",cue:"hips stay up the whole way",q:"towel hamstring curl beginner"},
+  dblegcurl:{name:"Prone DB leg curl",pattern:"hinge",equip:"DB",diff:"beginner",cue:"face down on the bench, one dumbbell gripped between the feet, curl the heels in",q:"prone dumbbell leg curl form"},  /* 2026-09-30: his ruling. He dislikes the sliding curl, and this is the only knee-flexion movement in the kit that takes load and needs no balance. */
   benchdip:{name:"Bench dip",pattern:"h-push",equip:"BW",bw:true,bwl:0.50,diff:"beginner",cue:"hands on the edge, elbows straight back, shoulders down",q:"bench dip form"},
   dipbar:{name:"Parallel-bar dip",pattern:"h-push",equip:"BW",bw:true,bwl:1.00,diff:"advanced",cue:"lean slight forward, stop where the shoulder is comfortable",q:"parallel bar dip form"},
   ohextend:{name:"Overhead extension on a table edge",pattern:"isolation",equip:"BW",bw:true,bwl:0.50,diff:"intermediate",cue:"hands on the edge, upper arms beside the ears, hinge at the elbow only",q:"bodyweight overhead triceps extension"},
   dbohext:{name:"DB overhead triceps extension",pattern:"isolation",equip:"DB",diff:"beginner",cue:"seated, one dumbbell in both hands, elbows by the ears, lower behind the head, press up",q:"seated dumbbell overhead triceps extension form"},  /* 2026-09-21: the plan names this; the day pages serve it in place of the table-edge version. */
+  dbskull:{name:"Lying DB triceps extension",pattern:"isolation",equip:"DB",diff:"beginner",cue:"on the bench, upper arms vertical, elbows still, lower to the forehead",q:"dumbbell skull crusher form"},  /* 2026-09-30: his ruling, the second push-day triceps movement alongside dbohext. */
   pushnarrowhigh:{name:"Close-grip push-up, hands raised",pattern:"h-push",equip:"BW",bw:true,bwl:0.41,diff:"beginner",cue:"hands on a chair, elbows brush the ribs",q:"elevated close grip push up"},
   pushkneenarrow:{name:"Knee close-grip push-up",pattern:"h-push",equip:"BW",bw:true,bwl:0.49,diff:"beginner",cue:"knees down is still a push-up, elbows in",q:"knee close grip push up"},
   ringcurl:{name:"Bodyweight curl on a strap",pattern:"isolation",equip:"BW",bw:true,bwl:0.55,diff:"intermediate",cue:"elbows fixed and high, curl yourself up",q:"bodyweight bicep curl strap"},
@@ -1800,6 +1802,7 @@ var LIB={
   barbench:{name:"Barbell bench press",pattern:"h-push",equip:"bar",diff:"intermediate",cue:"shoulder blades pinned, bar to sternum, no bounce",q:"barbell bench press form"},
   dbcurl:{name:"DB biceps curl",pattern:"isolation",equip:"DB",diff:"beginner",cue:"elbows pinned to ribs, no swing, slow lower",q:"dumbbell biceps curl form"},
   hammercurl:{name:"DB hammer curl",pattern:"isolation",equip:"DB",diff:"beginner",cue:"neutral grip, elbows still, brachialis and forearm",q:"dumbbell hammer curl form"},
+  zottman:{name:"Zottman curl",pattern:"isolation",equip:"DB",diff:"intermediate",cue:"curl up palms up, turn palms down at the top, lower slow",q:"zottman curl form"},  /* 2026-09-30: his ruling, the legs-day arm slot. */
   bandcurl:{name:"Band biceps curl",pattern:"isolation",equip:"band",bw:true,diff:"beginner",cue:"stand on the band, elbows pinned to the ribs, slow on the way down",q:"resistance band bicep curl form"},
   kbswing:{name:"Kettlebell swing",pattern:"hinge",equip:"KB",defw:14,diff:"intermediate",cue:"hips snap, arms are rope, the bell floats -- never a squat and never a front raise",q:"kettlebell swing hardstyle form"},
   kbfloorpress:{name:"Kettlebell close-grip floor press",pattern:"h-push",equip:"KB",defw:14,diff:"beginner",cue:"bell on the chest, elbows tight to the ribs, press straight up -- triceps do this one",q:"kettlebell floor press form"},
@@ -1813,6 +1816,8 @@ var LIB={
   neutralpress:{name:"Neutral-grip DB press",pattern:"v-push",equip:"DB",diff:"intermediate",cue:"neutral grip, shoulder-friendly",q:"neutral grip dumbbell shoulder press"},
   bandpress:{name:"Band overhead press",pattern:"v-push",equip:"band",bw:true,neck:true,diff:"beginner",cue:"control the way down, ribs down, no neck jut",q:"resistance band overhead press"},
   row1:{name:"1-arm DB row",pattern:"h-pull",equip:"DB",side:true,diff:"beginner",cue:"flat back, elbow to hip",q:"one arm dumbbell row form"},
+  bentrow:{name:"Bent-over DB row",pattern:"h-pull",equip:"DB",diff:"intermediate",cue:"hinge to about 45, flat back, both elbows to the hips, no jerking up",q:"bent over dumbbell row form"},  /* 2026-09-30: his ruling, replaces csrow on pull. Unsupported hinge, so it starts light by design. */
+  renegade:{name:"Renegade row",pattern:"h-pull",equip:"DB",side:true,diff:"advanced",cue:"plank on the dumbbells, feet wide, hips level, row without twisting",q:"renegade row form"},  /* 2026-09-30: his ruling, the push-day row that is neither 1-arm nor chest-supported. */
   csrow:{name:"Chest-supported DB row",pattern:"h-pull",equip:"DB",diff:"beginner",cue:"no lower-back load, retract",q:"chest supported dumbbell row"},
   bandrow:{name:"Band seated row",pattern:"h-pull",equip:"band",bw:true,bwl:0.45,diff:"beginner",cue:"squeeze blades, tall chest",q:"resistance band seated row"},
   tablerow:{name:"Table row",pattern:"h-pull",equip:"none",bw:true,bwl:0.5,diff:"beginner",cue:"under a sturdy table, heels down, chest to edge",q:"table row bodyweight back"},
@@ -1855,6 +1860,7 @@ var LIB={
   bwrfess:{name:"Rear-foot-elevated split squat",pattern:"squat",equip:"BW",bw:true,side:true,bwl:0.85,diff:"intermediate",cue:"back foot on a chair, tall torso, front heel drives",q:"bulgarian split squat bodyweight form"},
   bwstepup:{name:"Step-up",pattern:"squat",equip:"BW",bwl:0.72,bw:true,side:true,diff:"intermediate",cue:"full foot on the step, no push from the back leg",q:"bodyweight step up form"},
   bwcossack:{name:"Cossack squat",pattern:"squat",equip:"BW",bwl:0.75,bw:true,side:true,diff:"intermediate",cue:"shift wide onto one leg, other leg long, heel down",q:"cossack squat form beginner"},
+  latlunge:{name:"DB lateral lunge",pattern:"squat",equip:"DB",side:true,diff:"beginner",cue:"step wide, sit into that hip, trailing leg straight, chest tall, both feet flat",q:"dumbbell lateral lunge form"},  /* 2026-09-30: his ruling, replaces the step-up on legs. He judged stepping onto the bench a fall risk and he is right; this is floor-only and adds the frontal plane, which the block had nowhere. */
   bwskater:{name:"Skater squat",pattern:"squat",equip:"BW",bwl:0.85,bw:true,side:true,diff:"advanced",cue:"back knee toward the floor, chest forward, controlled",q:"skater squat progression form"},
   bwpistolbox:{name:"Box pistol squat",pattern:"squat",equip:"BW",bwl:0.9,bw:true,side:true,diff:"advanced",cue:"sit to the box on one leg, stand without rocking",q:"box pistol squat progression"},
   bwpistol:{name:"Pistol squat",pattern:"squat",equip:"BW",bwl:1,bw:true,side:true,diff:"advanced",cue:"full depth on one leg, free leg straight ahead",q:"pistol squat full form"},
@@ -1992,6 +1998,9 @@ var GPAY={
   bandpulldown:{lats:1,biceps:.5},
   row1:{midback:1,biceps:.5,lats:.5}, csrow:{midback:1,biceps:.5}, bandrow:{midback:1,biceps:.5},
   ytw:{midback:1,delts:.5}, ringcurl:{biceps:1}, dbcurl:{biceps:1}, hammercurl:{biceps:1},
+  zottman:{biceps:1}, dbskull:{triceps:1}, dbohext:{triceps:1},
+  bentrow:{midback:1,biceps:.5,lats:.5}, renegade:{midback:1,core:.5,biceps:.5},
+  dblegcurl:{hams:1}, latlunge:{quads:1,hinge:.5},
   bandcurl:{biceps:1}, kbswing:{hinge:1,hams:.5}, kbfloorpress:{triceps:1,chest:.5},
   kbsquat:{quads:1,hinge:.5}, floorpress:{chest:1,triceps:.5},
   pikepush:{delts:1,triceps:.5}, pikehigh:{delts:1,triceps:.5}, pikefeet:{delts:1,triceps:.5},
