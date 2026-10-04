@@ -91,17 +91,20 @@
     '      <h2 style="margin:4px 0 3px">Steady</h2>' +
     '      <div class="sub">31 runs on record</div></div></div>' +
     '  <div class="metric"><div class="lbl">This week</div>' +
-    '    <div class="k" style="margin-top:7px">Miles run</div><div class="v">9.4<i> mi</i></div>' +
+    '    <div class="k" style="margin-top:7px">Miles run</div><div class="v">10.0<i> mi</i></div>' +
     '    <div class="track" style="--w:74%"><i></i></div>' +
-    '    <div class="say">ahead of your usual<em>best twelve weeks: 12.6 mi</em></div></div>' +
+    '    <div class="say">ahead of your usual<em>best twelve weeks: 12.0 mi</em></div></div>' +
     '  <div class="metric"><div class="lbl">Next run</div>' +
     '    <h2 style="margin:4px 0 3px">Easy &middot; 3 mi</h2>' +
     '    <div class="sub">Conversational the whole way. If it is not easy it is not this run.</div>' +
     '    <div class="cta">' + I.run + 'Start a run</div>' +
     '    <div class="btn2"><span>Log a run</span><span>Log a walk</span></div></div></div>' +
     '<div class="lvl"><span>Where the level comes from</span><b>Level 3</b></div>' +
-    '<div class="lvl"><span>Pace zones</span><b>Easy 10:40 &ndash; 11:30</b></div></div>' + trNav('cardio');
+    '<div class="lvl"><span>Pace zones</span><b>Easy 10:30 &ndash; 11:30</b></div></div>' + trNav('cardio');
 
+  /* SAMPLE DATA ONLY. Every figure rendered by the TR.* screens is invented and rounded
+     on purpose. Matthew's real readings were published here until 2026-09-01 (security
+     sweep #19); do not repopulate this mock from the live Train dataset. */
   TR.track = '' +
     '<div class="scroll"><div class="top">' +
     '  <div class="eyebrow">Body &amp; metrics</div>' +
@@ -110,19 +113,19 @@
     '<div class="card">' +
     '  <div class="lbl">This week</div>' +
     '  <div class="tiles">' +
-    '    <div><div class="v">7h 12m</div><div class="k">Sleep</div><div class="s">7-night median</div></div>' +
-    '    <div><div class="v">8,940</div><div class="k">Steps</div><div class="s">daily median</div></div>' +
-    '    <div><div class="v">2,410</div><div class="k">Calories</div><div class="s">median</div></div>' +
-    '    <div><div class="v">54</div><div class="k">Resting HR</div><div class="s">bpm</div></div>' +
-    '    <div><div class="v">24.1</div><div class="k">BMI</div><div class="s">&nbsp;</div></div>' +
-    '    <div><div class="v">9.4</div><div class="k">Miles run</div><div class="s">this week</div></div></div>' +
+    '    <div><div class="v">7h 30m</div><div class="k">Sleep</div><div class="s">7-night median</div></div>' +
+    '    <div><div class="v">9,000</div><div class="k">Steps</div><div class="s">daily median</div></div>' +
+    '    <div><div class="v">2,400</div><div class="k">Calories</div><div class="s">median</div></div>' +
+    '    <div><div class="v">60</div><div class="k">Resting HR</div><div class="s">bpm</div></div>' +
+    '    <div><div class="v">23.0</div><div class="k">BMI</div><div class="s">&nbsp;</div></div>' +
+    '    <div><div class="v">10.0</div><div class="k">Miles run</div><div class="s">this week</div></div></div>' +
     '  <div class="btn2" style="margin-top:11px"><span style="flex:1">Log a weigh-in</span></div></div>' +
     '<div class="card">' +
     '  <div class="lbl">Against your own previous seven days</div>' +
     '  <div class="lrow">Strength sessions<span>4</span></div><div class="say"><em>more than last week</em></div>' +
     '  <div class="lrow">Days moved<span>6</span></div><div class="say"><em>right at your usual</em></div>' +
     '  <div class="lrow">Protein days<span>5</span></div><div class="say"><em>more than last week</em></div>' +
-    '  <div class="lrow">Miles run<span>9.4<i style="font-style:normal;font-size:11px"> mi</i></span></div>' +
+    '  <div class="lrow">Miles run<span>10.0<i style="font-style:normal;font-size:11px"> mi</i></span></div>' +
     '  <div class="say"><em>ahead of your usual</em></div></div></div>' + trNav('track');
 
   /* ------------------------------------------------------------- screens */
