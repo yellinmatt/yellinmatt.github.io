@@ -274,6 +274,51 @@ html.js .rv.in{opacity:1;transform:none}
   background:var(--g2);border:1px solid var(--line);overflow:hidden}
 .reel video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover}
 @media (prefers-reduced-motion:reduce){.cell .par video{transition-duration:16s}}
+
+.stream{display:grid;grid-template-columns:minmax(170px,230px) minmax(0,1fr);
+  gap:clamp(28px,4.5vw,72px);align-items:start;padding-bottom:clamp(60px,9vw,140px)}
+.index{position:sticky;top:96px}
+.index ol{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.index a{display:grid;grid-template-columns:2.4em minmax(0,1fr);padding:10px 0;
+  border-bottom:1px solid var(--line);font-size:14px;line-height:1.3;color:var(--faint);
+  transition:color .25s linear}
+.index a span{font-size:10px;letter-spacing:.2em;padding-top:.3em}
+.index a:hover{color:var(--ink)}
+.index a.on{color:var(--tone)}
+.pieces{display:flex;flex-direction:column;gap:clamp(80px,12vw,180px)}
+.piece{position:relative;display:block;color:inherit;cursor:pointer;scroll-margin-top:90px}
+.piece .media{position:relative;display:block;aspect-ratio:4/3;overflow:hidden;
+  background:var(--g2);border:1px solid var(--line);transition:border-color .3s linear}
+.piece:hover .media,.piece:focus-visible .media{border-color:color-mix(in srgb,var(--tone) 55%,transparent)}
+.piece video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;
+  transition:transform 1.4s var(--ease)}
+@media (hover:hover) and (pointer:fine){.piece:hover video,.piece:focus-visible video{transform:scale(1.015)}}
+.piece .open{position:absolute;top:14px;right:16px;z-index:2;width:30px;height:30px;
+  display:grid;place-items:center;background:color-mix(in srgb,var(--g2) 70%,transparent);
+  border:1px solid var(--line2);opacity:0;transform:rotate(-22.5deg);
+  transition:opacity .25s ease,transform .25s ease}
+.piece:hover .open,.piece:focus-visible .open{opacity:1;transform:rotate(0)}
+.piece .open svg{width:12px;height:12px;fill:var(--g12)}
+.piece .info{display:grid;grid-template-columns:3em minmax(0,1fr);gap:0 14px;margin-top:24px;align-items:baseline}
+.piece .no{font-size:10px;letter-spacing:.2em;color:var(--faint)}
+.piece b{font-weight:200;font-size:clamp(36px,5.4vw,76px);line-height:.92;letter-spacing:-.045em;
+  color:var(--ink);transition:color .3s linear}
+.piece:hover b,.piece:focus-visible b{color:var(--tone)}
+.piece i,.piece .lede,.piece .more{grid-column:2}
+.piece i{margin-top:16px;font-style:normal;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--tone)}
+.piece .lede{margin-top:12px;font-size:clamp(16px,1.45vw,19px);line-height:1.5;color:var(--mute);max-width:44ch}
+.piece .more{margin-top:16px;justify-self:start;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--faint);border-bottom:1px solid var(--line2);padding-bottom:3px;transition:color .25s,border-color .25s}
+.piece:hover .more,.piece:focus-visible .more{color:var(--tone);border-color:currentColor}
+.say{padding:clamp(28px,4vw,48px) 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.say p{margin:0;font-size:clamp(22px,2.8vw,38px);line-height:1.22;letter-spacing:-.03em;max-width:24ch}
+.say p em{font-style:normal;color:var(--accent)}
+@media (max-width:860px){
+  .stream{grid-template-columns:1fr}
+  .index{display:none}
+  .piece .info{grid-template-columns:2.4em minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){.piece video{transition-duration:16s}}
 </style>
 </head>
 <body>
@@ -291,109 +336,58 @@ html.js .rv.in{opacity:1;transform:none}
     <p class="rv">Every screen below is the real product, recorded.</p>
   </header>
 
-  <figure class="reel rv"><video muted loop playsinline preload="none" poster="../assets/video/reel.jpg?v=2026-10-11v" data-src="../assets/video/reel.mp4?v=2026-10-11v" aria-label="All twelve, recorded one after another"></video></figure>
-
-  <section class="roster">
-    <a class="cell rv" href="../news/" target="_blank" rel="noopener" style="--tone:#d4604f" data-k="brief">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/brief.jpg?v=2026-10-11v" data-src="../assets/video/brief.mp4?v=2026-10-11v" aria-label="The Morning Brief, a recent edition, recorded"></video></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">01</span>
-      <span class="cap"><b>The Morning Brief</b><i>Vol. I No. 75 &middot; Daily</i></span>
+  <section class="stream">
+    <nav class="index" aria-label="The twelve"><ol><li><a href="#p-brief" style="--tone:#d4604f" data-to="brief"><span>01</span>The Morning Brief</a></li><li><a href="#p-versed" style="--tone:#dd7d63" data-to="versed"><span>02</span>Well-Versed</a></li><li><a href="#p-deal" style="--tone:#dcb47e" data-to="deal"><span>03</span>Dealcraft</a></li><li><a href="#p-bits" style="--tone:#7da3c2" data-to="bits"><span>04</span>Greatest Bits</a></li><li><a href="#p-train" style="--tone:#6f9e8c" data-to="train"><span>05</span>Train</a></li><li><a href="#p-desk" style="--tone:#e0654f" data-to="desk"><span>06</span>The Desk</a></li><li><a href="#p-kit" style="--tone:#9a8fb0" data-to="kit"><span>07</span>The Claude OS Kit</a></li><li><a href="#p-uni" style="--tone:#c99a6a" data-to="uni"><span>08</span>A Personal University</a></li><li><a href="#p-music" style="--tone:#7fa89b" data-to="music"><span>09</span>The Listening Record</a></li><li><a href="#p-fin" style="--tone:#c2a15e" data-to="fin"><span>10</span>The Finance Desk</a></li><li><a href="#p-film" style="--tone:#8fa6c4" data-to="film"><span>11</span>The Film Library</a></li><li><a href="#p-read" style="--tone:#b08a5e" data-to="read"><span>12</span>The Reading Log</a></li></ol></nav>
+    <div class="pieces">
+    <a class="piece rv" id="p-brief" href="../news/" target="_blank" rel="noopener" style="--tone:#d4604f" data-k="brief">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/brief.jpg?v=2026-10-11w" data-src="../assets/video/brief.mp4?v=2026-10-11w" aria-label="The Morning Brief, a recent edition, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">01</span><b>The Morning Brief</b><i>Vol. I No. 75 &middot; Daily</i><span class="lede">A daily newspaper that writes and publishes itself before six every morning.</span><span class="more">See it live and how it works</span></span>
     </a>
-    <a class="cell rv" href="../well-versed/" target="_blank" rel="noopener" style="--tone:#dd7d63" data-k="versed">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/versed.jpg?v=2026-10-11v" data-src="../assets/video/versed.mp4?v=2026-10-11v" aria-label="Well-Versed, the lesson library, recorded"></video></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">02</span>
-      <span class="cap"><b>Well-Versed</b><i>Daily &middot; every lesson kept</i></span>
+    <a class="piece rv" id="p-versed" href="../well-versed/" target="_blank" rel="noopener" style="--tone:#dd7d63" data-k="versed">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/versed.jpg?v=2026-10-11w" data-src="../assets/video/versed.mp4?v=2026-10-11w" aria-label="Well-Versed, the lesson library, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">02</span><b>Well-Versed</b><i>Daily &middot; every lesson kept</i><span class="lede">One lesson a day toward a general education, and every one of them kept.</span><span class="more">See it live and how it works</span></span>
     </a>
-    <a class="cell rv" href="../dealcraft/" target="_blank" rel="noopener" style="--tone:#dcb47e" data-k="deal">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/deal.jpg?v=2026-10-11v" data-src="../assets/video/deal.mp4?v=2026-10-11v" aria-label="Dealcraft, the corporate law desk, recorded"></video></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">03</span>
-      <span class="cap"><b>Dealcraft</b><i>Lesson 016 &middot; two-year build</i></span>
+    <a class="piece rv" id="p-deal" href="../dealcraft/" target="_blank" rel="noopener" style="--tone:#dcb47e" data-k="deal">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/deal.jpg?v=2026-10-11w" data-src="../assets/video/deal.mp4?v=2026-10-11w" aria-label="Dealcraft, the corporate law desk, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">03</span><b>Dealcraft</b><i>Lesson 016 &middot; two-year build</i><span class="lede">A two-year daily curriculum in corporate and transactional law.</span><span class="more">See it live and how it works</span></span>
     </a>
-    <a class="cell rv" href="../greatest-bits/" target="_blank" rel="noopener" style="--tone:#7da3c2" data-k="bits">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/bits.jpg?v=2026-10-11v" data-src="../assets/video/bits.mp4?v=2026-10-11v" aria-label="Greatest Bits, the comedy archive, recorded"></video></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">04</span>
-      <span class="cap"><b>Greatest Bits</b><i>459 comics catalogued</i></span>
+    <a class="piece rv" id="p-bits" href="../greatest-bits/" target="_blank" rel="noopener" style="--tone:#7da3c2" data-k="bits">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/bits.jpg?v=2026-10-11w" data-src="../assets/video/bits.mp4?v=2026-10-11w" aria-label="Greatest Bits, the comedy archive, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">04</span><b>Greatest Bits</b><i>459 comics catalogued</i><span class="lede">An archive of great comedy, indexed so a bit you half remember can be found.</span><span class="more">See it live and how it works</span></span>
     </a>
-    <div class="cell rv" id="train" style="--tone:#6f9e8c" data-k="train">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/train.jpg?v=2026-10-11v" data-src="../assets/video/train.mp4?v=2026-10-11v" aria-label="Train, the day it prescribes, recorded"></video></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">05</span>
-      <span class="cap"><b>Train</b><i>v7.87 &middot; no number you can fail</i></span>
+    <div class="piece rv" id="p-train" style="--tone:#6f9e8c" data-k="train">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/train.jpg?v=2026-10-11w" data-src="../assets/video/train.mp4?v=2026-10-11w" aria-label="Train, the day it prescribes, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">05</span><b>Train</b><i>v7.87 &middot; no number you can fail</i><span class="lede">A training system with no number in it you can fail.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#e0654f" data-k="desk">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/desk.jpg?v=2026-10-11v" data-src="../assets/video/desk.mp4?v=2026-10-11v" aria-label="The Desk, the morning board, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">06</span>
-      <span class="cap"><b>The Desk</b><i>Rebuilt each morning &middot; one writer</i></span>
-      <q>A decision reached in conversation <em>is not made until it is written down.</em></q>
+    <div class="piece rv" id="p-desk" style="--tone:#e0654f" data-k="desk">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/desk.jpg?v=2026-10-11w" data-src="../assets/video/desk.mp4?v=2026-10-11w" aria-label="The Desk, the morning board, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">06</span><b>The Desk</b><i>Rebuilt each morning &middot; one writer</i><span class="lede">The board I start every morning from, rebuilt while I am asleep.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell say rv">
-      <p>Twelve things, built one at a time. <em>Four of them run without me.</em></p>
+    <div class="say rv"><p>Twelve things, built one at a time. <em>Four of them run without me.</em></p></div>
+    <div class="piece rv" id="p-kit" style="--tone:#9a8fb0" data-k="kit">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/kit.jpg?v=2026-10-11w" data-src="../assets/video/kit.mp4?v=2026-10-11w" aria-label="The Claude OS Kit, the four editions, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">07</span><b>The Claude OS Kit</b><i>Four editions shipped</i><span class="lede">The system I run everything from, packaged four ways for four readers.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#9a8fb0" data-k="kit">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/kit.jpg?v=2026-10-11v" data-src="../assets/video/kit.mp4?v=2026-10-11v" aria-label="The Claude OS Kit, the four editions, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">07</span>
-      <span class="cap"><b>The Claude OS Kit</b><i>Four editions shipped</i></span>
-      <q>A document that overflows is <em>a document nobody trusts.</em></q>
+    <div class="piece rv" id="p-uni" style="--tone:#c99a6a" data-k="uni">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/uni.jpg?v=2026-10-11w" data-src="../assets/video/uni.mp4?v=2026-10-11w" aria-label="A Personal University, a chapter page, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">08</span><b>A Personal University</b><i>48 pages &middot; a fourth building</i><span class="lede">Re-teaching myself a finished degree by writing the encyclopedia of it.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#c99a6a" data-k="uni">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/uni.jpg?v=2026-10-11v" data-src="../assets/video/uni.mp4?v=2026-10-11v" aria-label="A Personal University, a chapter page, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">08</span>
-      <span class="cap"><b>A Personal University</b><i>48 pages &middot; a fourth building</i></span>
-      <q><em>No scores anywhere.</em> A grade is not the test of whether you understood it.</q>
+    <div class="piece rv" id="p-music" style="--tone:#7fa89b" data-k="music">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/music.jpg?v=2026-10-11w" data-src="../assets/video/music.mp4?v=2026-10-11w" aria-label="The Listening Record, the analysis, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">09</span><b>The Listening Record</b><i>5,068 artists &middot; 66,253 plays</i><span class="lede">Twelve years of listening, turned from raw rows into something you can question.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#7fa89b" data-k="music">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/music.jpg?v=2026-10-11v" data-src="../assets/video/music.mp4?v=2026-10-11v" aria-label="The Listening Record, the analysis, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">09</span>
-      <span class="cap"><b>The Listening Record</b><i>5,068 artists &middot; 66,253 plays</i></span>
-      <q>Every set verified <em>by opening it, rather than by trusting the write.</em></q>
+    <div class="piece rv" id="p-fin" style="--tone:#c2a15e" data-k="fin">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/fin.jpg?v=2026-10-11w" data-src="../assets/video/fin.mp4?v=2026-10-11w" aria-label="The Finance Desk, the weekly letter, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">10</span><b>The Finance Desk</b><i>A letter every Monday</i><span class="lede">A weekly letter that reports on my own money the way an analyst reports on somebody else’s.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#c2a15e" data-k="fin">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/fin.jpg?v=2026-10-11v" data-src="../assets/video/fin.mp4?v=2026-10-11v" aria-label="The Finance Desk, the weekly letter, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">10</span>
-      <span class="cap"><b>The Finance Desk</b><i>A letter every Monday</i></span>
-      <q>Evidence is named and dated, <em>or it does not count.</em></q>
+    <div class="piece rv" id="p-film" style="--tone:#8fa6c4" data-k="film">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/film.jpg?v=2026-10-11w" data-src="../assets/video/film.mp4?v=2026-10-11w" aria-label="The Film Library, the shelf, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">11</span><b>The Film Library</b><i>A running top hundred</i><span class="lede">Everything worth watching, and an engine that decides what I watch tonight.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#8fa6c4" data-k="film">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/film.jpg?v=2026-10-11v" data-src="../assets/video/film.mp4?v=2026-10-11v" aria-label="The Film Library, the shelf, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">11</span>
-      <span class="cap"><b>The Film Library</b><i>A running top hundred</i></span>
-      <q>The point of a library is <em>that it answers.</em></q>
+    <div class="piece rv" id="p-read" style="--tone:#b08a5e" data-k="read">
+      <span class="media"><video muted loop playsinline preload="none" poster="../assets/video/read.jpg?v=2026-10-11w" data-src="../assets/video/read.mp4?v=2026-10-11w" aria-label="The Reading Log, the year so far, recorded"></video><span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span></span>
+      <span class="info"><span class="no">12</span><b>The Reading Log</b><i>Every book, shelved and counted</i><span class="lede">Every book finished, so the year has a shape.</span><span class="more">See the sample and how it works</span></span>
     </div>
-    <div class="cell type rv" style="--tone:#b08a5e" data-k="read">
-      <span class="par"><video muted loop playsinline preload="none" poster="../assets/video/read.jpg?v=2026-10-11v" data-src="../assets/video/read.mp4?v=2026-10-11v" aria-label="The Reading Log, the year so far, recorded"></video></span>
-      <span class="scrim" aria-hidden="true"></span>
-      <span class="tone" aria-hidden="true"></span>
-      <span class="open" aria-hidden="true"><svg viewBox="0 0 18 18"><path d="M18 10.125H10.125V18H7.875V10.125H0V7.875H7.875V0H10.125V7.875H18V10.125Z"/></svg></span>
-      <span class="no">12</span>
-      <span class="cap"><b>The Reading Log</b><i>Every book, shelved and counted</i></span>
-      <q>A shape you can look at beats <em>a vague sense that you have not been reading enough.</em></q>
     </div>
   </section>
 
@@ -483,19 +477,19 @@ html.js .rv.in{opacity:1;transform:none}
   var DEMOV='2026-08-06u';
 
   var PROJ={
-   brief:{k:'Published daily',n:'The Morning Brief',shot:'brief.jpg',demo:'brief.html',
+   brief:{k:'Published daily',n:'The Morning Brief',href:'../news/',shot:'brief.jpg',demo:'brief.html',
      lede:'A daily newspaper that writes and publishes itself before six every morning.',
      body:'Not a link list. Every item runs reported prose with a cross-spectrum source strip, definitions annotated in place so a name never stops the sentence, a close that says what the item changes, and a framing note showing how the same facts were framed differently across the spectrum.',
      meta:[['Cadence','Fires 6:04 AM, every day'],['Edition','Vol. I, No. 75'],['Built','Writing and automation']]},
-   versed:{k:'Published daily',n:'Well-Versed',shot:'versed.jpg',demo:'versed.html',
+   versed:{k:'Published daily',n:'Well-Versed',href:'../well-versed/',shot:'versed.jpg',demo:'versed.html',
      lede:'One lesson a day toward a general education, and every one of them kept.',
      body:'A lesson is a long illustrated essay rather than a card. The house move is the correction: the wolf lesson dismantles the alpha-wolf myth, then turns around and dismantles the tidy parable it just told you.',
      meta:[['Cadence','Fires 6:14 AM, every day'],['Archive','Every lesson indexed'],['Built','Writing and automation']]},
-   deal:{k:'Published',n:'Dealcraft',shot:'deal.jpg',demo:'deal.html',
+   deal:{k:'Published',n:'Dealcraft',href:'../dealcraft/',shot:'deal.jpg',demo:'deal.html',
      lede:'A two-year daily curriculum in corporate and transactional law.',
      body:'An encyclopedia of the concepts, a toolkit of four tracks and thirty-five cards, and real transactions taken apart clause by clause, taught in the order a deal actually runs rather than the order a casebook lists them.',
      meta:[['Published','Sixteen lessons'],['Structure','Six tracks, two full rotations'],['Built','Research and writing']]},
-   bits:{k:'Published',n:'Greatest Bits',shot:'bits.jpg',demo:'bits.html',
+   bits:{k:'Published',n:'Greatest Bits',href:'../greatest-bits/',shot:'bits.jpg',demo:'bits.html',
      lede:'An archive of great comedy, indexed so a bit you half remember can be found.',
      body:'Catalogued by comic and by bit. A standing read-only auditor sweeps the whole archive for empty profiles, dead embeds, missing photographs and duplicates, so the catalogue degrades loudly instead of silently.',
      meta:[['Roster','459 comics'],['Quality','A standing auditor'],['Built','Archive and tooling']]},
@@ -676,11 +670,11 @@ html.js .rv.in{opacity:1;transform:none}
     }
     window.addEventListener('resize',function(){if(sheet._fit)sheet._fit();},{passive:true});
     document.addEventListener('click',function(e){
-      var c=e.target.closest('.cell[data-k]');
+      var c=e.target.closest('.piece[data-k]');
       if(c){e.preventDefault();open(c);return;}
       if(e.target.closest('[data-close]'))close();
     });
-    [].forEach.call(document.querySelectorAll('.cell[data-k]'),function(c){
+    [].forEach.call(document.querySelectorAll('.piece[data-k]'),function(c){
       if(c.tagName!=='A'){c.setAttribute('tabindex','0');c.setAttribute('role','button');}
       c.addEventListener('keydown',function(e){
         if(e.key==='Enter'||e.key===' '){e.preventDefault();open(c);}
@@ -712,6 +706,19 @@ html.js .rv.in{opacity:1;transform:none}
       },{rootMargin:'200px 0px'});
       vids.forEach(function(v){vo.observe(v);});
     }else{vids.forEach(arm);}
+  }catch(e){}
+
+  try{
+    var links={};[].forEach.call(document.querySelectorAll('.index a[data-to]'),function(a){links[a.getAttribute('data-to')]=a;});
+    if('IntersectionObserver' in window){
+      var so=new IntersectionObserver(function(es){
+        es.forEach(function(e){
+          if(!e.isIntersecting)return;
+          for(var k in links)links[k].classList.toggle('on',k===e.target.getAttribute('data-k'));
+        });
+      },{rootMargin:'-42% 0px -42% 0px'});
+      [].forEach.call(document.querySelectorAll('.piece[data-k]'),function(p){so.observe(p);});
+    }
   }catch(e){}
 </script>
 </body>
