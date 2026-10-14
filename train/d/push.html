@@ -77,6 +77,8 @@ font-variant-numeric:tabular-nums;color:var(--ink);padding:0;cursor:pointer}
 .lbox:hover{border-color:var(--sub)}
 .lbox:active{border-color:var(--accent)}
 .lbox.muted{font-size:13px;font-weight:700;color:var(--sub)}
+.fcom{display:block;width:100%;min-height:64px;margin:12px 0 4px;padding:12px;border-radius:var(--r-btn);border:1px solid var(--line);
+background:var(--surface-2);color:var(--ink);font:inherit;font-size:16px;line-height:1.4;resize:vertical}
 .lbox.none{visibility:hidden}
 .lrow.checked .lbox{color:var(--faint)}
 .lhead{display:grid;grid-template-columns:22px minmax(0,1fr) 34px 60px 48px;column-gap:6px;padding:10px 0 0}
@@ -212,14 +214,14 @@ var I={"check":"<svg viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><p
 var LS="train_v2";
 function loadS(){try{return JSON.parse(localStorage.getItem(LS));}catch(e){return null;}}
 function haveStore(){var s=loadS();return !!(s&&typeof s==="object"&&s.sessions);}
-function logSession(rec,date){
+function logSession(rec,date,quiet){
   var S=loadS(); if(!S||!S.sessions) return false;
   S.sessions=S.sessions||[]; S.done=S.done||{};
   S.sessions=S.sessions.filter(function(x){return x.id!==rec.id;});
   if(!rec.draft) S.sessions.filter(function(x){return x&&x.draft&&x.slot===rec.slot;}).forEach(function(x){tombId(S,x.id);});
   S.sessions.push(rec); S.done[date]=true;
   try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return false;}
-  try{ if(window.TrainSyncAuto && typeof window.TrainSyncAuto.now==="function") window.TrainSyncAuto.now(); }catch(e){}
+  if(!quiet){ try{ if(window.TrainSyncAuto && typeof window.TrainSyncAuto.now==="function") window.TrainSyncAuto.now(); }catch(e){} }
   return true;
 }
 function pkey(){return "trainday."+SLOT+"."+PAGE;}
@@ -319,6 +321,8 @@ document.addEventListener("DOMContentLoaded",function(){ if(!haveStore()) noStor
   <div class="sub" id="meta"></div>
 </div><button class="planbtn" id="planbtn" aria-label="Edit the saved plan for this workout">Edit plan</button></div>
 
+<div class="warn" id="plannote" hidden></div>
+<div class="warn" id="syncnote" hidden>This browser is not syncing, so what you log here stays on this device. Open <a href="../index.html">the Train app</a> here once and enter the passphrase.</div>
 <div id="rounds"></div>
 
 <div class="rndctl">
@@ -392,11 +396,12 @@ function wireSearch(skip,onPick){var res=[],inp=document.getElementById("libq"),
 var MAXR={legs:3};
 var RN0=Math.min((WROUNDS[WK]!=null)?WROUNDS[WK]:PROG_RN, MAXR[FOCUS]||99);
 var W={rN:RN0, order:orderFrom(canonRows(loadS()),WK,RN0), done:{}, wu:false};
+var PLAN_SIG=JSON.stringify(canonRows(loadS()));   /* the plan this page was drawn from (2026-10-14) */
 W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1791987771522";
+var BUILD="1791990205870";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -435,10 +440,11 @@ function resolveLoads(){
   });
 }
 resolveLoads();
+var ORDER0=ordSig();
 (function(){var el=document.getElementById("ldate");if(el)el.textContent=new Date(SLOT+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})+" · week "+WK;})();
 (function(){ var p=loadProg();
   var started=p&&p.done&&Object.keys(p.done).length>0;
-  if(p&&(p.build===BUILD||started)&&p.order&&p.order.length){ W.rN=p.rN||W.rN; W.order=p.order; W.done=p.done||{}; W.wu=!!p.wu; W.cells=p.cells||null; }
+  if(p&&(started||(p.build===BUILD&&p.psig===PLAN_SIG))&&p.order&&p.order.length){ W.rN=p.rN||W.rN; W.order=p.order; W.done=p.done||{}; W.wu=!!p.wu; W.cells=p.cells||null; }
   if(p){ W.draftRev=p.draftRev||0; W.draftN=p.draftN||0; }
 })();
 function mkCell(o){return {exId:o.exId,name:o.name,cue:o.cue||"",q:o.q||o.name,vid:o.vid||null,band:!!o.band,bw:!!o.bw,
@@ -453,7 +459,7 @@ function ensureCells(){
 ensureCells();
 function C(r,si){return W.cells[r][si];}
 function forward(r,si,fn){for(var q=r;q<W.rN;q++){if(W.done[rkey(q,si)])continue;fn(W.cells[q][si]);}}
-function persist(){ autosave(); saveProg({build:BUILD,rN:W.rN,order:W.order,done:W.done,wu:W.wu,cells:W.cells,
+function persist(){ autosave(); saveProg({build:BUILD,psig:PLAN_SIG,rN:W.rN,order:W.order,done:W.done,wu:W.wu,cells:W.cells,
   focus:FOCUS,draftRev:W.draftRev||0,draftN:W.draftN||0}); }
 function autosave(){
   var S=loadS(); if(!S||!S.sessions) return;
@@ -468,6 +474,47 @@ function autosave(){
 }
 window.addEventListener("pagehide",syncNow);
 document.addEventListener("visibilitychange",function(){ if(document.hidden) syncNow(); });
+
+var LOGGED=false, PLAN_NOTED=false, LAST_WATCH=0, PEND_K="train.pendingAdvance";
+function ordSig(){return JSON.stringify([W.rN,W.order.map(function(o){return [o.exId,o.w,o.reps,o.upTo||null];})]);}
+function untouched(){return !LOGGED&&Object.keys(W.done).length===0&&ordSig()===ORDER0;}
+function reloadIfUntouched(){if(!untouched())return false;var sh=document.getElementById("sheet");if(sh&&sh.classList.contains("on"))return false;
+  try{localStorage.removeItem(pkey());}catch(e){} location.reload(); return true;}
+function checkPlan(){
+  if(LOGGED) return "logged";
+  var sig; try{sig=JSON.stringify(canonRows(loadS()));}catch(e){return "err";}
+  if(sig===PLAN_SIG) return "same";
+  if(!untouched()){ if(!PLAN_NOTED){PLAN_NOTED=true;var n=document.getElementById("plannote");
+      if(n){n.textContent="The plan changed on another device. It applies next session.";n.hidden=false;}} return "noted"; }
+  return reloadIfUntouched()?"reload":"sheet";
+}
+function freshPlan(cb){var fired=false,fin=function(r){if(fired)return;fired=true;cb(r||{ok:false});};
+  try{var T=window.TrainSyncAuto;if(T&&typeof T.now==="function"){
+    T.now().then(fin,function(){fin({ok:false,reason:"error"});});setTimeout(function(){fin({ok:false,reason:"slow"});},8000);return;}}catch(e){}
+  fin({ok:false,reason:"no sync"});}
+function queueAdvance(entries){try{var q=JSON.parse(localStorage.getItem(PEND_K)||"[]");
+  q=q.filter(function(x){return x.slot!==SLOTID;});
+  q.push({slot:SLOTID,focus:FOCUS,entries:entries,feel:FEEL.feel,twinge:!!FEEL.twinge,at:Date.now()});
+  localStorage.setItem(PEND_K,JSON.stringify(q.slice(-6)));}catch(e){}}
+function applyPending(){var q=[];try{q=JSON.parse(localStorage.getItem(PEND_K)||"[]");}catch(e){return 0;}
+  var mine=q.filter(function(x){return x.focus===FOCUS;}); if(!mine.length) return 0;
+  var F0={feel:FEEL.feel,twinge:FEEL.twinge};
+  mine.sort(function(a,b){return a.at-b.at;}).forEach(function(x){FEEL.feel=x.feel;FEEL.twinge=!!x.twinge;try{advancePlan(x.entries);}catch(e){}});
+  FEEL.feel=F0.feel;FEEL.twinge=F0.twinge;
+  try{localStorage.setItem(PEND_K,JSON.stringify(q.filter(function(x){return x.focus!==FOCUS;})));}catch(e){}
+  return mine.length;}
+function planWatch(force){var t=Date.now();if(!force&&t-LAST_WATCH<20000)return;LAST_WATCH=t;
+  freshPlan(function(r){ if(LOGGED)return; if(r.ok&&applyPending()&&reloadIfUntouched())return; checkPlan(); });}
+document.addEventListener("visibilitychange",function(){ if(!document.hidden){ planWatch(); if(!LOGGED&&Object.keys(W.done).length) wakeOn(); } });
+window.addEventListener("pageshow",function(ev){ if(ev.persisted) planWatch(true); });
+setInterval(checkPlan,15000);
+(function(){try{var q=JSON.parse(localStorage.getItem(PEND_K)||"[]");
+  if(q.some(function(x){return x.focus===FOCUS;})) setTimeout(function(){planWatch(true);},1500);}catch(e){}})();
+(function(){try{if(haveStore()&&!(localStorage.getItem("train.syncToken")||"").trim()){var n=document.getElementById("syncnote");if(n)n.hidden=false;}}catch(e){}})();
+var WAKE=null;
+function wakeOn(){try{if(WAKE||LOGGED||!navigator.wakeLock||document.hidden)return;
+  navigator.wakeLock.request("screen").then(function(l){WAKE=l;l.addEventListener("release",function(){WAKE=null;});},function(){});}catch(e){}}
+function wakeOff(){try{if(WAKE){WAKE.release();WAKE=null;}}catch(e){}}
 
 function rkey(r,si){return r+":"+si;}
 function slotIn(r,si){var o=W.order[si];return o.upTo==null||r<o.upTo;}
@@ -554,7 +601,7 @@ function paintRound(r){
   var ring=card.querySelectorAll(".miniring circle")[1];
   if(ring){var C=2*Math.PI*13; ring.setAttribute("stroke-dashoffset",(C*(1-(tot?n/tot:0))).toFixed(1));}
 }
-function tick(r,si){
+function tick(r,si){wakeOn();
   var was=roundsDoneN(), k=rkey(r,si);
   var c0=C(r,si);
   if(W.done[k])delete W.done[k]; else W.done[k]={exId:c0.exId,reps:c0.reps,w:c0.w,ts:Date.now()};
@@ -746,19 +793,30 @@ function finish(kind){
   var D=today();
   var t0=null,tl=null;Object.keys(W.done).forEach(function(k){var c=W.done[k];if(c&&c.ts){if(t0==null||c.ts<t0)t0=c.ts;if(tl==null||c.ts>tl)tl=c.ts;}});
   var t1=tl||Date.now(), dur=t0?Math.min(10800,Math.max(60,Math.round((t1-t0)/1000))):0;
-  var ok=logSession({id:SLOTID,slot:SLOTID,date:D,type:"lift",activity:"Full body, "+FOCUS,
+  var rec={id:SLOTID,slot:SLOTID,date:D,type:"lift",activity:"Full body, "+FOCUS,
     durationSec:dur,startedAt:t0,endedAt:t1,notes:"workout-page "+kind,rounds:n,focus:FOCUS,
-    entries:entries, warmup:W.wu, feel:FEEL.feel, twinge:FEEL.twinge},D);
+    entries:entries, warmup:W.wu, feel:FEEL.feel, twinge:FEEL.twinge};
+  if(FEEL.comment) rec.comment=FEEL.comment;
+  var ok=logSession(rec,D,true);
   if(!ok){noStore();return;}
-  restStop();
-  var nx=[];try{nx=advancePlan(entries);}catch(e){}
-  markDone((kind==="floor"?"Floor logged. One round is a kept day.":n+" round"+(n===1?"":"s")+" in the book")+
-    (nx.length?'<div class="nextup">Next time: '+nx.map(esc).join(" · ")+'</div>':''));
+  restStop(); wakeOff(); LOGGED=true;
+  var head=(kind==="floor"?"Floor logged. One round is a kept day.":n+" round"+(n===1?"":"s")+" in the book");
+  markDone(head+'<div class="nextup">Saving&hellip;</div>');
+  freshPlan(function(r){
+    var nx=[],tail="";
+    if(r.ok){try{nx=advancePlan(entries);}catch(e){}}
+    else{queueAdvance(entries);
+      tail=(r.reason==="not paired"||r.reason==="no sync")?"This browser is not syncing, so this session stays on this device. Open the Train app here once and enter the passphrase.":
+        "Could not reach sync, so the plan moves the next time this page syncs.";}
+    markDone(head+(nx.length?'<div class="nextup">Next time: '+nx.map(esc).join(" · ")+'</div>':'')+
+      (tail?'<div class="nextup">'+esc(tail)+'</div>':''));
+  });
 }
-var FEEL={feel:null,twinge:false};
+var FEEL={feel:null,twinge:false,comment:""};
 function feelSheet(kind){
   openSheet('<h3>How did that feel?</h3><div class="ssub">One tap logs it. This is what sets next time.</div>'+
     '<button class="optrow" id="twg" aria-pressed="false"><span class="on2">Something twinged<div class="oc">neck, back, shoulder or a joint. Tap to mark, then pick below</div></span><span id="twgv" class="oc">no</span></button>'+
+    '<textarea id="fcom" class="fcom" rows="2" maxlength="500" placeholder="Comment (optional)" aria-label="Comment on this session"></textarea>'+
     '<button class="sheet-cta" data-feel="easy">Easy. Plenty left in the tank</button>'+
     '<button class="sheet-cta" data-feel="right" style="margin-top:8px">About right</button>'+
     '<button class="sheet-cta" data-feel="hard" style="margin-top:8px">Hard. Near my limit</button>'+
@@ -767,7 +825,8 @@ function feelSheet(kind){
   s.addEventListener("click",function(ev){
     var b=ev.target.closest("button");if(!b)return;
     if(b.id==="twg"){FEEL.twinge=!FEEL.twinge;document.getElementById("twgv").textContent=FEEL.twinge?"yes":"no";b.setAttribute("aria-pressed",String(FEEL.twinge));return;}
-    if(b.hasAttribute("data-feel")){FEEL.feel=b.getAttribute("data-feel");closeSheet();finish(kind);}
+    if(b.hasAttribute("data-feel")){var fc=document.getElementById("fcom");FEEL.comment=fc?String(fc.value||"").trim().slice(0,500):"";
+      FEEL.feel=b.getAttribute("data-feel");closeSheet();finish(kind);}
   });
 }
 function stepW(ladder,w,dir){var L=ladder==="kb"?KB_LADDER:(ladder==="db"?DB_LADDER:null);if(!L)return w;
@@ -777,7 +836,7 @@ function planDoc(S){S.progs=S.progs||{};var key=progKey(S);var P=S.progs[key];
   if(!P){P={v:2,key:key,name:"Full body, rotating emphasis",rN:PROG_RN,restSec:REST,rotate:["push","pull","legs"],days:{}};S.progs[key]=P;}
   P.days=P.days||{}; if(!P.days[FOCUS]||!P.days[FOCUS].length) P.days[FOCUS]=JSON.parse(JSON.stringify(BASE));
   return P;}
-function savePlan(S){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return false;} syncNow(); return true;}
+function savePlan(S){try{localStorage.setItem(LS,JSON.stringify(S));}catch(e){return false;} PLAN_SIG=JSON.stringify(canonRows(S)); syncNow(); return true;}
 function advancePlan(entries){
   var S=loadS(); if(!S) return []; var P=planDoc(S), rows=P.days[FOCUS], out=[];
   rows.forEach(function(m){
