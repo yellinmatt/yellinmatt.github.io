@@ -34,11 +34,74 @@
   function loadState() { try { return JSON.parse(localStorage.getItem(LS)); } catch (e) { return null; } }
   function saveState(S) { try { localStorage.setItem(LS, JSON.stringify(S)); return true; } catch (e) { return false; } }
 
+
+  function progsParts(P) {
+    var o = {};
+    if (!P || typeof P !== "object") return o;
+    Object.keys(P).forEach(function (pk) {
+      var v = P[pk];
+      if (!v || typeof v !== "object" || Array.isArray(v)) { o[pk + "/meta"] = v; return; }
+      var meta = {};
+      Object.keys(v).forEach(function (f) { if (f !== "days") meta[f] = v[f]; });
+      o[pk + "/meta"] = meta;
+      if (v.days && typeof v.days === "object") Object.keys(v.days).forEach(function (f) { o[pk + "/" + f] = v.days[f]; });
+    });
+    return o;
+  }
+  function progsBuild(parts) {
+    var P = {};
+    Object.keys(parts).forEach(function (k) {
+      var i = k.indexOf("/"), pk = k.slice(0, i), f = k.slice(i + 1), v = parts[k];
+      if (f === "meta") {
+        if (!v || typeof v !== "object") { if (!(pk in P)) P[pk] = v; return; }
+        var o = (P[pk] && typeof P[pk] === "object") ? P[pk] : {};
+        Object.keys(v).forEach(function (x) { o[x] = v[x]; });
+        P[pk] = o;
+      } else {
+        if (!P[pk] || typeof P[pk] !== "object") P[pk] = {};
+        if (!P[pk].days || typeof P[pk].days !== "object") P[pk].days = {};
+        P[pk].days[f] = v;
+      }
+    });
+    return P;
+  }
+  function readStamps() { try { return JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { return {}; } }
+  function writeStamps(st) { try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {} }
+  function progsStampsOf(P) {
+    var parts = progsParts(P), whole = stampedAt("progs", P || null), st = readStamps(), out = {}, ch = false;
+    Object.keys(parts).forEach(function (k) {
+      var n = "progs@" + k, sig = JSON.stringify(parts[k] === undefined ? null : parts[k]);
+      if (!st[n]) { st[n] = { sig: sig, at: whole }; ch = true; }
+      else if (st[n].sig !== sig) { st[n] = { sig: sig, at: Date.now() }; ch = true; }
+      out[k] = st[n].at;
+    });
+    Object.keys(st).forEach(function (n) {
+      if (n.indexOf("progs@") !== 0) return;
+      var k = n.slice(6); if (k in parts) return;
+      if (st[n].sig !== "null") { st[n] = { sig: "null", at: Date.now() }; ch = true; }
+      out[k] = st[n].at;
+    });
+    if (ch) writeStamps(st);
+    return out;
+  }
+  function weighStampsOf(W) {
+    var st = readStamps(), out = {}, ch = false;
+    (W || []).forEach(function (w) {
+      if (!w || w.date == null) return;
+      var n = "weigh@" + w.date, sig = String(w.w);
+      if (!st[n]) { st[n] = { sig: sig, at: 0 }; ch = true; }
+      else if (st[n].sig !== sig) { st[n] = { sig: sig, at: Date.now() }; ch = true; }
+      if (st[n].at) out[String(w.date)] = st[n].at;
+    });
+    if (ch) writeStamps(st);
+    return out;
+  }
   // ---- export/import mapping between the app blob and the wire schema ----
   function toWire(S) {
     return {
       sessions: Array.isArray(S.sessions) ? S.sessions : [],
       weighins: Array.isArray(S.weigh) ? S.weigh.map(function (w) { return { date: w.date, weightLb: w.w }; }) : [],
+      weighStamps: weighStampsOf(S.weigh),
       deleted: Array.isArray(S.deleted) ? S.deleted : [],
       anchor: S.anchor && typeof S.anchor === "object" ? S.anchor : {},
       done: S.done && typeof S.done === "object" ? S.done : {},
@@ -56,6 +119,7 @@
       routineUpdatedAt: stampedAt("routine", S.routine || null),
       progs: S.progs || null,
       progsUpdatedAt: stampedAt("progs", S.progs || null),
+      progsStamps: progsStampsOf(S.progs || null),
       prog: S.prog || null,
       progUpdatedAt: stampedAt("prog", S.prog || null),
       cursor: { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 },
@@ -176,14 +240,21 @@
     return Object.keys(m).map(function (k) { return m[k]; });
   }
   // Merge server weighins ({date,weightLb}) into app weigh ({date,w,...}) by date; keep existing.
-  function mergeWeigh(localWeigh, srvWeighins) {
+  function mergeWeigh(localWeigh, srvWeighins, srvStamps) {
     var out = Array.isArray(localWeigh) ? localWeigh.slice() : [];
-    var seen = {};
+    var seen = {}, st = srvStamps ? readStamps() : null, ch = false;
     out.forEach(function (w) { if (w && w.date != null) seen[String(w.date)] = true; });
     (srvWeighins || []).forEach(function (w) {
       if (!w || w.date == null) return;
-      if (!seen[String(w.date)]) { out.push({ date: w.date, w: w.weightLb }); seen[String(w.date)] = true; }
+      var k = String(w.date);
+      if (!seen[k]) { out.push({ date: w.date, w: w.weightLb }); seen[k] = true; return; }
+      var sAt = st ? Number((srvStamps || {})[k] || 0) : 0, mineAt = st && st["weigh@" + k] ? Number(st["weigh@" + k].at || 0) : 0;
+      if (sAt > mineAt) {
+        out = out.filter(function (x) { return !x || String(x.date) !== k; });
+        out.push({ date: w.date, w: w.weightLb }); st["weigh@" + k] = { sig: String(w.weightLb), at: sAt }; ch = true;
+      }
     });
+    if (ch) writeStamps(st);
     out.sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
     return out;
   }
@@ -201,7 +272,8 @@
     if (Date.now() < nextPushAt) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
-    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg, pu: p.pushup });
+    var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg, pu: p.pushup,
+      pg: p.progs, pgs: p.progsStamps, pk: p.prog, rt: p.routine, bl: p.bwLev, ws: p.weighStamps });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) {
@@ -264,7 +336,7 @@
         if (!localStorage.getItem(BACKUP_KEY)) { try { localStorage.setItem(BACKUP_KEY, before); } catch (e) {} }
         S.deleted = mergeTombs(S.deleted, srv.deleted);
         S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
-        S.weigh = mergeWeigh(S.weigh, srv.weighins);
+        S.weigh = mergeWeigh(S.weigh, srv.weighins, srv.weighStamps);
         S.stamps = S.stamps || { nutrition: {}, steps: {} };
         S.stamps.anchor = S.stamps.anchor || {};
         var srvAS = (srv.stamps && srv.stamps.anchor) || {};
@@ -309,9 +381,22 @@
           bumpStamp("routine", S.routine, Number(srv.routineUpdatedAt));
           try { if (S.wk && S.wk[TODAY] && (S.wk[TODAY].src || "gen") === "routine") delete S.wk[TODAY]; } catch (e) {}
         }
-        if (srv.progs && typeof srv.progs === "object" &&
-            srv.progs.circuit && Array.isArray(srv.progs.circuit.order) && srv.progs.circuit.order.length &&
-            Number(srv.progsUpdatedAt || 0) > stampedAt("progs", S.progs || null)) {
+        var progsOk = srv.progs && typeof srv.progs === "object" &&
+            srv.progs.circuit && Array.isArray(srv.progs.circuit.order) && srv.progs.circuit.order.length;
+        if (progsOk && srv.progsStamps && typeof srv.progsStamps === "object") {
+          var mine = progsStampsOf(S.progs || null), lp = progsParts(S.progs || null), sp = progsParts(srv.progs),
+              keys = {}, outP = {}, moved = false, st = readStamps(), maxAt = 0;
+          Object.keys(lp).concat(Object.keys(sp), Object.keys(srv.progsStamps)).forEach(function (k) { keys[k] = 1; });
+          Object.keys(keys).forEach(function (k) {
+            var sAt = Number(srv.progsStamps[k] || 0) || 0, lAt = mine[k] != null ? Number(mine[k]) : 0;
+            if (sAt > lAt) {
+              if (sp[k] !== undefined) outP[k] = sp[k];
+              st["progs@" + k] = { sig: JSON.stringify(sp[k] === undefined ? null : sp[k]), at: sAt }; moved = true;
+            } else if (lp[k] !== undefined) outP[k] = lp[k];
+            maxAt = Math.max(maxAt, sAt, lAt);
+          });
+          if (moved) { writeStamps(st); S.progs = progsBuild(outP); bumpStamp("progs", S.progs, maxAt); }
+        } else if (progsOk && Number(srv.progsUpdatedAt || 0) > stampedAt("progs", S.progs || null)) {
           S.progs = srv.progs;
           bumpStamp("progs", S.progs, Number(srv.progsUpdatedAt));
         }
@@ -450,5 +535,7 @@
       return { ok: !!h.lastOk && !h.fails, health: h };
     }).catch(function (e) { return { ok: false, reason: String(e && e.message) }; });
   }
-  global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs };
+  global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs,
+    _progsParts: progsParts, _progsBuild: progsBuild, _pull: pullAndMerge, _push: push,
+    pair: function () { overlayShown = false; promptToken(function () { pullAndMerge().then(function () { push(); }); }); } };
 })(typeof window !== "undefined" ? window : this);
