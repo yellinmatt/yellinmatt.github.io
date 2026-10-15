@@ -485,7 +485,7 @@ function wireSearch(skip,onPick){var res=[],inp=document.getElementById("libq"),
   inp.addEventListener("input",function(){res=searchLib(inp.value,skip);
     box.innerHTML=inp.value.trim()?(res.length?optRows(res,"data-any"):'<div class="ssub" style="margin-top:8px">Nothing matches.</div>'):"";});
   box.addEventListener("click",function(ev){var b=ev.target.closest("[data-any]");if(!b)return;ev.stopPropagation();onPick(res[+b.getAttribute("data-any")]);});}
-var MAXR={legs:3};
+var MAXR={"legs":3};
 RX_CEIL=Math.min(RX_CEIL,MAXR[FOCUS]||RX_CEIL);
 var PLAN_RMAX=Math.min(PROG_RN,MAXR[FOCUS]||PROG_RN);
 var RN0=Math.min((WROUNDS[WK]!=null)?WROUNDS[WK]:PROG_RN, MAXR[FOCUS]||99);
@@ -495,7 +495,7 @@ W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1792028347318";
+var BUILD="1792067828805";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -881,7 +881,8 @@ function swapSheet(r,si){
   var pick=function(a){
     forward(r,si,function(c){c.exId=a.exId;c.name=a.name;c.cue=a.cue;c.q=a.name;c.vid=a.vid||null;c.band=!!a.band;c.bw=!!a.bw;
       c.unit=a.unit||"reps";c.bandUp=false;
-      if(a.ladder!==c.ladder){c.ladder=a.ladder||null;c.w=(a.ladder==="db"?10:(a.ladder==="kb"?12:0));}});
+      var rg=rangeOf({},a.exId),L=LASTX[a.exId];c.lo=rg[0];c.hi=rg[1];c.reps=rg[0];c.fixed=false;
+      c.ladder=a.ladder||null;c.w=(L&&L.w>0&&c.ladder)?L.w:(a.ladder==="db"?10:(a.ladder==="kb"?12:0));});
     closeSheet();render();};
   var skip={};skip[o.exId]=1;
   openSheet('<h3>Swap '+esc(o.name)+'</h3>'+SEARCHBOX+
