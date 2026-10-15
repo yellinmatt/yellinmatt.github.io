@@ -96,6 +96,54 @@
     if (ch) writeStamps(st);
     return out;
   }
+  var DAY_FIELDS = ["runs", "override", "done"];
+  function dayMap(S, f) {
+    var m = S && S[f] && typeof S[f] === "object" ? S[f] : {};
+    if (f !== "done") return m;
+    var o = {}; for (var k in m) if (m[k]) o[k] = true; return o;  /* done: a false is an absence */
+  }
+  function dayStampsOf(S) {
+    var st = readStamps(), out = {}, ch = false;
+    DAY_FIELDS.forEach(function (f) {
+      var m = dayMap(S, f), o = {}, p = f + "@";
+      Object.keys(m).forEach(function (k) {
+        var n = p + k, sig = JSON.stringify(m[k] === undefined ? null : m[k]);
+        if (!st[n]) { st[n] = { sig: sig, at: 0 }; ch = true; }
+        else if (st[n].sig !== sig) { st[n] = { sig: sig, at: Date.now() }; ch = true; }
+        if (st[n].at) o[k] = st[n].at;
+      });
+      Object.keys(st).forEach(function (n) {
+        if (n.indexOf(p) !== 0) return;
+        var k = n.slice(p.length); if (k in m) return;
+        if (st[n].sig !== "null") { st[n] = { sig: "null", at: Date.now() }; ch = true; }
+        if (st[n].at) o[k] = st[n].at;
+      });
+      out[f] = o;
+    });
+    if (ch) writeStamps(st);
+    return out;
+  }
+  function mergeDays(S, srv, mine) {
+    var st = readStamps(), ch = false, sds = (srv.dayStamps && typeof srv.dayStamps === "object") ? srv.dayStamps : {};
+    DAY_FIELDS.forEach(function (f) {
+      var sm = dayMap(srv, f), ss = (sds[f] && typeof sds[f] === "object") ? sds[f] : {}, ms = mine[f] || {};
+      var out = (S[f] && typeof S[f] === "object") ? S[f] : {}, keys = {};
+      Object.keys(sm).concat(Object.keys(ss)).forEach(function (k) { keys[k] = 1; });
+      Object.keys(keys).forEach(function (k) {
+        var sAt = Number(ss[k] || 0) || 0, lAt = Number(ms[k] || 0) || 0, has = Object.prototype.hasOwnProperty.call(sm, k);
+        var here = Object.prototype.hasOwnProperty.call(out, k) && (f !== "done" || out[k]);
+        if (sAt > lAt) {
+          if (has) out[k] = sm[k]; else delete out[k];
+          st[f + "@" + k] = { sig: has ? JSON.stringify(sm[k]) : "null", at: sAt }; ch = true;
+        } else if (!here && has && !lAt) {
+          out[k] = sm[k];
+          st[f + "@" + k] = { sig: JSON.stringify(sm[k]), at: sAt }; ch = true;
+        }
+      });
+      S[f] = out;
+    });
+    if (ch) writeStamps(st);
+  }
   // ---- export/import mapping between the app blob and the wire schema ----
   function toWire(S) {
     return {
@@ -113,6 +161,12 @@
       override: S.override && typeof S.override === "object" ? S.override : {},
       daySlot: S.daySlot && typeof S.daySlot === "object" ? S.daySlot : {},
       vetted: S.vetted && typeof S.vetted === "object" ? S.vetted : {},
+      dayStamps: dayStampsOf(S),
+      weekMoves: S.weekMoves && typeof S.weekMoves === "object" && !Array.isArray(S.weekMoves) ? S.weekMoves : null,
+      lvlHold: S.lvlHold && typeof S.lvlHold === "object" ? S.lvlHold : null,
+      lvlHoldUpdatedAt: stampedAt("lvlHold", S.lvlHold && typeof S.lvlHold === "object" ? S.lvlHold : null),
+      routineOn: S.routineOn !== false,
+      routineOnUpdatedAt: stampedAt("routineOn", S.routineOn !== false),
       profile: S.profile || null,
       profileUpdatedAt: stampedAt("profile", S.profile),
       routine: S.routine || null,
@@ -168,15 +222,21 @@
     try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
     var sig = JSON.stringify(value === undefined ? null : value);
     if (!st[name] || st[name].sig !== sig) {
-      st[name] = { sig: sig, at: Date.now() };
+      st[name] = { sig: sig, at: st[name] ? Date.now() : 0 };
       try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
     }
     return st[name].at;
   }
+  function blank(v) { return v == null || (typeof v === "object" && Object.keys(v).length === 0); }
+  function takes(name, localVal, srvAt, srvVal, isBlank) {
+    var lAt = stampedAt(name, localVal), sAt = Number(srvAt || 0) || 0;
+    var b = isBlank || blank;
+    return sAt > lAt || (!lAt && !sAt && b(localVal) && !b(srvVal));
+  }
   function bumpStamp(name, value, at) {
     var st = {};
     try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
-    st[name] = { sig: JSON.stringify(value === undefined ? null : value), at: at || Date.now() };
+    st[name] = { sig: JSON.stringify(value === undefined ? null : value), at: Number(at) || 0 };
     try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
   }
   function mergeFill(local, srv) {
@@ -273,7 +333,8 @@
     var S = loadState(); if (!S) return;
     var p = toWire(S);
     var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg, pu: p.pushup,
-      pg: p.progs, pgs: p.progsStamps, pk: p.prog, rt: p.routine, bl: p.bwLev, ws: p.weighStamps });
+      pg: p.progs, pgs: p.progsStamps, pk: p.prog, rt: p.routine, bl: p.bwLev, ws: p.weighStamps,
+      dst: p.dayStamps, wm: p.weekMoves, lh: p.lvlHold, ro: p.routineOn });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) {
@@ -296,12 +357,36 @@
   }
 
   var reloadedOnce = false;
+  function countSessions(S) {
+    var st = readStamps(), n = S && Array.isArray(S.sessions) ? S.sessions.length : 0;
+    if (st.__sessions !== n) { st.__sessions = n; writeStamps(st); }
+  }
+  function appBusy() {
+    try {
+      if (typeof document === "undefined") return false;
+      if (document.querySelector(".scrim.on, .sheet-wrap.on, .sheetwrap.on")) return true;
+      if (document.body && document.body.classList.contains("sheet-open")) return true;
+      if (global.RND_ADV != null) return true;
+    } catch (e) {}
+    return false;
+  }
+  function handToApp(prev, next) {
+    try {
+      var A = global.S;
+      if (!A || typeof A !== "object" || A === next || !Array.isArray(A.sessions)) return false;
+      Object.keys(next).forEach(function (k) {
+        if (!prev || JSON.stringify(prev[k]) !== JSON.stringify(next[k])) A[k] = next[k];
+      });
+      if (prev) Object.keys(prev).forEach(function (k) { if (!(k in next)) delete A[k]; });
+      if (typeof global.normaliseStore === "function") global.normaliseStore(A);
+      if (typeof global.save === "function") global.save();
+      return true;
+    } catch (e) { return false; }
+  }
   function repaintInPlace() {
     try {
       if (typeof document === "undefined") return false;
-      if (document.querySelector(".sheet-wrap, .sheet, #sheet, .sheetwrap")) return false;
-      if (document.body && document.body.classList.contains("sheet-open")) return false;
-      if (global.RND_ADV != null) return false;
+      if (appBusy()) return false;
       if (typeof global.refreshCurrent === "function") { global.refreshCurrent(); return true; }
       if (typeof global.renderToday === "function") { global.renderToday(); return true; }
     } catch (e) {}
@@ -323,10 +408,13 @@
       .then(function (r) { if (r.ok) { mark(true); } else { onUnauthorized(r.status); mark(false, "pull " + r.status); } return r.ok ? r.json() : null; })
       .then(function (srv) {
         if (!srv) return;
+        if (appBusy()) return false;
         var S = loadState();
+        if (S && Number(readStamps().__sessions || 0) > 0 && !(Array.isArray(S.sessions) && S.sessions.length)) writeStamps({});
         if (!S) {
-          if ((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length) || srv.progressState) {
-            S = bootstrapFromServer(srv); saveState(S); lastSnap = "";
+          if ((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length) || srv.progressState || srv.profile) {
+            S = bootstrapFromServer(srv); saveState(S); lastSnap = ""; countSessions(S);
+            handToApp(null, S);
             reloadOnce();
             return true;
           }
@@ -334,6 +422,23 @@
         }
         var before = JSON.stringify(S);
         if (!localStorage.getItem(BACKUP_KEY)) { try { localStorage.setItem(BACKUP_KEY, before); } catch (e) {} }
+        mergeInto(S, srv);
+        countSessions(S);
+        var after = JSON.stringify(S);
+        if (after !== before) {
+          lastSnap = "";
+          saveState(S);
+          handToApp(JSON.parse(before), S);
+          if (!reloadedOnce) reloadOnce(); else repaintInPlace();
+          return true;
+        }
+        return false;
+      })
+      .catch(function (e) { mark(false, "pull " + (e && e.message)); return false; });
+  }
+
+  function mergeInto(S, srv) {
+        var mineDays = dayStampsOf(S);
         S.deleted = mergeTombs(S.deleted, srv.deleted);
         S.sessions = unionSessions(S.sessions, srv.sessions, S.deleted);
         S.weigh = mergeWeigh(S.weigh, srv.weighins, srv.weighStamps);
@@ -347,7 +452,7 @@
           }
         }
         S.anchor = mA.map; S.stamps.anchor = mA.stamps;
-        S.done = mergeDone(S.done, srv.done);
+        mergeDays(S, srv, mineDays);
         S.stamps = S.stamps || { nutrition: {}, steps: {} };
         var srvS = srv.stamps;
         if (!srvS || typeof srvS !== "object") {
@@ -367,16 +472,14 @@
         S.body = mergeServer(S.body || {}, srv.body);
         S.vitals = mergeServer(S.vitals || {}, srv.vitals);
         S.sleep = mergeServer(S.sleep || {}, srv.sleep);
-        S.runs = mergeFill(S.runs, srv.runs);
-        S.override = mergeFill(S.override, srv.override);
         S.daySlot = mergeFill(S.daySlot, srv.daySlot);
         S.vetted = mergeFill(S.vetted || {}, srv.vetted);
-        if (srv.profile && Number(srv.profileUpdatedAt || 0) > stampedAt("profile", S.profile)) {
+        if (srv.profile && typeof srv.profile === "object" && takes("profile", S.profile || null, srv.profileUpdatedAt, srv.profile)) {
           S.profile = srv.profile; bumpStamp("profile", S.profile, Number(srv.profileUpdatedAt));
         }
         if (srv.routine && typeof srv.routine === "object" && Array.isArray(srv.routine.order) &&
             srv.routine.order.length &&
-            Number(srv.routineUpdatedAt || 0) > stampedAt("routine", S.routine || null)) {
+            takes("routine", S.routine || null, srv.routineUpdatedAt, srv.routine)) {
           S.routine = srv.routine;
           bumpStamp("routine", S.routine, Number(srv.routineUpdatedAt));
           try { if (S.wk && S.wk[TODAY] && (S.wk[TODAY].src || "gen") === "routine") delete S.wk[TODAY]; } catch (e) {}
@@ -389,59 +492,62 @@
           Object.keys(lp).concat(Object.keys(sp), Object.keys(srv.progsStamps)).forEach(function (k) { keys[k] = 1; });
           Object.keys(keys).forEach(function (k) {
             var sAt = Number(srv.progsStamps[k] || 0) || 0, lAt = mine[k] != null ? Number(mine[k]) : 0;
-            if (sAt > lAt) {
+            if (sAt > lAt || (!lAt && lp[k] === undefined && sp[k] !== undefined)) {
               if (sp[k] !== undefined) outP[k] = sp[k];
               st["progs@" + k] = { sig: JSON.stringify(sp[k] === undefined ? null : sp[k]), at: sAt }; moved = true;
             } else if (lp[k] !== undefined) outP[k] = lp[k];
             maxAt = Math.max(maxAt, sAt, lAt);
           });
           if (moved) { writeStamps(st); S.progs = progsBuild(outP); bumpStamp("progs", S.progs, maxAt); }
-        } else if (progsOk && Number(srv.progsUpdatedAt || 0) > stampedAt("progs", S.progs || null)) {
+        } else if (progsOk && takes("progs", S.progs || null, srv.progsUpdatedAt, srv.progs)) {
           S.progs = srv.progs;
           bumpStamp("progs", S.progs, Number(srv.progsUpdatedAt));
         }
         if (srv.prog && typeof srv.prog === "string" &&
-            Number(srv.progUpdatedAt || 0) > stampedAt("prog", S.prog || null)) {
+            takes("prog", S.prog || null, srv.progUpdatedAt, srv.prog)) {
           S.prog = srv.prog;
           bumpStamp("prog", S.prog, Number(srv.progUpdatedAt));
         }
-        if (srv.cursor && Number(srv.cursorUpdatedAt || 0) > stampedAt("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 })) {
+        if (srv.cursor && typeof srv.cursor === "object" &&
+            takes("cursor", { planPos: S.planPos || 0, cycleNext: S.cycleNext || 0 }, srv.cursorUpdatedAt, srv.cursor,
+              function (c) { return !c || (!c.planPos && !c.cycleNext); })) {
           S.planPos = srv.cursor.planPos || 0; S.cycleNext = srv.cursor.cycleNext || 0;
           bumpStamp("cursor", { planPos: S.planPos, cycleNext: S.cycleNext }, Number(srv.cursorUpdatedAt));
         }
         var hasLocalProg = S.progress && Object.keys(S.progress).length > 0;
         if (srv.sore && typeof srv.sore === "object" &&
-            Number(srv.soreUpdatedAt || 0) > stampedAt("sore", S.sore || {})) {
+            takes("sore", S.sore || {}, srv.soreUpdatedAt, srv.sore)) {
           S.sore = srv.sore;
           bumpStamp("sore", S.sore, Number(srv.soreUpdatedAt));
         }
         if (srv.bwLev && typeof srv.bwLev === "object" && !Array.isArray(srv.bwLev) &&
-            Number(srv.bwLevUpdatedAt || 0) > stampedAt("bwLev", S.bwLev || {})) {
+            takes("bwLev", S.bwLev || {}, srv.bwLevUpdatedAt, srv.bwLev)) {
           S.bwLev = srv.bwLev;
           bumpStamp("bwLev", S.bwLev, Number(srv.bwLevUpdatedAt));
         }
         if (srv.pushup && typeof srv.pushup === "object" && !Array.isArray(srv.pushup) &&
-            Number(srv.pushupUpdatedAt || 0) > stampedAt("pushup", S.pushup || {})) {
+            takes("pushup", S.pushup || {}, srv.pushupUpdatedAt, srv.pushup)) {
           S.pushup = srv.pushup;
           bumpStamp("pushup", S.pushup, Number(srv.pushupUpdatedAt));
         }
         S.capTest = unionCapTest(S.capTest, srv.capTest);
         S.hardDays = mergeDone(S.hardDays || {}, srv.hardDays || {});
         if (srv.pedo && typeof srv.pedo === "object" && !Array.isArray(srv.pedo) &&
-            Number(srv.pedoUpdatedAt || 0) > stampedAt("pedo", S.pedo || {})) {
+            takes("pedo", S.pedo || {}, srv.pedoUpdatedAt, srv.pedo)) {
           S.pedo = srv.pedo;
           bumpStamp("pedo", S.pedo, Number(srv.pedoUpdatedAt));
         }
         if (!S.pedoMeta && srv.pedoMeta) S.pedoMeta = srv.pedoMeta;
         if (srv.cardioTick && typeof srv.cardioTick === "object" && !Array.isArray(srv.cardioTick) &&
-            Number(srv.cardioTickUpdatedAt || 0) > stampedAt("cardioTick", S.cardioTick || {})) {
+            takes("cardioTick", S.cardioTick || {}, srv.cardioTickUpdatedAt, srv.cardioTick)) {
           S.cardioTick = srv.cardioTick;
           bumpStamp("cardioTick", S.cardioTick, Number(srv.cardioTickUpdatedAt));
         }
         if (srv.roundsCfg && typeof srv.roundsCfg === "object" &&
-            Number(srv.roundsCfgUpdatedAt || 0) > stampedAt("roundsCfg",
+            takes("roundsCfg",
               { base: (typeof S.roundsBase === "number" ? S.roundsBase : null),
-                adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null })) {
+                adaptDay: S.roundsAdaptDay || null, wchartWin: S.wchartWin || null }, srv.roundsCfgUpdatedAt, srv.roundsCfg,
+              function (c) { return !c || (c.base == null && !c.adaptDay && !c.wchartWin); })) {
           if (typeof srv.roundsCfg.base === "number") S.roundsBase = srv.roundsCfg.base;
           S.roundsAdaptDay = srv.roundsCfg.adaptDay || S.roundsAdaptDay;
           S.wchartWin = srv.roundsCfg.wchartWin || null;
@@ -453,51 +559,41 @@
         else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
           S.progress = srv.progressState; bumpStamp("progress", S.progress, Number(srv.progressUpdatedAt));
         }
-        if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) S.profile.setup = true;
-        var after = JSON.stringify(S);
-        if (after !== before) {
-          lastSnap = "";
-          saveState(S);
-          if (!reloadedOnce) reloadOnce(); else repaintInPlace();
-          return true;
+        var wmS = srv.weekMoves, wmL = S.weekMoves;
+        if (wmS && typeof wmS === "object" && !Array.isArray(wmS) && wmS.map && typeof wmS.map === "object" &&
+            (!wmL || typeof wmL !== "object" || (Number(wmS.at) || 0) > (Number(wmL.at) || 0))) {
+          S.weekMoves = wmS;
         }
-        return false;
-      })
-      .catch(function (e) { mark(false, "pull " + (e && e.message)); return false; });
+        if (Object.prototype.hasOwnProperty.call(srv, "lvlHold") && (srv.lvlHold === null || (typeof srv.lvlHold === "object" && !Array.isArray(srv.lvlHold))) &&
+            takes("lvlHold", S.lvlHold && typeof S.lvlHold === "object" ? S.lvlHold : null, srv.lvlHoldUpdatedAt, srv.lvlHold)) {
+          S.lvlHold = srv.lvlHold;
+          bumpStamp("lvlHold", S.lvlHold, Number(srv.lvlHoldUpdatedAt));
+        }
+        if (typeof srv.routineOn === "boolean" &&
+            takes("routineOn", S.routineOn !== false, srv.routineOnUpdatedAt, srv.routineOn, function () { return false; })) {
+          S.routineOn = srv.routineOn;
+          bumpStamp("routineOn", srv.routineOn, Number(srv.routineOnUpdatedAt));
+        }
+        if (((srv.sessions && srv.sessions.length) || (srv.weighins && srv.weighins.length)) && S.profile && !S.profile.setup) {
+          var pAt = stampedAt("profile", S.profile);
+          S.profile.setup = true;
+          bumpStamp("profile", S.profile, pAt);
+        }
+        return S;
   }
 
+  var NEUTRAL_PROFILE = { setup: true, name: "", units: "lb", loc: null, goalLb: null, stretchLb: null, rest: 90,
+    theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null };
   function bootstrapFromServer(srv) {
-    var S = { v: 2,
-      profile: { setup: true, name: "", units: "lb", loc: "Miami", goalLb: 180, stretchLb: 175, rest: 90, theme: "system", equip: ["BW", "band"], adjustable: false, mode: "bw", started: null, programStart: null, runPlanStart: null },
-      progress: srv.progressState || {}, sore: (srv.sore && typeof srv.sore === "object") ? srv.sore : {},
-      wk: {}, sessions: Array.isArray(srv.sessions) ? srv.sessions : [],
-      done: (srv.done && typeof srv.done === "object") ? srv.done : {},
-      runs: {},
-      anchor: (srv.anchor && typeof srv.anchor === "object") ? srv.anchor : {},
-      steps: (srv.steps && typeof srv.steps === "object") ? srv.steps : {},
-      protein: (srv.protein && typeof srv.protein === "object") ? srv.protein : {},
-      nutrition: (srv.nutrition && typeof srv.nutrition === "object") ? srv.nutrition : {},
-      // A fresh device adopts the server's provenance wholesale. Starting it
-      // empty would let this browser's first push look like an authority on
-      // days it has never seen.
-      stamps: (srv.stamps && typeof srv.stamps === "object") ? srv.stamps : { nutrition: {}, steps: {} },
-      body: (srv.body && typeof srv.body === "object") ? srv.body : {},
-      vitals: (srv.vitals && typeof srv.vitals === "object") ? srv.vitals : {},
-      sleep: (srv.sleep && typeof srv.sleep === "object") ? srv.sleep : {},
-      vetted: (srv.vetted && typeof srv.vetted === "object") ? srv.vetted : {},
-      deleted: Array.isArray(srv.deleted) ? srv.deleted : [],
-      weigh: Array.isArray(srv.weighins) ? srv.weighins.map(function (w) { return { date: w.date, w: w.weightLb }; }) : [],
-      planPos: 0, override: {}, activeMode: "plan", genWk: null,
-      capTest: Array.isArray(srv.capTest) ? srv.capTest : [],
-      pedo: (srv.pedo && typeof srv.pedo === "object") ? srv.pedo : {},
-      pedoMeta: srv.pedoMeta || null,
-      cardioTick: (srv.cardioTick && typeof srv.cardioTick === "object") ? srv.cardioTick : {},
-      hardDays: (srv.hardDays && typeof srv.hardDays === "object") ? srv.hardDays : {} };
-    if (srv.roundsCfg && typeof srv.roundsCfg === "object") {
-      if (typeof srv.roundsCfg.base === "number") S.roundsBase = srv.roundsCfg.base;
-      if (srv.roundsCfg.adaptDay) S.roundsAdaptDay = srv.roundsCfg.adaptDay;
-      if (srv.roundsCfg.wchartWin) S.wchartWin = srv.roundsCfg.wchartWin;
-    }
+    writeStamps({});
+    var S = { v: 2, profile: null, progress: {}, wk: {}, sessions: [], done: {}, runs: {}, anchor: {}, steps: {},
+      protein: {}, nutrition: {}, stamps: { nutrition: {}, steps: {}, anchor: {} }, body: {}, vitals: {}, sleep: {},
+      vetted: {}, deleted: [], weigh: [], planPos: 0, cycleNext: 0, daySlot: {}, override: {}, activeMode: "plan",
+      genWk: null, sore: {}, capTest: [], hardDays: {} };
+    if (srv.stamps && typeof srv.stamps === "object") S.stamps = JSON.parse(JSON.stringify(srv.stamps));
+    mergeInto(S, srv);
+    if (!S.profile) S.profile = JSON.parse(JSON.stringify(NEUTRAL_PROFILE));
+    if (!S.profile.setup) { var pAt = stampedAt("profile", S.profile); S.profile.setup = true; bumpStamp("profile", S.profile, pAt); }
     S.sessions.forEach(function (s) { if (s && s.date) S.done[s.date] = true; });
     return S;
   }
@@ -537,5 +633,7 @@
   }
   global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs,
     _progsParts: progsParts, _progsBuild: progsBuild, _pull: pullAndMerge, _push: push,
+    _mergeInto: mergeInto, _bootstrap: bootstrapFromServer, _dayStamps: dayStampsOf,
+    forget: function () { try { localStorage.removeItem(STAMP_KEY); localStorage.removeItem(BACKUP_KEY); } catch (e) {} lastSnap = ""; },
     pair: function () { overlayShown = false; promptToken(function () { pullAndMerge().then(function () { push(); }); }); } };
 })(typeof window !== "undefined" ? window : this);
