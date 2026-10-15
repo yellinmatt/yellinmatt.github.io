@@ -539,7 +539,8 @@ align-items:center;justify-content:center;color:transparent}
 .bcol .bv.on{color:var(--accent)}
 .bcol .bx{font-size:13px;font-weight:700;color:var(--faint);min-height:12px}
 .bmean{position:absolute;left:0;right:0;border-top:1px dashed var(--line-2);pointer-events:none}
-.bmean span{position:absolute;left:0;right:auto;top:-14px;font-size:13px;font-weight:700;color:var(--faint);background:var(--surface);padding:0 4px;border-radius:3px;z-index:2}
+.bavg{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:700;color:var(--faint);font-variant-numeric:tabular-nums}
+.bavg i{display:block;width:16px;border-top:1px dashed var(--line-2)}
 .hcard .hhead{display:flex;align-items:baseline;gap:10px;margin:2px 0 12px}
 .hcard .hbig{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .hcard .hbig small{font-size:15px;color:var(--faint);font-weight:700}
@@ -1796,7 +1797,7 @@ button.planrow{width:100%;background:none;border-left:0;border-right:0;border-bo
 
 <script>
 "use strict";
-var VERSION="v26.1";
+var VERSION="v26.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3923,10 +3924,10 @@ function moreHTML(label,inner){
 var PLAN_CACHE=null,PLAN_TRIED=false;
 function syncNoteHTML(){try{
   if(location.protocol==="file:")return "";
-  var tok=(localStorage.getItem("train.syncToken")||"").trim();
-  if(!tok)return '<div class="syncnote">This device is not syncing.<button onclick="if(window.TrainSyncAuto&&TrainSyncAuto.pair)TrainSyncAuto.pair()">Enter passphrase</button></div>';
-  var hh=JSON.parse(localStorage.getItem("train.syncHealth")||"{}");
-  if(hh.lastOk&&Date.now()-hh.lastOk>86400000)return '<div class="syncnote">Last synced '+esc(shortDate(keyOf(new Date(hh.lastOk))))+'. Newer logs are on this device only.</div>';
+  var s=syncHealth();
+  if(s.rag==="none")return '<div class="syncnote">This device is not syncing.<button onclick="if(window.TrainSyncAuto&&TrainSyncAuto.pair)TrainSyncAuto.pair()">Enter passphrase</button></div>';
+  if(s.rag==="red")return '<div class="syncnote">'+(s.txt==="never"?'Sync has never worked here':'Last synced '+esc(s.txt)+'. Sync is failing')+', so logs stay on this device.</div>';
+  if(s.rag==="amber"&&s.txt!=="today"&&s.txt!=="unknown")return '<div class="syncnote">Last synced '+esc(s.txt)+'.</div>';
 }catch(e){}return "";}
 function planDayRaw(k){return (PLAN_CACHE&&PLAN_CACHE.days&&PLAN_CACHE.days[k])||null;}
 function planDay(k){var s=(typeof tdSrc==="function")?tdSrc(k):k;return s?planDayRaw(s):null;}
@@ -4170,14 +4171,14 @@ function tdNext(){var wk=planWeekKeys(),d=dayFromKey(TODAY);
 function tdNextHTML(){var n=tdNext();return n?'<div class="nextl"><span>Next</span><b>'+n+'</b></div>':'';}
 function tdStatsHTML(c){return c.length?'<div class="hstat" style="grid-template-columns:repeat('+c.length+',minmax(0,1fr))">'+c.map(function(x){
   return '<div><div class="hsl">'+x[0]+'</div><div class="hsv num">'+x[1]+'</div></div>';}).join("")+'</div>':'';}
-var TD_WEEK_ROUNDS={0:2,1:3,2:3},TD_MAXR={legs:3};
+function tdRounds(){var r=PLAN_CACHE&&PLAN_CACHE.rounds;return (r&&r.week&&r.max)?r:{week:{0:2,1:3,2:3},max:{legs:3}};}
 function tdLiftRx(f,k){var P=null;
   try{var ps=S.progs||{};[S.prog,"fullbody","ppl"].some(function(x){var p=x&&ps[x];
     if(p&&p.days&&p.days[f]&&p.days[f].length){P=p;return true;}return false;});}catch(e){}
   if(!P&&typeof PROG_SEEDS!=="undefined"&&PROG_SEEDS.fullbody)P=PROG_SEEDS.fullbody;
   if(!P||!P.days||!P.days[f])return null;
   var wk=planWeekNo(k);
-  var rN=Math.min(TD_WEEK_ROUNDS[wk]!=null?TD_WEEK_ROUNDS[wk]:(P.rN||3),TD_MAXR[f]||99);
+  var RR=tdRounds(),rN=Math.min(RR.week[wk]!=null?RR.week[wk]:(P.rN||3),RR.max[f]||99);
   var rows=sxServed(P.days[f],f,wk,sxCyc(f)),sets=0;
   rows.forEach(function(m){sets+=(m.upTo&&m.upTo<rN)?m.upTo:rN;});
   return {n:rows.length,rN:rN,min:Math.max(5,Math.round(sets*((P.restSec||105)+40)/60/5)*5)};}
@@ -5796,7 +5797,7 @@ function syncHealth(){
   var tok=null,h=null;
   try{tok=localStorage.getItem("train.syncToken");h=JSON.parse(localStorage.getItem("train.syncHealth")||"null");}catch(e){}
   if(!tok)return {rag:"none",txt:"not connected",hint:"no passphrase on this device"};
-  if(!h||!h.lastTry)return {rag:"amber",txt:"unknown",hint:"connected, no exchange recorded yet"};
+  if(!h||!(h.lastTry||h.lastOk))return {rag:"amber",txt:"unknown",hint:"connected, no exchange recorded yet"};
   if(!h.lastOk)return {rag:"red",txt:"never",hint:(h.fails||0)+" failed attempt"+((h.fails||0)===1?"":"s")+(h.lastErr?", "+h.lastErr:"")};
   var d=Math.floor((Date.now()-h.lastOk)/86400000);
   var txt=(d===0)?"today":(d===1)?"yesterday":d+" days ago";
@@ -6036,7 +6037,7 @@ function proteinCardHTML(){
   var any=macroAvg("p",0)||macroAvg("cb",0)||macroAvg("f",0);
   var head='<h3><span>Macros</span><span class="t">7-day average</span></h3>';
   if(!any)return '<div class="card">'+head+
-    '<div class="anote" style="margin-top:2px">Nothing logged. <b>Protein</b> floor '+(pt?pt.lo:0)+' g.</div></div>';
+    '<div class="anote" style="margin-top:2px">Nothing logged. '+(pt?'<b>Protein</b> floor '+pt.lo+' g.':'<b>Protein</b> floor needs a weigh-in.')+'</div></div>';
   return '<div class="card">'+head+'<div class="mcwrap">'+
     macroRow("Protein","p","g",pt?pt.lo:0)+
     macroRow("Carbs","cb","g",0)+
@@ -6883,8 +6884,9 @@ function barBody(vals,fmt,unit,firstLabel,floor){
   }).join("");
   var meanPct=mx?Math.round(((mean-base)/((mx-base)||1))*H):0;
   return '<div class="bwrap tall" style="--bh:'+H+'px">'+
-    (mean>0?'<div class="bmean" style="bottom:'+(meanPct+22)+'px"><span>avg '+fmt(mean)+(unit?" "+unit:"")+'</span></div>':'')+
-    '<div class="brow">'+bars+'</div><div class="bbase"></div></div>';
+    (mean>0?'<div class="bmean" style="bottom:'+(meanPct+22)+'px"></div>':'')+
+    '<div class="brow">'+bars+'</div><div class="bbase"></div></div>'+
+    (mean>0?'<div class="bavg"><i></i>avg '+fmt(mean)+(unit?" "+unit:"")+'</div>':'');
 }
 function barChart(title,note,vals,labels,fmt,unit){
   if(!vals||vals.length<2)return "";
@@ -6902,8 +6904,9 @@ function barChart(title,note,vals,labels,fmt,unit){
   }).join("");
   var meanPct=mx?Math.round((mean/mx)*H):0;
   return '<div class="card"><h3><span>'+title+'</span><span class="t">'+note+'</span></h3>'+
-    '<div class="bwrap" style="--bh:'+H+'px">'+(mean>0?'<div class="bmean" style="bottom:'+(meanPct+16)+'px"><span>avg '+fmt(mean)+(unit?" "+unit:"")+'</span></div>':'')+
-    '<div class="brow">'+bars+'</div></div></div>';
+    '<div class="bwrap" style="--bh:'+H+'px">'+(mean>0?'<div class="bmean" style="bottom:'+(meanPct+16)+'px"></div>':'')+
+    '<div class="brow">'+bars+'</div></div>'+
+    (mean>0?'<div class="bavg"><i></i>avg '+fmt(mean)+(unit?" "+unit:"")+'</div>':'')+'</div>';
 }
 var PATTERN_FLOOR={squat:9,hinge:9,"h-push":9,"v-push":6,"h-pull":9,"v-pull":4,core:6,isolation:4};
 function setsByPattern(back){
