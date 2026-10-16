@@ -181,14 +181,12 @@ h1 .m{color:var(--mut)}
 .log .live{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--acc);margin-left:6px}
 @media (max-width:760px){.log li{grid-template-columns:1fr;gap:4px}}
 
-#intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--bg);transition:background-color .5s var(--ease)}
-#intro .mk{font-size:clamp(96px,16vw,200px);display:flex;transform-origin:0 0;will-change:transform}
-#intro .mk span{display:inline-block;opacity:0;transform:translateY(30%);transition:opacity .5s var(--out),transform .7s var(--out)}
-#intro.a .mk span{opacity:1;transform:none}#intro.a .mk span+span{transition-delay:.12s}
-#intro.b{background:transparent;pointer-events:none}
-#intro.b .mk{transition:transform .7s var(--ease)}
-#intro.c{opacity:0;transition:opacity .2s}
-html.intro .bar .mk{visibility:hidden}
+#intro{position:fixed;inset:0;z-index:100;background:var(--bg);transition:background-color .7s var(--ease)}
+#intro .mk{position:fixed;transform-origin:0 0;will-change:transform,opacity;opacity:0;transition:opacity .5s var(--out)}
+#intro.a .mk{opacity:1}
+#intro.b{background:rgba(10,11,14,0);pointer-events:none}
+#intro.b .mk{transition:transform .75s var(--ease)}
+html.intro-on .bar .mk{visibility:hidden}
 @media (max-width:760px){.chrome .u{display:none}}
 
 @media (prefers-reduced-motion:no-preference){
@@ -263,7 +261,7 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 
 <header class="bar" id="bar"><div class="wrap">
   <a class="id" href="#top" aria-label="Matt Yellin, top of page"><span class="mk">M<i>Y</i></span><span>Matt Yellin</span></a>
-  <nav aria-label="Primary"><a href="#work">Work</a><a href="news/" data-peek="brief">The Morning Brief</a><a href="well-versed/" data-peek="versed">Well-Versed</a><a href="#about">About</a></nav>
+  <nav aria-label="Primary"><a href="#work">Work</a><a href="news/" data-peek="brief">The Morning Brief</a><a href="well-versed/" data-peek="versed">Well-Versed</a><a href="system/">Claude OS</a><a href="#about">About</a></nav>
   <a class="btn" href="https://www.linkedin.com/in/mattyellin/" target="_blank" rel="noopener">LinkedIn</a>
 </div></header>
 
@@ -394,19 +392,24 @@ function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null
 function dec(s){var t=document.createElement('textarea');t.innerHTML=s;return t.value}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
-var introDone=function(){};
-(function(){var go=!location.hash;
-  if(!go){introDone=null;return}
-  var o=el('div','',null);o.id='intro';o.setAttribute('aria-hidden','true');o.innerHTML='<span class="mk"><span>M</span><span style="color:var(--acc)">Y</span></span>';
-  document.body.appendChild(o);D.classList.add('intro');var big=o.firstChild,tm=[],ended=false;
-  function end(){if(ended)return;ended=true;tm.forEach(clearTimeout);D.classList.remove('intro');o.classList.add('c');D.classList.add('ready');setTimeout(function(){o.remove()},260)}
-  o.addEventListener('click',end);addEventListener('keydown',end,{once:true});addEventListener('wheel',end,{once:true,passive:true});
-  if(RM){o.classList.add('a');tm.push(setTimeout(end,500));return}
-  requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('a')})});
-  tm.push(setTimeout(function(){var a=big.getBoundingClientRect(),b=$('.bar .mk').getBoundingClientRect();var s=b.height/a.height;
-    o.classList.add('b');big.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+s+')'},950));
-  tm.push(setTimeout(function(){D.classList.add('ready')},1250));
-  tm.push(setTimeout(end,1700));
+var introDone=function(){},heroWait=2,heroTick=function(){if(--heroWait<=0&&introDone)introDone()};
+(function(){if(location.hash){introDone=null;return}
+  var o=el('div','',null);o.id='intro';o.setAttribute('aria-hidden','true');o.innerHTML='<span class="mk">M<i>Y</i></span>';
+  document.body.appendChild(o);D.classList.add('intro-on');D.classList.add('ready');
+  var m=o.firstChild,tm=[],ended=false,flew=false,t0=Date.now();
+  function place(){var b=$('.bar .mk').getBoundingClientRect();m.style.left=b.left+'px';m.style.top=b.top+'px';
+    var S=Math.min(innerWidth*.34,260)/b.width;m.style.transform='translate('+(innerWidth/2-b.left-b.width*S/2)+'px,'+(innerHeight/2-b.top-b.height*S/2)+'px) scale('+S+')'}
+  function end(){if(ended)return;ended=true;tm.forEach(clearTimeout);D.classList.remove('intro-on');o.remove()}
+  function fly(){if(flew)return;flew=true;o.classList.add('b');m.style.transform='none';tm.push(setTimeout(end,780))}
+  function skip(){if(!flew){o.style.transition='opacity .2s';o.style.opacity=0;tm.push(setTimeout(end,200))}}
+  o.addEventListener('click',skip);addEventListener('keydown',skip,{once:true});addEventListener('wheel',skip,{once:true,passive:true});addEventListener('touchmove',skip,{once:true,passive:true});
+  var go=function(){place();requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('a')})});
+    introDone=function(){var w=Math.max(0,1150-(Date.now()-t0));tm.push(setTimeout(fly,RM?0:w))};if(heroWait<=0)introDone();
+    tm.push(setTimeout(fly,2400))};
+  if(RM){o.classList.add('a');place();tm.push(setTimeout(end,350));return}
+  (document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(go);
+  tm.push(setTimeout(function(){if(!o.classList.contains('a'))go()},900));
+  addEventListener('resize',function(){if(!flew)place()});
 })();
 
 var cards=[];
@@ -489,7 +492,7 @@ fetch('news/',{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).the
     $('#lgB').href='news/'+e[1];$('#lgBh').textContent=hd;$('#lgBd').textContent=shortD(dd);
     sheets('#oBrief',all.slice(1).map(function(x){return {d:shortD(dec(x[2])),l:dec(x[3]),h:'news/'+x[1]}}));
     fetch('news/'+e[1],{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).then(function(x){var d=x.match(/<meta name="description" content="([^"]+)"/);if(d)$('#tBriefDeck').textContent=dec(d[1])}).catch(function(){})}
-}).catch(function(){});
+}).catch(function(){}).then(heroTick);
 fetch('well-versed/',{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).then(function(t){
   var h=t.match(/hero:\{no:"(\d+)"[^]*?t:"([^"]+)",\s*deck:"([^"]+)"[^]*?h:"([^"]+)",img:"([^"]+)"/);
   if(h){LIVE.versed=h[1];fill();var ti=dec(h[2]);$('#tVersedHead').textContent=ti;$('#tVersedDeck').textContent=dec(h[3]);$('#tVersed').href='well-versed/'+h[4];
@@ -499,7 +502,7 @@ fetch('well-versed/',{cache:'no-cache'}).then(function(r){return r.ok?r.text():'
     var by={},re=/\{no:"(\d+)",t:"([^"]+)",sub:"[^"]*",f:"[^"]*",h:"([^"]+)",img:"([^"]*)"\}/g,e;while((e=re.exec(t)))by[e[1]]=e;
     var n=+h[1],rows=[];for(var k=n-1;k>0&&rows.length<3;k--){var x=by[String(k)];if(x)rows.push({d:'No. '+x[1],l:dec(x[2]),h:'well-versed/'+x[3],img:x[4]?'https://commons.wikimedia.org/wiki/Special:FilePath/'+x[4]+'?width=480':''})}
     if(rows.length)sheets('#oVersed',rows)}
-}).catch(function(){});
+}).catch(function(){}).then(heroTick);
 
 var bar=$('#bar');addEventListener('scroll',function(){bar.classList.toggle('sc',scrollY>8)},{passive:true});
 if(introDone===null)requestAnimationFrame(function(){requestAnimationFrame(function(){D.classList.add('ready')})});

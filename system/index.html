@@ -63,8 +63,8 @@ h1 span{display:block;color:var(--mut)}
 .dayhead{padding:clamp(80px,12vh,128px) 0 24px}
 .h2{font:600 clamp(36px,4.6vw,68px)/1 var(--sans);letter-spacing:-.048em;margin-top:14px}
 .dayhead p{color:var(--ink2);max-width:56ch;margin-top:16px}
-.stop{position:relative;height:calc(var(--beats) * 36vh + 70vh)}
-.pin{position:sticky;top:calc(var(--barh) + 16px);height:calc(100svh - var(--barh) - 32px);display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(24px,4vw,56px);align-items:center}
+.stop{position:relative;padding:clamp(36px,6vh,64px) 0}
+.pin{position:relative;height:min(600px,calc(100svh - var(--barh) - 64px));min-height:480px;display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(24px,4vw,56px);align-items:center}
 .stop.lit .meta{opacity:1}
 .meta .time{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--mut)}
 .meta .time b{font-weight:500;color:var(--acc)}
@@ -85,6 +85,7 @@ h1 span{display:block;color:var(--mut)}
 .thread{overflow:hidden;padding:22px clamp(18px,3vw,36px);display:flex;flex-direction:column;justify-content:flex-end;gap:12px}
 .beat{opacity:0;transform:translateY(14px);transition:opacity .45s var(--out),transform .55s var(--out);max-height:0;overflow:hidden}
 .beat.in{opacity:1;transform:none;max-height:420px}
+.thread{transition:opacity .4s}.thread.fade{opacity:0}
 .b-user{align-self:flex-end;max-width:78%;background:var(--w-user);border-radius:16px 16px 4px 16px;padding:10px 14px;font-size:15px}
 .b-claude{font:400 17px/1.5 var(--serif);max-width:92%}
 .b-claude b{font-weight:500}
@@ -115,13 +116,11 @@ body.code .b-stop{color:#ffb4a3}body.code .b-stop .sx{display:none}body.code .b-
 body.code .b-file{color:#9ab8ff}body.code .b-file .ic{display:none}body.code .b-file::before{content:"  ⎿ wrote ";color:#5a5f69}
 
 @media (max-width:900px){
-  .stop{height:auto;padding:40px 0}
-  .pin{position:relative;top:auto;height:auto;grid-template-columns:1fr}
-  .win{height:auto;min-height:420px}
-  .thread{justify-content:flex-start}
-  .beat{opacity:1;transform:none;max-height:none}
+  .stop{padding:32px 0}
+  .pin{height:auto;min-height:0;grid-template-columns:1fr}
+  .win{height:460px}
 }
-@media (prefers-reduced-motion:reduce){.beat{transition:opacity .3s}}
+@media (prefers-reduced-motion:reduce){.beat{opacity:1;transform:none;max-height:none;transition:none}.thread{justify-content:flex-start;overflow:auto}}
 
 .sec{border-top:1px solid var(--line);padding:clamp(90px,13vh,140px) 0}
 .intro{display:grid;grid-template-columns:1fr minmax(0,440px);gap:24px 48px;align-items:end;margin-bottom:48px}
@@ -180,7 +179,7 @@ footer a{color:var(--ink2)}
 </div></section>
 
 <section class="day" id="day">
-  <div class="wrap dayhead"><div class="eye">Nine moments, morning to night</div><h2 class="h2">The day</h2><p>Each moment plays as you scroll. The rule it proves sits beside it. Switch between how it looks in Cowork and in Claude Code from the top bar.</p></div>
+  <div class="wrap dayhead"><div class="eye">Nine moments, morning to night</div><h2 class="h2">The day</h2><p>Each moment plays on its own when it comes into view. The rule it proves sits beside it. Switch between how it looks in Cowork and in Claude Code from the top bar.</p></div>
   <div class="wrap" id="stops"></div>
 </section>
 
@@ -271,11 +270,21 @@ var host=document.getElementById('stops'),stops=[];
 STOPS.forEach(function(s,i){var sec=el('section','stop');sec.style.setProperty('--beats',s.b.length);sec.setAttribute('aria-label',s.n);
   var pin=el('div','pin');var meta=el('div','meta','<div class="time"><b class="num">'+String(i+1).padStart(2,'0')+'</b><span>'+s.t+'</span></div><h3>'+s.n+'</h3><p>'+s.what+'</p><div class="rule"><small>The rule</small><span>'+s.rule+'</span></div><div class="prog">'+s.b.map(function(){return '<i><b></b></i>'}).join('')+'</div>');
   pin.appendChild(meta);pin.appendChild(win(s.n,s.b));sec.appendChild(pin);host.appendChild(sec);stops.push(sec)});
-var MQ=matchMedia('(max-width:900px)');
-function tick(){if(MQ.matches)return;var vh=innerHeight;stops.forEach(function(sec){var r=sec.getBoundingClientRect(),span=sec.offsetHeight-vh*.9;var p=Math.max(0,Math.min(1,(-r.top+vh*.15)/span));
-  var bs=sec.querySelectorAll('.beat'),n=bs.length,shown=Math.min(n,Math.max(1,Math.floor(p*(n+.6))));for(var j=0;j<n;j++)bs[j].classList.toggle('in',j<shown);
-  var pr=sec.querySelectorAll('.prog b');for(var k=0;k<pr.length;k++){var v=Math.max(0,Math.min(1,p*(n+.6)-k));pr[k].style.setProperty('--p',v)}})}
-var raf=0;addEventListener('scroll',function(){if(!raf)raf=requestAnimationFrame(function(){raf=0;tick()})},{passive:true});addEventListener('resize',tick);tick();
+var RMQ=matchMedia('(prefers-reduced-motion: reduce)').matches,live=[];
+function runner(sec){var bs=[].slice.call(sec.querySelectorAll('.beat')),pr=[].slice.call(sec.querySelectorAll('.prog b')),th=sec.querySelector('.thread'),R={i:0,cur:-1,t:null,on:false,start:0,dur:1};
+  function dw(b){return Math.min(2800,1000+b.textContent.length*17)}
+  function step(){if(!R.on)return;if(R.i<bs.length){bs[R.i].classList.add('in');R.dur=dw(bs[R.i]);R.start=performance.now();R.cur=R.i;R.i++;R.t=setTimeout(step,R.dur)}
+    else{R.t=setTimeout(function(){th.classList.add('fade');R.t=setTimeout(function(){bs.forEach(function(b){b.classList.remove('in')});R.i=0;R.cur=-1;th.classList.remove('fade');step()},450)},2600)}}
+  R.play=function(){if(R.on)return;R.on=true;if(R.cur>=0&&R.i>0){var left=Math.max(300,R.dur-(R.pausedAt||0));R.start=performance.now()-(R.pausedAt||0);R.t=setTimeout(step,left)}else step()};
+  R.pause=function(){if(!R.on)return;R.on=false;clearTimeout(R.t);R.pausedAt=performance.now()-R.start};
+  R.paint=function(now){for(var k=0;k<pr.length;k++){var v=k<R.cur?1:k===R.cur?Math.min(1,((R.on?now:R.start+(R.pausedAt||0))-R.start)/R.dur):0;pr[k].style.setProperty('--p',v)}};
+  return R}
+if(RMQ){[].forEach.call(document.querySelectorAll('.beat'),function(b){b.classList.add('in')});[].forEach.call(document.querySelectorAll('.prog b'),function(b){b.style.setProperty('--p',1)})}
+else{stops.forEach(function(sec){var R=runner(sec);sec._r=R;live.push(R)});
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){var R=e.target._r;if(e.isIntersecting)R.play();else R.pause()})},{threshold:.35});
+  stops.forEach(function(sec){io.observe(sec)});
+  (function paint(now){live.forEach(function(R){R.paint(now)});requestAnimationFrame(paint)})(performance.now());
+  document.addEventListener('visibilitychange',function(){if(document.hidden)live.forEach(function(R){R.pause()});else stops.forEach(function(sec){var r=sec.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight)sec._r.play()})})}
 
 var fl=document.getElementById('flist'),fd=document.getElementById('fdetail');
 function showF(i){var f=FOLD[i];[].forEach.call(fl.children,function(b,j){b.setAttribute('aria-pressed',j===i)});fd.innerHTML='<h4>'+f.n+'</h4><p>'+f.d+'</p><ul>'+f.l.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul><div class="law"><small>Its rule</small>'+f.law+'</div>'}
