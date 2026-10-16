@@ -451,6 +451,8 @@ if(!SCRUB){
       if(Math.abs(r.v.currentTime-r.cur)>.02&&!r.v.seeking){try{r.v.currentTime=r.cur}catch(e){}}mark(r,r.cur)});requestAnimationFrame(tick)}
   lay();addEventListener('resize',lay);addEventListener('load',lay);requestAnimationFrame(tick);
   cards.forEach(function(r){r.v.addEventListener('loadedmetadata',lay)});
+  var prime=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;prime.unobserve(e.target);var v=e.target;try{v.load();var pr=v.play();pr&&pr.then(function(){v.pause()}).catch(function(){})}catch(x){}})},{rootMargin:'100% 0px'});
+  cards.forEach(function(r){prime.observe(r.v)});
 }
 
 function tryIt(m,rec){
