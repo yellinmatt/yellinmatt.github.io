@@ -99,7 +99,95 @@ h1 .m{color:var(--mut)}
 .versed .ph{font:500 clamp(24px,2.2vw,32px)/1.1 var(--serif);letter-spacing:-.02em;margin-top:12px}
 .versed .pdk{font:400 15px/1.45 var(--serif);color:#5c574c;background:#fbf9f4;margin-top:8px;max-width:46ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .versed .go{color:#3d6b5a}
-@media (max-width:860px){.today{grid-template-columns:1fr}}
+@media (max-width:860px){.today{grid-template-columns:minmax(0,1fr)}}
+.stk{min-width:0}
+
+.stk{position:relative;padding-bottom:30px;display:flex;flex-direction:column}
+.stk>.paper{position:relative;z-index:5;flex:1}
+.older{position:absolute;left:0;right:0;bottom:30px;height:0;z-index:1}
+.sh{position:absolute;left:calc(var(--n)*12px);right:calc(var(--n)*12px);top:calc(var(--n)*10px - 64px);height:64px;z-index:calc(5 - var(--n));
+  display:flex;align-items:flex-end;gap:12px;padding:0 18px 12px;border-radius:0 0 14px 14px;font-size:14px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.18),0 12px 30px rgba(0,0,0,.35);transition:top .38s var(--out),left .38s var(--out),right .38s var(--out),background-color .15s}
+.sh .t{display:flex;gap:12px;align-items:center;min-width:0;width:100%;opacity:0;transition:opacity .2s}
+.sh .d{flex:none;font:500 12px var(--sans);letter-spacing:.02em}
+.sh .l{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:400 15px var(--serif)}
+.sh .ar{flex:none;opacity:.6}
+.brief~.older .sh{background:hsl(41 33% calc(91% - var(--n)*4%));color:#1b1914}.brief~.older .sh .d{color:#8a3a2c}
+.versed~.older .sh{background:hsl(43 25% calc(94% - var(--n)*4%));color:#1b1a17}.versed~.older .sh .d{color:#3d6b5a}
+.sh img{flex:none;width:34px;height:34px;border-radius:6px;object-fit:cover;background:#ddd5c5}
+@media (hover:hover){
+  .stk:hover .sh,.stk:focus-within .sh{top:calc(var(--n)*50px - 64px);left:calc(var(--n)*4px);right:calc(var(--n)*4px)}
+  .stk:hover .sh .t,.stk:focus-within .sh .t{opacity:1}
+  .sh:hover{filter:brightness(1.04)}
+  .stk:hover>.paper{transform:none}
+}
+@media (hover:none){
+  .stk{padding-bottom:0}
+  .older{position:static;height:auto;display:grid;gap:6px;margin-top:8px}
+  .sh{position:static;height:auto;padding:12px 16px;border-radius:12px;box-shadow:none;align-items:center}
+  .sh .t{opacity:1}
+}
+@media (prefers-reduced-motion:reduce){.sh{transition:none}}
+
+.chap{position:absolute;z-index:3;left:12px;right:12px;bottom:12px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+.chap button{pointer-events:auto;height:28px;padding:0 11px;border-radius:999px;font-size:12px;font-weight:500;color:#e9e7e1;background:rgba(12,13,17,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transition:background-color .2s,color .2s}
+.chap button.on{background:var(--ink);color:var(--bg);box-shadow:none}
+.bar-p{position:absolute;z-index:3;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}
+.bar-p i{position:absolute;inset:0;background:var(--hue);transform-origin:left;transform:scaleX(0)}
+.phone .chap{left:50%;right:auto;transform:translateX(-50%);bottom:-46px;flex-wrap:nowrap}
+.phone .chap button{background:rgba(255,255,255,.06);color:var(--ink2)}
+.phone .chap button.on{background:var(--ink);color:var(--bg)}
+.phone.media{margin-bottom:46px}
+.media{position:relative}
+@media (max-width:560px){.chap button{height:26px;padding:0 9px;font-size:11px}.frame .chap{display:none}}
+
+.seg{position:absolute;right:10px;top:5px;z-index:4;display:flex;gap:2px;padding:2px;border-radius:999px;background:rgba(255,255,255,.06)}
+.seg button{height:24px;padding:0 10px;border-radius:999px;font-size:12px;color:var(--mut)}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.try{position:absolute;inset:34px 0 0 0;z-index:2;display:none;grid-template-columns:minmax(0,240px) 1fr;background:#12151c;color:#dfe3ea;font-size:12px}
+.frame.trying .try{display:grid}.frame.trying .chap,.frame.trying .bar-p{display:none}
+.try .lst{padding:14px 12px;border-right:1px solid var(--line);overflow:auto;display:flex;flex-direction:column;gap:4px}
+.try .lst h5{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 4px 6px}
+.try label{display:grid;grid-template-columns:16px 1fr;gap:8px;align-items:start;padding:7px 6px;border-radius:8px;cursor:pointer}
+.try label:hover{background:rgba(255,255,255,.04)}
+.try input{appearance:none;-webkit-appearance:none;width:16px;height:16px;border-radius:4px;box-shadow:inset 0 0 0 1.5px #4a5060;margin-top:1px;display:grid;place-items:center;cursor:pointer}
+.try input:checked{background:var(--c);box-shadow:none}
+.try input:checked::after{content:"✓";font-size:11px;color:#0b0d12;background:#dfe3ea;border-radius:3px;width:100%;height:100%;display:grid;place-items:center;font-weight:700}
+.try label b{display:block;font-weight:600;color:#eef0f4}.try label small{display:block;color:#8a909c;font-size:11px;margin-top:1px}
+.try .wk{position:relative;display:grid;grid-template-rows:auto 1fr auto;min-width:0}
+.try .days{display:grid;grid-template-columns:44px repeat(5,1fr);border-bottom:1px solid var(--line);font-size:11px;color:var(--mut)}
+.try .days span{padding:9px 6px}
+.try .grid{position:relative;display:grid;grid-template-columns:44px repeat(5,1fr);background-image:linear-gradient(var(--line) 1px,transparent 1px);background-size:100% calc(100% / 8)}
+.try .grid .hr{position:relative;font-size:10px;color:#666c78}
+.try .grid .hr span{position:absolute;right:6px;transform:translateY(-50%)}
+.try .col{position:relative;border-left:1px solid var(--line)}
+.try .blk{position:absolute;left:3px;right:3px;border-radius:6px;padding:4px 6px;background:var(--c);color:#0b0d12;font-size:10.5px;line-height:1.2;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.25);animation:pop .25s var(--out)}
+.try .blk b{display:block;font-weight:600}
+.try .blk.x{background:repeating-linear-gradient(135deg,#ff6a4d 0 6px,#ff8a70 6px 12px);color:#1a0a06;box-shadow:0 0 0 2px #ff6a4d}
+@keyframes pop{from{opacity:0;transform:scale(.96)}}
+.try .sum{padding:9px 12px;border-top:1px solid var(--line);font-size:12px;color:#aeb4bf;min-height:36px}
+.try .sum b{color:#ff8a70;font-weight:600}.try .sum .ok{color:#7fd6a6}
+@media (max-width:700px){.try{grid-template-columns:1fr;grid-template-rows:auto 1fr}.try .lst{flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);max-height:42%}.try .lst h5{display:none}.try label{grid-template-columns:16px auto;padding:4px 6px}.try label small{display:none}}
+
+.log{list-style:none;border-top:1px solid var(--line2)}
+.log li{display:grid;grid-template-columns:120px 200px 1fr;gap:20px;padding:18px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.log time{color:var(--mut);font-size:14px}
+.log .pj{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink2)}
+.log .pj i{width:8px;height:8px;border-radius:50%;background:var(--c)}
+.log b{font-weight:500}.log small{display:block;color:var(--mut);font-size:14px;margin-top:3px}
+.log a b{text-decoration:underline;text-decoration-color:var(--line2);text-underline-offset:3px}
+@media (hover:hover){.log a:hover b{text-decoration-color:var(--ink)}}
+.log .live{font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--acc);margin-left:6px}
+@media (max-width:760px){.log li{grid-template-columns:1fr;gap:4px}}
+
+#intro{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:var(--bg);transition:background-color .5s var(--ease)}
+#intro .mk{font-size:clamp(96px,16vw,200px);display:flex;transform-origin:0 0;will-change:transform}
+#intro .mk span{display:inline-block;opacity:0;transform:translateY(30%);transition:opacity .5s var(--out),transform .7s var(--out)}
+#intro.a .mk span{opacity:1;transform:none}#intro.a .mk span+span{transition-delay:.12s}
+#intro.b{background:transparent;pointer-events:none}
+#intro.b .mk{transition:transform .7s var(--ease)}
+#intro.c{opacity:0;transition:opacity .2s}
+html.intro .bar .mk{visibility:hidden}
 @media (max-width:760px){.chrome .u{display:none}}
 
 @media (prefers-reduced-motion:no-preference){
@@ -184,6 +272,7 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
   <h1 id="h" class="in-2"><span>I study law and business.</span><span class="m">I build the tools I can’t find.</span></h1>
   <p class="lede in-3">Two of them publish every morning. Here’s what they put out today.</p>
   <div class="today in-4" aria-label="Published today">
+    <div class="stk">
     <a class="paper brief" href="news/" id="tBrief">
       <span class="pk"><span class="dot" aria-hidden="true"></span>The Morning Brief · No.&nbsp;<span class="num" data-brief>140</span></span>
       <span class="pd" id="tBriefDate">Latest edition</span>
@@ -191,6 +280,9 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
       <span class="pdk" id="tBriefDeck"></span>
       <span class="go">Read the edition →</span>
     </a>
+    <div class="older" id="oBrief" aria-label="Earlier editions"></div>
+    </div>
+    <div class="stk">
     <a class="paper versed" href="well-versed/" id="tVersed">
       <span class="pimg"><img id="tVersedImg" alt="" src="assets/work/versed.jpg" width="1000" height="470"></span>
       <span class="pbody">
@@ -200,12 +292,14 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
         <span class="go">Read the lesson →</span>
       </span>
     </a>
+    <div class="older" id="oVersed" aria-label="Earlier lessons"></div>
+    </div>
   </div>
   <div class="cta in-5"><a class="btn p" href="#work">See all five projects</a><a class="btn" href="#about">About me</a></div>
 </div></section>
 
 <section class="s" id="work" aria-labelledby="wh"><div class="wrap">
-  <div class="intro"><div><div class="eye">Five projects</div><h2 class="h2" id="wh">Work</h2></div><p>Two daily publications, a comedy archive, the app I train with, and a planner for Miami Law students. Each one is recorded in use.</p></div>
+  <div class="intro"><div><div class="eye">Five projects</div><h2 class="h2" id="wh">Work</h2></div><p>Two daily publications, a comedy archive, the app I train with, and a planner for Miami Law students. Each one is recorded in use, and on a computer the recording plays as you scroll.</p></div>
   <div class="stack" id="stack"></div>
 </div></section>
 
@@ -241,16 +335,28 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
     </div>
   </div>
 </div></section>
+
+<section class="s" id="shipped" aria-labelledby="sh2"><div class="wrap">
+  <div class="intro"><div><div class="eye">Changelog</div><h2 class="h2" id="sh2">Recently shipped</h2></div><p>What changed across the five projects, newest first. The top two lines update themselves every morning.</p></div>
+  <ol class="log" id="log">
+    <li style="--c:#ff8a6b"><time id="lgBd">Today</time><span class="pj"><i></i>The Morning Brief</span><a href="news/" id="lgB"><b>No. <span class="num" data-brief>140</span> published</b><span class="live">LIVE</span><small id="lgBh">Today’s edition</small></a></li>
+    <li style="--c:#8fd1ae"><time id="lgVd">Today</time><span class="pj"><i></i>Well-Versed</span><a href="well-versed/" id="lgV"><b>Lesson <span class="num" data-versed>151</span> published</b><span class="live">LIVE</span><small id="lgVh">Today’s lesson</small></a></li>
+    <li style="--c:#ededed"><time>Oct 15</time><span class="pj"><i></i>This site</span><span><b>Redesigned as one page</b><small>Five projects, today’s publications up top, each demo recorded in use.</small></span></li>
+    <li style="--c:#8fb4ff"><time>Oct 15</time><span class="pj"><i></i>Course Planner</span><a href="course-plan/"><b>Phone layout and grouping</b><small>Works on a phone, and courses can be grouped by requirement.</small></a></li>
+    <li style="--c:#8fb4ff"><time>Oct 15</time><span class="pj"><i></i>Course Planner</span><a href="course-plan/"><b>Launched</b><small>Every Miami Law course on one screen, with clashes flagged before you register.</small></a></li>
+    <li style="--c:#b7a6ff"><time>Oct 15</time><span class="pj"><i></i>Train</span><span><b>Version 26.2</b><small>A redesign of all four tabs: Today, Strength, Cardio and Body.</small></span></li>
+  </ol>
+</div></section>
 </main>
 
 <footer><div class="wrap">
   <div class="cols">
     <div><div class="sig">Matt Yellin</div><p>I study law and business. I build the tools I can’t find.</p></div>
     <div><h4>Published</h4><ul><li><a href="news/" data-peek="brief">The Morning Brief</a></li><li><a href="well-versed/" data-peek="versed">Well-Versed</a></li><li><a href="greatest-bits/" data-peek="bits">Greatest Bits</a></li><li><a href="course-plan/" data-peek="course">Miami Law Course Planner</a></li></ul></div>
-    <div><h4>On this page</h4><ul><li><a href="#work">Work</a></li><li><a href="#about">About</a></li><li><a href="#top">Back to top</a></li></ul></div>
+    <div><h4>On this page</h4><ul><li><a href="#work">Work</a></li><li><a href="#about">About</a></li><li><a href="#shipped">Recently shipped</a></li><li><a href="#top">Back to top</a></li></ul></div>
     <div><h4>Elsewhere</h4><ul><li><a href="https://www.linkedin.com/in/mattyellin/" target="_blank" rel="noopener">LinkedIn</a></li></ul></div>
   </div>
-  <p class="fine"><span>mattyellin.com · Miami · since May 2026</span><span>Train is private and shown in its empty state.</span></p>
+  <p class="fine"><span>mattyellin.com · Miami · since May 2026</span><span>Train is private, so its demo runs on an invented sample profile.</span></p>
 </div></footer>
 
 <div id="peek" aria-hidden="true"><img alt=""></div>
@@ -260,41 +366,117 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 "use strict";
 var D=document.documentElement;D.classList.add('js');
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,HOVER=matchMedia('(hover:hover)').matches;
+var SCRUB=!RM&&matchMedia('(pointer:fine) and (min-width:901px)').matches;
 var P=[
  {k:'brief',n:'The Morning Brief',kind:'Published daily',href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
-  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes.',
-  facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']]},
+  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself.',
+  facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
+  ch:[[0,'The archive'],[3.2,'Today’s edition'],[7.6,'Jump to a desk'],[10.4,'Terms explained'],[14,'Every section']]},
  {k:'versed',n:'Well-Versed',kind:'Published daily',href:'well-versed/',url:'mattyellin.com/well-versed/',open:'Read today’s lesson',tint:'#17221d',hue:'#8fd1ae',
-  lede:'One lesson a day toward a general education, each a long illustrated essay across art, history, science, food and craft. Every lesson is kept in a library.',
-  facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']]},
+  lede:'One lesson a day toward a general education, each a long illustrated essay across art, history, science, food and craft, with the hard terms explained in place. Every lesson is kept in a library.',
+  facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
+  ch:[[0,'Today’s lesson'],[8,'The library'],[13.4,'Bretton Woods'],[17.4,'Terms explained'],[24,'Next lesson']]},
  {k:'bits',n:'Greatest Bits',kind:'Published · archive',href:'greatest-bits/',url:'mattyellin.com/greatest-bits/',open:'Search the archive',tint:'#2a1414',hue:'#ff7a5c',
-  lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found. A standing auditor sweeps it for dead embeds and gaps.',
-  facts:[['Comics','457'],['Bits','2,179']]},
+  lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found. Search a name, open the comic, play a bit, then follow the rest of their work and career.',
+  facts:[['Comics','457'],['Bits','2,179']],
+  ch:[[0,'Search'],[5.4,'The comic'],[9.4,'Play a bit'],[13.8,'Their specials'],[17.2,'Career']]},
  {k:'train',n:'Train',kind:'Private · phone app',phone:true,tint:'#1d1830',hue:'#b7a6ff',
   lede:'The training app I use every day. It prescribes the session off a rotation, tracks strength, cardio and body over months rather than days, and syncs across my devices. No number in it you can fail.',
-  facts:[['Version','v26.2'],['Tabs','Today, Strength, Cardio, Body']]},
- {k:'course',n:'Miami Law Course Planner',kind:'New · for Miami Law students',isNew:true,href:'course-plan/',url:'mattyellin.com/course-plan/',open:'Open the planner',tint:'#141c2b',hue:'#8fb4ff',
-  lede:'A tool for Miami Law students to pick their classes. Search every course, filter by requirement, and build a week that flags clashes before you register. Unofficial.',
-  facts:[['Built for','Miami Law students'],['Courses','202']]}
+  facts:[['Version','v26.2'],['Shown with','A sample profile']],
+  ch:[[0,'Today'],[6,'Strength'],[12,'Cardio'],[17,'Body']]},
+ {k:'course',n:'Miami Law Course Planner',kind:'New · for Miami Law students',isNew:true,href:'course-plan/',url:'mattyellin.com/course-plan/',open:'Open the planner',tint:'#141c2b',hue:'#8fb4ff',try:true,
+  lede:'A tool for Miami Law students to pick their classes. Search every course, filter by requirement, and build a week that flags clashes before you register. Unofficial. Switch the frame to Try it and tick a few.',
+  facts:[['Built for','Miami Law students'],['Courses','202']],
+  ch:[[0,'Add courses'],[11,'The week fills in'],[18.5,'Tick to compare']]}
 ];
 function $(s,r){return (r||document).querySelector(s)}
 function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
-function play(v){if(RM)v.playbackRate=.75;var pr=v.play();pr&&pr.catch(function(){})}
-function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='none';v.poster='assets/work/'+k+'.jpg';v.src='assets/work/'+k+'.mp4';v.setAttribute('aria-hidden','true');return v}
-var vio=new IntersectionObserver(function(es){es.forEach(function(e){e.isIntersecting?play(e.target):e.target.pause()})},{threshold:.25});
+function dec(s){var t=document.createElement('textarea');t.innerHTML=s;return t.value}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 
+var introDone=function(){};
+(function(){var go=false;try{go=!sessionStorage.getItem('my-intro')&&scrollY<10&&!location.hash;sessionStorage.setItem('my-intro','1')}catch(e){}
+  if(!go){introDone=null;return}
+  var o=el('div','',null);o.id='intro';o.setAttribute('aria-hidden','true');o.innerHTML='<span class="mk"><span>M</span><span style="color:var(--acc)">Y</span></span>';
+  document.body.appendChild(o);D.classList.add('intro');var big=o.firstChild,tm=[],ended=false;
+  function end(){if(ended)return;ended=true;tm.forEach(clearTimeout);D.classList.remove('intro');o.classList.add('c');D.classList.add('ready');setTimeout(function(){o.remove()},260)}
+  o.addEventListener('click',end);addEventListener('keydown',end,{once:true});addEventListener('wheel',end,{once:true,passive:true});
+  if(RM){o.classList.add('a');tm.push(setTimeout(end,500));return}
+  requestAnimationFrame(function(){requestAnimationFrame(function(){o.classList.add('a')})});
+  tm.push(setTimeout(function(){var a=big.getBoundingClientRect(),b=$('.bar .mk').getBoundingClientRect();var s=b.height/a.height;
+    o.classList.add('b');big.style.transform='translate('+(b.left-a.left)+'px,'+(b.top-a.top)+'px) scale('+s+')'},950));
+  tm.push(setTimeout(function(){D.classList.add('ready')},1250));
+  tm.push(setTimeout(end,1700));
+})();
+
+var cards=[];
+function vid(k){var v=el('video');v.muted=true;v.loop=!SCRUB;v.playsInline=true;v.setAttribute('playsinline','');v.preload=SCRUB?'auto':'none';v.poster='assets/work/'+k+'.jpg';v.src='assets/work/'+k+'-s.mp4';v.setAttribute('aria-hidden','true');return v}
 try{var st=$('#stack');
   P.forEach(function(p,i){
     var c=el('article','card');c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
     var facts=p.facts.map(function(f){return '<div><dt>'+f[0]+'</dt><dd>'+f[1]+'</dd></div>'}).join('');
     var go=p.href?'<a class="btn p" href="'+p.href+'">'+p.open+'</a>':'<span class="eye">Private, so there is no public link.</span>';
     c.innerHTML='<div class="txt"><div class="no"><b class="num">0'+(i+1)+'</b><span>'+p.kind+'</span>'+(p.isNew?'<span class="tag">New</span>':'')+'</div><h3>'+p.n+'</h3><p>'+p.lede+'</p><dl class="facts">'+facts+'</dl><div class="cta">'+go+'</div></div>';
-    var v=vid(p.k),m;
-    if(p.phone){m=el('div','media phone','<div class="glass"><span class="isl" aria-hidden="true"></span></div>');m.firstChild.appendChild(v)}
-    else{m=el(p.href?'a':'div','media frame','<div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span class="u">'+p.url+'</span></div><div class="screen"></div>');if(p.href){m.href=p.href;m.setAttribute('aria-label',p.open)}m.lastChild.appendChild(v)}
-    c.appendChild(m);st.appendChild(c);vio.observe(v);
+    var v=vid(p.k),m,scr;
+    if(p.phone){m=el('div','media phone','<div class="glass"><span class="isl" aria-hidden="true"></span></div>');scr=m.firstChild}
+    else{m=el('div','media frame','<div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span class="u">'+p.url+'</span></div><div class="screen"></div>');scr=m.lastChild}
+    scr.appendChild(v);
+    var bp=el('div','bar-p','<i></i>');scr.appendChild(bp);
+    var ch=el('div','chap');ch.setAttribute('role','group');ch.setAttribute('aria-label',p.n+' chapters');
+    p.ch.forEach(function(x){var b=el('button','',x[1]);b.type='button';b.dataset.t=x[0];ch.appendChild(b)});
+    (p.phone?m:scr).appendChild(ch);
+    c.appendChild(m);st.appendChild(c);
+    var rec={c:c,v:v,p:p,ch:[].slice.call(ch.children),bar:bp.firstChild,cur:0,dur:0,dist:0,on:true};
+    v.addEventListener('loadedmetadata',function(){rec.dur=v.duration||0});
+    ch.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;seek(rec,+b.dataset.t)});
+    if(p.try)tryIt(m,rec);
+    cards.push(rec);
   });
 }catch(e){}
+function mark(r,t){if(!r.dur)return;var a=0;for(var j=0;j<r.p.ch.length;j++)if(t>=r.p.ch[j][0]-.05)a=j;
+  r.ch.forEach(function(b,j){b.classList.toggle('on',j===a)});r.bar.style.transform='scaleX('+Math.min(1,t/r.dur)+')'}
+function seek(r,t){if(SCRUB&&r.layout){var y=r.layout.pin+(t+.05)/r.dur*r.layout.m;scrollTo({top:y,behavior:RM?'auto':'smooth'})}
+  else{try{r.v.currentTime=t;play(r.v)}catch(e){}}}
+function play(v){var pr=v.play();pr&&pr.catch(function(){})}
+
+if(!SCRUB){
+  var vio=new IntersectionObserver(function(es){es.forEach(function(e){var r=cards.filter(function(x){return x.v===e.target})[0];if(e.isIntersecting&&r&&r.on)play(e.target);else e.target.pause()})},{threshold:.25});
+  cards.forEach(function(r){vio.observe(r.v);r.v.addEventListener('timeupdate',function(){mark(r,r.v.currentTime)})});
+}else{
+  var stk=$('#stack');
+  function lay(){var m=Math.round(innerHeight*1.1),gap=parseFloat(getComputedStyle(stk).rowGap)||0,acc=0,sy=scrollY,top=stk.getBoundingClientRect().top+sy;
+    cards.forEach(function(r){r.c.style.marginBottom=m+'px';var t=parseFloat(getComputedStyle(r.c).top)||0;r.layout={m:m,pin:top+acc-t};acc+=r.c.offsetHeight+m+gap})}
+  function tick(){var y=scrollY;cards.forEach(function(r){if(!r.layout||!r.dur||!r.on)return;var p=Math.max(0,Math.min(1,(y-r.layout.pin)/r.layout.m));var tg=p*(r.dur-.05);
+      r.cur+=(tg-r.cur)*.22;if(Math.abs(tg-r.cur)<.01)r.cur=tg;
+      if(Math.abs(r.v.currentTime-r.cur)>.02&&!r.v.seeking){try{r.v.currentTime=r.cur}catch(e){}}mark(r,r.cur)});requestAnimationFrame(tick)}
+  lay();addEventListener('resize',lay);addEventListener('load',lay);requestAnimationFrame(tick);
+  cards.forEach(function(r){r.v.addEventListener('loadedmetadata',lay)});
+}
+
+function tryIt(m,rec){
+  var C=[['LAW 100','Business Associations','TR',640,730,'#8fd1ae',1],['LAW 104','Securities Regulation','MW',930,1020,'#f2c46d',1],['LAW 108','Antitrust','MW',830,920,'#b7a6ff',1],['LAW 132','Trademark Law','T',930,1050,'#8fb4ff',1],
+    ['LAW 105','Federal Income Tax I','MT',830,920,'#f59fc0',0],['LAW 174','Mergers and Acquisitions','W',930,1050,'#7fd6d0',0],['LAW 208','Evidence','TR',930,1050,'#e8a77a',0]];
+  var DAYS=['M','T','W','R','F'],DN=['Mon','Tue','Wed','Thu','Fri'],T0=600,T1=1080;
+  function hm(x){var h=Math.floor(x/60),mi=x%60,ap=h>=12?'pm':'am';h=h%12||12;return h+(mi?':'+String(mi).padStart(2,'0'):'')+ap}
+  var seg=el('div','seg','<button type="button" aria-pressed="true">Watch</button><button type="button" aria-pressed="false">Try it</button>');m.appendChild(seg);
+  var f=el('div','try');f.setAttribute('role','group');f.setAttribute('aria-label','Try the planner');
+  var lst=el('div','lst','<h5>Tick a few classes</h5>');
+  C.forEach(function(c,i){var l=el('label','','<input type="checkbox" style="--c:'+c[5]+'"'+(c[6]?' checked':'')+' data-i="'+i+'"><span><b>'+c[0]+' · '+c[1]+'</b><small>'+c[2].split('').map(function(d){return DN[DAYS.indexOf(d)]}).join(', ')+' · '+hm(c[3])+' to '+hm(c[4])+'</small></span>');lst.appendChild(l)});
+  var wk=el('div','wk','<div class="days"><span></span>'+DN.map(function(d){return '<span>'+d+'</span>'}).join('')+'</div>');
+  var g=el('div','grid');var hrs='';for(var h=T0;h<T1;h+=60)hrs+='<span style="top:'+((h-T0)/(T1-T0)*100)+'%">'+hm(h)+'</span>';
+  g.innerHTML='<div class="hr">'+hrs+'</div>'+DAYS.map(function(){return '<div class="col"></div>'}).join('');
+  var sum=el('div','sum');wk.appendChild(g);wk.appendChild(sum);f.appendChild(lst);f.appendChild(wk);m.appendChild(f);
+  function draw(){var on=[].slice.call(lst.querySelectorAll('input')).filter(function(x){return x.checked}).map(function(x){return C[+x.dataset.i]});
+    var cols=g.querySelectorAll('.col');[].forEach.call(cols,function(c){c.innerHTML=''});var clashes=[];
+    DAYS.forEach(function(d,di){var td=on.filter(function(c){return c[2].indexOf(d)>=0});
+      td.forEach(function(c){var x=td.some(function(o){if(o===c)return false;return o[3]<c[4]&&c[3]<o[4]});
+        var b=el('div','blk'+(x?' x':''),'<b>'+c[0]+'</b>'+c[1]);b.style.setProperty('--c',c[5]);b.style.top=((c[3]-T0)/(T1-T0)*100)+'%';b.style.height=((c[4]-c[3])/(T1-T0)*100)+'%';cols[di].appendChild(b)});
+      for(var a=0;a<td.length;a++)for(var b2=a+1;b2<td.length;b2++){var p1=td[a],p2=td[b2];if(p1[3]<p2[4]&&p2[3]<p1[4])clashes.push(p1[1]+' and '+p2[1]+' on '+DN[di])}});
+    sum.innerHTML=!on.length?'Nothing ticked yet.':clashes.length?'<b>'+clashes.length+' clash'+(clashes.length>1?'es':'')+'</b> · '+esc(clashes.join('; ')):'<span class="ok">'+on.length+' classes, no clashes.</span>'}
+  lst.addEventListener('change',draw);draw();
+  seg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;var t=b.textContent==='Try it';
+    [].forEach.call(seg.children,function(x){x.setAttribute('aria-pressed',x===b)});m.classList.toggle('trying',t);rec.on=!t;if(t)rec.v.pause();else if(!SCRUB)play(rec.v)});
+}
 
 try{if(HOVER){var pk=$('#peek'),pi=$('#peek img'),t=null;
   [].forEach.call(document.querySelectorAll('[data-peek]'),function(a){
@@ -304,21 +486,33 @@ try{if(HOVER){var pk=$('#peek'),pi=$('#peek img'),t=null;
 
 var LIVE={};
 function fill(){['brief','versed'].forEach(function(k){if(LIVE[k])[].forEach.call(document.querySelectorAll('[data-'+k+']'),function(n){n.textContent=LIVE[k]})})}
-function dec(s){var t=document.createElement('textarea');t.innerHTML=s;return t.value}
+var MO={January:'Jan',February:'Feb',March:'Mar',April:'Apr',May:'May',June:'Jun',July:'Jul',August:'Aug',September:'Sep',October:'Oct',November:'Nov',December:'Dec'};
+function shortD(s){var m=s.match(/([A-Z][a-z]+) (\d{1,2})\b/)||[];var n=s.match(/(\d{1,2}) ([A-Z][a-z]+)/);if(MO[m[1]])return MO[m[1]]+' '+m[2];if(n&&MO[n[2]])return MO[n[2]]+' '+n[1];return s}
+function sheets(id,rows){var o=$(id);if(!o)return;o.innerHTML='';rows.slice(0,3).forEach(function(r,i){var a=el('a','sh','<span class="t">'+(r.img?'<img alt="" loading="lazy" src="'+r.img+'">':'')+'<span class="d">'+esc(r.d)+'</span><span class="l">'+esc(r.l)+'</span><span class="ar" aria-hidden="true">→</span></span>');
+  a.href=r.h;a.style.setProperty('--n',i+1);a.setAttribute('aria-label',r.d+': '+r.l);o.appendChild(a)})}
+sheets('#oBrief',[{d:'',l:'',h:'news/'},{d:'',l:'',h:'news/'},{d:'',l:'',h:'news/'}]);
+sheets('#oVersed',[{d:'',l:'',h:'well-versed/'},{d:'',l:'',h:'well-versed/'},{d:'',l:'',h:'well-versed/'}]);
 fetch('news/',{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).then(function(t){
   var m=t.match(/No\.\s*(\d{2,4})/);if(m){LIVE.brief=m[1];fill()}
-  var e=t.match(/<a href="(20\d\d-\d\d-\d\d\.html)"><span class="d">([^<]+)<\/span><span class="l">([^<]+)<\/span>/);
-  if(e){$('#tBrief').href='news/'+e[1];$('#tBriefDate').textContent=dec(e[2]);$('#tBriefHead').textContent=dec(e[3]);
+  var re=/<a href="(20\d\d-\d\d-\d\d\.html)"><span class="d">([^<]+)<\/span><span class="l">([^<]+)<\/span>/g,e,all=[];while((e=re.exec(t))&&all.length<4)all.push(e);
+  if(all.length){e=all[0];var hd=dec(e[3]),dd=dec(e[2]);$('#tBrief').href='news/'+e[1];$('#tBriefDate').textContent=dd;$('#tBriefHead').textContent=hd;
+    $('#lgB').href='news/'+e[1];$('#lgBh').textContent=hd;$('#lgBd').textContent=shortD(dd);
+    sheets('#oBrief',all.slice(1).map(function(x){return {d:shortD(dec(x[2])),l:dec(x[3]),h:'news/'+x[1]}}));
     fetch('news/'+e[1],{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).then(function(x){var d=x.match(/<meta name="description" content="([^"]+)"/);if(d)$('#tBriefDeck').textContent=dec(d[1])}).catch(function(){})}
 }).catch(function(){});
 fetch('well-versed/',{cache:'no-cache'}).then(function(r){return r.ok?r.text():''}).then(function(t){
   var h=t.match(/hero:\{no:"(\d+)"[^]*?t:"([^"]+)",\s*deck:"([^"]+)"[^]*?h:"([^"]+)",img:"([^"]+)"/);
-  if(h){LIVE.versed=h[1];fill();$('#tVersedHead').textContent=dec(h[2]);$('#tVersedDeck').textContent=dec(h[3]);$('#tVersed').href='well-versed/'+h[4];
-    var im=$('#tVersedImg');im.alt=dec(h[2]);im.src='https://commons.wikimedia.org/wiki/Special:FilePath/'+h[5]+'?width=1000'}
+  if(h){LIVE.versed=h[1];fill();var ti=dec(h[2]);$('#tVersedHead').textContent=ti;$('#tVersedDeck').textContent=dec(h[3]);$('#tVersed').href='well-versed/'+h[4];
+    var im=$('#tVersedImg');im.alt=ti;im.src='https://commons.wikimedia.org/wiki/Special:FilePath/'+h[5]+'?width=1000';
+    $('#lgV').href='well-versed/'+h[4];$('#lgVh').textContent=ti;
+    var dt=t.match(/date:"([^"]+)"/);if(dt)$('#lgVd').textContent=shortD(dec(dt[1]));
+    var by={},re=/\{no:"(\d+)",t:"([^"]+)",sub:"[^"]*",f:"[^"]*",h:"([^"]+)",img:"([^"]*)"\}/g,e;while((e=re.exec(t)))by[e[1]]=e;
+    var n=+h[1],rows=[];for(var k=n-1;k>0&&rows.length<3;k--){var x=by[String(k)];if(x)rows.push({d:'No. '+x[1],l:dec(x[2]),h:'well-versed/'+x[3],img:x[4]?'https://commons.wikimedia.org/wiki/Special:FilePath/'+x[4]+'?width=120':''})}
+    if(rows.length)sheets('#oVersed',rows)}
 }).catch(function(){});
 
 var bar=$('#bar');addEventListener('scroll',function(){bar.classList.toggle('sc',scrollY>8)},{passive:true});
-requestAnimationFrame(function(){requestAnimationFrame(function(){D.classList.add('ready')})});
+if(introDone===null)requestAnimationFrame(function(){requestAnimationFrame(function(){D.classList.add('ready')})});
 })();
 </script>
 </body>
