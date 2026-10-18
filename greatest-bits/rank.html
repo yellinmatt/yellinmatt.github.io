@@ -19,11 +19,9 @@ a{color:inherit}
 .wrap{max-width:1040px;margin:0 auto;padding:26px 24px 60px}
 .head h1{font-family:'Anton',sans-serif;font-size:clamp(38px,7vw,76px);text-transform:uppercase;line-height:.85}
 .head .sub{font-size:15px;color:#3a3128;margin-top:8px;max-width:62ch}
-/* progress */
 .prog{margin:22px 0 8px;display:flex;align-items:center;gap:14px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
 .bar{flex:1;height:8px;background:#e3d9c5;border:2px solid var(--ink);overflow:hidden}
 .bar i{display:block;height:100%;background:var(--red);width:0;transition:width .3s}
-/* compare */
 .arena{display:grid;grid-template-columns:1fr 64px 1fr;gap:0;align-items:stretch;margin-top:14px}
 .card{border:3px solid var(--ink);background:#fff;display:flex;flex-direction:column;cursor:pointer;transition:.15s;overflow:hidden}
 .card:hover{box-shadow:8px 8px 0 var(--ink);transform:translateY(-3px)}
@@ -44,7 +42,6 @@ a{color:inherit}
 .btn:hover{background:var(--ink);color:var(--yellow)}
 .btn.kbd b{font-family:'IBM Plex Mono',monospace;color:var(--red)}
 .hint{text-align:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut);margin-top:12px;letter-spacing:.04em}
-/* tier + result */
 .rrow{display:grid;grid-template-columns:42px 52px 1fr;gap:14px;align-items:center;border-bottom:2px solid #e3d9c5;padding:9px 4px}
 .rrow .rk{font-family:'Anton',sans-serif;font-size:24px;color:var(--red)}
 .rrow .ph{width:52px;height:52px;border:2px solid var(--ink);overflow:hidden}
@@ -62,9 +59,32 @@ a{color:inherit}
 .note{font-size:13px;color:#3a3128;margin-top:10px}
 @media(max-width:720px){.arena{grid-template-columns:1fr;gap:12px}.vs{padding:4px 0}.card .ph,.card .yt{aspect-ratio:16/9}}
 </style>
+<style id="gbshell">/*GBSHELL*/
+.nav .gbhome{font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;color:#a59d90;padding-right:14px;margin-right:-10px;border-right:1px solid #3a3a3a;line-height:1;white-space:nowrap}
+.nav .gbhome:hover,.nav .gbhome:focus-visible{color:var(--yellow)}
+.nav .gbmenu{display:none}
+@media(max-width:760px){
+.nav{flex-wrap:wrap!important;gap:0 14px!important;padding:12px 18px!important}
+.nav .gbmenu{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--cream);background:none;border:1.5px solid #3a3a3a;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.nav .gbmenu:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.nav.open .gbmenu{border-color:var(--yellow);color:var(--yellow)}
+.nav:not(.open) .links{display:none!important}
+.nav.open .links{display:flex!important;flex-direction:column;order:3;width:100%;gap:0!important;margin:10px 0 2px!important;border-top:1px solid #2a2a2a;font-size:14px!important}
+.nav.open .links>a,.nav.open .links .dropt{display:flex;width:100%;padding:13px 2px;border-bottom:1px solid #2a2a2a;font-size:14px}
+.nav.open .drop{display:block!important;width:100%}
+.nav.open .drop::after{display:none}
+.nav.open .menu{position:static!important;display:none!important;opacity:1!important;visibility:visible!important;transform:none!important;box-shadow:none!important;border:0!important;border-left:2px solid var(--yellow)!important;margin:0 0 6px 2px;min-width:0!important}
+.nav.open .drop.open .menu{display:flex!important}
+.nav .sp,.nav .search{display:none!important}
+}
+</style>
+<link rel="canonical" href="https://mattyellin.com/greatest-bits/rank.html">
+<meta property="og:title" content="Ranking Lab — Greatest Bits">
 </head>
 <body>
-<nav class="nav"><a class="logo" href="index.html">Greatest <b>Bits</b></a><span class="tag">Ranking Lab</span><a class="x" href="bits.html">Exit &#8599;</a></nav>
+<nav class="nav"><a class="gbhome" href="/" aria-label="mattyellin.com home">MY</a>
+  <a class="logo" href="index.html">Greatest <b>Bits</b></a><span class="tag">Ranking Lab</span><a class="x" href="bits.html">Exit &#8599;</a><button type="button" class="gbmenu" aria-expanded="false" aria-label="Menu">Menu</button>
+  </nav>
 <div class="wrap">
 <div class="head"><h1 id="h1">Rank the Bits</h1><div class="sub" id="sub">Two bits at a time. Pick the one you rate higher; press play to watch either clip first. Your picks build the full ranking, then you set the tier lines. Progress saves as you go.</div></div>
 <div class="prog"><span id="ptxt">Placed 0 / 0</span><div class="bar"><i id="pbar"></i></div><span id="pcmp">0 picks</span></div>
@@ -222,5 +242,6 @@ addEventListener("keydown",e=>{
 });
 render();
 </script>
+<script>/*GBSHELLJS*/(function(){var n=document.querySelector('.nav'),b=n&&n.querySelector('.gbmenu');if(!b)return;b.addEventListener('click',function(e){e.stopPropagation();var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false')});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&n.classList.contains('open')){n.classList.remove('open');b.setAttribute('aria-expanded','false');b.focus()}});var q=document.getElementById('gbq-hero');if(q&&innerWidth<480)q.placeholder='Search comics & bits';})();</script>
 </body>
 </html>

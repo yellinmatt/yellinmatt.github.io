@@ -1,15 +1,3 @@
-/* Greatest Bits — shared search module.
- *
- * Loads data/search-index.json (built by scripts/build_search_index.py).
- * Auto-creates the modal overlay if missing.
- * Wires up:
- *   - The home-page hero card  (any .gbhero with an input inside)
- *   - The inner-page header strip (any .gbhead with an input inside)
- *   - Legacy .nav .search / .navsearch triggers
- *   - The "/" key from anywhere
- * Scoring: every query token must appear in title or full-text; title hits 3x,
- *          sub 2x, full-text 1x; prefix-of-name bonus.
- */
 (function(){
   if (window.__gbsearch_loaded__) return;
   window.__gbsearch_loaded__ = true;

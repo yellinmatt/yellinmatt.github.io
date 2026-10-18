@@ -28,7 +28,6 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .nav .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}.nav .logo b{color:var(--yellow);font-weight:400}
 .nav .links{display:flex;gap:20px;margin-left:6px;font-family:'Archivo',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.03em}
 .nav .links a:hover{color:var(--yellow)}.nav .sp{margin-left:auto}
-/* Tough Crowd stage */
 .stage{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:74px 26px 90px}
 .stage .glow{position:absolute;inset:0;background:radial-gradient(760px 380px at 50% 4%,rgba(232,52,28,.34),transparent 64%)}
 .stage .in{position:relative;max-width:760px}
@@ -56,12 +55,33 @@ a{color:inherit;text-decoration:none}img{display:block;max-width:100%}
 .ftr .disc a{color:var(--yellow);text-decoration:underline}
 @media(max-width:760px){.nav .links{display:none}}
 </style>
+<style id="gbshell">/*GBSHELL*/
+.nav .gbhome{font-family:'Archivo',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;color:#a59d90;padding-right:14px;margin-right:-10px;border-right:1px solid #3a3a3a;line-height:1;white-space:nowrap}
+.nav .gbhome:hover,.nav .gbhome:focus-visible{color:var(--yellow)}
+.nav .gbmenu{display:none}
+@media(max-width:760px){
+.nav{flex-wrap:wrap!important;gap:0 14px!important;padding:12px 18px!important}
+.nav .gbmenu{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--cream);background:none;border:1.5px solid #3a3a3a;border-radius:999px;padding:8px 14px;cursor:pointer;min-height:36px}
+.nav .gbmenu:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+.nav.open .gbmenu{border-color:var(--yellow);color:var(--yellow)}
+.nav:not(.open) .links{display:none!important}
+.nav.open .links{display:flex!important;flex-direction:column;order:3;width:100%;gap:0!important;margin:10px 0 2px!important;border-top:1px solid #2a2a2a;font-size:14px!important}
+.nav.open .links>a,.nav.open .links .dropt{display:flex;width:100%;padding:13px 2px;border-bottom:1px solid #2a2a2a;font-size:14px}
+.nav.open .drop{display:block!important;width:100%}
+.nav.open .drop::after{display:none}
+.nav.open .menu{position:static!important;display:none!important;opacity:1!important;visibility:visible!important;transform:none!important;box-shadow:none!important;border:0!important;border-left:2px solid var(--yellow)!important;margin:0 0 6px 2px;min-width:0!important}
+.nav.open .drop.open .menu{display:flex!important}
+.nav .sp,.nav .search{display:none!important}
+}
+</style>
 </head>
 <body>
 <div id="cur"></div>
 <nav class="nav">
+  <a class="gbhome" href="/" aria-label="mattyellin.com home">MY</a>
   <a class="logo" href="/greatest-bits/index.html">Greatest <b>Bits</b></a>
   <span class="links"><a href="/greatest-bits/comics.html">Comics</a><a href="/greatest-bits/specials.html">Specials</a><a href="/greatest-bits/bits.html">Bits</a><a href="/greatest-bits/browse.html">Index</a><a href="/greatest-bits/history.html">History</a></span>
+  <button type="button" class="gbmenu" aria-expanded="false" aria-label="Menu">Menu</button>
   <span class="sp"></span>
 </nav>
 
@@ -119,5 +139,6 @@ const cur=document.getElementById("cur");
 addEventListener("pointermove",e=>{cur.style.left=e.clientX+"px";cur.style.top=e.clientY+"px";cur.classList.add("on");cur.classList.toggle("big",!!e.target.closest("a,.btn"));});
 addEventListener("pointerleave",()=>cur.classList.remove("on"));
 </script>
+<script>/*GBSHELLJS*/(function(){var n=document.querySelector('.nav'),b=n&&n.querySelector('.gbmenu');if(!b)return;b.addEventListener('click',function(e){e.stopPropagation();var o=n.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false')});document.addEventListener('keydown',function(e){if(e.key==='Escape'&&n.classList.contains('open')){n.classList.remove('open');b.setAttribute('aria-expanded','false');b.focus()}});var q=document.getElementById('gbq-hero');if(q&&innerWidth<480)q.placeholder='Search comics & bits';})();</script>
 </body>
 </html>
