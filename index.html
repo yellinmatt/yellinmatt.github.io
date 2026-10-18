@@ -376,23 +376,23 @@ var P=[
  {k:'brief',n:'The Morning Brief',kind:'Published daily',href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
   lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself.',
   facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
-  ch:[[0,'The archive'],[3.2,'Today’s edition'],[7.6,'Jump to a desk'],[10.4,'Terms explained'],[14,'Every section']]},
+  ch:[[0,'The archive'],[0.4,'Today’s edition'],[4.8,'Jump to a desk'],[7.6,'Terms explained'],[11.2,'Every section']]},
  {k:'versed',n:'Well-Versed',kind:'Published daily',href:'well-versed/',url:'mattyellin.com/well-versed/',open:'Read today’s lesson',tint:'#17221d',hue:'#8fd1ae',
   lede:'One lesson a day toward a general education, each a long illustrated essay across art, history, science, food and craft, with the hard terms explained in place. Every lesson is kept in a library.',
   facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
-  ch:[[0,'Today’s lesson'],[8,'The library'],[13.4,'Bretton Woods'],[17.4,'Terms explained'],[24,'Next lesson']]},
+  ch:[[0,'Today’s lesson'],[4.9,'The library'],[10.3,'Bretton Woods'],[14.3,'Terms explained'],[20.9,'Next lesson']]},
  {k:'bits',n:'Greatest Bits',kind:'Published · archive',href:'greatest-bits/',url:'mattyellin.com/greatest-bits/',open:'Search the archive',tint:'#2a1414',hue:'#ff7a5c',
   lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found. Search a name, open the comic, play a bit, then follow the rest of their work and career.',
   facts:[['Comics','<span class="num" data-gbc>459</span>'],['Bits','<span class="num" data-gbb>2,284</span>']],
-  ch:[[0,'Search'],[5.4,'The comic'],[9.4,'Play a bit'],[13.8,'Their specials'],[17.2,'Career']]},
+  ch:[[0,'Search'],[2.5,'The comic'],[6.5,'Play a bit'],[10.9,'Their specials'],[14.3,'Career']]},
  {k:'train',n:'Train',kind:'Private · phone app',phone:true,tint:'#1d1830',hue:'#b7a6ff',
   lede:'The training app I use every day. It prescribes the session off a rotation, tracks strength, cardio and body over months rather than days, and syncs across my devices. No number in it you can fail.',
   facts:[['Version','v26.2'],['Shown with','A sample profile']],
-  ch:[[0,'Today'],[6,'Strength'],[12,'Cardio'],[17,'Body']]},
+  ch:[[0,'Today'],[2.6,'Strength'],[8.6,'Cardio'],[13.6,'Body']]},
  {k:'course',n:'Miami Law Course Planner',kind:'New · for Miami Law students',isNew:true,href:'course-plan/',url:'mattyellin.com/course-plan/',open:'Open the planner',tint:'#141c2b',hue:'#8fb4ff',try:true,
   lede:'A tool for Miami Law students to pick their classes. Search every course, filter by requirement, and build a week that flags clashes before you register. Unofficial. Switch the frame to Try it and tick a few.',
   facts:[['Built for','Miami Law students'],['Courses','202']],
-  ch:[[0,'Add courses'],[11,'The week fills in'],[18.5,'Tick to compare']]},
+  ch:[[0,'Add courses'],[7.8,'The week fills in'],[15.3,'Tick to compare']]},
  {k:'system',still:1,n:'Claude OS',kind:'The system behind the work',href:'system/',url:'mattyellin.com/system/',open:'See how it works',tint:'#24170f',hue:'#ffb08f',
   lede:'The operating system I run school, work and these projects on: written rules Claude reads first, memory kept in plain files, routines that run on a schedule, and checks that must pass before anything ships.',
   facts:[['Skills','28'],['Routines on a schedule','9']],
@@ -424,7 +424,7 @@ var introDone=function(){},heroWait=2,heroTick=function(){if(--heroWait<=0&&intr
 })();
 
 var cards=[];
-function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload='none';v.poster='assets/work/'+k+'.jpg?v=10';v.src='assets/work/'+k+'-v.mp4?v=10';v.setAttribute('aria-hidden','true');return v}
+function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster='assets/work/'+k+'.jpg?v=10';v.src='assets/work/'+k+'-v.mp4?v=13';v.setAttribute('aria-hidden','true');return v}
 try{var st=$('#stack');
   P.forEach(function(p,i){
     var c=el('article','card');c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
@@ -453,9 +453,9 @@ function seek(r,t){try{r.v.currentTime=t;play(r.v)}catch(e){}}
 function play(v){var pr=v.play();pr&&pr.catch(function(){})}
 
 var cur=null;
-function pick(){var vh=innerHeight,best=null,bi=-1;cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(b.top<vh*.62&&b.bottom>vh*.25){best=r;bi=i}});
+function pick(){var vh=innerHeight,best=null,bi=-1;cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(b.top<vh*.8&&b.bottom>vh*.2){best=r;bi=i}});
   cards.forEach(function(r,i){if(!r.v)return;if(r===best&&r.on){if(r.v.preload!=='auto')r.v.preload='auto';if(r.v.paused)play(r.v)}else if(!r.v.paused)r.v.pause();
-    if(i===bi+1&&r.v.preload==='none')r.v.preload='metadata'});cur=best}
+    if((i===bi+1||(bi<0&&i===0))&&r.v.preload!=='auto')r.v.preload='auto'});cur=best}
 var pq=0;addEventListener('scroll',function(){if(!pq)pq=requestAnimationFrame(function(){pq=0;pick()})},{passive:true});addEventListener('resize',pick);
 document.addEventListener('visibilitychange',function(){if(document.hidden)cards.forEach(function(r){r.v&&r.v.pause()});else pick()});
 cards.forEach(function(r){r.v&&r.v.addEventListener('timeupdate',function(){mark(r,r.v.currentTime)})});pick();
