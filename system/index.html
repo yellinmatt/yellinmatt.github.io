@@ -749,6 +749,7 @@ Machine.prototype.apply=function(){var self=this,any=this.lit.length>0;
   Object.keys(this.nodes).forEach(function(k){var g=self.nodes[k];g.classList.toggle('lit',self.lit.indexOf(k)>=0);g.classList.toggle('dim',any&&self.lit.indexOf(k)<0);g.classList.toggle('off',self.off===k)});
   Object.keys(this.paths).forEach(function(k){var p=self.paths[k],ab=k.split('-');p.classList.toggle('lit',self.path.indexOf(k)>=0);p.classList.toggle('cut',!!self.off&&(ab[0]===self.off||ab[1]===self.off))})};
 Machine.prototype.packet=function(k,dur){var p=this.paths[k];if(!p)return;var len=p.getTotalLength(),c=sv('circle',{r:this.lay===L.tall?5:4.5,class:'pk'}),h=sv('circle',{r:12,class:'halo'});
+  var p0=p.getPointAtLength(0);c.setAttribute('cx',p0.x);c.setAttribute('cy',p0.y);h.setAttribute('cx',p0.x);h.setAttribute('cy',p0.y);
   this.gp.appendChild(h);this.gp.appendChild(c);var t0=null,self=this,to=this.nodes[k.split('-')[1]];dur=(dur||1100)*SLOW;
   function f(t){if(!t0)t0=t;var u=Math.min(1,(t-t0)/dur),e=u<.5?2*u*u:1-Math.pow(-2*u+2,2)/2,pt=p.getPointAtLength(e*len);
     c.setAttribute('cx',pt.x);c.setAttribute('cy',pt.y);h.setAttribute('cx',pt.x);h.setAttribute('cy',pt.y);h.setAttribute('opacity',.25*(1-u*.6));
