@@ -55,9 +55,10 @@ nav a{color:var(--mut);text-decoration:none;padding:6px 0}nav a:hover{color:var(
     if(m){
       var d=new Date(+m[1],+m[2]-1,+m[3]), now=new Date(), days=Math.floor((now-d)/864e5);
       var nice=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-      if(days>7) set('That edition has rolled off','The Morning Brief keeps its last seven editions online, and the '+nice+' edition is older than that. Today’s Brief is one click away.',[['Read today’s Brief','/news/'],['Home','/']],'Edition expired');
-      else if(days<0) set('That edition isn’t out yet','The Brief for '+nice+' hasn’t been published. It comes out every morning.',[['Read today’s Brief','/news/'],['Home','/']],'Not yet published');
-      else set('No Brief that day','There’s no edition at this address for '+nice+'. The latest editions are on the Brief’s front page.',[['See recent editions','/news/'],['Home','/']]);
+      var floor=new Date(2026,8,1);
+      if(days<0) set('That edition isn’t out yet','The Brief for '+nice+' hasn’t been published. It comes out every morning.',[['Read today’s Brief','/news/'],['Every edition','/news/archive.html']],'Not yet published');
+      else if(d<floor) set('That edition is no longer online','The Brief’s public archive starts September 1, 2026, and the '+nice+' edition is older than that. Today’s Brief is one click away.',[['Read today’s Brief','/news/'],['Every edition','/news/archive.html']],'Before the archive');
+      else set('That edition isn’t online','There’s no edition at this address for '+nice+'. Every published edition is listed in the archive.',[['Every edition','/news/archive.html'],['Today’s Brief','/news/']]);
       return;
     }
     if(/^\/(dealcraft|corp-law|portfolio\/demo)(\/|$)/.test(path)){

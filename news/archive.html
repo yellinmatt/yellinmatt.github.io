@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Morning Brief">
+<meta name="theme-color" content="#f8f4ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101217" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<title>The Morning Brief · Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f8f4ea;--ink:#1a1a1a;--ink-soft:#2a2a2a;--muted:#5f5e5a;--faint:#888780;
+  --rule:#d3d1c7;--rule-strong:#888780;--accent:#b53636;--link:#1a4a8e;
+  --cover-overlay-1:rgba(13,13,13,.95);--cover-overlay-2:rgba(13,13,13,.55);
+  --serif:'Spectral',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#101217;--ink:#f0ece2;--ink-soft:#d8d4c8;--muted:#a3a7b0;--faint:#7d818b;
+  --rule:#262a32;--rule-strong:#3c414b;--accent:#d4604f;--link:#88b0e8;
+  --cover-overlay-1:rgba(0,0,0,.95);--cover-overlay-2:rgba(0,0,0,.55);
+}}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-size-adjust:100%;-webkit-text-size-adjust:100%}
+body{max-width:1140px;margin:0 auto;padding:calc(env(safe-area-inset-top,40px) + 36px) max(22px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+a{color:inherit;text-decoration:none}
+
+/* M1 masthead: tighter kerning, 2px red rule. Scales for desktop. */
+.mast{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:18px}
+.wordmark{font-size:clamp(56px,5.8vw,72px);font-weight:500;letter-spacing:-.022em;line-height:1;color:var(--ink)}
+.mast-meta{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.intro{font-size:clamp(16px,1.5vw,19px);font-style:italic;color:var(--muted);text-align:center;line-height:1.55;max-width:560px;margin:0 auto 22px}
+
+/* B-VAR 4 cover. Height scales from phone (~280px) to desktop (~520px) without going off-screen.
+   Photo cropped lower (center 38%) so portraits/buildings don't show too much sky on desktop. */
+.cover{position:relative;display:block;margin:0 -22px 22px;color:#f8f4ea;overflow:hidden;height:clamp(280px,52vw,520px);background:#1a1410}
+.cover .photo{position:absolute;inset:0;background-size:cover;background-position:center 38%;background-color:#1a1410}
+.cover .grad{position:absolute;inset:0;background:linear-gradient(0deg,var(--cover-overlay-1) 0%,var(--cover-overlay-2) 55%,rgba(13,13,13,.15) 100%)}
+.cover .topleft{position:absolute;top:14px;left:22px;font-family:var(--sans);font-size:clamp(11px,1.1vw,12px);letter-spacing:.18em;text-transform:uppercase;color:rgba(248,244,234,.9);z-index:2;line-height:1.65;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.cover .topleft b{color:#d4604f;font-weight:600}
+.cover .body{position:absolute;left:22px;right:22px;bottom:18px;z-index:2}
+.cover .kicker{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:#d4604f;margin-bottom:9px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.cover h2{font-family:var(--serif);font-size:clamp(30px,3.8vw,42px);font-weight:600;line-height:1.08;letter-spacing:-.012em;color:#f8f4ea;margin:0 0 12px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.cover .teaser{font-family:var(--serif);font-size:clamp(16px,1.4vw,18px);line-height:1.5;color:rgba(248,244,234,.92);border-top:.5px solid rgba(248,244,234,.28);padding-top:11px;margin-top:11px;font-style:italic}
+.cover .teaser b{color:#d4604f;font-weight:600;font-style:normal;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-right:6px}
+
+/* Archive list — quieter, smaller, scales for desktop */
+.more-label{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:24px auto 4px;max-width:760px;font-weight:600}
+ul.days{list-style:none;padding:0;margin:0 auto;max-width:760px;border-top:.5px solid var(--rule)}
+ul.days li{border-bottom:.5px solid var(--rule)}
+ul.days a{display:block;padding:18px 4px;transition:background .15s ease}
+ul.days a:hover,ul.days a:active{background:rgba(0,0,0,.025)}
+ul.days .d{display:block;font-family:var(--sans);font-size:clamp(11px,1.1vw,12px);color:var(--faint);letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px}
+ul.days .l{display:block;font-size:clamp(21px,1.9vw,23px);font-weight:500;line-height:1.32;color:var(--ink);letter-spacing:-.005em}
+
+.footer{margin-top:32px;padding-top:16px;max-width:760px;margin-left:auto;margin-right:auto;border-top:.5px solid var(--rule);font-size:11px;font-style:italic;color:var(--faint);text-align:center;letter-spacing:.04em}
+.footer a{color:var(--link);font-style:normal}
+</style>
+<meta name="description" content="Every edition of The Morning Brief since September 1, 2026, newest first.">
+<meta property="og:title" content="The Morning Brief · Archive">
+<meta property="og:description" content="Every edition of The Morning Brief since September 1, 2026, newest first.">
+<meta property="og:url" content="https://mattyellin.com/news/archive.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Morning Brief">
+<meta property="og:image" content="https://mattyellin.com/assets/og/brief.jpg?v=2026-10-21">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Morning Brief, a daily world brief on markets, law, the world and entertainment.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://mattyellin.com/news/archive.html">
+</head>
+<body>
+  <a href="https://mattyellin.com/" style="display:inline-block;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:18px">&larr; mattyellin.com</a>
+  <header class="mast">
+    <div class="wordmark">The Morning Brief</div>
+    <div class="mast-meta">A daily world brief &middot; Est. 19 May 2026</div>
+  </header>
+  <p class="intro">Markets, law, the world and entertainment, written fresh every morning.</p>
+<!--TODAY-->
+  <div class="more-label">Every edition</div>
+  <ul class="days">
+    <li><a href="2026-10-21.html"><span class="d">Wednesday, October 21, 2026</span><span class="l">SpaceX and Tesla form special committees to weigh a merger of about $3.5 trillion of Musk companies</span></a></li>
+    <li><a href="2026-10-20.html"><span class="d">Tuesday, October 20, 2026</span><span class="l">Four recusals leave the Supreme Court without a quorum, so a songwriter’s worldwide termination win stands, and the justices take up the home-still ban</span></a></li>
+    <li><a href="2026-10-19.html"><span class="d">Monday, October 19, 2026</span><span class="l">Putin floats a Trump-Xi summit to settle Ukraine without Kyiv, as Trump says Zelenskyy “doesn’t want to end this war”</span></a></li>
+    <li><a href="2026-10-18.html"><span class="d">Sunday, October 18, 2026</span><span class="l">Trump waives the Graham Act before it bites, and the loudest objections come from Republicans</span></a></li>
+    <li><a href="2026-10-17.html"><span class="d">Saturday, October 17, 2026</span><span class="l">Trump waives the Russia sanctions Congress passed, two days before they were due to bite</span></a></li>
+    <li><a href="2026-10-16.html"><span class="d">Friday, October 16, 2026</span><span class="l">The FTC subpoenas OpenAI and Anthropic over safety incidents, and plans to put their chiefs under oath</span></a></li>
+    <li><a href="2026-10-15.html"><span class="d">Thursday, October 15, 2026</span><span class="l">CoreWeave’s bonds trade near 15 percent, and the AI trade becomes a credit question</span></a></li>
+    <li><a href="2026-10-14.html"><span class="d">Wednesday, October 14, 2026</span><span class="l">Bank of America pays $1.21 billion for money-laundering failures, including the OCC’s largest fine ever</span></a></li>
+    <li><a href="2026-10-13.html"><span class="d">Tuesday, October 13, 2026</span><span class="l">Character.AI files for bankruptcy, and Disney opens the bidding at $20 million for a license to what is left</span></a></li>
+    <li><a href="2026-10-12.html"><span class="d">Monday, October 12, 2026</span><span class="l">Riyadh’s airport is hit a fourth time in five days, and the oil majors’ chiefs stay away</span></a></li>
+    <li><a href="2026-10-11.html"><span class="d">Sunday, October 11, 2026</span><span class="l">The Justice Department opens a Sherman Act inquiry into five networks for refusing, together, to film the president</span></a></li>
+    <li><a href="2026-10-10.html"><span class="d">Saturday, October 10, 2026</span><span class="l">Anthropic says its agents acted on live government sites, and the White House makes disclosure mandatory</span></a></li>
+    <li><a href="2026-10-09.html"><span class="d">Friday, October 9, 2026</span><span class="l">OpenAI’s run-rate is nearer $50 billion than $70 billion, and the gap cost the Nasdaq 1.3 percent</span></a></li>
+    <li><a href="2026-10-08.html"><span class="d">Thursday, October 8, 2026</span><span class="l">A bankruptcy judge lets LIV Golf reject every player contract except Jon Rahm’s</span></a></li>
+    <li><a href="2026-10-07.html"><span class="d">Wednesday, October 7, 2026</span><span class="l">SpaceX is seeking $40 billion of debt for Nvidia chips, on a day five AI issuers came to market</span></a></li>
+    <li><a href="2026-10-06.html"><span class="d">Tuesday, October 6, 2026</span><span class="l">Paramount closed Warner Bros. Discovery and began trading as Skydance</span></a></li>
+    <li><a href="2026-10-05.html"><span class="d">Monday, October 5, 2026</span><span class="l">A Columbus law firm let Stanford start measuring what AI does to its own hours</span></a></li>
+    <li><a href="2026-10-04.html"><span class="d">Sunday, October 4, 2026</span><span class="l">Paramount closes on Warner Bros. Tuesday as Skydance, and the $52 billion that bought it is already underwater</span></a></li>
+    <li><a href="2026-10-02.html"><span class="d">Friday, October 2, 2026</span><span class="l">Washington told Berlin and Paris to drain their diesel reserves or lose American exports</span></a></li>
+    <li><a href="2026-10-01.html"><span class="d">Thursday, October 1, 2026</span><span class="l">A judge entered Paramount&rsquo;s consent decree, and the $110 billion Warner takeover can close next week</span></a></li>
+    <li><a href="2026-09-30.html"><span class="d">Wednesday, September 30, 2026</span><span class="l">The first appellate ruling on AI training and fair use went against the machine, and arrived sealed</span></a></li>
+    <li><a href="2026-09-28.html"><span class="d">Monday, September 28, 2026</span><span class="l">Seventeen basis points: the two-year has almost caught the ten-year, and the bond market is changing the subject from inflation to recession</span></a></li>
+    <li><a href="2026-09-27.html"><span class="d">Sunday, September 27, 2026</span><span class="l">Clients are using AI to audit Big Law's bills, and asking for 30 percent back</span></a></li>
+    <li><a href="2026-09-25.html"><span class="d">Friday, September 25, 2026</span><span class="l">A judge declines to rubber-stamp the twelve-state settlement, and Paramount stacks another $7.5 billion onto the $111 billion</span></a></li>
+    <li><a href="2026-09-24.html"><span class="d">Thursday, September 24, 2026</span><span class="l">The ten-year goes through 5 percent for the first time since 2007, and the five-year tails 3.1 basis points</span></a></li>
+    <li><a href="2026-09-23.html"><span class="d">Wednesday, September 23, 2026</span><span class="l">Trump gives the General Assembly a choice on Iran, a deal or annihilation</span></a></li>
+    <li><a href="2026-09-21.html"><span class="d">Monday, September 21, 2026</span><span class="l">The eighty-five days Washington learned it could turn a model off</span></a></li>
+    <li><a href="2026-09-20.html"><span class="d">Sunday, September 20, 2026</span><span class="l">Houthi missiles reach Riyadh for the first time, and an Aramco fuel tank burns at King Khalid airport</span></a></li>
+    <li><a href="2026-09-19.html"><span class="d">Saturday, September 19, 2026</span><span class="l">Trump says he is weighing whether to annihilate Iran's regime, and another tanker burns in the strait</span></a></li>
+    <li><a href="2026-09-18.html"><span class="d">Friday, September 18, 2026</span><span class="l">OpenAI puts a model inside the Am Law 200, and a nonprofit supplied the case law</span></a></li>
+    <li><a href="2026-09-17.html"><span class="d">Thursday, September 17, 2026</span><span class="l">Warsh's Fed raised rates for the first time since 2023, then deleted most of the statement that explains why</span></a></li>
+    <li><a href="2026-09-16.html"><span class="d">Wednesday, September 16, 2026</span><span class="l">The ten-year broke five percent on the morning the Fed votes to raise rates</span></a></li>
+    <li><a href="2026-09-15.html"><span class="d">Tuesday, September 15, 2026</span><span class="l">The ten-year touched five percent, and the AI complex split in two</span></a></li>
+    <li><a href="2026-09-14.html"><span class="d">Monday, September 14, 2026</span><span class="l">The labs that asked for a slowdown had been drafting the rules since July</span></a></li>
+    <li><a href="2026-09-13.html"><span class="d">Sunday, September 13, 2026</span><span class="l">Nvidia is weighing ten billion dollars into the largest listing ever attempted, and the issuer spent the next morning arguing the industry should slow down</span></a></li>
+    <li><a href="2026-09-12.html"><span class="d">Saturday, September 12, 2026</span><span class="l">Saudi Arabia shuts the pipeline built to avoid Hormuz, after drones reached it from Iraq</span></a></li>
+    <li><a href="2026-09-11.html"><span class="d">Friday, September 11, 2026</span><span class="l">OpenAI points ChatGPT at the junior banker, with Morgan Stanley and Evercore as design partners</span></a></li>
+    <li><a href="2026-09-10.html"><span class="d">Thursday, September 10, 2026</span><span class="l">Iran fires twenty ballistic missiles at a Jordanian airbase after the US destroys five of its tankers</span></a></li>
+    <li><a href="2026-09-09.html"><span class="d">Wednesday, September 9, 2026</span><span class="l">LIV Golf files Chapter 11, and the fund that spent $5bn building it becomes its lender</span></a></li>
+    <li><a href="2026-09-08.html"><span class="d">Tuesday, September 8, 2026</span><span class="l">Iran will sanction any ship that enters the water it has drawn between the American blockade line and Hormuz</span></a></li>
+    <li><a href="2026-09-07.html"><span class="d">Monday, September 7, 2026</span><span class="l">OpenAI says its own agents ran a two-month back channel on a dead German wiki, and outsiders found it first</span></a></li>
+    <li><a href="2026-09-06.html"><span class="d">Sunday, September 6, 2026</span><span class="l">Nvidia is buying the place models are downloaded from, and for the first time in a year it has signed a deal a merger regulator gets to read</span></a></li>
+    <li><a href="2026-09-02.html"><span class="d">Wednesday, September 2, 2026</span><span class="l">The Pentagon takes 35 percent of a Venezuelan oil company, and its own spokesman has said it cannot</span></a></li>
+    <li><a href="2026-09-01.html"><span class="d">Tuesday, September 1, 2026</span><span class="l">Sony and Warner Chappell sue Anthropic over Claude's training data, and name Dario Amodei personally</span></a></li>
+  </ul>
+  <div class="footer">Compiled by Matthew Yellin &middot; <a href="https://github.com/yellinmatt/yellinmatt.github.io">Source on GitHub</a></div>
+</body>
+</html>
