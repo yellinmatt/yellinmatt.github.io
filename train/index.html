@@ -1595,6 +1595,7 @@ details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 .lvpipbar i>b{transform-origin:left center}
 @keyframes pipIn{from{transform:scaleX(0);opacity:.3}to{transform:none;opacity:1}}
 .lvcoach{font-size:15px;line-height:1.45;color:var(--ink);margin:2px 0 14px}
+.lvcoach.lvback{font-weight:700;color:var(--dir-up)}
 .lxlist{margin-top:10px}
 .lxlist .lxr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:44px;border-top:1px solid var(--line);font-size:15px}
 .lxlist .lxr:first-child{border-top:0}
@@ -1815,7 +1816,7 @@ button.planrow{width:100%;background:none;border-left:0;border-right:0;border-bo
 
 <script>
 "use strict";
-var VERSION="v27.1";
+var VERSION="v27.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -8148,7 +8149,7 @@ function levelSheet(kind){
   var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
   openSheet('<div class="grab"></div><h3>'+(kind==="lift"?"Strength":"Cardio")+'</h3>'+
     levelHeroHTML(kind,L,st.w)+
-    (L.draining?'<div class="lvcoach">'+esc(st.c)+'</div>':'')+
+    (L.comeback?'<div class="lvcoach lvback">'+esc(st.c)+'</div>':'')+
     levelMechanicsHTML(kind,L)+
     levelHistoryHTML(kind)+
     '<button class="sheet-cta" onclick="closeSheet()">Close</button>');
@@ -8465,7 +8466,7 @@ function levelBoxHTML(kind){
   var _dir=levelDirOf(kind);
   var d=to-prev;
   var _wx=levelWeekDelta(kind);
-  var dTxt=(L.draining)?"draining":((_wx>0)?("+"+_wx+" XP 7d"):"quiet week");
+  var dTxt=(L.comeback)?"next ×2":((_wx>0)?("+"+_wx+" XP 7d"):"quiet week");
   return '<button class="lvlcard lvlbox" data-tier="'+t.k+'" data-kind="'+kind+'" data-dir="'+_dir+
     '" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')"'+
     ' aria-label="'+(kind==="lift"?"Strength":"Cardio")+' level '+L.lvl+', '+t.w+', '+
@@ -9610,7 +9611,7 @@ function cardioLevel(){
   var a28=xpGain("cardio",28),b=new Date(NOW);b.setDate(b.getDate()-28);var b28=xpGain("cardio",28,keyOf(b));
   var p28=xpPoint("cardio",keyOf(b));
   return {lvl:p.lvl,pips:Math.min(9,Math.floor(p.frac*10)),frac:p.frac,fl:p.fl,
-    xp:p.bank,into:p.into,need:p.need,xp7:xpGain("cardio",7),quiet:p.quiet,draining:p.quiet!=null&&p.quiet>XP_DRAIN_AFTER,
+    xp:p.bank,into:p.into,need:p.need,xp7:xpGain("cardio",7),quiet:xpQuiet("cardio"),comeback:xpComebackNext("cardio"),
     score:p.bank,pts:p.bank,lo:0,hi:p.need,span:1,
     r:(b28>0)?((a28-b28)/b28):(a28>0?1:0),delta:p28?(p.lvl-p28.lvl):0,
     week:c.week,cs:c,fr:fr,ring:Math.max(0,Math.min(1,c.week/CARDIO_BAND[0])),
@@ -9630,7 +9631,7 @@ function daysSinceLoad(kind){
 }
 function levelStatus(L){
   if(!L.xp)return {w:"Nothing logged yet",k:"base",c:"A walk, a run or a day over 4,000 steps starts it."};
-  if(L.draining)return {w:"Quiet",k:"flat",c:L.quiet+" days since the last walk or run. The bar is draining; the level stays."};
+  if(L.comeback)return {w:"Comeback",k:"good",c:"Your next walk or run earns double XP."};
   var gap=(L.quiet==null)?null:L.quiet;
   if(gap!=null&&gap>=10)return {w:"Quiet",k:"flat",c:"Nothing logged for "+gap+" days. Steps still count; a walk moves it more."};
   if(L.r>=0.2)return {w:"Building",k:"good",c:"More cardio than the month before."};
@@ -9705,7 +9706,7 @@ function consistencyOn(endKey,by){
   return {C:Math.max(0,Math.min(1,C)),R:R,H:hs,credit:credit,dayCredit:DC,anchorCredit:AC};
 }
 var _llMemo=null,_llMemoDay=null;
-var XP_CARDIO_BEST_DAYS=90,XP_EPOCH="2026-08-17",XP_UP=5,XP_DRAIN_AFTER=21,XP_DRAIN_RATE=0.03,XP_STEP_FLOOR=4000,XP_STEP_PER=1000,XP_STEP_CAP=6;
+var XP_CARDIO_BEST_DAYS=90,XP_EPOCH="2026-08-17",XP_UP=5,XP_COMEBACK_QUIET=10,XP_COMEBACK_MULT=2,XP_STEP_FLOOR=4000,XP_STEP_PER=1000,XP_STEP_CAP=6;
 function xpCost(n){return 40+15*(n-1);}
 function xpLevelOf(total){var n=1,left=Math.max(0,total);while(left>=xpCost(n)&&n<99){left-=xpCost(n);n++;}
   return {lvl:n,into:left,need:xpCost(n),frac:Math.min(0.999,left/xpCost(n))};}
@@ -9718,7 +9719,8 @@ function xpLedger(){
   if(_xpMemo&&_xpMemo.day===TODAY)return _xpMemo;
   var ses=(S.sessions||[]).filter(function(s){return s&&s.date&&s.date<=TODAY;}).slice()
     .sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:((a.startedAt||0)-(b.startedAt||0));});
-  var lift={},card={},best={},longest={};
+  var lift={},card={},best={},longest={},lastLift=null,lastBout=null;
+  var isBack=function(prev,k){return !!prev&&prev<k&&(daysBetween(prev,k)-1)>=XP_COMEBACK_QUIET;};
   ses.forEach(function(s){
     if(s.type==="lift"){
       var sets=0,up=[];
@@ -9731,19 +9733,22 @@ function xpLedger(){
         if(b&&beat)up.push(e.exerciseId);
         if(beat)best[e.exerciseId]={w:top.w,r:top.r,date:s.date};
       });
-      if(s.date<XP_EPOCH||!sets)return;
-      var xp=sets+XP_UP*up.length;
+      if(!sets)return;
+      var back=isBack(lastLift,s.date);lastLift=s.date;
+      if(s.date<XP_EPOCH)return;
+      var xp=(sets+XP_UP*up.length)*(back?XP_COMEBACK_MULT:1);
       var o=lift[s.date]||(lift[s.date]={xp:0,sets:0,ups:0,items:[]});
-      o.xp+=xp;o.sets+=sets;o.ups+=up.length;o.items.push({s:s,sets:sets,ups:up.length,up:up,xp:xp});
+      o.xp+=xp;o.sets+=sets;o.ups+=up.length;o.items.push({s:s,sets:sets,ups:up.length,up:up,xp:xp,back:back});
     }else if(s.type==="run"||s.type==="activity"){
       var mins=(+s.durationSec||0)/60;if(!(mins>0))return;
       var k=xpCardioKind(s),hist=longest[k]||(longest[k]=[]),c90=dayFromKey(s.date);c90.setDate(c90.getDate()-XP_CARDIO_BEST_DAYS);var c90k=keyOf(c90);
       var prev=0;hist.forEach(function(h){if(h.date>=c90k&&h.date<s.date&&h.mins>prev)prev=h.mins;});
       var upc=(prev>0&&mins>prev)?1:0;hist.push({date:s.date,mins:mins});
+      var back2=isBack(lastBout,s.date);lastBout=s.date;
       if(s.date<XP_EPOCH)return;
-      var xp2=Math.round(mins*(k==="run"?1/1.5:1/3))+XP_UP*upc;
+      var xp2=(Math.round(mins*(k==="run"?1/1.5:1/3))+XP_UP*upc)*(back2?XP_COMEBACK_MULT:1);
       var o2=card[s.date]||(card[s.date]={xp:0,ups:0,stepXP:0,items:[]});
-      o2.xp+=xp2;o2.ups+=upc;o2.items.push({s:s,kind:k,mins:mins,ups:upc,xp:xp2});
+      o2.xp+=xp2;o2.ups+=upc;o2.items.push({s:s,kind:k,mins:mins,ups:upc,xp:xp2,back:back2});
     }
   });
   var boutMi={};(S.sessions||[]).forEach(function(x){if(x&&x.date&&(x.type==="run"||x.type==="activity"))boutMi[x.date]=(boutMi[x.date]||0)+(+x.distanceMi||0);});
@@ -9754,19 +9759,20 @@ function xpLedger(){
     var o=card[k]||(card[k]={xp:0,ups:0,stepXP:0,items:[]});o.stepXP=sx;o.xp+=sx;o.steps=v;
   });
   function walk(map){
-    var out=[],bank=0,last=null,d=dayFromKey(XP_EPOCH),drained=0;
+    var out=[],bank=0,last=null,d=dayFromKey(XP_EPOCH);
     for(var guard=0;guard<4000;guard++){
       var k=keyOf(d);if(k>TODAY)break;
       var x=map[k],gain=x?x.xp:0;bank+=gain;if(x&&x.items&&x.items.length)last=k;
-      var L=xpLevelOf(bank),quiet=last?daysBetween(last,k):null,dr=0;
-      if(quiet!=null&&quiet>XP_DRAIN_AFTER&&L.into>1e-6){dr=Math.min(L.into-1e-6,XP_DRAIN_RATE*L.need);bank-=dr;drained+=dr;L=xpLevelOf(bank);}
-      out.push({date:k,bank:bank,gain:gain,drain:dr,lvl:L.lvl,frac:L.frac,into:L.into,need:L.need,quiet:quiet,fl:L.lvl+L.frac});
+      var L=xpLevelOf(bank),quiet=last?daysBetween(last,k):null;
+      out.push({date:k,bank:bank,gain:gain,lvl:L.lvl,frac:L.frac,into:L.into,need:L.need,quiet:quiet,fl:L.lvl+L.frac});
       d.setDate(d.getDate()+1);
     }
     return out;
   }
-  return (_xpMemo={day:TODAY,lift:{map:lift,series:walk(lift)},cardio:{map:card,series:walk(card)},best:best,longest:longest});
+  return (_xpMemo={day:TODAY,lift:{map:lift,series:walk(lift),last:lastLift},cardio:{map:card,series:walk(card),last:lastBout},best:best,longest:longest});
 }
+function xpQuiet(kind){var l=xpLedger()[kind==="lift"?"lift":"cardio"].last;return l?daysBetween(l,TODAY):null;}
+function xpComebackNext(kind){var q=xpQuiet(kind);return q!=null&&(q-1)>=XP_COMEBACK_QUIET;}
 function xpPoint(kind,asOf){var sr=xpLedger()[kind==="lift"?"lift":"cardio"].series;if(!sr.length)return null;
   if(!asOf||asOf>=sr[sr.length-1].date)return sr[sr.length-1];if(asOf<sr[0].date)return null;
   for(var i=sr.length-1;i>=0;i--)if(sr[i].date<=asOf)return sr[i];return null;}
@@ -9788,7 +9794,7 @@ function liftLevel(){
   var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
   _llMemoDay=TODAY;
   return (_llMemo={lvl:p.lvl,pips:Math.min(9,Math.floor(p.frac*10)),frac:p.frac,fl:p.fl,
-          xp:p.bank,into:p.into,need:p.need,xp7:xpGain("lift",7),quiet:p.quiet,draining:p.quiet!=null&&p.quiet>XP_DRAIN_AFTER,
+          xp:p.bank,into:p.into,need:p.need,xp7:xpGain("lift",7),quiet:xpQuiet("lift"),comeback:xpComebackNext("lift"),
           score:p.bank,tested:true,testDate:null,cov:null,
           C:now.C,R7:now.R,H7:now.H,r:now.C-prevC,delta:p28?(p.lvl-p28.lvl):0,base:roundsBase(),
           lo:0,hi:p.need,span:1,series:series,sessions:n});
@@ -9796,7 +9802,7 @@ function liftLevel(){
 function liftLevelStatus(L){
   if(!L.sessions)return {w:"Nothing logged yet",k:"base",
     c:"Every set you finish earns XP, and beating a best earns more. Do a round and it starts."};
-  if(L.draining)return {w:"Quiet",k:"flat",c:L.quiet+" days since the last lift. The bar is draining; the level stays."};
+  if(L.comeback)return {w:"Comeback",k:"good",c:"Your next lift earns double XP."};
   if(reentryOn())return {w:"Coming back",k:"flat",
     c:"About half the usual rounds for a session or two. A ramp, not a reset."};
   var r=L.r;
@@ -9807,7 +9813,7 @@ function liftLevelStatus(L){
 
 function levelDirOf(kind){
   try{var L=(kind==="lift")?liftLevel():cardioLevel();
-    if(L.draining)return "flat";return (L.xp7>0)?"up":"flat";}catch(e){return "flat";}
+    return (L.xp7>0)?"up":"flat";}catch(e){return "flat";}
 }
 function dirGlyph(dir){return dir==="up"?"\u25B2":(dir==="down"?"\u25BC":"\u2013");}
 function levelRingHTML(L,kind){
@@ -9853,8 +9859,8 @@ function levelMechanicsHTML(kind,L){
   }
   var rc=xpRecent(kind,3).map(function(r){var it=r.it,s=it.s||{};
     var what=isLift?(s.focus?(s.focus.charAt(0).toUpperCase()+s.focus.slice(1)):"Lift"):((it.kind==="run"?"Run ":"Walk ")+Math.round(it.mins)+" min");
-    return '<div class="lxr"><span class="lxw">'+esc(what)+'</span><span class="lxd">'+esc(lxWhen(r.date))+(it.ups?' &middot; '+it.ups+' up'+(it.ups===1?'':'s'):'')+'</span><b class="num'+(it.ups?' up':'')+'">+'+it.xp+'</b></div>';}).join("");
-  var rule=isLift?"1 XP a set · 5 more for beating a best":"1 XP per 3 min walking, 90 s running · 5 for a new longest · steps count";
+    return '<div class="lxr"><span class="lxw">'+esc(what)+'</span><span class="lxd">'+esc(lxWhen(r.date))+(it.ups?' &middot; '+it.ups+' up'+(it.ups===1?'':'s'):'')+(it.back?' &middot; \u00d72':'')+'</span><b class="num'+((it.ups||it.back)?' up':'')+'">+'+it.xp+'</b></div>';}).join("");
+  var rule=(isLift?"1 XP a set · 5 more for beating a best":"1 XP per 3 min walking, 90 s running · 5 for a new longest · steps count")+" · double after 10 quiet days";
   return '<div class="lmech">'+rows+'</div>'+(rc?'<div class="lxlist">'+rc+'</div>':'')+'<div class="lxrule">'+rule+'</div>';
 }
 
