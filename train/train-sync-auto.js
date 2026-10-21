@@ -163,6 +163,9 @@
       vetted: S.vetted && typeof S.vetted === "object" ? S.vetted : {},
       dayStamps: dayStampsOf(S),
       weekMoves: S.weekMoves && typeof S.weekMoves === "object" && !Array.isArray(S.weekMoves) ? S.weekMoves : null,
+      cv: 3,
+      lww: (function () { var o = {}; LWW_FIELDS.forEach(function (n) {
+        var v = (S[n] === undefined) ? null : S[n]; o[n] = { v: v, at: stampedAt("lww@" + n, v) }; }); return o; })(),
       lvlHold: S.lvlHold && typeof S.lvlHold === "object" ? S.lvlHold : null,
       lvlHoldUpdatedAt: stampedAt("lvlHold", S.lvlHold && typeof S.lvlHold === "object" ? S.lvlHold : null),
       routineOn: S.routineOn !== false,
@@ -217,12 +220,14 @@
     else { h.fails = (h.fails || 0) + 1; h.lastErr = String(what || "failed").slice(0, 80); }
     try { localStorage.setItem(HEALTH_KEY, JSON.stringify(h)); } catch (e) {}
   }
+  var LWW_FIELDS = ["liftHold", "reentry", "vidVerdict", "rehabPick"];
+  function localProgsAt() { try { var S0 = JSON.parse(localStorage.getItem(LS)); return Number(S0 && S0.progsLocalAt) || 0; } catch (e) { return 0; } }
   function stampedAt(name, value) {
     var st = {};
     try { st = JSON.parse(localStorage.getItem(STAMP_KEY)) || {}; } catch (e) { st = {}; }
     var sig = JSON.stringify(value === undefined ? null : value);
     if (!st[name] || st[name].sig !== sig) {
-      st[name] = { sig: sig, at: st[name] ? Date.now() : 0 };
+      st[name] = { sig: sig, at: st[name] ? Date.now() : (name === "progs" ? localProgsAt() : 0) };
       try { localStorage.setItem(STAMP_KEY, JSON.stringify(st)); } catch (e) {}
     }
     return st[name].at;
@@ -276,16 +281,46 @@
     var sets = Array.isArray(s.sets)
       ? s.sets.filter(function (x) { return x && (x.done || x.completed || x.reps != null || x.weight != null); }).length
       : Number(s.completedSets || 0);
+    if (!sets && Array.isArray(s.entries)) s.entries.forEach(function (e) {
+      (e && e.sets || []).forEach(function (x) { if (x && x.completed !== false) sets++; }); });
     var d = Number(s.duration || s.durationSec || s.durationMs || 0) || 0;
     var watch = s.durSrc === "watch" ? 5e8 : 0;
     return sets * 1e9 + watch + d;
+  }
+  function sessStamp(s) { return Number((s && (s.loggedAt || s.endedAt)) || 0) || 0; }
+  function sessMoves(s) {
+    var ids = {}; (s && s.entries || []).forEach(function (e) { if (e && e.exerciseId) ids[e.exerciseId] = 1; });
+    return Object.keys(ids).sort().join("|");
+  }
+  function asideOf(s, keptStamp) {
+    var o = {}; for (var k in s) o[k] = s[k];
+    o.id = String(s.id) + "~aside~" + sessStamp(s); o.type = "lift-aside"; o.asideOf = String(s.id); o.asideAt = keptStamp || sessStamp(s);
+    return o;
+  }
+  function resolveSession(prev, inc) {
+    if (!prev) return { keep: inc, aside: null };
+    if (!inc) return { keep: prev, aside: null };
+    var finalLift = function (x) { return x.type === "lift" && !x.draft; };
+    if (!finalLift(prev) || !finalLift(inc)) return { keep: completeness(inc) >= completeness(prev) ? inc : prev, aside: null };
+    if (JSON.stringify(prev) === JSON.stringify(inc)) return { keep: prev, aside: null };
+    var later = sessStamp(inc) >= sessStamp(prev) ? inc : prev, earlier = later === inc ? prev : inc;
+    if (sessMoves(prev) === sessMoves(inc)) {
+      var ci = completeness(inc), cp = completeness(prev);
+      return { keep: ci > cp ? inc : (cp > ci ? prev : later), aside: null };
+    }
+    return { keep: later, aside: asideOf(earlier, sessStamp(later)) };
   }
   function unionSessions(a, b, tomb) {
     var dead = {};
     (tomb || []).forEach(function (t) { if (t && t.id != null) dead[String(t.id)] = true; });
     var m = new Map();
     (a || []).forEach(function (s) { if (s && s.id != null && !dead[String(s.id)]) m.set(String(s.id), s); });
-    (b || []).forEach(function (s) { if (!s || s.id == null || dead[String(s.id)]) return; var k = String(s.id), p = m.get(k); if (!p || completeness(s) >= completeness(p)) m.set(k, s); });
+    (b || []).forEach(function (s) {
+      if (!s || s.id == null || dead[String(s.id)]) return;
+      var k = String(s.id), r = resolveSession(m.get(k), s);
+      m.set(k, r.keep);
+      if (r.aside && !dead[r.aside.id] && !m.has(r.aside.id)) m.set(r.aside.id, r.aside);
+    });
     return Array.from(m.values());
   }
   function mergeTombs(a, b) {
@@ -334,7 +369,8 @@
     var p = toWire(S);
     var snap = JSON.stringify({ s: p.sessions, w: p.weighins, g: p.progressState, so: p.sore, a: p.anchor, d: p.done, st: p.steps, pr: p.protein, nu: p.nutrition, ru: p.runs, ov: p.override, ds: p.daySlot, vt: p.vetted, pf: p.profile, cu: p.cursor, ct: p.capTest, pd: p.pedo, cdt: p.cardioTick, hd: p.hardDays, rc: p.roundsCfg, pu: p.pushup,
       pg: p.progs, pgs: p.progsStamps, pk: p.prog, rt: p.routine, bl: p.bwLev, ws: p.weighStamps,
-      dst: p.dayStamps, wm: p.weekMoves, lh: p.lvlHold, ro: p.routineOn });
+      dst: p.dayStamps, wm: p.weekMoves, lh: p.lvlHold, ro: p.routineOn,
+      lw: p.lww });
     if (snap === lastSnap) return;
     fetch(EP + "/push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + t }, body: JSON.stringify(p) })
       .then(function (r) {
@@ -559,6 +595,11 @@
         else if (srv.progressState && Number(srv.progressUpdatedAt || 0) > stampedAt("progress", S.progress)) {
           S.progress = srv.progressState; bumpStamp("progress", S.progress, Number(srv.progressUpdatedAt));
         }
+        if (srv.lww && typeof srv.lww === "object") LWW_FIELDS.forEach(function (n) {
+          var e = srv.lww[n]; if (!e || typeof e !== "object" || !("v" in e)) return;
+          var local = (S[n] === undefined) ? null : S[n];
+          if (takes("lww@" + n, local, e.at, e.v)) { if (e.v == null) delete S[n]; else S[n] = e.v; bumpStamp("lww@" + n, e.v == null ? null : e.v, Number(e.at)); }
+        });
         var wmS = srv.weekMoves, wmL = S.weekMoves;
         if (wmS && typeof wmS === "object" && !Array.isArray(wmS) && wmS.map && typeof wmS.map === "object" &&
             (!wmL || typeof wmL !== "object" || (Number(wmS.at) || 0) > (Number(wmL.at) || 0))) {
@@ -631,7 +672,7 @@
       return { ok: !!h.lastOk && !h.fails, health: h };
     }).catch(function (e) { return { ok: false, reason: String(e && e.message) }; });
   }
-  global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs,
+  global.TrainSyncAuto = { start: start, now: now, repaint: repaintInPlace, resolve: resolveSession, _toWire: toWire, _unionSessions: unionSessions, _mergeWeigh: mergeWeigh, _mergeTombs: mergeTombs,
     _progsParts: progsParts, _progsBuild: progsBuild, _pull: pullAndMerge, _push: push,
     _mergeInto: mergeInto, _bootstrap: bootstrapFromServer, _dayStamps: dayStampsOf,
     forget: function () { try { localStorage.removeItem(STAMP_KEY); localStorage.removeItem(BACKUP_KEY); } catch (e) {} lastSnap = ""; },
