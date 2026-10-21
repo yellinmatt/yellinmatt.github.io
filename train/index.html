@@ -1595,6 +1595,11 @@ details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 .lvpipbar i>b{animation:pipIn .42s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*45ms + 120ms);transform-origin:left center}
 @keyframes pipIn{from{transform:scaleX(0);opacity:.3}to{transform:none;opacity:1}}
 .lvcoach{font-size:15px;line-height:1.45;color:var(--ink);margin:2px 0 14px}
+.lxlist .lxr{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.lxlist .lxr:first-child{border-top:0}
+.lxlist .lxr span{display:block;font-size:13px;color:var(--sub);margin-top:1px}
+.lxlist .lxr b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.lxlist .lxr b.up{color:var(--dir-up)}
 details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 @keyframes stepin{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
 @keyframes wpulse{0%{box-shadow:0 0 0 0 rgba(255,92,58,.5)}70%{box-shadow:0 0 0 9px rgba(255,92,58,0)}100%{box-shadow:0 0 0 0 rgba(255,92,58,0)}}
@@ -1806,7 +1811,7 @@ button.planrow{width:100%;background:none;border-left:0;border-right:0;border-bo
 
 <script>
 "use strict";
-var VERSION="v26.3";
+var VERSION="v27.0";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2213,7 +2218,7 @@ function daysSinceMap(){
   _dsDay=TODAY;return (_dsMemo=m);
 }
 function daysSince(g){return daysSinceMap()[g];}
-function _ledgerReset(){_s7Memo=null;_dsMemo=null;_llMemo=null;_frMemo=null;_frMemoDay=null;}
+function _ledgerReset(){_s7Memo=null;_dsMemo=null;_llMemo=null;_frMemo=null;_frMemoDay=null;_xpMemo=null;}
 
 function groupBand(g){
   var n=sets7(g);
@@ -2374,95 +2379,6 @@ function roundsAdaptV12(){
   S.roundsBase=base;S.roundsAdaptDay=TODAY;save();
 }
 
-function bodyLbNow(){
-  var w=(S.weigh||[]);
-  for(var i=w.length-1;i>=0;i--){var v=w[i]&&(w[i].w||w[i].lb);if(v&&isFinite(v))return v;}
-  return null;
-}
-function unitLoad(exId,setW){
-  var e=LIB[exId]||{};
-  if(e.bw)return (typeof e.bwl==="number")?e.bwl:null;
-  var bw=bodyLbNow();if(!bw)return null;
-  var w=setW||0;if(!w)return null;
-  return w/bw;
-}
-var CAP_WINDOW=56;
-var CAP_TAIL_TAU=28;
-function capGroupsAsOf(asOf){
-  asOf=asOf||TODAY;
-  var best={};GROUP_KEYS.forEach(function(g){best[g]=0;});
-  var hard=dayFromKey(asOf);hard.setDate(hard.getDate()-(CAP_WINDOW+CAP_TAIL_TAU*5));var hardK=keyOf(hard);
-  (S.sessions||[]).forEach(function(ss){
-    if(ss.type!=="lift"||!ss.date||ss.date>asOf||ss.date<hardK)return;
-    var age=daysBetween(ss.date,asOf);
-    var f=(age<CAP_WINDOW)?1:Math.exp(-(age-CAP_WINDOW+1)/CAP_TAIL_TAU);
-    (ss.entries||[]).forEach(function(e){
-      var pay=gpayOf(e.exerciseId);if(!pay)return;
-      var unitS=((LIB[e.exerciseId]||{}).unit==="s");
-      (e.sets||[]).forEach(function(x){
-        if(!x||!x.completed)return;
-        var reps=x.reps||0;if(reps<=0)return;
-        var u=unitLoad(e.exerciseId,x.weightLb);if(u==null)return;
-        var v=(unitS?(reps/6)*u:reps*u)*f;
-        GROUP_KEYS.forEach(function(g){if(pay[g]>=1&&v>best[g])best[g]=v;});
-      });
-    });
-  });
-  return best;
-}
-function groupCapability(g){return capGroupsAsOf(TODAY)[g]||0;}
-var LVL_BANDS_SUM_RETIRED_V142=[0,6,14,24,36,50,64,78,92,108];
-var LVL_BANDS=[0,1,2,3,4.5,6,7.5,9,10.5,12];
-var PUSHUP_NORM={p5:8,p25:22,p50:25,p75:29,p95:40};
-function pushupPercentile(reps){
-  if(!(reps>0))return null;
-  var N=PUSHUP_NORM;
-  var pts=[[0,0],[N.p5,5],[N.p25,25],[N.p50,50],[N.p75,75],[N.p95,95],[N.p95*1.5,99]];
-  for(var i=1;i<pts.length;i++){
-    if(reps<=pts[i][0]){
-      var lo=pts[i-1],hi=pts[i];
-      var t=(reps-lo[0])/Math.max(1,(hi[0]-lo[0]));
-      return Math.round(lo[1]+t*(hi[1]-lo[1]));
-    }
-  }
-  return 99;
-}
-var ALLO_EXP=0.67, ALLO_REF_LB=187;
-function alloScale(bwLb){
-  if(!(bwLb>0))return 1;
-  return Math.pow(ALLO_REF_LB/bwLb,ALLO_EXP);
-}
-function capLevelOf(score){if(score==null)return 1;var n=1;while(n<10&&score>=LVL_BANDS[n])n++;return n;}
-function capLevelHeld(score){
-  var raw=capLevelOf(score),h=S.lvlHold||{};
-  if(!(score>0)){ if(h.lvl!=null){ S.lvlHold=null; save(); } return raw; }
-  if(h.lvl==null||raw>h.lvl){ S.lvlHold={lvl:raw}; save(); return raw; }
-  if(raw===h.lvl){ if(h.below||h.since){ S.lvlHold={lvl:raw}; save(); } return raw; }
-  var below=h.below||h.since||null;
-  if(!below){ S.lvlHold={lvl:h.lvl,below:TODAY}; save(); return h.lvl; }
-  if(daysBetween(below,TODAY)>=14){ S.lvlHold={lvl:raw}; save(); return raw; }
-  if(!h.below){ S.lvlHold={lvl:h.lvl,below:below}; save(); }
-  return h.lvl;
-}
-var CAP_TOPK=10;
-function capScoreOf(best){
-  var v=GROUP_KEYS.map(function(g){return best[g]||0;}).filter(function(x){return x>0;})
-    .sort(function(a,b){return b-a;}).slice(0,CAP_TOPK);
-  var t=0;v.forEach(function(x){t+=x;});
-  return v.length?(t/CAP_TOPK):0;
-}
-function capScoreNow(){return capScoreOf(capGroupsAsOf(TODAY));}
-function capSumLegacy(){
-  var s=0;GROUP_KEYS.forEach(function(g){s+=groupCapability(g);});
-  return s;
-}
-function capCoverage(){
-  var tested=[],missing=[];
-  var _b=capGroupsAsOf(TODAY);
-  GROUP_KEYS.forEach(function(g){ ((_b[g]||0)>0?tested:missing).push(g); });
-  return {tested:tested.length,total:GROUP_KEYS.length,names:missing,
-          label:tested.length+" of "+GROUP_KEYS.length+" tested"};
-}
 function isHardSet(exId,reps,unit){
   var best=lastAmrap(exId);
   if(best==null)return (unit==="s")?(reps>=20):(reps>=5);
@@ -2971,7 +2887,7 @@ function normaliseStore(st){
   return st;
 }
 var saveWarned=false;
-function save(){invalidateDayIndex();_csMemo={};_llMemo=null;_frMemo=null;_frMemoDay=null;_s7Memo=null;_dsMemo=null;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
+function save(){invalidateDayIndex();_csMemo={};_llMemo=null;_frMemo=null;_frMemoDay=null;_xpMemo=null;_s7Memo=null;_dsMemo=null;try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast("Storage is full or blocked. Logs may not save.",null)}}}
 
 function keyOf(d){return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 var NOW,TODAY,DOW;
@@ -4028,13 +3944,13 @@ function liftSetsOn(k){var n=0;(S.sessions||[]).forEach(function(s){if(s.date!==
   (s.entries||[]).forEach(function(e){(e.sets||[]).forEach(function(t){if(t.completed!==false)n++;});});});return n;}
 function liftVolOn(k){var v=0;(S.sessions||[]).forEach(function(s){if(s.date!==k||s.type!=="lift"||s.draft)return;
   (s.entries||[]).forEach(function(e){(e.sets||[]).forEach(function(t){if(t.completed!==false)v+=(+t.weightLb||0)*(+t.reps||0);});});});return v;}
-function levelWeekDelta(kind){try{var L=(kind==="lift")?liftLevel():cardioLevel(),prev=levelPrevLv(kind);
-  if(prev==null||!isFinite(prev))return null;
-  var hist=(kind==="lift")?L.sessions:(S.sessions||[]).filter(function(s){return s.type==="run"||s.type==="activity";}).length;
-  if(!hist)return null;var d=L.fl-prev;return Math.abs(d)<0.05?0:d;}catch(e){return null;}}
-function heroLevelHTML(kind,L,t){var d=levelWeekDelta(kind),dir=d==null?"flat":(d>0?"up":(d<0?"down":"flat"));
+function levelWeekDelta(kind){
+  try{var L=(kind==="lift")?liftLevel():cardioLevel();
+    var hist=(kind==="lift")?L.sessions:(S.sessions||[]).filter(function(s){return s.type==="run"||s.type==="activity";}).length;
+    if(!hist&&!L.xp)return null;return L.xp7||0;}catch(e){return null;}}
+function heroLevelHTML(kind,L,t){var d=levelWeekDelta(kind),dir=levelDirOf(kind);
   return '<div class="lvlk">Level '+L.lvl+'<span class="tierpill">'+t.w+'</span></div>'+
-    (d==null?'':'<div class="lvlw" data-dir="'+dir+'">'+(d===0?'0':(d>0?'+':'−')+Math.abs(d).toFixed(1))+'<small>in 7 days</small></div>');}
+    (d==null?'':'<div class="lvlw" data-dir="'+dir+'">'+(d>0?'+'+d:'0')+'<small>XP in 7 days</small></div>');}
 
 var SX_ASWAP={ohextend:"dbohext"},SX_FSWAP={legs:{row1:"csrow",farmcarry:"plank"}},SX_OHW=3;
 var SX_LIBX={dbohext:{n:"DB overhead triceps extension",e:"DB"},kbbentrow:{n:"KB bent-over row",e:"KB"},
@@ -8116,13 +8032,9 @@ function miniLevelHTML(kind){
     '<span class="lct">'+t.w+'</span></span></button>';
 }
 function levelProgAt(kind,asOf){
-  var lift=(kind==="lift"),sc,lvl,bands=lift?LVL_BANDS:CARDIO_BANDS;
-  if(lift){sc=capScoreAsOf(asOf||TODAY);lvl=capLevelOf(sc);}
-  else{sc=cardioScoreNow(asOf||TODAY).score;lvl=cardioLevelNum({score:sc});}
-  var lo=bands[lvl-1],hi=(lvl<10)?bands[lvl]:bands[9]*1.25;
-  var frac=(sc>0)?Math.max(0,Math.min(0.99,(sc-lo)/Math.max(hi-lo,1e-6))):0;
-  if(!lift&&lvl<10&&sc>=hi)frac=0.99;
-  return {score:sc,lvl:lvl,lo:lo,hi:hi,frac:frac,fl:lvl+frac};
+  var p=xpPoint(kind,asOf);
+  if(!p)return {score:0,lvl:1,lo:0,hi:xpCost(1),frac:0,fl:1};
+  return {score:p.bank,lvl:p.lvl,lo:0,hi:p.need,frac:p.frac,fl:p.fl};
 }
 function levelPrevLv(kind){
   try{var d=new Date(NOW);d.setDate(d.getDate()-7);
@@ -8160,10 +8072,10 @@ function levelNumAnim(root){
     if(!isFinite(to))return;
     var seen=_lvSeen[key];
     var stored=null;
-    try{var raw=localStorage.getItem("train.lvseen."+key);if(raw!=null)stored=parseFloat(raw);}catch(e){}
+    try{var raw=localStorage.getItem("train.lvseen.xp."+key);if(raw!=null)stored=parseFloat(raw);}catch(e){}
     var from=(seen!=null)?seen:(stored!=null&&isFinite(stored)?stored:to);
     _lvSeen[key]=to;
-    try{localStorage.setItem("train.lvseen."+key,String(to));}catch(e){}
+    try{localStorage.setItem("train.lvseen.xp."+key,String(to));}catch(e){}
     var host=el.closest?el.closest("[data-dir]"):null;
     if(to>from&&isFinite(from)&&from>=1&&/^hero-(lift|cardio)$/.test(key||"")&&typeof toast==="function"){
       try{toast((key==="hero-lift"?"Strength":"Cardio")+" reached Level "+to);}catch(e){}
@@ -8274,8 +8186,7 @@ function levelSheet(kind){
   var L=(kind==="lift")?liftLevel():cardioLevel();
   var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
   var t=levelTier(L.lvl,kind),wd=levelWeekDelta(kind);
-  var move=(wd==null)?"Nothing on record yet to compare against":
-    (wd===0?"Holding over the last 7 days":((wd>0?"Up ":"Down ")+Math.abs(wd).toFixed(1)+" over the last 7 days"));
+  var move=(wd==null)?"Nothing logged yet":(wd>0?("+"+wd+" XP over the last 7 days"):"Nothing earned in the last 7 days");
   var ep=(kind!=="lift")?easyPaceTrend():null;
   openSheet('<div class="grab"></div><h3>'+(kind==="lift"?"Strength":"Cardio")+'</h3>'+
     '<div class="ssub">'+esc(move)+'</div>'+
@@ -8566,7 +8477,8 @@ function levelBoxHTML(kind){
   if(prev==null||!isFinite(prev))prev=to;
   var _dir=levelDirOf(kind);
   var d=to-prev;
-  var dTxt=(Math.abs(d)<0.05)?"holding":((d>0?"+":"−")+Math.abs(d).toFixed(1)+" in 7d");
+  var _wx=levelWeekDelta(kind);
+  var dTxt=(L.draining)?"draining":((_wx>0)?("+"+_wx+" XP 7d"):"quiet week");
   return '<button class="lvlcard lvlbox" data-tier="'+t.k+'" data-kind="'+kind+'" data-dir="'+_dir+
     '" data-from="'+prev.toFixed(2)+'" data-to="'+to.toFixed(2)+'" onclick="levelSheet(\''+kind+'\')"'+
     ' aria-label="'+(kind==="lift"?"Strength":"Cardio")+' level '+L.lvl+', '+t.w+', '+
@@ -9328,18 +9240,9 @@ function levelTier(n,kind){
   return {k:"base",w:"Base"};
 }
 function levelLvSeries(kind){
-  if(kind==="lift"){
-    var L=liftLevel(),s=[],lv=[];
-    for(var i=L.series.length-1;i>=0;i-=7){var pt=L.series[i];
-      s.unshift({w:pt.date,cwm:pt.slow});lv.unshift(Math.floor(pt.slow));}
-    return {s:s,lv:lv,model:null};
-  }
-  var c=cardioScore(180);
-  var s2=[],lv2=[];
-  for(var i2=c.series.length-1;i2>=0;i2-=7){var pt=c.series[i2];
-    s2.unshift({w:pt.date,cwm:pt.level});
-    lv2.unshift(cardioLevelNum({score:cardioScoreNow(pt.date).score}));}
-  return {s:s2,lv:lv2,model:null};
+  var sr=xpLedger()[kind==="lift"?"lift":"cardio"].series,s=[],lv=[];
+  for(var i=sr.length-1;i>=0;i-=7){s.unshift({w:sr[i].date,cwm:sr[i].fl});lv.unshift(sr[i].lvl);}
+  return {s:s,lv:lv,model:null};
 }
 function levelHeroHTML(kind,L,stWord){
   var q=levelLvSeries(kind),lv=q.lv;
@@ -9348,15 +9251,15 @@ function levelHeroHTML(kind,L,stWord){
     var d=lv[lv.length-1]-lv[lv.length-9];
     dtxt=(d>0?"Up "+d+" level"+(d===1?"":"s"):d<0?"Down "+Math.abs(d)+" level"+(d===-1?"":"s"):"Level unchanged")+" in 8 weeks";
   }
-  var top=(L.lvl>=10),pct=Math.round((L.frac||0)*100),dir=levelDirOf(kind);
+  var top=false,pct=Math.round((L.frac||0)*100),dir=levelDirOf(kind);
   var f10=top?10:(L.frac||0)*10,pips="";
   for(var i=0;i<10;i++){var fi=Math.max(0,Math.min(1,f10-i));
     pips+='<i style="--i:'+i+'" data-r="'+esc(top?"Top level":((i+1)*10+"% of the way to Level "+(L.lvl+1)+(fi>=1?", reached":", not yet")))+'">'+
       (fi>0?'<b style="width:'+Math.round(fi*100)+'%"></b>':'')+'</i>';}
-  return '<div class="lvhero" data-dir="'+dir+'"><div class="lvbig num" data-lvnum="big-'+(kind||"x")+'" data-lv="'+L.lvl+'" data-r="'+esc("Level "+L.lvl+" of 10"+(dtxt?" · "+dtxt:""))+'">'+L.lvl+'</div>'+
+  return '<div class="lvhero" data-dir="'+dir+'"><div class="lvbig num" data-lvnum="big-'+(kind||"x")+'" data-lv="'+L.lvl+'" data-r="'+esc("Level "+L.lvl+(dtxt?" · "+dtxt:""))+'">'+L.lvl+'</div>'+
     '<div class="lvmeta"><div class="lvtierrow"><span class="lvlab">Level</span><span class="tierpill" data-tier="'+levelTier(L.lvl,kind).k+'">'+levelTier(L.lvl,kind).w+'</span></div>'+
     '<div class="lvpipbar">'+pips+'</div>'+
-    '<div class="lvdtxt">'+(top?'Top level':('<b class="num">'+pct+'%</b> to Level '+(L.lvl+1)))+(dtxt?' &middot; '+dtxt:'')+'</div>'+
+    '<div class="lvdtxt">'+('<b class="num">'+pct+'%</b> to Level '+(L.lvl+1)+' &middot; '+tNum(Math.max(0,Math.ceil((L.need||0)-(L.into||0))))+' XP to go')+(dtxt?' &middot; '+dtxt:'')+'</div>'+
     '</div></div>';
 }
 function levelHistoryHTML(kind){
@@ -9722,8 +9625,8 @@ function cardioBest(asOf){
   }
   return {pts:best,on:on};
 }
-var CARDIO_BANDS=[0,150,300,450,600,800,1000,1200,1500,1900];
-var CARDIO_VIG_GATE_LEVEL=7, CARDIO_VIG_SHARE_MIN=0.10;
+
+
 function cardioScoreNow(asOf){
   var v=cardioVolume(asOf),b=cardioBest(asOf);
   return {score:v+b.pts,vol:v,best:b.pts,bestOn:b.on};
@@ -9738,41 +9641,18 @@ function cardioFrontier(){
   return (_frMemo={mph:bb?bb.mph:null,best:c.best,on:c.bestOn,n:cardioBouts(TODAY).length,
                    last:null,floor:null,vol:c.vol,score:c.score});
 }
-function cardioLevelNum(fr){
-  fr=fr||cardioFrontier();
-  var sc=(fr&&fr.score!=null)?fr.score:cardioScoreNow(TODAY).score;
-  var n=1;while(n<10&&sc>=CARDIO_BANDS[n])n++;
-  if(n>CARDIO_VIG_GATE_LEVEL){
-    var c=cardioScore(28);
-    if(!(c&&c.vigShare>=CARDIO_VIG_SHARE_MIN))n=CARDIO_VIG_GATE_LEVEL;
-  }
-  return n;
-}
+
 function cardioLevel(){
-  var fr=cardioFrontier();
-  var c=cardioScore(180);
-  var lvl=cardioLevelNum(fr);
-  var lo=CARDIO_BANDS[lvl-1],hi=(lvl<10?CARDIO_BANDS[lvl]:CARDIO_BANDS[9]*1.25);
-  var span=Math.max(hi-lo,0.01);
-  var ring=Math.max(0,Math.min(1,c.week/CARDIO_BAND[0]));
-  var _pg=levelProgAt("cardio",TODAY);
-  var pips=Math.max(0,Math.min(9,Math.floor(_pg.frac*10)));
-  var bk=new Date(NOW);bk.setDate(bk.getDate()-28);
-  var backScore=cardioScoreNow(keyOf(bk)).score;
-  var lvlP=cardioLevelNum({score:backScore});
-  var r=(backScore>0)?((fr.score-backScore)/backScore):0;
-  return {lvl:lvl,score:fr.mph==null?0:Math.round(fr.mph*100)/100,pts:_pg.score,frac:_pg.frac,fl:lvl+_pg.frac,lo:lo,hi:hi,span:span,pips:pips,
-    r:r,delta:lvl-lvlP,week:c.week,cs:c,fr:fr,ring:ring,
-    series:(function(){
-      var out=[],last=null,d=new Date(NOW);d.setDate(d.getDate()-179);
-      for(var i=0;i<180;i++){
-        var k=keyOf(d);
-        if(i%7===0||i===179)last=cardioScoreNow(k).score;
-        out.push({date:k,slow:(last||0)});
-        d.setDate(d.getDate()+1);
-      }
-      return out;
-    })(),
+  var fr=cardioFrontier(),c=cardioScore(180);
+  var p=xpPoint("cardio")||{lvl:1,frac:0,into:0,need:xpCost(1),bank:0,quiet:null,fl:1};
+  var a28=xpGain("cardio",28),b=new Date(NOW);b.setDate(b.getDate()-28);var b28=xpGain("cardio",28,keyOf(b));
+  var p28=xpPoint("cardio",keyOf(b));
+  return {lvl:p.lvl,pips:Math.min(9,Math.floor(p.frac*10)),frac:p.frac,fl:p.fl,
+    xp:p.bank,into:p.into,need:p.need,xp7:xpGain("cardio",7),quiet:p.quiet,draining:p.quiet!=null&&p.quiet>XP_DRAIN_AFTER,
+    score:p.bank,pts:p.bank,lo:0,hi:p.need,span:1,
+    r:(b28>0)?((a28-b28)/b28):(a28>0?1:0),delta:p28?(p.lvl-p28.lvl):0,
+    week:c.week,cs:c,fr:fr,ring:Math.max(0,Math.min(1,c.week/CARDIO_BAND[0])),
+    series:xpLedger().cardio.series.map(function(q){return {date:q.date,slow:q.fl};}),
     sessions:allRuns().length};
 }
 
@@ -9787,25 +9667,13 @@ function daysSinceLoad(kind){
   return best?daysBetween(best,TODAY):null;
 }
 function levelStatus(L){
-  var firstDate=null;S.sessions.forEach(function(x){if(!firstDate||x.date<firstDate)firstDate=x.date;});
-  var age=firstDate?daysBetween(firstDate,TODAY):0;
-  if(L.sessions<4||age<14)
-    return {w:"Getting a baseline",k:"base",c:"Four sessions before this number means anything."};
-  var mono=monotony();
-  var wkLoad=lastNLoad(7),base4=lastNLoad(28)/4;
-  if(mono>2.0&&base4>0&&wkLoad>base4*1.3&&sessionsIn(7)>=4)
-    return {w:"Ramping fast",k:"warn",c:"Every day the same effort this week. Make one of them easy."};
-  var gap=daysSinceLoad("cardio");
-  if(gap!=null&&gap>=21)
-    return {w:"Coming back",k:"flat",c:gap+" days since the last one. The level has been falling since; a couple of runs turns it around."};
-  if(gap!=null&&gap>=10)
-    return {w:"Easing",k:"flat",c:"Nothing logged for "+gap+" days, so this is drifting down. Nothing is lost yet."};
-  var r=L.r;
-  if(r>=0.20)return {w:"",k:"good",c:"Doing more than usual. Keep one of them easy."};
-  if(r>=0.06)return {w:"",k:"good",c:(L.delta>=1?("Up "+L.delta+" level"+(L.delta===1?"":"s")+" in 4 weeks."):"More cardio than a month ago.")};
-  if(r>-0.06)return {w:"",k:"flat",c:"Level with where you were a month ago."};
-  if(r>-0.20)return {w:"",k:"flat",c:"Quieter than usual. Nothing has been lost."};
-  return {w:"Coming back",k:"flat",c:"A couple of runs gets this climbing again."};
+  if(!L.xp)return {w:"Nothing logged yet",k:"base",c:"A walk, a run or a day over 4,000 steps starts it."};
+  if(L.draining)return {w:"Quiet",k:"flat",c:L.quiet+" days since the last walk or run. The bar is draining; the level stays."};
+  var gap=(L.quiet==null)?null:L.quiet;
+  if(gap!=null&&gap>=10)return {w:"Quiet",k:"flat",c:"Nothing logged for "+gap+" days. Steps still count; a walk moves it more."};
+  if(L.r>=0.2)return {w:"Building",k:"good",c:"More cardio than the month before."};
+  if(L.r>-0.2)return {w:"Holding",k:"flat",c:"About the same cardio as the month before."};
+  return {w:"Easing",k:"flat",c:"Less cardio than the month before. Nothing is lost."};
 }
 function lastNLoad(n){var by=dailyLoad(),t=0,d=new Date(NOW);for(var i=0;i<n;i++){t+=by[keyOf(d)]||0;d.setDate(d.getDate()-1);}return t;}
 function sessionsIn(n){var c=0,d=new Date(NOW);for(var i=0;i<n;i++){var k=keyOf(d);if(S.sessions.some(function(x){return x.date===k;}))c++;d.setDate(d.getDate()-1);}return c;}
@@ -9875,34 +9743,98 @@ function consistencyOn(endKey,by){
   return {C:Math.max(0,Math.min(1,C)),R:R,H:hs,credit:credit,dayCredit:DC,anchorCredit:AC};
 }
 var _llMemo=null,_llMemoDay=null;
+var XP_CARDIO_BEST_DAYS=90,XP_EPOCH="2026-08-17",XP_UP=5,XP_DRAIN_AFTER=21,XP_DRAIN_RATE=0.03,XP_STEP_FLOOR=4000,XP_STEP_PER=1000,XP_STEP_CAP=6;
+function xpCost(n){return 40+15*(n-1);}
+function xpLevelOf(total){var n=1,left=Math.max(0,total);while(left>=xpCost(n)&&n<99){left-=xpCost(n);n++;}
+  return {lvl:n,into:left,need:xpCost(n),frac:Math.min(0.999,left/xpCost(n))};}
+function xpCardioKind(s){if(s.type==="run")return "run";var a=String(s.activity||"");
+  if(/run|jog/i.test(a))return "run";if(/walk|hike/i.test(a))return "walk";return "other";}
+function xpExName(id){var e=LIB[id];if(e&&e.name)return e.name;
+  return String(id||"").replace(/([a-z])([A-Z0-9])/g,"$1 $2").replace(/^./,function(c){return c.toUpperCase();});}
+var _xpMemo=null;
+function xpLedger(){
+  if(_xpMemo&&_xpMemo.day===TODAY)return _xpMemo;
+  var ses=(S.sessions||[]).filter(function(s){return s&&s.date&&s.date<=TODAY;}).slice()
+    .sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:((a.startedAt||0)-(b.startedAt||0));});
+  var lift={},card={},best={},longest={};
+  ses.forEach(function(s){
+    if(s.type==="lift"){
+      var sets=0,up=[];
+      (s.entries||[]).forEach(function(e){
+        var top=null;
+        (e.sets||[]).forEach(function(x){if(!x||!x.completed)return;var r=+x.reps||0;if(r<=0)return;sets++;
+          var w=+x.weightLb||0;if(!top||w>top.w||(w===top.w&&r>top.r))top={w:w,r:r};});
+        if(!top||!e.exerciseId)return;
+        var b=best[e.exerciseId],beat=!b||top.w>b.w||(top.w===b.w&&top.r>b.r);
+        if(b&&beat)up.push(e.exerciseId);
+        if(beat)best[e.exerciseId]={w:top.w,r:top.r,date:s.date};
+      });
+      if(s.date<XP_EPOCH||!sets)return;
+      var xp=sets+XP_UP*up.length;
+      var o=lift[s.date]||(lift[s.date]={xp:0,sets:0,ups:0,items:[]});
+      o.xp+=xp;o.sets+=sets;o.ups+=up.length;o.items.push({s:s,sets:sets,ups:up.length,up:up,xp:xp});
+    }else if(s.type==="run"||s.type==="activity"){
+      var mins=(+s.durationSec||0)/60;if(!(mins>0))return;
+      var k=xpCardioKind(s),hist=longest[k]||(longest[k]=[]),c90=dayFromKey(s.date);c90.setDate(c90.getDate()-XP_CARDIO_BEST_DAYS);var c90k=keyOf(c90);
+      var prev=0;hist.forEach(function(h){if(h.date>=c90k&&h.date<s.date&&h.mins>prev)prev=h.mins;});
+      var upc=(prev>0&&mins>prev)?1:0;hist.push({date:s.date,mins:mins});
+      if(s.date<XP_EPOCH)return;
+      var xp2=Math.round(mins*(k==="run"?1/1.5:1/3))+XP_UP*upc;
+      var o2=card[s.date]||(card[s.date]={xp:0,ups:0,stepXP:0,items:[]});
+      o2.xp+=xp2;o2.ups+=upc;o2.items.push({s:s,kind:k,mins:mins,ups:upc,xp:xp2});
+    }
+  });
+  var boutMi={};(S.sessions||[]).forEach(function(x){if(x&&x.date&&(x.type==="run"||x.type==="activity"))boutMi[x.date]=(boutMi[x.date]||0)+(+x.distanceMi||0);});
+  Object.keys(S.steps||{}).forEach(function(k){
+    if(k<XP_EPOCH||k>TODAY)return;var v=S.steps[k];if(v&&typeof v==="object")v=v.n||v.steps||v.v||0;v=+v||0;
+    if(boutMi[k])v-=boutMi[k]*STEPS_PER_MILE;
+    var sx=Math.min(XP_STEP_CAP,Math.max(0,Math.floor((v-XP_STEP_FLOOR)/XP_STEP_PER)));if(!sx)return;
+    var o=card[k]||(card[k]={xp:0,ups:0,stepXP:0,items:[]});o.stepXP=sx;o.xp+=sx;o.steps=v;
+  });
+  function walk(map){
+    var out=[],bank=0,last=null,d=dayFromKey(XP_EPOCH),drained=0;
+    for(var guard=0;guard<4000;guard++){
+      var k=keyOf(d);if(k>TODAY)break;
+      var x=map[k],gain=x?x.xp:0;bank+=gain;if(x&&x.items&&x.items.length)last=k;
+      var L=xpLevelOf(bank),quiet=last?daysBetween(last,k):null,dr=0;
+      if(quiet!=null&&quiet>XP_DRAIN_AFTER&&L.into>1e-6){dr=Math.min(L.into-1e-6,XP_DRAIN_RATE*L.need);bank-=dr;drained+=dr;L=xpLevelOf(bank);}
+      out.push({date:k,bank:bank,gain:gain,drain:dr,lvl:L.lvl,frac:L.frac,into:L.into,need:L.need,quiet:quiet,fl:L.lvl+L.frac});
+      d.setDate(d.getDate()+1);
+    }
+    return out;
+  }
+  return (_xpMemo={day:TODAY,lift:{map:lift,series:walk(lift)},cardio:{map:card,series:walk(card)},best:best,longest:longest});
+}
+function xpPoint(kind,asOf){var sr=xpLedger()[kind==="lift"?"lift":"cardio"].series;if(!sr.length)return null;
+  if(!asOf||asOf>=sr[sr.length-1].date)return sr[sr.length-1];if(asOf<sr[0].date)return null;
+  for(var i=sr.length-1;i>=0;i--)if(sr[i].date<=asOf)return sr[i];return null;}
+function xpGain(kind,days,endKey){var sr=xpLedger()[kind==="lift"?"lift":"cardio"].series,t=0,end=endKey||TODAY;
+  var st=dayFromKey(end);st.setDate(st.getDate()-(days-1));var sk=keyOf(st);
+  sr.forEach(function(p){if(p.date>=sk&&p.date<=end)t+=p.gain;});return Math.round(t);}
+function xpRecent(kind,n){var m=xpLedger()[kind==="lift"?"lift":"cardio"].map,out=[];
+  Object.keys(m).sort().reverse().some(function(k){(m[k].items||[]).slice().reverse().forEach(function(it){if(out.length<n)out.push({date:k,it:it});});return out.length>=n;});
+  return out;}
 function liftLevel(){
   if(_llMemo&&_llMemoDay===TODAY)return _llMemo;
   var by=liftDayMap();
-  var score=capScoreNow(),lvl=capLevelHeld(score),cov=capCoverage();
+  var p=xpPoint("lift")||{lvl:1,frac:0,into:0,need:xpCost(1),bank:0,quiet:null,fl:1};
   var now=consistencyOn(TODAY,by);
   var dP=new Date(NOW);dP.setDate(dP.getDate()-7);
   var prevC=consistencyOn(keyOf(dP),by).C;
-  var _pg=levelProgAt("lift",TODAY),frac=(_pg.lvl===lvl)?_pg.frac:0;
-  var pips=Math.min(9,Math.floor(frac*10));
-  var series=[],d=new Date(NOW);d.setDate(d.getDate()-119);
-  var lastLv=null;
-  for(var i=0;i<120;i++){
-    var k=keyOf(d);
-    if(i%7===0||i===119)lastLv=capLevelOf(capScoreAsOf(k));
-    series.push({date:k,slow:(lastLv||1)+consistencyOn(k,by).C});
-    d.setDate(d.getDate()+1);
-  }
-  var dP2=keyOf(dP),lvlP=capLevelOf(capScoreAsOf(dP2));
+  var d28=new Date(NOW);d28.setDate(d28.getDate()-28);var p28=xpPoint("lift",keyOf(d28));
+  var series=xpLedger().lift.series.map(function(q){return {date:q.date,slow:q.fl};});
   var n=S.sessions.filter(function(x){return x.type==="lift";}).length;
   _llMemoDay=TODAY;
-  return (_llMemo={lvl:lvl,pips:pips,frac:frac,fl:lvl+frac,score:score,tested:true,testDate:null,cov:cov,
-          C:now.C,R7:now.R,H7:now.H,r:now.C-prevC,delta:lvl-lvlP,base:roundsBase(),
-          lo:LVL_BANDS[lvl-1],hi:(lvl<10?LVL_BANDS[lvl]:null),span:1,
-          series:series,sessions:n});
+  return (_llMemo={lvl:p.lvl,pips:Math.min(9,Math.floor(p.frac*10)),frac:p.frac,fl:p.fl,
+          xp:p.bank,into:p.into,need:p.need,xp7:xpGain("lift",7),quiet:p.quiet,draining:p.quiet!=null&&p.quiet>XP_DRAIN_AFTER,
+          score:p.bank,tested:true,testDate:null,cov:null,
+          C:now.C,R7:now.R,H7:now.H,r:now.C-prevC,delta:p28?(p.lvl-p28.lvl):0,base:roundsBase(),
+          lo:0,hi:p.need,span:1,series:series,sessions:n});
 }
 function liftLevelStatus(L){
   if(!L.sessions)return {w:"Nothing logged yet",k:"base",
-    c:"The number comes from your own all-out sets, weighted by how hard the movement is. Do a round and it starts."};
+    c:"Every set you finish earns XP, and beating a best earns more. Do a round and it starts."};
+  if(L.draining)return {w:"Quiet",k:"flat",c:L.quiet+" days since the last lift. The bar is draining; the level stays."};
   if(reentryOn())return {w:"Coming back",k:"flat",
     c:"About half the usual rounds for a session or two. A ramp, not a reset."};
   var r=L.r;
@@ -9910,15 +9842,10 @@ function liftLevelStatus(L){
   if(r>-0.07)return {w:"Holding",k:"flat",c:"About the same training as the week before."};
   return {w:"Easing",k:"flat",c:"A quieter week. Your bests hold for 8 weeks."};
 }
-function capScoreAsOf(asOf){return capScoreOf(capGroupsAsOf(asOf));}
+
 function levelDirOf(kind){
-  try{
-    var L=(kind==="lift")?liftLevel():cardioLevel();
-    var now=L.fl, prev=levelPrevLv(kind);
-    if(prev==null||!isFinite(prev))return "flat";
-    var d=now-prev;
-    return (Math.abs(d)<0.05)?"flat":(d>0?"up":"down");
-  }catch(e){return "flat";}
+  try{var L=(kind==="lift")?liftLevel():cardioLevel();
+    if(L.draining)return "flat";return (L.xp7>0)?"up":"flat";}catch(e){return "flat";}
 }
 function dirGlyph(dir){return dir==="up"?"\u25B2":(dir==="down"?"\u25BC":"\u2013");}
 function levelRingHTML(L,kind){
@@ -9951,33 +9878,31 @@ function cardioMechRows(L){
 function levelMechanicsHTML(kind,L){
   var isLift=(kind==="lift");
   var row=function(k,v,cls){return '<div class="lmr'+(cls?' '+cls:'')+'"><span class="lmk">'+k+'</span><span class="lmv num">'+v+'</span></div>';};
-  var ago=function(k){var g=k?daysBetween(k,TODAY):null;
-    return g==null?"&mdash;":(g===0?"today":(g===1?"yesterday":(g+'<small> days ago</small>')));};
-  var rows="",note="";
+  var X=xpLedger(),rows="",note="",recent="";
+  rows+=row("Earned since "+(function(){var d=dayFromKey(XP_EPOCH);return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate();})(),tNum(L.xp||0)+'<small> XP</small>');
   if(isLift){
-    var cov=L.cov||{names:[]};
-    rows=row("Last lift",ago(lastLiftDate()))+
-      row("Lifts, last 4 weeks",liftsInLast(28))+
-      row("Hard sets, last 7 days",(L.H7||0))+
-      row("Strength score",(L.score||0).toFixed(2))+
-      ((L.lvl<10&&L.hi!=null)?row("Level "+(L.lvl+1)+" at",(+L.hi).toFixed(2),"next tot"):"")+
-      ((cov.names&&cov.names.length)?row("Not scored yet",esc(cov.names.map(function(g){return (GROUPS[g]||{}).name||g;}).join(", "))):"");
-    note="Your 10 best muscle groups, each scored by its best set in the last 8 weeks and priced by how hard the movement is. A lighter set never lowers it.";
+    var lastUp=null;Object.keys(X.lift.map).sort().reverse().some(function(k){var it=(X.lift.map[k].items||[]).filter(function(i){return i.ups;}).pop();if(it){lastUp={date:k,id:it.up[it.up.length-1]};return true;}return false;});
+    rows+=row("Last up",lastUp?(esc(xpExName(lastUp.id))+'<small> '+esc(shortDate(lastUp.date))+'</small>'):"&mdash;");
+    note="1 XP for every set you finish, plus 5 when a movement beats its best: more weight, or more reps at the weight.";
   }else{
-    var lastC=null,nC=0,cut=new Date(NOW);cut.setDate(cut.getDate()-27);var cutK=keyOf(cut);
-    (S.sessions||[]).forEach(function(x){if(!x||(x.type!=="run"&&x.type!=="activity"))return;
-      if(!lastC||x.date>lastC)lastC=x.date; if(x.date>=cutK&&x.date<=TODAY)nC++;});
-    var fr=L.fr||{};
-    var gate=(L.lvl+1>CARDIO_VIG_GATE_LEVEL);
-    rows=row("Last run or walk",ago(lastC))+
-      row("Runs and walks, last 4 weeks",nC)+
-      row("Minutes, weighted by pace",tNum(fr.vol||0)+'<small> pts, 28 days</small>')+
-      row("Best bout, fading",tNum(fr.best||0)+'<small> pts</small>')+
-      row("Cardio score",tNum(L.pts||0))+
-      ((L.lvl<10)?row("Level "+(L.lvl+1)+" at",tNum(L.hi)+(gate?'<small> + a hard bout</small>':''),"next tot"):"");
-    note="Minutes from the last 28 days, worth more the faster you move, plus your best bout of the last 90 days, which fades. Walking and steps count.";
+    var st=0;var cut=new Date(NOW);cut.setDate(cut.getDate()-6);var ck=keyOf(cut);
+    Object.keys(X.cardio.map).forEach(function(k){if(k>=ck)st+=X.cardio.map[k].stepXP||0;});
+    rows+=row("From steps, last 7 days",st+'<small> XP</small>');
+    var c9=new Date(NOW);c9.setDate(c9.getDate()-(XP_CARDIO_BEST_DAYS-1));var c9k=keyOf(c9);
+    var lg=function(kd){var m=0;(X.longest[kd]||[]).forEach(function(h){if(h.date>=c9k&&h.mins>m)m=h.mins;});return m;};
+    rows+=row("Longest walk, 90 days",lg("walk")?(Math.round(lg("walk"))+'<small> min</small>'):"&mdash;");
+    rows+=row("Longest run, 90 days",lg("run")?(Math.round(lg("run"))+'<small> min</small>'):"&mdash;");
+    note="Walks earn 1 XP per 3 minutes and runs 1 per 90 seconds. A walk or run longer than your longest of that kind in 90 days earns 5 more, and steps over 4,000 earn up to 6 a day.";
   }
-  return '<div class="lmech">'+rows+'</div><div class="ksub" style="margin-top:9px">'+note+'</div>';
+  note+=" A level is never lost. After 3 weeks with nothing logged the bar drains toward the start of the level.";
+  var rc=xpRecent(kind,5);
+  recent=rc.map(function(r){var it=r.it,s=it.s||{},what,sub=shortDate(r.date);
+    if(isLift){what=esc((s.focus?(s.focus.charAt(0).toUpperCase()+s.focus.slice(1)):"Lift")+" · "+it.sets+" sets");}
+    else{what=esc((it.kind==="run"?"Run ":"Walk ")+Math.round(it.mins)+" min");}
+    if(it.ups)sub+=" · "+it.ups+" up"+(it.ups===1?"":"s");
+    return '<div class="lxr"><div>'+what+'<span>'+esc(sub)+'</span></div><b class="num'+(it.ups?' up':'')+'">+'+it.xp+' XP</b></div>';}).join("");
+  return '<div class="lmech">'+rows+'</div><div class="ksub" style="margin-top:9px">'+note+'</div>'+
+    (recent?'<div class="lvht" style="margin-top:14px">Recent</div><div class="lxlist">'+recent+'</div>':'');
 }
 
 var ODOP="w";
