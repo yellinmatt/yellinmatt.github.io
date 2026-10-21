@@ -1592,14 +1592,18 @@ details.more[open]>.moreb{animation:dopen .26s cubic-bezier(.22,1,.36,1)}
 .lvhero[data-dir="up"] .lvpipbar i>b{background:var(--dir-up)}
 .lvhero[data-dir="down"] .lvpipbar i>b{background:var(--dir-down)}
 .lvhero[data-dir="up"] .lvbig{color:var(--dir-up)}
-.lvpipbar i>b{animation:pipIn .42s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0)*45ms + 120ms);transform-origin:left center}
+.lvpipbar i>b{transform-origin:left center}
 @keyframes pipIn{from{transform:scaleX(0);opacity:.3}to{transform:none;opacity:1}}
 .lvcoach{font-size:15px;line-height:1.45;color:var(--ink);margin:2px 0 14px}
-.lxlist .lxr{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:44px;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.lxlist{margin-top:10px}
+.lxlist .lxr{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;min-height:44px;border-top:1px solid var(--line);font-size:15px}
 .lxlist .lxr:first-child{border-top:0}
-.lxlist .lxr span{display:block;font-size:13px;color:var(--sub);margin-top:1px}
-.lxlist .lxr b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.lxlist .lxw{font-weight:650;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lxlist .lxd{font-size:13px;color:var(--sub);white-space:nowrap}
+.lxlist .lxr b{font-variant-numeric:tabular-nums;white-space:nowrap;min-width:36px;text-align:right}
 .lxlist .lxr b.up{color:var(--dir-up)}
+.lxrule{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.4}
+.lvhero .lvdtxt b{color:var(--ink)}
 details[open] .lvbig{animation:c9bump .4s cubic-bezier(.22,1,.36,1)}
 @keyframes stepin{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
 @keyframes wpulse{0%{box-shadow:0 0 0 0 rgba(255,92,58,.5)}70%{box-shadow:0 0 0 9px rgba(255,92,58,0)}100%{box-shadow:0 0 0 0 rgba(255,92,58,0)}}
@@ -1811,7 +1815,7 @@ button.planrow{width:100%;background:none;border-left:0;border-right:0;border-bo
 
 <script>
 "use strict";
-var VERSION="v27.0";
+var VERSION="v27.1";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -3482,11 +3486,7 @@ function show(v){
   if(v==="lift")renderLift();
   if(v==="cardio")renderCardio();
   if(v==="track")renderTrack();
-  if(v!==CURV){
-    _ringPlayed={};
-    try{ levelRingAnim(); }catch(e){}
-  }
-  try{ var _hv=document.getElementById("v-"+v); levelNumAnim(_hv); heroRingAnim(_hv,true); }catch(e){}
+  try{ var _hv=document.getElementById("v-"+v); levelNumAnim(_hv); if(v!==CURV)levelArrive(_hv); else heroRingAnim(_hv,false); }catch(e){}
   if(v==="library")renderLibrary();
   if(v==="deep")renderDeep();
   if(!full)CURV=v;
@@ -8093,63 +8093,24 @@ var _lvArc={};
 var C_LRING=251.33;
 function heroRingAnim(root,arrive){
   var host=root||document;
+  if(arrive){levelArrive(host);return;}
   [].slice.call(host.querySelectorAll("svg.lring")).forEach(function(sv){
-    var arc=sv.querySelector(".lprog"),txt=sv.querySelector("[data-lvnum]");
-    if(!arc||!txt)return;
-    var key=txt.getAttribute("data-lvnum")||"x";
-    var to=parseFloat(arc.getAttribute("stroke-dashoffset"));
+    var arc=sv.querySelector(".lprog"),txt=sv.querySelector("[data-lvnum]");if(!arc||!txt)return;
+    var key=txt.getAttribute("data-lvnum")||"x",to=parseFloat(arc.getAttribute("stroke-dashoffset"));
     if(!isFinite(to))return;
-    var prev=_lvArc[key];
-    if(prev==null){try{var raw=localStorage.getItem("train.lvarc."+key);
-      if(raw!=null&&isFinite(parseFloat(raw)))prev=parseFloat(raw);}catch(e){}}
-    _lvArc[key]=to;
-    try{localStorage.setItem("train.lvarc."+key,String(to));}catch(e){}
-    if(arrive)prev=(prev!=null&&Math.abs(prev-to)>=0.5)?prev:C_LRING;
-    if(prev==null||(!arrive&&Math.abs(prev-to)<0.5))return;
-    if(motionOff())return;                          /* already drawn at the truth */
-    arc.classList.add("snap");
-    arc.setAttribute("stroke-dashoffset",prev.toFixed(2));
-    void arc.getBoundingClientRect();               /* commit the start before releasing it */
-    arc.classList.remove("snap");
-    requestAnimationFrame(function(){arc.setAttribute("stroke-dashoffset",to.toFixed(2));});
+    var prev=_lvArc[key];_lvArc[key]=to;
+    if(prev==null||Math.abs(prev-to)<0.5||lvMotionOff())return;
+    lvAnim(arc,[{strokeDashoffset:prev+"px"},{strokeDashoffset:to+"px"}],{duration:700,easing:"cubic-bezier(.22,1,.36,1)"});
   });
 }
 function levelRingAnim(){
   document.querySelectorAll(".lvlcard").forEach(function(card){
-    var arc=card.querySelector(".lcring .lcarc"),num=card.querySelector(".lcnum");
-    if(!arc||!num)return;
-    var to=parseFloat(card.getAttribute("data-to")),fromA=card.getAttribute("data-from");
-    var from=(fromA===""||fromA==="null")?null:parseFloat(fromA);
+    var arc=card.querySelector(".lcring .lcarc");if(!arc)return;
+    var to=parseFloat(arc.getAttribute("stroke-dashoffset")),key=(card.getAttribute("data-kind")||"x");
     if(!isFinite(to))return;
-    if(from==null||!isFinite(from))from=0;
-    var delta=to-from;
-    var LNow=(card.getAttribute("data-kind")==="lift")?liftLevel():cardioLevel();
-    if(motionOff()){
-      arc.setAttribute("stroke-dashoffset",(RINGC*(1-(LNow.frac!=null?LNow.frac:LNow.pips/10))).toFixed(1));
-      return;
-    }
-    var pk=(card.getAttribute("data-kind")||"x")+"|"+TODAY;
-    if(_ringPlayed[pk]===to.toFixed(2)){
-      arc.setAttribute("stroke-dashoffset",(RINGC*(1-(LNow.frac!=null?LNow.frac:LNow.pips/10))).toFixed(1));
-      return;
-    }
-    _ringPlayed[pk]=to.toFixed(2);
-    var dur=Math.min(2600,Math.max(700,Math.abs(delta)*900||700));
-    var t0=null;
-    function ease(x){return 1-Math.pow(1-x,3);}
-    function frame(ts){
-      if(t0==null)t0=ts;
-      var k=Math.min(1,(ts-t0)/dur),v=from+delta*ease(k);
-      var frac=v-Math.floor(v);
-      arc.setAttribute("stroke-dashoffset",(RINGC*(1-frac)).toFixed(1));
-      num.textContent=Math.floor(v+1e-9);
-      if(k<1){requestAnimationFrame(frame);return;}
-      num.textContent=LNow.lvl;
-      arc.setAttribute("stroke-dashoffset",(RINGC*(1-(LNow.frac!=null?LNow.frac:LNow.pips/10))).toFixed(1));
-    }
-    arc.setAttribute("stroke-dashoffset",(RINGC*(1-(from-Math.floor(from)))).toFixed(1));
-    num.textContent=Math.floor(from);
-    setTimeout(function(){requestAnimationFrame(frame);},260);
+    var prev=_ringPlayed[key];_ringPlayed[key]=to;
+    if(prev==null||Math.abs(prev-to)<0.3||lvMotionOff())return;
+    lvAnim(arc,[{strokeDashoffset:prev+"px"},{strokeDashoffset:to+"px"}],{duration:700,easing:"cubic-bezier(.22,1,.36,1)"});
   });
 }
 function levelSheet(kind){
@@ -8185,31 +8146,57 @@ function levelSheet(kind){
   }
   var L=(kind==="lift")?liftLevel():cardioLevel();
   var st=(kind==="lift")?liftLevelStatus(L):levelStatus(L);
-  var t=levelTier(L.lvl,kind),wd=levelWeekDelta(kind);
-  var move=(wd==null)?"Nothing logged yet":(wd>0?("+"+wd+" XP over the last 7 days"):"Nothing earned in the last 7 days");
-  var ep=(kind!=="lift")?easyPaceTrend():null;
   openSheet('<div class="grab"></div><h3>'+(kind==="lift"?"Strength":"Cardio")+'</h3>'+
-    '<div class="ssub">'+esc(move)+'</div>'+
     levelHeroHTML(kind,L,st.w)+
-    (st.c?'<div class="lvcoach">'+st.c+'</div>':'')+
+    (L.draining?'<div class="lvcoach">'+esc(st.c)+'</div>':'')+
     levelMechanicsHTML(kind,L)+
-    ((kind==="lift")?'':('<div class="lmech" style="margin-top:9px"><div class="lmr">'+
-      '<span class="lmk">Easy pace</span><span class="lmv num">'+
-      (ep?(mmss(ep.now)+'<small> /mi &middot; '+Math.abs(Math.round(ep.diff))+'s '+(ep.diff>0?"quicker":"slower")+' than 8wk</small>')
-         :'<span class="lmvs">not enough easy runs yet</span>')+
-      '</span></div>'+
-      (ep?'':'<div class="lmnote">needs four easy runs inside each of two 8-week windows</div>')+
-      '</div>'))+
     levelHistoryHTML(kind)+
     '<button class="sheet-cta" onclick="closeSheet()">Close</button>');
   levelSheetAnim();
 }
 function levelSheetAnim(){
-  var big=document.querySelector("#sheet .lvbig[data-lv]");
-  if(!big||motionOff())return;
-  var to=parseInt(big.getAttribute("data-lv"),10);if(!(to>1))return;
-  lvCount(big,to-1,to);
+  var sh=document.getElementById("sheet");if(!sh||lvMotionOff())return;
+  var big=sh.querySelector(".lvbig");
+  if(big)lvAnim(big,[{transform:"scale(.55)",opacity:0},{transform:"scale(1.08)",opacity:1,offset:.7},{transform:"none",opacity:1}],{duration:560,delay:80,easing:"cubic-bezier(.22,1,.36,1)"});
+  [].forEach.call(sh.querySelectorAll(".lvpipbar b"),function(b,i){
+    lvAnim(b,[{transform:"scaleX(0)"},{transform:"scaleX(1)"}],{duration:300,delay:200+i*55,easing:"cubic-bezier(.22,1,.36,1)"});});
+  [].forEach.call(sh.querySelectorAll("[data-count]"),function(el){lvCountUp(el,+el.getAttribute("data-count"),700,260);});
+  [].forEach.call(sh.querySelectorAll(".lmech .lmr,.lxlist .lxr,.lxrule"),function(r,i){
+    lvAnim(r,[{opacity:0,transform:"translateY(6px)"},{opacity:1,transform:"none"}],{duration:340,delay:320+i*60,easing:"cubic-bezier(.22,1,.36,1)"});});
+  var ln=sh.querySelector(".lvhline");
+  if(ln)lvAnim(ln,[{strokeDasharray:"1 1",strokeDashoffset:1},{strokeDasharray:"1 1",strokeDashoffset:0}],{duration:900,delay:420,easing:"cubic-bezier(.4,0,.2,1)"});
 }
+function lvMotionOff(){return motionPref()==="off";}
+function lvAnim(el,frames,opts){try{if(!el||!el.animate)return null;opts.fill=opts.fill||"backwards";return el.animate(frames,opts);}catch(e){return null;}}
+function lvCountUp(el,to,dur,delay){
+  if(!el||!isFinite(to)||lvMotionOff())return;var pre=(/^\+/.test(el.textContent||""))?"+":"";
+  var t0=null,from=0;el.textContent=pre+"0";
+  setTimeout(function(){function f(ts){if(t0==null)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);
+    el.textContent=pre+tNum(Math.round(from+(to-from)*e));if(k<1)requestAnimationFrame(f);else el.textContent=pre+tNum(to);}
+    requestAnimationFrame(f);},delay||0);
+}
+function levelArrive(root){
+  root=root||document;if(lvMotionOff())return;
+  var arcs=[].slice.call(root.querySelectorAll("svg.lring .lprog,.lvlcard .lcring .lcarc"));
+  arcs.forEach(function(arc,i){
+    var to=parseFloat(arc.getAttribute("stroke-dashoffset")),C=parseFloat(arc.getAttribute("stroke-dasharray"));
+    if(!isFinite(to)||!isFinite(C))return;
+    try{(arc.getAnimations?arc.getAnimations():[]).forEach(function(a){a.cancel();});}catch(e){}
+    var share=1-to/C,dur=Math.round(700+share*700),delay=140+i*110;
+    lvAnim(arc,[{strokeDashoffset:C+"px"},{strokeDashoffset:to+"px"}],{duration:dur,delay:delay,easing:"cubic-bezier(.22,1,.36,1)"});
+    var host=arc.closest("svg.lring")||arc.closest(".lcring");
+    var num=host&&(host.querySelector("text[data-lvnum]")||host.querySelector(".lcnum"));
+    if(num){num.style.transformBox="fill-box";num.style.transformOrigin="center";
+      lvAnim(num,[{transform:"scale(.6)",opacity:0},{transform:"scale(1)",opacity:1,offset:.55},{transform:"scale(1.12)",offset:.8},{transform:"none",opacity:1}],{duration:dur+260,delay:delay,easing:"cubic-bezier(.22,1,.36,1)"});}
+  });
+  [].forEach.call(root.querySelectorAll(".chero .lvlw"),function(w){
+    var m=/^\+(\d[\d,]*)/.exec((w.firstChild&&w.firstChild.nodeType===3)?w.firstChild.textContent:"");if(!m)return;
+    var to=+m[1].replace(/,/g,""),node=w.firstChild,t0=null,dur=900;
+    setTimeout(function(){function f(ts){if(t0==null)t0=ts;var k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);
+      node.textContent="+"+tNum(Math.round(to*e));if(k<1)requestAnimationFrame(f);else node.textContent="+"+tNum(to);}requestAnimationFrame(f);},260);
+  });
+}
+window.addEventListener("pageshow",function(e){if(e&&e.persisted){try{levelArrive(document.getElementById("v-"+(CURV||"today")));}catch(err){}}});
 function levelRowHTML(){
   return '<div class="lvlrow">'+miniLevelHTML("lift")+miniLevelHTML("cardio")+'</div>';
 }
@@ -9245,55 +9232,30 @@ function levelLvSeries(kind){
   return {s:s,lv:lv,model:null};
 }
 function levelHeroHTML(kind,L,stWord){
-  var q=levelLvSeries(kind),lv=q.lv;
-  var dtxt="";
-  if(lv.length>=9){
-    var d=lv[lv.length-1]-lv[lv.length-9];
-    dtxt=(d>0?"Up "+d+" level"+(d===1?"":"s"):d<0?"Down "+Math.abs(d)+" level"+(d===-1?"":"s"):"Level unchanged")+" in 8 weeks";
-  }
-  var top=false,pct=Math.round((L.frac||0)*100),dir=levelDirOf(kind);
-  var f10=top?10:(L.frac||0)*10,pips="";
+  var pct=Math.round((L.frac||0)*100),dir=levelDirOf(kind),t=levelTier(L.lvl,kind);
+  var left=Math.max(0,Math.ceil((L.need||0)-(L.into||0)));
+  var f10=(L.frac||0)*10,pips="";
   for(var i=0;i<10;i++){var fi=Math.max(0,Math.min(1,f10-i));
-    pips+='<i style="--i:'+i+'" data-r="'+esc(top?"Top level":((i+1)*10+"% of the way to Level "+(L.lvl+1)+(fi>=1?", reached":", not yet")))+'">'+
-      (fi>0?'<b style="width:'+Math.round(fi*100)+'%"></b>':'')+'</i>';}
-  return '<div class="lvhero" data-dir="'+dir+'"><div class="lvbig num" data-lvnum="big-'+(kind||"x")+'" data-lv="'+L.lvl+'" data-r="'+esc("Level "+L.lvl+(dtxt?" · "+dtxt:""))+'">'+L.lvl+'</div>'+
-    '<div class="lvmeta"><div class="lvtierrow"><span class="lvlab">Level</span><span class="tierpill" data-tier="'+levelTier(L.lvl,kind).k+'">'+levelTier(L.lvl,kind).w+'</span></div>'+
+    pips+='<i>'+(fi>0?'<b data-w="'+Math.round(fi*100)+'" style="width:'+Math.round(fi*100)+'%"></b>':'')+'</i>';}
+  return '<div class="lvhero" data-dir="'+dir+'" role="img" aria-label="Level '+L.lvl+', '+pct+' percent to level '+(L.lvl+1)+'">'+
+    '<div class="lvbig num" data-lvnum="big-'+(kind||"x")+'" data-lv="'+L.lvl+'">'+L.lvl+'</div>'+
+    '<div class="lvmeta"><div class="lvtierrow"><span class="lvlab">Level</span><span class="tierpill" data-tier="'+t.k+'">'+t.w+'</span></div>'+
     '<div class="lvpipbar">'+pips+'</div>'+
-    '<div class="lvdtxt">'+('<b class="num">'+pct+'%</b> to Level '+(L.lvl+1)+' &middot; '+tNum(Math.max(0,Math.ceil((L.need||0)-(L.into||0))))+' XP to go')+(dtxt?' &middot; '+dtxt:'')+'</div>'+
+    '<div class="lvdtxt"><b class="num" data-count="'+left+'">'+tNum(left)+'</b> XP to Level '+(L.lvl+1)+'</div>'+
     '</div></div>';
 }
 function levelHistoryHTML(kind){
-  var q=levelLvSeries(kind),s=q.s,lv=q.lv;
-  if(s.length<8){
-    var need=8-s.length;
-    return '<div class="lvhwait" data-r="'+esc("Level history draws once there are 8 weeks on record. "+need+" to go.")+'">'+
-      'Level over time draws at 8 weeks on record. <b>'+need+'</b> more to go.</div>';
-  }
-  var mx=Math.max.apply(null,lv),mn=Math.min.apply(null,lv);
-  if(mx<=0)return "";
-  var W=320,H=64,span=Math.max(mx-mn,1);
-  var pts=lv.map(function(v,i){
-    var x=(i/(lv.length-1))*W, y=H-2-((v-mn)/span)*(H-8);
-    return (i?"L":"M")+x.toFixed(1)+" "+y.toFixed(1);
-  }).join(" ");
-  var now=lv[lv.length-1], peak=mx, peakI=lv.lastIndexOf(mx);
-  var spanW=Math.max(1,lv.length-1);
-  var peakDate=s[peakI]?(s[peakI].w||s[peakI].date||null):null;
-  var wks=peakDate?Math.round(daysBetween(peakDate,TODAY)/7):null;
-  var whenTxt=(wks==null)?"":(wks<=0?" this week":wks===1?" a week ago":(wks<9?(" "+wks+" weeks ago"):(" "+Math.round(wks/4.345)+" months ago")));
-  var verdict=(now>=peak)?("The highest it has been in "+spanW+" weeks."):
-    ("Peaked at <b>"+peak+"</b>"+(whenTxt?","+whenTxt:"")+", down "+(peak-now)+" since then.");
-  var area=pts+' L'+W+' '+H+' L0 '+H+' Z';
-  return '<div class="lvhist"><div class="lvht">Level, last '+spanW+' weeks</div>'+
-    '<div class="lvwrap">'+
-      '<div class="lvax"><span>'+mx+'</span><span>'+mn+'</span></div>'+
-      '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="lvhs" role="img" aria-label="Level history">'+
-        '<path d="'+area+'" fill="var(--rag,var(--accent))" opacity=".13" stroke="none"/>'+
-        '<path d="'+pts+'" fill="none" stroke="var(--rag,var(--accent))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'+
-      '</svg>'+
-    '</div>'+
-    '<div class="lvxr"><span>'+spanW+' weeks ago</span><span>now &middot; Level '+now+'</span></div>'+
-    '<div class="lvv">'+verdict+'</div></div>';
+  var q=levelLvSeries(kind),s=q.s;
+  if(s.length<3)return "";
+  var v=s.map(function(p){return p.cwm;}),mx=Math.ceil(Math.max.apply(null,v)),mn=Math.floor(Math.min.apply(null,v));
+  var W=320,H=64,span=Math.max(mx-mn,1),wk=s.length-1;
+  var pts=v.map(function(x,i){return (i?"L":"M")+((i/(v.length-1))*W).toFixed(1)+" "+(H-2-((x-mn)/span)*(H-8)).toFixed(1);}).join(" ");
+  return '<div class="lvhist"><div class="lvht">Last '+wk+' weeks</div><div class="lvwrap">'+
+    '<div class="lvax"><span>'+mx+'</span><span>'+mn+'</span></div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="lvhs" role="img" aria-label="Level over the last '+wk+' weeks">'+
+      '<path d="'+pts+' L'+W+' '+H+' L0 '+H+' Z" fill="var(--rag,var(--accent))" opacity=".13" stroke="none"/>'+
+      '<path class="lvhline" d="'+pts+'" fill="none" stroke="var(--rag,var(--accent))" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" pathLength="1"/>'+
+    '</svg></div></div>';
 }
 function sameRun(a,b){
   if(a.date!==b.date)return false;
@@ -9875,34 +9837,25 @@ function cardioMechRows(L){
     '<div class="lmnote">Your level is the two added together. Every walk and every run counts, whatever its length or pace, and nothing you log can take the number down.</div>'+
     '</div>';
 }
+function lxWhen(k){var d=dayFromKey(k);return daysBetween(k,TODAY)<7?(lxDay(k)+" "+d.getDate()):(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate());}
+function lxDay(k){return ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][dayFromKey(k).getDay()];}
 function levelMechanicsHTML(kind,L){
-  var isLift=(kind==="lift");
-  var row=function(k,v,cls){return '<div class="lmr'+(cls?' '+cls:'')+'"><span class="lmk">'+k+'</span><span class="lmv num">'+v+'</span></div>';};
-  var X=xpLedger(),rows="",note="",recent="";
-  rows+=row("Earned since "+(function(){var d=dayFromKey(XP_EPOCH);return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate();})(),tNum(L.xp||0)+'<small> XP</small>');
+  var isLift=(kind==="lift"),X=xpLedger();
+  var row=function(k,v){return '<div class="lmr"><span class="lmk">'+k+'</span><span class="lmv num">'+v+'</span></div>';};
+  var rows=row("This week",'<span data-count="'+(L.xp7||0)+'">+'+(L.xp7||0)+'</span><small> XP</small>');
   if(isLift){
     var lastUp=null;Object.keys(X.lift.map).sort().reverse().some(function(k){var it=(X.lift.map[k].items||[]).filter(function(i){return i.ups;}).pop();if(it){lastUp={date:k,id:it.up[it.up.length-1]};return true;}return false;});
-    rows+=row("Last up",lastUp?(esc(xpExName(lastUp.id))+'<small> '+esc(shortDate(lastUp.date))+'</small>'):"&mdash;");
-    note="1 XP for every set you finish, plus 5 when a movement beats its best: more weight, or more reps at the weight.";
+    rows+=row("Last up",lastUp?(esc(xpExName(lastUp.id))+'<small> '+esc(lxDay(lastUp.date))+'</small>'):"&mdash;");
   }else{
-    var st=0;var cut=new Date(NOW);cut.setDate(cut.getDate()-6);var ck=keyOf(cut);
+    var st=0,cut=new Date(NOW);cut.setDate(cut.getDate()-6);var ck=keyOf(cut);
     Object.keys(X.cardio.map).forEach(function(k){if(k>=ck)st+=X.cardio.map[k].stepXP||0;});
-    rows+=row("From steps, last 7 days",st+'<small> XP</small>');
-    var c9=new Date(NOW);c9.setDate(c9.getDate()-(XP_CARDIO_BEST_DAYS-1));var c9k=keyOf(c9);
-    var lg=function(kd){var m=0;(X.longest[kd]||[]).forEach(function(h){if(h.date>=c9k&&h.mins>m)m=h.mins;});return m;};
-    rows+=row("Longest walk, 90 days",lg("walk")?(Math.round(lg("walk"))+'<small> min</small>'):"&mdash;");
-    rows+=row("Longest run, 90 days",lg("run")?(Math.round(lg("run"))+'<small> min</small>'):"&mdash;");
-    note="Walks earn 1 XP per 3 minutes and runs 1 per 90 seconds. A walk or run longer than your longest of that kind in 90 days earns 5 more, and steps over 4,000 earn up to 6 a day.";
+    rows+=row("From steps",'+'+st+'<small> XP</small>');
   }
-  note+=" A level is never lost. After 3 weeks with nothing logged the bar drains toward the start of the level.";
-  var rc=xpRecent(kind,5);
-  recent=rc.map(function(r){var it=r.it,s=it.s||{},what,sub=shortDate(r.date);
-    if(isLift){what=esc((s.focus?(s.focus.charAt(0).toUpperCase()+s.focus.slice(1)):"Lift")+" · "+it.sets+" sets");}
-    else{what=esc((it.kind==="run"?"Run ":"Walk ")+Math.round(it.mins)+" min");}
-    if(it.ups)sub+=" · "+it.ups+" up"+(it.ups===1?"":"s");
-    return '<div class="lxr"><div>'+what+'<span>'+esc(sub)+'</span></div><b class="num'+(it.ups?' up':'')+'">+'+it.xp+' XP</b></div>';}).join("");
-  return '<div class="lmech">'+rows+'</div><div class="ksub" style="margin-top:9px">'+note+'</div>'+
-    (recent?'<div class="lvht" style="margin-top:14px">Recent</div><div class="lxlist">'+recent+'</div>':'');
+  var rc=xpRecent(kind,3).map(function(r){var it=r.it,s=it.s||{};
+    var what=isLift?(s.focus?(s.focus.charAt(0).toUpperCase()+s.focus.slice(1)):"Lift"):((it.kind==="run"?"Run ":"Walk ")+Math.round(it.mins)+" min");
+    return '<div class="lxr"><span class="lxw">'+esc(what)+'</span><span class="lxd">'+esc(lxWhen(r.date))+(it.ups?' &middot; '+it.ups+' up'+(it.ups===1?'':'s'):'')+'</span><b class="num'+(it.ups?' up':'')+'">+'+it.xp+'</b></div>';}).join("");
+  var rule=isLift?"1 XP a set · 5 more for beating a best":"1 XP per 3 min walking, 90 s running · 5 for a new longest · steps count";
+  return '<div class="lmech">'+rows+'</div>'+(rc?'<div class="lxlist">'+rc+'</div>':'')+'<div class="lxrule">'+rule+'</div>';
 }
 
 var ODOP="w";
@@ -10572,8 +10525,10 @@ if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").c
 })();
 if(!S.profile.setup){S.profile.setup=true;S.profile.started=S.profile.started||TODAY;S.profile.programStart=S.profile.programStart||TODAY;save();}
 document.addEventListener("visibilitychange",function(){if(!document.hidden){refreshDate();LIFT_OWN=null;if(document.getElementById("v-today").classList.contains("on"))renderToday();
-  else if(document.getElementById("v-lift").classList.contains("on"))renderLift();}});
+  else if(document.getElementById("v-lift").classList.contains("on"))renderLift();
+  try{levelArrive(document.getElementById("v-"+(CURV||"today")));}catch(e){}}});
 renderToday();
+try{levelArrive(document.getElementById("v-today"));}catch(e){}
 
 var COURSE_SERIES={
   mobility:/^Mobility for Runners/i,
