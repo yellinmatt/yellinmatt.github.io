@@ -91,6 +91,7 @@ a{color:var(--info)}
 .drow .k{color:var(--muted)}
 .desc{font-size:13px;line-height:1.6;color:var(--ink);margin:12px 0 4px;white-space:pre-line;max-width:68ch}
 .desc.dim{color:var(--muted)}
+.seat{white-space:nowrap}.seat.small{color:var(--warn);font-weight:700}
 .rmp{font-size:11px;color:var(--info);white-space:nowrap;text-decoration:underline;text-underline-offset:2px}
 .more{font-size:13px;color:var(--info);padding:2px 0;text-decoration:underline;text-underline-offset:3px}
 .kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:5px 10px;font-size:12px;margin-top:10px}
@@ -508,7 +509,7 @@ function renderDetail(el){const g=GROUPS[S.open];if(!g){S.open=null;renderResult
     h+=`<div class="sec"><div class="s1"><span class="num">${esc(s.sec)}</span><span class="typ">${/Online/.test(s.delivery)?'ONLINE':'IN PERSON'}</span><span class="pr">${esc(p)}</span>${rmpA(s)}${perm(s)?'<span class="mini perm">Permission</span>':''}${s.easl&&s.easl!==e?`<span class="mini easl">${EASL_LABEL[s.easl]}</span>`:''}</div>
       ${ev2[0]==='—'?'<span></span>':`<span class="badge ${ev2[1]}" title="${esc(s.eval||'')}">${ev2[0]}</span>`}
       <button class="plus${inC?' in':''}" type="button" data-id="${s.id}" aria-label="${inC?'Remove from':'Add to'} cart: ${esc(fmtCode(s)+' '+s.sec)}">${inC?'✓':'+'}</button>
-      <div class="s2">${esc(timeStr(s))} · ${esc(s.cu)} CR</div></div>`;
+      <div class="s2">${esc(timeStr(s))} · ${esc(s.cu)} CR${s.cap?` · <span class="seat${s.cap<=20?' small':''}" title="Seat cap from CaneLink${DATA.seats_read?', read '+DATA.seats_read:''}${s.open!=null&&s.open<s.cap?'; '+s.open+' open':''}">${s.open!=null&&s.open<s.cap?s.open+' of ':''}${s.cap} seats${s.cap<=20?' · small class':''}</span>`:''}</div></div>`;
     if(s.eval)h+=`<div class="small" style="padding:0 2px 10px;border-bottom:1px solid var(--line)">${esc(s.eval)}</div>`});
   h+='</div></div>';el.innerHTML=h;
   $('#back').onclick=closeDetail;if($('#more'))$('#more').onclick=()=>{DOPEN=DOPEN===S.open?null:S.open;renderDetail(el)};
@@ -524,7 +525,7 @@ function renderMidTabs(){const el=$('#midtabs');el.innerHTML='';[['cart','Cart']
 function renderMid(){if(S.mid!=='breaks')S.mid='cart';const el=$('#mid');if(S.mid==='cart')renderCart(el);else{el.innerHTML='';const w=document.createElement('div');w.style.padding='14px 16px';el.appendChild(w);renderBreaks(w)}}
 function renderCart(el){if(!S.cart.length){el.innerHTML=`<div class="empty"><svg viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20h12l10 40h46l8-28H36"/><circle cx="46" cy="72" r="5"/><circle cx="80" cy="72" r="5"/></svg><b>Your cart is empty</b>Open a course and press + on a section to add it.</div>`;return}
   const cr=S.cart.reduce((a,i)=>a+cuNum(byId[i]),0);
-  el.innerHTML=S.cart.map(i=>{const c=byId[i];const on=ids().includes(i);return `<div class="citem${on?'':' off'}" data-id="${i}"><input type="checkbox" id="cart-${i}" ${on?'checked':''} aria-label="Show ${esc(fmtCode(c))} on this schedule"><span class="sw ${colorOf(i)}"></span><div style="min-width:0"><b>${fmtCode(c)}-${esc(c.sec)} · ${esc(c.cu)} cr</b><span>${esc(c.name)}</span><br><span>${esc(timeStr(c))}${c.profs.length?' · '+esc(c.profs.map(last).join(', ')):''}</span></div><button class="x" type="button" aria-label="Remove ${esc(fmtCode(c))} from cart">×</button></div>`}).join('')+`<div class="ctot"><span>${S.cart.length} in cart · ${cr} credits</span><span>Tick to show on the schedule</span></div>`;
+  el.innerHTML=S.cart.map(i=>{const c=byId[i];const on=ids().includes(i);return `<div class="citem${on?'':' off'}" data-id="${i}"><input type="checkbox" id="cart-${i}" ${on?'checked':''} aria-label="Show ${esc(fmtCode(c))} on this schedule"><span class="sw ${colorOf(i)}"></span><div style="min-width:0"><b>${fmtCode(c)}-${esc(c.sec)} · ${esc(c.cu)} cr</b><span>${esc(c.name)}</span><br><span>${esc(timeStr(c))}${c.profs.length?' · '+esc(c.profs.map(last).join(', ')):''}${c.cap?` · <span class="seat${c.cap<=20?' small':''}">${c.cap} seats</span>`:''}</span></div><button class="x" type="button" aria-label="Remove ${esc(fmtCode(c))} from cart">×</button></div>`}).join('')+`<div class="ctot"><span>${S.cart.length} in cart · ${cr} credits</span><span>Tick to show on the schedule</span></div>`;
   el.querySelectorAll('.citem').forEach(n=>{const id=n.dataset.id;n.querySelector('input').onchange=e=>{const a=ids(),j=a.indexOf(id);e.target.checked?(j<0&&a.push(id)):(j>=0&&a.splice(j,1));if(e.target.checked)jump(byId[id]);all()};
     n.querySelector('.x').onclick=e=>{e.stopPropagation();toggleCart(id)};n.onclick=e=>{if(e.target.closest('input,.x'))return;ret=null;S.open=byId[id].code;if(phone())S.pane='courses';all();if(phone())window.scrollTo(0,0)}})}
 function stats(){const all0=ids().map(i=>byId[i]);const cs=all0.filter(c=>c.topic!=='mba');const mba=all0.filter(c=>c.topic==='mba').reduce((a,c)=>a+cuNum(c),0);const cr=x=>x.reduce((a,c)=>a+cuNum(c),0);
