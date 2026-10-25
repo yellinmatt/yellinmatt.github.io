@@ -18,7 +18,7 @@
   --easl:#8f9cff; --easl-soft:#1c2142; --easl-ink:#d6dbff;
   --good:#5bcf98; --good-soft:#163a29; --info:#9db0ff; --info-soft:#1b2342; --warn:#e3b54a; --warn-soft:#2e2611; --bad:#ff7a6e; --bad-soft:#3a1b19; --on-bad:#1a0c0a;
   --brk:#a99df3; --brk-soft:#232046; --knob:#efede7;
-  --t-biz:#9fb3f5; --t-lit:#f0957d; --t-ip:#5fd0c8; --t-ent:#f08cc4; --t-pub:#8fd27a; --t-crim:#e7b062; --t-intl:#6cc6ef; --t-tax:#d4cf6c; --t-prac:#a9b2c2; --t-theory:#d0a982;
+  --t-biz:#9fb3f5; --t-mba:#f2a46b; --t-lit:#f0957d; --t-ip:#5fd0c8; --t-ent:#f08cc4; --t-pub:#8fd27a; --t-crim:#e7b062; --t-intl:#6cc6ef; --t-tax:#d4cf6c; --t-prac:#a9b2c2; --t-theory:#d0a982;
   --shadow:0 0 0 1px var(--line),0 24px 60px rgba(0,0,0,.35);
   --k0:#1c3550;--k0i:#cfe6fb; --k1:#173a29;--k1i:#c8f0dc; --k2:#3d2914;--k2i:#fbdcb8; --k3:#30213f;--k3i:#e7d4fb; --k4:#3d1c24;--k4i:#fbd0d9; --k5:#163737;--k5i:#c9f1f1; --k6:#36321a;--k6i:#f2eab6; --k7:#232847;--k7i:#d6dafb;
   --display:"Newsreader",Georgia,serif;
@@ -67,7 +67,7 @@ a{color:var(--info)}
 .ghead i{width:10px;height:10px;border-radius:3px;background:var(--tc)}
 .ghead span{margin-left:auto;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
 .mini.tp{color:var(--tc);background:var(--panel);box-shadow:inset 0 0 0 1.5px var(--tc)}
-.tp-biz{--tc:var(--t-biz)}.tp-lit{--tc:var(--t-lit)}.tp-ip{--tc:var(--t-ip)}.tp-ent{--tc:var(--t-ent)}.tp-pub{--tc:var(--t-pub)}.tp-crim{--tc:var(--t-crim)}.tp-intl{--tc:var(--t-intl)}.tp-tax{--tc:var(--t-tax)}.tp-prac{--tc:var(--t-prac)}.tp-theory{--tc:var(--t-theory)}
+.tp-mba{--tc:var(--t-mba)}.tp-biz{--tc:var(--t-biz)}.tp-lit{--tc:var(--t-lit)}.tp-ip{--tc:var(--t-ip)}.tp-ent{--tc:var(--t-ent)}.tp-pub{--tc:var(--t-pub)}.tp-crim{--tc:var(--t-crim)}.tp-intl{--tc:var(--t-intl)}.tp-tax{--tc:var(--t-tax)}.tp-prac{--tc:var(--t-prac)}.tp-theory{--tc:var(--t-theory)}
 .rrow:hover{background:var(--ground)}
 .rrow::before{content:"";position:absolute;left:14px;top:50%;width:7px;height:7px;border-radius:50%;transform:translateY(-50%);background:var(--brand)}
 .rrow.e::before{background:var(--easl)}
@@ -149,6 +149,13 @@ a{color:var(--info)}
 .tmo{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:10px;font-size:10px;color:var(--muted)}
 .tmo .tbar{background:none;height:14px}.tmo b{position:absolute;font-weight:600;transform:translateX(-50%)}
 @media (max-width:720px){.trow,.tmo{grid-template-columns:1fr;gap:4px}.tmo>span:first-child{display:none}}
+.menote{font-size:12.5px;line-height:1.5;margin:10px 0 2px;padding:8px 10px;border-radius:6px;background:var(--brand-soft);color:var(--brand-ink)}
+.menote b{display:block;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.mebar{position:fixed;left:16px;bottom:16px;z-index:45;display:flex;align-items:center;gap:8px;flex-wrap:wrap;max-width:calc(100vw - 32px);padding:8px 10px 8px 14px;border-radius:10px;background:var(--raise);color:var(--ink);box-shadow:var(--shadow);font-size:12.5px}
+.mebar b{color:var(--ink-strong);margin-right:4px}
+.mebtn{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font:inherit;font-weight:700;font-size:12px;color:var(--ink-strong);background:var(--pill);border:0;cursor:pointer}
+.mebtn.pri{background:var(--brand);color:var(--on-brand)}
+@media (max-width:720px){.mebar{bottom:calc(64px + env(safe-area-inset-bottom,0px));left:8px;right:8px}}
 .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:12px 16px 16px;border-top:1px solid var(--line)}
 .below h5{margin:0 0 5px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .below ul{margin:0;padding:0;list-style:none;font-size:12px;display:flex;flex-direction:column;gap:3px}
@@ -325,6 +332,8 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 if(!window.MCP_DATA){document.querySelector('.main').innerHTML='<div class="panel" style="grid-column:1/-1;padding:40px;text-align:center"><b>Course data did not load.</b><br>Reload the page. If it keeps happening, the data file is missing from this folder.</div>';return}
 const DATA=window.MCP_DATA, TERM=DATA.term, COURSES=DATA.courses, SRC=DATA.sources;
+const ME_KEY='mlcp-me';let ME=null;try{const o=JSON.parse(localStorage.getItem(ME_KEY)||'null');if(o&&o.mlcp_overlay===1&&o.term===TERM.label&&Array.isArray(o.courses))ME=o}catch(e){}
+if(ME)ME.courses.forEach(c=>{if(c&&c.id&&!COURSES.some(x=>x.id===c.id))COURSES.push(c)});
 $('#termlab').textContent=TERM.label.toUpperCase();
 const byId={};COURSES.forEach(c=>byId[c.id]=c);
 const key=c=>c.code+' '+c.sec;
@@ -332,7 +341,7 @@ const cuNum=c=>{const m=String(c.cu).match(/\d+/);return m?+m[0]:0};
 const fmtCode=c=>c.code.replace(/^([A-Z]{3})/,'$1 ');
 const nice=n=>/^TBA/i.test(n)?'TBA':n.split(',').reverse().join(' ').trim().replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase());
 const last=n=>/^TBA/i.test(n)?'TBA':n.split(',')[0].replace(/\b\w+/g,w=>w[0]+w.slice(1).toLowerCase());
-const TOPICS=[['biz','Business & transactional'],['lit','Litigation & courts'],['ip','IP & technology'],['ent','Entertainment, arts & sports'],['pub','Public law & regulation'],['crim','Criminal law'],['intl','International'],['tax','Tax, estates & family'],['prac','Practice, writing & bar'],['theory','Theory & perspectives']];const TOPIC_LABEL=Object.fromEntries(TOPICS);const TORDER=Object.fromEntries(TOPICS.map(([k],i)=>[k,i]));
+const TOPICS=[['biz','Business & transactional'],['lit','Litigation & courts'],['ip','IP & technology'],['ent','Entertainment, arts & sports'],['pub','Public law & regulation'],['crim','Criminal law'],['intl','International'],['tax','Tax, estates & family'],['prac','Practice, writing & bar'],['theory','Theory & perspectives']];if(ME)TOPICS.push(['mba','MBA (my view)']);const TOPIC_LABEL=Object.fromEntries(TOPICS);const TORDER=Object.fromEntries(TOPICS.map(([k],i)=>[k,i]));
 const EASL_LABEL={prereq:'EASL prerequisite',core:'EASL core',elective:'EASL elective',program:'EASL program'};
 const perm=c=>/prior permission|with the permission|by permission|permission of|EASL Only|by application|must send an email|placement is confirmed/i.test(c.restr||'');
 function evalCode(c){const e=(c.eval||'').toLowerCase();
@@ -360,7 +369,7 @@ const fT=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'p':'a';h=h%12||12;return h+
 const fTL=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(mm).padStart(2,'0')+' '+a};
 const fD=s=>{const d=D(s);return (d.getUTCMonth()+1)+'/'+d.getUTCDate()};
 const cSpan=c=>[c.sess.map(s=>s.start).sort()[0],c.sess.map(s=>s.end).sort().slice(-1)[0]];
-const isShortC=c=>!!c.sess.length&&(/Short|Compressed/.test(c.attr||'')||(D(cSpan(c)[1])-D(cSpan(c)[0]))/864e5<=45);
+const isShortC=c=>c.topic!=='mba'&&!!c.sess.length&&(/Short|Compressed/.test(c.attr||'')||(D(cSpan(c)[1])-D(cSpan(c)[0]))/864e5<=45);
 const spanLab=c=>{const [a,b]=cSpan(c),n=Math.ceil(((D(b)-D(a))/864e5+1)/7);return (n<=1?'1 wk':n+' wks')+' · '+fD(a)+'–'+fD(b)};
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 function termTrack(cs){const L=cs.filter(isShortC);if(!L.length)return '';const A=D(R0),Z=D(SEM1),tot=(Z-A)/864e5;const px=s=>Math.max(0,Math.min(100,(D(s)-A)/864e5/tot*100));
@@ -384,6 +393,7 @@ let S={group:'none',pane:'courses',wview:'grid',mday:0,view:'all',q:'',sort:'cod
 let dropped=0;
 try{const s=JSON.parse(localStorage.getItem(STORE));if(s&&s.scheds&&s.term===TERM.label){S=Object.assign(S,s);S.f=Object.assign(F0(),s.f||{});
   const keep=i=>{if(byId[i])return true;dropped++;return false};S.cart=S.cart.filter(keep);S.scheds.forEach(x=>x.ids=x.ids.filter(i=>byId[i]));if(!S.scheds.length)S.scheds=[{name:'Schedule 1',ids:[]}];if(S.active>=S.scheds.length)S.active=0}}catch(e){}
+if(ME)(ME.schedules||[]).forEach(x=>{if(!S.scheds.some(y=>y.name===x.name)){const v=(x.ids||[]).filter(i=>byId[i]);S.scheds.push({name:x.name,ids:v});v.forEach(i=>{if(!S.cart.includes(i))S.cart.push(i)})}});
 S.pane='courses';
 const mq=window.matchMedia('(max-width:720px)');const phone=()=>mq.matches;try{mq.addEventListener('change',()=>all())}catch(e){}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(S))}catch(e){}};
@@ -487,6 +497,7 @@ function renderDetail(el){const g=GROUPS[S.open];if(!g){S.open=null;renderResult
    <h2>${fmtCode(c0)}</h2><div class="nm">${esc(g.name)}</div>
    <div class="drow">${c0.cu?`<span class="k">Credits</span><span class="badge b-n">${esc(c0.cu)}</span>`:''}${ev[0]!=='—'?`<span class="k">Evaluation</span><span class="badge ${ev[1]}">${esc(EVAL_LABEL[ev[0]])}</span>`:''}<span class="mini tp tp-${c0.topic}">${esc(TOPIC_LABEL[c0.topic])}</span>${e?`<span class="mini easl">${EASL_LABEL[e]}</span>`:''}${[...new Set(g.secs.flatMap(reqTags))].map(t=>`<span class="mini rq">${t==='Bar'?'Bar subject':t}</span>`).join('')}</div>
    ${c0.desc?`<div class="desc">${esc(short?c0.desc.slice(0,340).replace(/\s+\S*$/,'')+'…':c0.desc)}</div>${c0.desc.length>340?`<button class="more" type="button" id="more">${short?'Read more':'Show less'}</button>`:''}`:'<div class="desc dim">No description posted.</div>'}
+   ${ME&&ME.notes?g.secs.map(s=>ME.notes[key(s)]).filter(Boolean).slice(0,1).map(n=>`<div class="menote"><b>My note</b>${esc(n)}</div>`).join(''):''}${c0.mine?`<div class="menote"><b>My view</b>${esc(c0.mine)}</div>`:''}
    <dl class="kv">${[['Book',c0.book],['Prerequisite',c0.prereq],['Corequisite',c0.coreq],['Restrictions',c0.restr],['Requirement',c0.req],['Bar subject',c0.bar],['Pass/fail',c0.pf],['Frequency',c0.freq]].filter(([,v])=>v&&v!=='None'&&v!=='none').map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
    <div class="secs">`;
   g.secs.forEach(s=>{const inC=S.cart.includes(s.id);const p=s.profs.map(nice).join(', ')||'TBA';const ev2=evalCode(s);
@@ -512,8 +523,8 @@ function renderCart(el){if(!S.cart.length){el.innerHTML=`<div class="empty"><svg
   el.innerHTML=S.cart.map(i=>{const c=byId[i];const on=ids().includes(i);return `<div class="citem${on?'':' off'}" data-id="${i}"><input type="checkbox" id="cart-${i}" ${on?'checked':''} aria-label="Show ${esc(fmtCode(c))} on this schedule"><span class="sw ${colorOf(i)}"></span><div style="min-width:0"><b>${fmtCode(c)}-${esc(c.sec)} · ${esc(c.cu)} cr</b><span>${esc(c.name)}</span><br><span>${esc(timeStr(c))}${c.profs.length?' · '+esc(c.profs.map(last).join(', ')):''}</span></div><button class="x" type="button" aria-label="Remove ${esc(fmtCode(c))} from cart">×</button></div>`}).join('')+`<div class="ctot"><span>${S.cart.length} in cart · ${cr} credits</span><span>Tick to show on the schedule</span></div>`;
   el.querySelectorAll('.citem').forEach(n=>{const id=n.dataset.id;n.querySelector('input').onchange=e=>{const a=ids(),j=a.indexOf(id);e.target.checked?(j<0&&a.push(id)):(j>=0&&a.splice(j,1));if(e.target.checked)jump(byId[id]);all()};
     n.querySelector('.x').onclick=e=>{e.stopPropagation();toggleCart(id)};n.onclick=e=>{if(e.target.closest('input,.x'))return;ret=null;S.open=byId[id].code;if(phone())S.pane='courses';all();if(phone())window.scrollTo(0,0)}})}
-function stats(){const cs=ids().map(i=>byId[i]);const cr=x=>x.reduce((a,c)=>a+cuNum(c),0);
-  return {cs,cr:cr(cs),graded:cr(cs.filter(c=>!/Mandatory/i.test(c.grading))),wr:cs.filter(c=>/Writing/.test(c.req)).length,sk:cr(cs.filter(c=>/Skills/.test(c.req))),pr:cs.some(c=>/Professional Resp/.test(c.req)),bar:cs.filter(c=>/Bar Course/.test(c.attr)).length,
+function stats(){const all0=ids().map(i=>byId[i]);const cs=all0.filter(c=>c.topic!=='mba');const mba=all0.filter(c=>c.topic==='mba').reduce((a,c)=>a+cuNum(c),0);const cr=x=>x.reduce((a,c)=>a+cuNum(c),0);
+  return {cs,mba,cr:cr(cs),graded:cr(cs.filter(c=>!/Mandatory/i.test(c.grading))),wr:cs.filter(c=>/Writing/.test(c.req)).length,sk:cr(cs.filter(c=>/Skills/.test(c.req))),pr:cs.some(c=>/Professional Resp/.test(c.req)),bar:cs.filter(c=>/Bar Course/.test(c.attr)).length,
     easl:['prereq','core','elective','program'].map(b=>[b,cr(cs.filter(c=>c.easl===b))])}}
 function renderBreaks(el){const opts=sel=>{let o='';for(let m=420;m<=1350;m+=30)o+=`<option value="${m}" ${m===sel?'selected':''}>${fTL(m)}</option>`;return o};
   const box=document.createElement('div');box.className='bk';box.style.padding='0';el.appendChild(box);el=box;
@@ -534,7 +545,7 @@ function renderSum(){const s=stats();const n=Object.keys(conflicts(ids()).P).len
   if(deleting){el.innerHTML=`<span>Delete “${esc(S.scheds[S.active].name)}”? Courses stay in your cart.</span><button class="btn" id="dlOk" type="button" style="color:var(--bad);border-color:var(--bad)">Delete</button><button class="btn" id="dlX" type="button">Keep it</button>`;$('#dlOk').onclick=()=>{S.scheds.splice(S.active,1);S.active=0;deleting=false;all()};$('#dlX').onclick=()=>{deleting=false;all()};return}
   const tg=[[s.wr,'writing'],[s.sk,'skills cr'],[s.bar,'bar subj'],[s.easl.reduce((a,x)=>a+x[1],0),'EASL cr']].filter(x=>x[0]).map(([v,l])=>`<span class="tg"><b>${v}</b>${l}</span>`).join('')+(s.pr?'<span class="tg">Prof Resp</span>':'');
   const load=s.cr>16?'<span class="wn" title="17 credits needs the Registrar form">Over 16</span>':s.cr&&s.cr<11?'<span class="wn" title="Full time for upper-level students is 11 to 16 credits">Under 11</span>':'';
-  el.innerHTML=`<span><b>${s.cr}</b>credits</span>${load}<span><b class="${n?'no':'ok'}">${n}</b>conflicts</span>${tg}`}
+  el.innerHTML=`<span><b>${s.cr}</b>credits</span>${load}${s.mba?`<span><b>${s.mba}</b>MBA cr</span>`:''}<span><b class="${n?'no':'ok'}">${n}</b>conflicts</span>${tg}`}
 function renderAgenda(){const wk=S.week,d0=D(wk);const satUsed=ids().some(i=>byId[i].sess.some(s=>s.days.includes('S')));const ND=satUsed?6:5;if(S.mday>=ND)S.mday=0;
   const {P}=conflicts(ids());const clashDates=new Set(Object.values(P).flat());
   let h=`<div class="agenda"><div class="dchips" style="--nd:${ND}">`;
@@ -598,6 +609,20 @@ function renderFbtn(){const n=activeFilters();$('#fbtnl').textContent='Filters'+
 function renderVtog(){const el=$('#vtog');el.innerHTML=[['grid','Grid'],['day','Day']].map(([k,l])=>`<button type="button" data-v="${k}" aria-pressed="${S.wview===k}">${l}</button>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>{S.wview=b.dataset.v;all()})}
 function all(){if(!['courses','plan','week'].includes(S.pane))S.pane='courses';document.body.dataset.pane=S.pane;renderTabbar();renderFbtn();renderVtog();renderPills();renderFilters();renderViewMenu();if($('#q').value!==S.q)$('#q').value=S.q;$('#results').classList.toggle('compact',!!S.compact);renderResults();renderMidTabs();renderMid();renderSchedHead();renderSum();renderCal();renderSources();save()}
 all();
+})();
+</script>
+<script>
+(function(){
+const K='mlcp-me';let has=false;try{has=!!localStorage.getItem(K)}catch(e){}
+if(!has&&location.hash!=='#me')return;
+const b=document.createElement('div');b.className='mebar';b.setAttribute('role','region');b.setAttribute('aria-label','My view');
+let o=null;try{o=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
+const when=o&&o.generated?new Date(o.generated).toLocaleDateString():'';
+b.innerHTML=o?`<span><b>My view</b> on · file from ${when}</span><label class="mebtn">Replace<input type="file" accept=".json,application/json" hidden></label><button type="button" class="mebtn" id="meoff">Turn off</button>`
+  :`<span><b>My view</b> Load your planner file. It stays in this browser.</span><label class="mebtn pri">Choose file<input type="file" accept=".json,application/json" hidden></label>`;
+document.body.appendChild(b);
+b.querySelector('input').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(x.mlcp_overlay!==1||!Array.isArray(x.courses))throw 0;localStorage.setItem(K,JSON.stringify(x));location.hash='';location.reload()}catch(err){b.querySelector('span').textContent='That file is not a planner file.'}};r.readAsText(f)};
+const off=b.querySelector('#meoff');if(off)off.onclick=()=>{try{localStorage.removeItem(K)}catch(e){}location.hash='';location.reload()};
 })();
 </script>
 </body>
