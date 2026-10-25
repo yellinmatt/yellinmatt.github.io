@@ -90,6 +90,7 @@ a{color:var(--info)}
 .drow .k{color:var(--muted)}
 .desc{font-size:13px;line-height:1.6;color:var(--ink);margin:12px 0 4px;white-space:pre-line;max-width:68ch}
 .desc.dim{color:var(--muted)}
+.rmp{font-size:11px;color:var(--info);white-space:nowrap;text-decoration:underline;text-underline-offset:2px}
 .more{font-size:13px;color:var(--info);padding:2px 0;text-decoration:underline;text-underline-offset:3px}
 .kv{display:grid;grid-template-columns:96px minmax(0,1fr);gap:5px 10px;font-size:12px;margin-top:10px}
 .kv dt{color:var(--muted)} .kv dd{margin:0;white-space:pre-line;overflow-wrap:anywhere}
@@ -458,7 +459,7 @@ function renderResults(){const el=$('#results');
   el.innerHTML=h;
   el.querySelectorAll('.rrow').forEach(n=>{const go=()=>{ret={el:el.scrollTop,win:window.scrollY};S.lastOpen=n.dataset.g;S.open=n.dataset.g;all();el.scrollTop=0;if(phone())window.scrollTo(0,0)};n.onclick=go;n.onkeydown=e=>{if(e.key==='Enter')go()}})}
 
-let DOPEN=null;
+let DOPEN=null;const RMP=DATA.rmp||{};const rmpA=s=>s.profs.map(x=>RMP[x]).filter(Boolean).map(r=>`<a class="rmp" href="https://www.ratemyprofessors.com/professor/${r[0]}" target="_blank" rel="noopener" title="Rate My Professors: ${r[1]} of 5 from ${r[2]} rating${r[2]===1?'':'s'}">RMP ${r[1].toFixed(1)} · ${r[2]}</a>`).join('');
 function renderDetail(el){const g=GROUPS[S.open];if(!g){S.open=null;renderResults();return}
   const c0=g.secs[0],ev=evalCode(c0),e=easlOf(g),short=(c0.desc||'').length>340&&DOPEN!==S.open;
   let h=`<div class="det"><button class="back" type="button" id="back"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 3L5 8l5 5"/></svg>Back</button>
@@ -468,7 +469,7 @@ function renderDetail(el){const g=GROUPS[S.open];if(!g){S.open=null;renderResult
    <dl class="kv">${[['Book',c0.book],['Prerequisite',c0.prereq],['Corequisite',c0.coreq],['Restrictions',c0.restr],['Requirement',c0.req],['Bar subject',c0.bar],['Pass/fail',c0.pf],['Frequency',c0.freq]].filter(([,v])=>v&&v!=='None'&&v!=='none').map(([k,v])=>`<dt>${k}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
    <div class="secs">`;
   g.secs.forEach(s=>{const inC=S.cart.includes(s.id);const p=s.profs.map(nice).join(', ')||'TBA';const ev2=evalCode(s);
-    h+=`<div class="sec"><div class="s1"><span class="num">${esc(s.sec)}</span><span class="typ">${/Online/.test(s.delivery)?'ONLINE':'IN PERSON'}</span><span class="pr">${esc(p)}</span>${perm(s)?'<span class="mini perm">Permission</span>':''}${s.easl&&s.easl!==e?`<span class="mini easl">${EASL_LABEL[s.easl]}</span>`:''}</div>
+    h+=`<div class="sec"><div class="s1"><span class="num">${esc(s.sec)}</span><span class="typ">${/Online/.test(s.delivery)?'ONLINE':'IN PERSON'}</span><span class="pr">${esc(p)}</span>${rmpA(s)}${perm(s)?'<span class="mini perm">Permission</span>':''}${s.easl&&s.easl!==e?`<span class="mini easl">${EASL_LABEL[s.easl]}</span>`:''}</div>
       ${ev2[0]==='—'?'<span></span>':`<span class="badge ${ev2[1]}" title="${esc(s.eval||'')}">${ev2[0]}</span>`}
       <button class="plus${inC?' in':''}" type="button" data-id="${s.id}" aria-label="${inC?'Remove from':'Add to'} cart: ${esc(fmtCode(s)+' '+s.sec)}">${inC?'✓':'+'}</button>
       <div class="s2">${esc(timeStr(s))} · ${esc(s.cu)} CR</div></div>`;
