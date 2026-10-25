@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#0a0b0e">
 <style>
 :root{
+  --sc-hatch:rgba(255,255,255,.10);
   --ground:#0a0b0e; --panel:#111318; --raise:#171a20; --ink:#c4c3bd; --ink-strong:#efede7; --muted:#8b8f98; --faint:#8b8f98; --line:rgba(255,255,255,.08); --pill:rgba(255,255,255,.16);
   --brand:#ff6a4d; --brand-soft:#311d1b; --brand-ink:#ffb4a4; --on-brand:#0a0b0e;
   --easl:#8f9cff; --easl-soft:#1c2142; --easl-ink:#d6dbff;
@@ -137,6 +138,17 @@ a{color:var(--info)}
 .ev.x::after{content:"!";position:absolute;right:4px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--bad);color:var(--on-bad);font-size:11px;font-weight:800;display:grid;place-items:center}
 .ev.ghost{opacity:.75;outline:1.5px dashed currentColor;outline-offset:-2px}
 .k0{background:var(--k0);color:var(--k0i)}.k1{background:var(--k1);color:var(--k1i)}.k2{background:var(--k2);color:var(--k2i)}.k3{background:var(--k3);color:var(--k3i)}.k4{background:var(--k4);color:var(--k4i)}.k5{background:var(--k5);color:var(--k5i)}.k6{background:var(--k6);color:var(--k6i)}.k7{background:var(--k7);color:var(--k7i)}
+.ev.sc{background-image:repeating-linear-gradient(135deg,var(--sc-hatch) 0 2px,transparent 2px 8px);box-shadow:inset 3px 0 0 currentColor;border-radius:4px}
+.ev .scl{display:block;font-size:10px;font-weight:700;letter-spacing:.02em;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{grid-column:1/-1}
+.trow{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:10px;align-items:center;width:100%;padding:4px 0;text-align:left;font:inherit;font-size:12px;color:var(--ink);background:none;border:0;cursor:pointer}
+.trow:hover .tl{color:var(--ink-strong);text-decoration:underline;text-underline-offset:2px}
+.tbar{position:relative;height:10px;border-radius:5px;background:var(--line)}
+.tbar i{position:absolute;top:0;bottom:0;border-radius:5px;background:currentColor}
+.tbar em{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--pill)}
+.tmo{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:10px;font-size:10px;color:var(--muted)}
+.tmo .tbar{background:none;height:14px}.tmo b{position:absolute;font-weight:600;transform:translateX(-50%)}
+@media (max-width:720px){.trow,.tmo{grid-template-columns:1fr;gap:4px}.tmo>span:first-child{display:none}}
 .below{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;padding:12px 16px 16px;border-top:1px solid var(--line)}
 .below h5{margin:0 0 5px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .below ul{margin:0;padding:0;list-style:none;font-size:12px;display:flex;flex-direction:column;gap:3px}
@@ -347,6 +359,15 @@ const WEEKS=[];for(let d=D(R0);d<=D(R1);d=add(d,7))WEEKS.push(iso(d));
 const fT=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'p':'a';h=h%12||12;return h+(mm?':'+String(mm).padStart(2,'0'):'')+a};
 const fTL=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(mm).padStart(2,'0')+' '+a};
 const fD=s=>{const d=D(s);return (d.getUTCMonth()+1)+'/'+d.getUTCDate()};
+const cSpan=c=>[c.sess.map(s=>s.start).sort()[0],c.sess.map(s=>s.end).sort().slice(-1)[0]];
+const isShortC=c=>!!c.sess.length&&(/Short|Compressed/.test(c.attr||'')||(D(cSpan(c)[1])-D(cSpan(c)[0]))/864e5<=45);
+const spanLab=c=>{const [a,b]=cSpan(c),n=Math.ceil(((D(b)-D(a))/864e5+1)/7);return (n<=1?'1 wk':n+' wks')+' · '+fD(a)+'–'+fD(b)};
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function termTrack(cs){const L=cs.filter(isShortC);if(!L.length)return '';const A=D(R0),Z=D(SEM1),tot=(Z-A)/864e5;const px=s=>Math.max(0,Math.min(100,(D(s)-A)/864e5/tot*100));
+  const ms=[];for(let d=new Date(Date.UTC(A.getUTCFullYear(),A.getUTCMonth()+1,1));d<=Z;d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1)))ms.push(iso(d));
+  const ticks=ms.map(m=>`<em style="left:${px(m)}%"></em>`).join('');
+  return `<div class="track"><h5>Short courses across the term</h5>${L.map(c=>{const [a,b]=cSpan(c);const wk=WEEKS.filter(w=>w<=a).pop()||WEEKS[0];return `<button type="button" class="trow" data-wk="${wk}" title="Show the week of ${fD(wk)}"><span class="tl">${fmtCode(c)} · ${esc(spanLab(c))}</span><span class="tbar">${ticks}<i class="${colorOf(c.id)}" style="left:${px(a)}%;width:${Math.max(1.2,px(b)-px(a)+100/tot)}%"></i></span></button>`}).join('')}<div class="tmo"><span></span><span class="tbar">${ms.map(m=>`<b style="left:${px(m)}%">${MON[D(m).getUTCMonth()]}</b>`).join('')}</span></div></div>`}
+function bindTrack(){document.querySelectorAll('#below .trow').forEach(n=>n.onclick=()=>{S.week=n.dataset.wk;all()})}
 const dayS=s=>s.replace('R','Th').replace('S','Sa');
 function timeStr(c){
   if(!c.sess.length)return /asynch/i.test(c.delivery)?'Online async':'Time TBA';
@@ -544,16 +565,16 @@ function renderCal(){{const ag=$('#agenda');if(ag)ag.hidden=true;$('#cal').style
     br.filter(o=>o.date===date).forEach(o=>inner+=`<div class="brk" style="top:${y(o.from)}px;height:${y(o.to)-y(o.from)}px"><span>${esc(o.label)}</span></div>`);
     const day=[...evs,...ghost].filter(e=>e.date===date).sort((p,q)=>p.from-q.from||q.to-p.to);const lanes=[];day.forEach(e=>{let l=lanes.findIndex(t=>t<=e.from);if(l<0){l=lanes.length;lanes.push(0)}lanes[l]=e.to;e.l=l});
     day.forEach(e=>{e.n=Math.max(...day.filter(o=>o.from<e.to&&e.from<o.to).map(o=>o.l))+1});
-    day.forEach(e=>{const clash=!e.ghost&&(day.some(o=>o!==e&&!o.ghost&&o.from<e.to&&e.from<o.to)||br.some(o=>o.date===date&&o.from<e.to&&e.from<o.to));const w=100/e.n;
+    day.forEach(e=>{const clash=!e.ghost&&(day.some(o=>o!==e&&!o.ghost&&o.from<e.to&&e.from<o.to)||br.some(o=>o.date===date&&o.from<e.to&&e.from<o.to));const sc=isShortC(e.c);const w=100/e.n,ww=sc&&e.n===1?62:w;
       const t=Math.max(0,y(e.from)),hh=Math.max(18,y(e.to)-y(e.from)-2);const c=e.c;const sub=fT(e.from)+'–'+fT(e.to)+(c.profs[0]?' · '+last(c.profs[0]):'');
-      inner+=`<div class="ev ${colorOf(c.id)}${clash?' x':''}${e.ghost?' ghost':''}" data-g="${esc(c.code)}" style="top:${t}px;height:${hh}px;left:calc(${e.l*w}% + 2px);width:calc(${w}% - 4px)" title="${esc(fmtCode(c)+' '+c.name+' '+sub)}"><b>${phone()?c.code.replace(/^[A-Z]+/,''):fmtCode(c)}</b>${esc(phone()?fT(e.from):fT(e.from)+'–'+fT(e.to))}</div>`});
+      inner+=`<div class="ev ${colorOf(c.id)}${clash?' x':''}${e.ghost?' ghost':''}${sc?' sc':''}" data-g="${esc(c.code)}" style="top:${t}px;height:${hh}px;left:calc(${e.l*w}% + 2px);width:calc(${ww}% - 4px)" title="${esc(fmtCode(c)+' '+c.name+' '+sub)}"><b>${phone()?c.code.replace(/^[A-Z]+/,''):fmtCode(c)}</b>${esc(phone()?fT(e.from):fT(e.from)+'–'+fT(e.to))}${sc?`<span class="scl">${esc(spanLab(c))}</span>`:''}</div>`});
     h+=`<div class="col" style="height:${(H1-H0)*H}px">${inner}</div>`}
   $('#cal').innerHTML=h;$('#cal').querySelectorAll('.ev').forEach(n=>n.onclick=()=>{ret=null;S.open=n.dataset.g;if(phone())S.pane='courses';all();if(phone())window.scrollTo(0,0)});
   renderBelow()}
 function renderBelow(){
   const cs=ids().map(i=>byId[i]);const tba=cs.filter(c=>!c.sess.length);const sh=cs.filter(c=>c.sess.length&&!c.sess.some(s=>(D(s.end)-D(s.start))/864e5>20));const {P,B}=conflicts(ids());
   const cl=Object.entries(P).map(([k,v])=>`<li class="no">${esc(k)} · ${v.length>3?v.length+' dates from '+fD(v[0]):v.map(fD).join(', ')}</li>`).join('')+Object.entries(B).map(([k,v])=>`<li class="wn">${esc(k)} · ${v.length} dates</li>`).join('');
-  $('#below').innerHTML=(tba.length?`<div><h5>No fixed time</h5><ul>${tba.map(c=>`<li>${fmtCode(c)} · ${esc(timeStr(c))}</li>`).join('')}</ul></div>`:'')+(sh.length?`<div><h5>Intensives</h5><ul>${sh.map(c=>`<li>${fmtCode(c)} · ${esc(timeStr(c))}</li>`).join('')}</ul></div>`:'')+(cl?`<div><h5>Clashes across the term</h5><ul>${cl}</ul></div>`:'')}
+  $('#below').innerHTML=(tba.length?`<div><h5>No fixed time</h5><ul>${tba.map(c=>`<li>${fmtCode(c)} · ${esc(timeStr(c))}</li>`).join('')}</ul></div>`:'')+(cl?`<div><h5>Clashes across the term</h5><ul>${cl}</ul></div>`:'')+termTrack(cs);bindTrack()}
 $('#copy').onclick=e=>{e.stopPropagation();const t=S.scheds[S.active].name+'\n'+ids().map(i=>{const c=byId[i];return fmtCode(c)+'-'+c.sec+'  '+c.name+'  '+c.cu+' cr  '+c.profs.map(last).join('; ')+'  '+timeStr(c)}).join('\n');const b=$('#copy');try{navigator.clipboard.writeText(t).then(()=>{b.textContent='Copied';setTimeout(()=>{b.textContent='Copy course list';setMenu(null)},1000)},()=>{b.textContent='Copy blocked'})}catch(e){b.textContent='Copy blocked'}};
 document.addEventListener('keydown',e=>{if(e.key==='/'&&!/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$('#q').focus()}if(e.key==='Escape'){if(openMenu){setMenu(null);return}if(document.body.classList.contains('fopen')){setFopen(false);return}if(S.open)closeDetail()}});
 $('#ics').onclick=e=>{e.stopPropagation();const pad=x=>String(x).padStart(2,'0');const dt=(d,m)=>d.replace(/-/g,'')+'T'+pad(Math.floor(m/60))+pad(m%60)+'00';const BY={M:'MO',T:'TU',W:'WE',R:'TH',F:'FR',S:'SA',U:'SU'};
