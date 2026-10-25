@@ -103,6 +103,9 @@ a{color:var(--info)}
 .sec .typ{font-size:11px;color:var(--muted)}
 .sec .pr{font-weight:700;color:var(--ink-strong);font-size:13px}
 .sec .s2{grid-column:1;font-size:11px;color:var(--muted)}
+.citem .crole{display:block;font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--brand-ink)}
+.sec .s2.alt{grid-column:1/-1;font-style:italic}
+.trow .tl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .plus{width:28px;height:28px;border-radius:50%;font-size:20px;line-height:1;color:var(--faint);display:grid;place-items:center}
 .plus:hover{background:var(--ground);color:var(--brand)}
 .plus.in{color:var(--brand)}
@@ -377,10 +380,10 @@ const cSpan=c=>[c.sess.map(s=>s.start).sort()[0],c.sess.map(s=>s.end).sort().sli
 const isShortC=c=>c.topic!=='mba'&&!!c.sess.length&&(/Short|Compressed/.test(c.attr||'')||(D(cSpan(c)[1])-D(cSpan(c)[0]))/864e5<=45);
 const spanLab=c=>{const [a,b]=cSpan(c),n=Math.ceil(((D(b)-D(a))/864e5+1)/7);return (n<=1?'1 wk':n+' wks')+' · '+fD(a)+'–'+fD(b)};
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function termTrack(cs){const L=cs.filter(isShortC);if(!L.length)return '';const A=D(R0),Z=D(SEM1),tot=(Z-A)/864e5;const px=s=>Math.max(0,Math.min(100,(D(s)-A)/864e5/tot*100));
+function termTrack(cs){const L=cs.filter(c=>isShortC(c)||(c.topic==='mba'&&c.sess.length)).sort((a,b)=>cSpan(a)[0]<cSpan(b)[0]?-1:1);if(!L.length)return '';const A=D(R0),Z=D(SEM1),tot=(Z-A)/864e5;const px=s=>Math.max(0,Math.min(100,(D(s)-A)/864e5/tot*100));
   const ms=[];for(let d=new Date(Date.UTC(A.getUTCFullYear(),A.getUTCMonth()+1,1));d<=Z;d=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,1)))ms.push(iso(d));
   const ticks=ms.map(m=>`<em style="left:${px(m)}%"></em>`).join('');
-  return `<div class="track"><h5>Short courses across the term</h5>${L.map(c=>{const [a,b]=cSpan(c);const wk=WEEKS.filter(w=>w<=a).pop()||WEEKS[0];return `<button type="button" class="trow" data-wk="${wk}" title="Show the week of ${fD(wk)}"><span class="tl">${fmtCode(c)} · ${esc(spanLab(c))}</span><span class="tbar">${ticks}<i class="${colorOf(c.id)}" style="left:${px(a)}%;width:${Math.max(1.2,px(b)-px(a)+100/tot)}%"></i></span></button>`}).join('')}<div class="tmo"><span></span><span class="tbar">${ms.map(m=>`<b style="left:${px(m)}%">${MON[D(m).getUTCMonth()]}</b>`).join('')}</span></div></div>`}
+  return `<div class="track"><h5>${L.some(c=>c.topic==='mba')?'Short courses and MBA blocks across the term':'Short courses across the term'}</h5>${L.map(c=>{const [a,b]=cSpan(c);const wk=WEEKS.filter(w=>w<=a).pop()||WEEKS[0];return `<button type="button" class="trow" data-wk="${wk}" title="Show the week of ${fD(wk)}"><span class="tl" title="${esc(c.name+' · '+spanLab(c))}">${esc(c.name)} · ${esc(spanLab(c))}</span><span class="tbar">${ticks}<i class="${colorOf(c.id)}" style="left:${px(a)}%;width:${Math.max(1.2,px(b)-px(a)+100/tot)}%"></i></span></button>`}).join('')}<div class="tmo"><span></span><span class="tbar">${ms.map(m=>`<b style="left:${px(m)}%">${MON[D(m).getUTCMonth()]}</b>`).join('')}</span></div></div>`}
 function bindTrack(){document.querySelectorAll('#below .trow').forEach(n=>n.onclick=()=>{S.week=n.dataset.wk;all()})}
 const dayS=s=>s.replace('R','Th').replace('S','Sa');
 function timeStr(c){
@@ -398,7 +401,8 @@ let S={group:'none',pane:'courses',wview:'grid',mday:0,view:'all',q:'',sort:'cod
 let dropped=0;
 try{const s=JSON.parse(localStorage.getItem(STORE));if(s&&s.scheds&&s.term===TERM.label){S=Object.assign(S,s);S.f=Object.assign(F0(),s.f||{});
   const keep=i=>{if(byId[i])return true;dropped++;return false};S.cart=S.cart.filter(keep);S.scheds.forEach(x=>x.ids=x.ids.filter(i=>byId[i]));if(!S.scheds.length)S.scheds=[{name:'Schedule 1',ids:[]}];if(S.active>=S.scheds.length)S.active=0}}catch(e){}
-if(ME)(ME.schedules||[]).forEach(x=>{if(!S.scheds.some(y=>y.name===x.name)){const v=(x.ids||[]).filter(i=>byId[i]);S.scheds.push({name:x.name,ids:v});v.forEach(i=>{if(!S.cart.includes(i))S.cart.push(i)})}});
+if(ME&&ME.v&&S.meV!==ME.v){S.scheds=(ME.schedules||[]).map(x=>({name:x.name,ids:(x.ids||[]).filter(i=>byId[i])}));if(!S.scheds.length)S.scheds=[{name:'Schedule 1',ids:[]}];S.cart=[];S.scheds.flatMap(x=>x.ids).concat(ME.cart||[]).forEach(i=>{if(byId[i]&&!S.cart.includes(i))S.cart.push(i)});S.active=0;S.meV=ME.v}
+else if(ME)(ME.schedules||[]).forEach(x=>{if(!S.scheds.some(y=>y.name===x.name)){const v=(x.ids||[]).filter(i=>byId[i]);S.scheds.push({name:x.name,ids:v});v.forEach(i=>{if(!S.cart.includes(i))S.cart.push(i)})}});
 S.pane='courses';
 const mq=window.matchMedia('(max-width:720px)');const phone=()=>mq.matches;try{mq.addEventListener('change',()=>all())}catch(e){}
 const save=()=>{try{localStorage.setItem(STORE,JSON.stringify(S))}catch(e){}};
@@ -509,7 +513,7 @@ function renderDetail(el){const g=GROUPS[S.open];if(!g){S.open=null;renderResult
     h+=`<div class="sec"><div class="s1"><span class="num">${esc(s.sec)}</span><span class="typ">${/Online/.test(s.delivery)?'ONLINE':'IN PERSON'}</span><span class="pr">${esc(p)}</span>${rmpA(s)}${perm(s)?'<span class="mini perm">Permission</span>':''}${s.easl&&s.easl!==e?`<span class="mini easl">${EASL_LABEL[s.easl]}</span>`:''}</div>
       ${ev2[0]==='—'?'<span></span>':`<span class="badge ${ev2[1]}" title="${esc(s.eval||'')}">${ev2[0]}</span>`}
       <button class="plus${inC?' in':''}" type="button" data-id="${s.id}" aria-label="${inC?'Remove from':'Add to'} cart: ${esc(fmtCode(s)+' '+s.sec)}">${inC?'✓':'+'}</button>
-      <div class="s2">${esc(timeStr(s))} · ${esc(s.cu)} CR${s.cap?` · <span class="seat${s.cap<=20?' small':''}" title="Seat cap from CaneLink${DATA.seats_read?', read '+DATA.seats_read:''}${s.open!=null&&s.open<s.cap?'; '+s.open+' open':''}">${s.open!=null&&s.open<s.cap?s.open+' of ':''}${s.cap} seats${s.cap<=20?' · small class':''}</span>`:''}</div></div>`;
+      <div class="s2">${esc(timeStr(s))} · ${esc(s.cu)} CR${s.cap?` · <span class="seat${s.cap<=20?' small':''}" title="Seat cap from CaneLink${DATA.seats_read?', read '+DATA.seats_read:''}${s.open!=null&&s.open<s.cap?'; '+s.open+' open':''}">${s.open!=null&&s.open<s.cap?s.open+' of ':''}${s.cap} seats${s.cap<=20?' · small class':''}</span>`:''}</div>${s.alt?`<div class="s2 alt">${esc(s.alt)}</div>`:''}</div>`;
     if(s.eval)h+=`<div class="small" style="padding:0 2px 10px;border-bottom:1px solid var(--line)">${esc(s.eval)}</div>`});
   h+='</div></div>';el.innerHTML=h;
   $('#back').onclick=closeDetail;if($('#more'))$('#more').onclick=()=>{DOPEN=DOPEN===S.open?null:S.open;renderDetail(el)};
@@ -525,7 +529,7 @@ function renderMidTabs(){const el=$('#midtabs');el.innerHTML='';[['cart','Cart']
 function renderMid(){if(S.mid!=='breaks')S.mid='cart';const el=$('#mid');if(S.mid==='cart')renderCart(el);else{el.innerHTML='';const w=document.createElement('div');w.style.padding='14px 16px';el.appendChild(w);renderBreaks(w)}}
 function renderCart(el){if(!S.cart.length){el.innerHTML=`<div class="empty"><svg viewBox="0 0 120 90" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20h12l10 40h46l8-28H36"/><circle cx="46" cy="72" r="5"/><circle cx="80" cy="72" r="5"/></svg><b>Your cart is empty</b>Open a course and press + on a section to add it.</div>`;return}
   const cr=S.cart.reduce((a,i)=>a+cuNum(byId[i]),0);
-  el.innerHTML=S.cart.map(i=>{const c=byId[i];const on=ids().includes(i);return `<div class="citem${on?'':' off'}" data-id="${i}"><input type="checkbox" id="cart-${i}" ${on?'checked':''} aria-label="Show ${esc(fmtCode(c))} on this schedule"><span class="sw ${colorOf(i)}"></span><div style="min-width:0"><b>${fmtCode(c)}-${esc(c.sec)} · ${esc(c.cu)} cr</b><span>${esc(c.name)}</span><br><span>${esc(timeStr(c))}${c.profs.length?' · '+esc(c.profs.map(last).join(', ')):''}${c.cap?` · <span class="seat${c.cap<=20?' small':''}">${c.cap} seats</span>`:''}</span></div><button class="x" type="button" aria-label="Remove ${esc(fmtCode(c))} from cart">×</button></div>`}).join('')+`<div class="ctot"><span>${S.cart.length} in cart · ${cr} credits</span><span>Tick to show on the schedule</span></div>`;
+  el.innerHTML=S.cart.map(i=>{const c=byId[i];const on=ids().includes(i);return `<div class="citem${on?'':' off'}" data-id="${i}"><input type="checkbox" id="cart-${i}" ${on?'checked':''} aria-label="Show ${esc(fmtCode(c))} on this schedule"><span class="sw ${colorOf(i)}"></span><div style="min-width:0"><b>${fmtCode(c)}-${esc(c.sec)} · ${esc(c.cu)} cr</b>${ME&&ME.notes&&ME.notes[key(c)]?`<span class="crole">${esc(ME.notes[key(c)].split(/[.:](?:\s|$)/)[0])}</span>`:''}<span>${esc(c.name)}</span><br><span>${esc(timeStr(c))}${c.profs.length?' · '+esc(c.profs.map(last).join(', ')):''}${c.cap?` · <span class="seat${c.cap<=20?' small':''}">${c.cap} seats</span>`:''}</span></div><button class="x" type="button" aria-label="Remove ${esc(fmtCode(c))} from cart">×</button></div>`}).join('')+`<div class="ctot"><span>${S.cart.length} in cart · ${cr} credits</span><span>Tick to show on the schedule</span></div>`;
   el.querySelectorAll('.citem').forEach(n=>{const id=n.dataset.id;n.querySelector('input').onchange=e=>{const a=ids(),j=a.indexOf(id);e.target.checked?(j<0&&a.push(id)):(j>=0&&a.splice(j,1));if(e.target.checked)jump(byId[id]);all()};
     n.querySelector('.x').onclick=e=>{e.stopPropagation();toggleCart(id)};n.onclick=e=>{if(e.target.closest('input,.x'))return;ret=null;S.open=byId[id].code;if(phone())S.pane='courses';all();if(phone())window.scrollTo(0,0)}})}
 function stats(){const all0=ids().map(i=>byId[i]);const cs=all0.filter(c=>c.topic!=='mba');const mba=all0.filter(c=>c.topic==='mba').reduce((a,c)=>a+cuNum(c),0);const cr=x=>x.reduce((a,c)=>a+cuNum(c),0);
