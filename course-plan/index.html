@@ -138,7 +138,9 @@ a{color:var(--info)}
 .ev.x::after{content:"!";position:absolute;right:4px;top:3px;width:14px;height:14px;border-radius:50%;background:var(--bad);color:var(--on-bad);font-size:11px;font-weight:800;display:grid;place-items:center}
 .ev.ghost{opacity:.75;outline:1.5px dashed currentColor;outline-offset:-2px}
 .k0{background:var(--k0);color:var(--k0i)}.k1{background:var(--k1);color:var(--k1i)}.k2{background:var(--k2);color:var(--k2i)}.k3{background:var(--k3);color:var(--k3i)}.k4{background:var(--k4);color:var(--k4i)}.k5{background:var(--k5);color:var(--k5i)}.k6{background:var(--k6);color:var(--k6i)}.k7{background:var(--k7);color:var(--k7i)}
-.ev.sc{background-image:repeating-linear-gradient(135deg,var(--sc-hatch) 0 2px,transparent 2px 8px);box-shadow:inset 3px 0 0 currentColor;border-radius:4px}
+.ev.sc{background:transparent;box-shadow:none;border:1px dashed currentColor;border-radius:6px;opacity:.92}
+.ev.sc .evn{font-weight:600}
+.ev.sc:hover{opacity:1}
 .ev .scl{display:block;font-size:10px;font-weight:700;letter-spacing:.02em;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .track{grid-column:1/-1}
 .trow{display:grid;grid-template-columns:minmax(150px,230px) 1fr;gap:10px;align-items:center;width:100%;padding:4px 0;text-align:left;font:inherit;font-size:12px;color:var(--ink);background:none;border:0;cursor:pointer}
@@ -386,7 +388,7 @@ function timeStr(c){
   if(long.length)return long.map(s=>dayS(s.days)+' '+fT(s.from)+'–'+fT(s.to)+((D(s.end)-D(s.start))/864e5<80?' ('+fD(s.start)+'–'+fD(s.end)+')':'')).join(', ');
   const a=c.sess.map(s=>s.start).sort()[0],b=c.sess.map(s=>s.end).sort().slice(-1)[0];return 'Intensive '+fD(a)+'–'+fD(b)}
 function occ(s,a,b){const o=[];const x=D(s.start>a?s.start:a),y=D(s.end<b?s.end:b);for(let d=x;d<=y;d=add(d,1))if(s.days.includes(DC[d.getUTCDay()]))o.push({date:iso(d),from:s.from,to:s.to});return o}
-const cOcc=(c,a,b)=>{let o=[];c.sess.forEach(s=>occ(s,a,b).forEach(x=>o.push(Object.assign(x,{id:c.id}))));return o};
+const cOcc=(c,a,b)=>{let o=[];c.sess.forEach(s=>occ(s,a,b).forEach(x=>o.push(Object.assign(x,{id:c.id,span:(D(s.end)-D(s.start))/864e5}))));return o};
 const ov=(a,b)=>a.date===b.date&&a.from<b.to&&b.from<a.to;
 
 const STORE='mlcp-public-v1';
@@ -578,9 +580,9 @@ function renderCal(){{const ag=$('#agenda');if(ag)ag.hidden=true;$('#cal').style
     br.filter(o=>o.date===date).forEach(o=>inner+=`<div class="brk" style="top:${y(o.from)}px;height:${y(o.to)-y(o.from)}px"><span>${esc(o.label)}</span></div>`);
     const day=[...evs,...ghost].filter(e=>e.date===date).sort((p,q)=>p.from-q.from||q.to-p.to);const lanes=[];day.forEach(e=>{let l=lanes.findIndex(t=>t<=e.from);if(l<0){l=lanes.length;lanes.push(0)}lanes[l]=e.to;e.l=l});
     day.forEach(e=>{e.n=Math.max(...day.filter(o=>o.from<e.to&&e.from<o.to).map(o=>o.l))+1});
-    day.forEach(e=>{const clash=!e.ghost&&(day.some(o=>o!==e&&!o.ghost&&o.from<e.to&&e.from<o.to)||br.some(o=>o.date===date&&o.from<e.to&&e.from<o.to));const sc=isShortC(e.c);const w=100/e.n,ww=sc&&e.n===1?80:w;
+    day.forEach(e=>{const clash=!e.ghost&&(day.some(o=>o!==e&&!o.ghost&&o.from<e.to&&e.from<o.to)||br.some(o=>o.date===date&&o.from<e.to&&e.from<o.to));const one=e.span!=null&&e.span<7&&!isShortC(e.c);const sc=isShortC(e.c)||one;const w=100/e.n,ww=sc&&e.n===1?80:w;
       const t=Math.max(0,y(e.from)),hh=Math.max(18,y(e.to)-y(e.from)-2);const c=e.c;const sub=fT(e.from)+'–'+fT(e.to)+(c.profs[0]?' · '+last(c.profs[0]):'');
-      inner+=`<div class="ev ${colorOf(c.id)}${clash?' x':''}${e.ghost?' ghost':''}${sc?' sc':''}" data-g="${esc(c.code)}" style="top:${t}px;height:${hh}px;left:calc(${e.l*w}% + 2px);width:calc(${ww}% - 4px)" title="${esc(fmtCode(c)+' '+c.name+' '+sub)}"><b class="evn">${esc(c.name)}</b><span class="evm">${phone()?c.code.replace(/^[A-Z]+/,''):fmtCode(c)} · ${esc(phone()?fT(e.from):fT(e.from)+'–'+fT(e.to))}</span>${sc?`<span class="scl">${esc(spanLab(c))}</span>`:''}</div>`});
+      inner+=`<div class="ev ${colorOf(c.id)}${clash?' x':''}${e.ghost?' ghost':''}${sc?' sc':''}" data-g="${esc(c.code)}" style="top:${t}px;height:${hh}px;left:calc(${e.l*w}% + 2px);width:calc(${ww}% - 4px)" title="${esc(fmtCode(c)+' '+c.name+' '+sub)}"><b class="evn">${esc(c.name)}</b><span class="evm">${phone()?c.code.replace(/^[A-Z]+/,''):fmtCode(c)} · ${esc(phone()?fT(e.from):fT(e.from)+'–'+fT(e.to))}</span>${sc?`<span class="scl">${esc(one?(e.span===0?'One day · '+DN[DAYS[(D(e.date).getUTCDay()+6)%7]]+' '+fD(e.date):'This week only'):spanLab(c))}</span>`:''}</div>`});
     h+=`<div class="col" style="height:${(H1-H0)*H}px">${inner}</div>`}
   $('#cal').innerHTML=h;$('#cal').querySelectorAll('.ev').forEach(n=>n.onclick=()=>{ret=null;S.open=n.dataset.g;if(phone())S.pane='courses';all();if(phone())window.scrollTo(0,0)});
   renderBelow()}
