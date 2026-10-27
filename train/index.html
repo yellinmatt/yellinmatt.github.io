@@ -233,6 +233,11 @@ html[data-motion="off"] [data-lvnum].lvmove,html[data-motion="off"] text[data-lv
 .wgn{font-size:12px;font-weight:800;color:var(--sub);text-align:right;letter-spacing:-.01em;
   padding-left:4px}
 .wghead{margin-bottom:2px}
+.wstreak{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.wsk{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--sub)}
+.wsk b{font-size:17px;font-weight:800;letter-spacing:-.01em;color:var(--ink);text-transform:none}
+.wsk b small{font-size:11px;font-weight:700;color:var(--sub);margin-left:2px}
+.wsk.zero b{color:var(--sub)}
 .wgd{font-size:12px;font-weight:700;color:var(--sub);background:none;border:0;padding:0;
   text-align:center;position:relative;font-family:inherit}
 .wgd.today{color:var(--accent)}
@@ -1778,7 +1783,7 @@ a.planrow{color:inherit;text-decoration:none}
 
 <script>
 "use strict";
-var VERSION="v27.3";
+var VERSION="v27.4";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2290,15 +2295,11 @@ function sessionDayIndex(){
   for(var r in (S.runs||{}))if(S.runs[r])SDIX[r]=true;
   return SDIX;
 }
-function didAnything(k){
-  if(S.done[k])return true;
-  if(sessionDayIndex()[k])return true;
-  var a=S.anchor[k];
-  if(a){for(var i in a){if(a[i])return true;}}
-  var vd=(S.progress||{}).vdone||{};
-  for(var id in vd){if(vd[id]===k)return true;}
-  return false;
+function exerciseOn(k){
+  if(S.runs&&S.runs[k])return true;
+  return (S.sessions||[]).some(function(s){return s.date===k&&!s.draft&&(s.type==="lift"||s.type==="run"||s.type==="activity");});
 }
+function didAnything(k){return exerciseOn(k);}
 function isDone(k){return didAnything(k);}
 function longestStreak(){
   var ks=Object.keys(sessionDayIndex()).concat(Object.keys(S.done||{}),Object.keys(S.anchor||{}));
@@ -2383,6 +2384,14 @@ function prFor(exId){var ex=LIB[exId];if(!ex||ex.unit==="s")return null;var best
 function computeStreak(){refreshDate();var s=0,d=new Date(NOW);if(!isDone(keyOf(d)))d.setDate(d.getDate()-1);
   for(var i=0;i<500;i++){var k=keyOf(d);if(isDone(k)||tdRestPlanned(k)){s++;d.setDate(d.getDate()-1);}else break;}return s;}
 function didKindOn(kind,k){return kind==="lift"?strengthOn(k):cardioDayOn(k);}
+function dayStreak(pred){refreshDate();var d=new Date(NOW),n=0;if(!pred(keyOf(d)))d.setDate(d.getDate()-1);
+  for(var i=0;i<1000;i++){if(!pred(keyOf(d)))break;n++;d.setDate(d.getDate()-1);}return n;}
+function streakLineHTML(){
+  var L=kindStreak("lift"),C=kindStreak("cardio"),St=dayStreak(stepsHitOn),M=dayStreak(anchorComplete);
+  function it(lab,n,u){return '<span class="wsk'+(n?'':' zero')+'"><span>'+lab+'</span><b class="num">'+n+'<small>'+u+'</small></b></span>';}
+  return '<div class="wstreak" role="note" aria-label="Streaks: strength '+L+' weeks, cardio '+C+' weeks, steps '+St+' days, morning '+M+' days">'+
+    it("Strength",L,"wk")+it("Cardio",C,"wk")+it("Steps",St,"d")+it("Morning",M,"d")+'</div>';
+}
 function weekKeyOf(d){var x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return keyOf(x);}
 function kindInWeek(kind,mondayKey){
   var p=mondayKey.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
@@ -3219,7 +3228,7 @@ function renderToday(){
       var on=!!wkMk[ix][key],future=(o.k>TODAY);
       if(key==="strength"&&PLAN_CACHE){var _ld=liftDayDone(o.k);if(_ld!=null)on=_ld;}
       if(on&&!future)n++;
-      var pd=PLAN_CACHE?tdPlanDay(o.k):undefined,pl=PLAN_CACHE?!!(pd&&!pd.blocked&&(key==="strength"?(pd.items||[]).length:(pd.cardio||[]).length)):true;
+      var pd=PLAN_CACHE?tdPlanDay(o.k):undefined,pl=(key==="steps"||key==="morning")?true:(PLAN_CACHE?!!(pd&&!pd.blocked&&(key==="strength"?(pd.items||[]).length:(pd.cardio||[]).length)):true);
       var st=on?" on":(pl?(future?" ahead":""):" none");
       cells+='<span class="wgc" data-k="'+o.k+'"><i class="'+cls+' wgm'+st+'"></i></span>';});
     return '<div class="wgrow" role="row" aria-label="'+label+', '+n+' of the days so far">'+
@@ -3227,7 +3236,10 @@ function renderToday(){
   }
   var dots='<div class="wgrow wghead" role="row">'+wgHead+'</div>'+
     wgRowHTML("Strength","strength","dpip")+
-    wgRowHTML("Cardio","cardio","dpip");
+    wgRowHTML("Cardio","cardio","dpip")+
+    wgRowHTML("Steps","steps","dpip")+
+    wgRowHTML("Morning","morning","dan")+
+    streakLineHTML();
   var _wkMoved=0,_wkElapsed=0;
   weekDays(0).forEach(function(_k){
     if(_k>TODAY)return;
@@ -4532,7 +4544,7 @@ function stepMedian(days){
 }
 function stepTarget(){
   var m=stepMedian(28)||stepMedian(90);
-  if(isBW()){var L=bwLadder("steps");
+  if(true){var L=bwLadder("steps");
     return {t:L.t,from:(m?m.med:null),n:(m?m.n:0),of:(m?m.of:0),capped:L.t>=BW.steps.cap,seed:L.seed,earned:L.earned};}
   if(!m)return null;
   var t=Math.round(m.med*RESEARCH.stepsRung/250)*250;
@@ -6369,14 +6381,14 @@ function dayMarks(k){
   var cardioOK=S.sessions.some(function(s){
     return s.date===k&&(s.type==="run"||s.type==="activity")&&((s.distanceMi||0)>0||(s.durationSec||0)>=600);});
   var st=stepsOn(k);
-  if(!cardioOK&&st!=null&&st>=stepTarget().t)cardioOK=true;
   if(!cardioOK){var ov=(S.cardioTick||{})[k]||{};
     var ranK=S.sessions.some(function(s){return s.date===k&&s.type==="run"&&(s.distanceMi||0)>0;});
     var walkTick=(ov.walk||ov.steps);
     if((st==null&&walkTick)||(!ranK&&ov.run))cardioOK=true;}
   return {morning:anchorComplete(k),
-          strength:S.sessions.some(function(s){return s.date===k&&s.type==="lift";}),
-          cardio:cardioOK};
+          strength:S.sessions.some(function(s){return s.date===k&&s.type==="lift"&&!s.draft;}),
+          cardio:cardioOK,
+          steps:stepsHitOn(k)};
 }
 function bodyLight(){
   var st=null;try{st=weightStats();}catch(e){}
@@ -7522,7 +7534,6 @@ function consistencyOn(endKey,by){
   var d=dayFromKey(endKey||TODAY);
   for(var i=0;i<7;i++){var k=keyOf(d),x=by[k];
     if(x){R+=x.rounds;DC+=liftDayCredit(x);H.push+=x.hard.push;H.pull+=x.hard.pull;H.lower+=x.hard.lower;H.trunk+=x.hard.trunk;}
-    AC+=anchorDayCredit(k);
     d.setDate(d.getDate()-1);}
   var hs=Math.min(8,H.push)+Math.min(8,H.pull)+Math.min(8,H.lower)+Math.min(8,H.trunk);
   var anchorOnly=0.55*Math.min(1,AC/DAYCREDIT_TARGET7);
@@ -7993,11 +8004,6 @@ function pastItems(kind){
         out.push({date:x.date,head:(sc?sc+" min":"logged"),sub:"Cardio · no distance",rec:x});
       }
     });
-    Object.keys(S.steps||{}).forEach(function(k){
-      if(seenC[k]||k>TODAY)return;
-      var v=stepsOn(k); if(v==null||!stepsHitOn(k))return;
-      out.push({date:k,head:tNum(v),sub:"Steps · goal met",rec:null});
-    });
   }else{
     var seen={};
     (S.sessions||[]).forEach(function(x){
@@ -8140,16 +8146,10 @@ function strengthOn(k){
   if(puDayReps(k)>0)return true;
   return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift";});
 }
-function movedOn(k){
-  if(strengthOn(k)||ranOn(k)||stepsHitOn(k))return true;
-  var a=(S.anchor||{})[k];
-  if(a){for(var x in a){if(a[x])return true;}}
-  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";});
-}
+function movedOn(k){return exerciseOn(k);}
 function cardioDayOn(k){
   if(ranOn(k))return true;
-  if((S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";}))return true;
-  return stepsHitOn(k);
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="activity";});
 }
 function cardioDoneWhat(k){
   var run=null,act=null;
