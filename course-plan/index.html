@@ -249,6 +249,11 @@ body.fopen .fwrap{display:block;position:absolute;left:0;right:0;top:100%;margin
 .mwrap{position:relative}
 .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:35;background:var(--raise);border-radius:var(--r);box-shadow:0 0 0 1px var(--pill),0 16px 40px rgba(0,0,0,.5);padding:6px;min-width:210px;display:flex;flex-direction:column}
 .menu[hidden]{display:none}
+.cbtn{font:inherit;color:inherit;background:none;border:0;padding:3px 7px;margin:-3px -7px;border-radius:8px;cursor:pointer}.cbtn i{font-style:normal;font-size:10px;margin-left:4px}
+.cmenu{left:0;right:auto;min-width:250px;max-height:min(60vh,430px);overflow:auto}.cmenu h4{text-transform:none;letter-spacing:0;font-size:12px}.cmenu .cm{color:var(--muted);font-size:12px;font-weight:400}
+.below li.no{cursor:pointer}
+@media (max-width:720px){.sum{position:relative}.sum .mwrap{position:static}.cmenu{left:12px;right:12px;min-width:0}}
+@media (hover:hover){.cbtn:hover{background:rgba(255,255,255,.06)}.below li.no:hover{text-decoration:underline;text-underline-offset:2px}}
 .menu h4{margin:8px 10px 4px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .menu button{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;color:var(--ink-strong)}
 .menu button[aria-checked="true"]::after{content:"✓";color:var(--brand);font-weight:700}
@@ -383,6 +388,8 @@ const iso=d=>d.toISOString().slice(0,10);const add=(d,n)=>new Date(d.getTime()+n
 const DC=['U','M','T','W','R','F','S'];const DAYS=['M','T','W','R','F','S','U'];const DN={M:'Mon',T:'Tue',W:'Wed',R:'Thu',F:'Fri',S:'Sat',U:'Sun'};
 const SEM0=TERM.classes_start,SEM1=TERM.classes_end,R0=TERM.view_start,R1=TERM.view_end;
 const WEEKS=[];for(let d=D(R0);d<=D(R1);d=add(d,7))WEEKS.push(iso(d));
+const wkOf=d=>{let w=WEEKS[0];for(const x of WEEKS){if(x<=d)w=x;else break}return w};
+function goClash(w,dates){S.week=w;const f=(dates||[]).filter(d=>wkOf(d)===w).sort()[0];if(f)S.mday=Math.round((D(f)-D(w))/864e5);all()}
 const fT=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'p':'a';h=h%12||12;return h+(mm?':'+String(mm).padStart(2,'0'):'')+a};
 const fTL=m=>{let h=Math.floor(m/60),mm=m%60,a=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(mm).padStart(2,'0')+' '+a};
 const fD=s=>{const d=D(s);return (d.getUTCMonth()+1)+'/'+d.getUTCDate()};
@@ -471,7 +478,7 @@ $('#fdone').onclick=()=>{setFopen(false);if(phone()){S.pane='courses';all();wind
 $('#fclear').onclick=()=>{S.f=F0();S.view='all';all()};
 $('#scrim').onclick=()=>setFopen(false);
 let openMenu=null;
-function setMenu(k){openMenu=k;[['view','#viewBtn','#viewMenu'],['exp','#expBtn','#expMenu']].forEach(([n,b,m])=>{$(m).hidden=openMenu!==n;$(b).setAttribute('aria-expanded',openMenu===n)})}
+function setMenu(k){openMenu=k;[['view','#viewBtn','#viewMenu'],['exp','#expBtn','#expMenu'],['clash','#clashBtn','#clashMenu']].forEach(([n,b,m])=>{const mm=$(m),bb=$(b);if(!mm||!bb)return;mm.hidden=openMenu!==n;bb.setAttribute('aria-expanded',openMenu===n)})}
 $('#viewBtn').onclick=e=>{e.stopPropagation();setMenu(openMenu==='view'?null:'view')};
 $('#expBtn').onclick=e=>{e.stopPropagation();setMenu(openMenu==='exp'?null:'exp')};
 $('#viewMenu').onclick=e=>e.stopPropagation();
@@ -575,12 +582,13 @@ let renaming=false,deleting=false;
 function renderSchedHead(){const sel=$('#schedSel');sel.innerHTML=S.scheds.map((s,i)=>`<option value="${i}" ${i===S.active?'selected':''}>${esc(s.name)}</option>`).join('')+'<option value="new">+ New schedule</option><option value="dup">Duplicate this one</option><option value="ren">Rename this one</option>'+(S.scheds.length>1?'<option value="del">Delete this one</option>':'');
   sel.onchange=e=>{const v=e.target.value;if(v==='new'){S.scheds.push({name:'Schedule '+(S.scheds.length+1),ids:[]});S.active=S.scheds.length-1}else if(v==='dup'){S.scheds.push({name:S.scheds[S.active].name+' copy',ids:ids().slice()});S.active=S.scheds.length-1}else if(v==='ren'){renaming=true}else if(v==='del'){deleting=true}else S.active=+v;all()};
   const w=$('#week');w.innerHTML=WEEKS.map(x=>`<option value="${x}" ${x===S.week?'selected':''}>Week of ${fD(x)}${x<SEM0?' · before classes':x>SEM1?' · exams':''}</option>`).join('');w.onchange=e=>{S.week=e.target.value;all()}}
-function renderSum(){const s=stats();const n=Object.keys(conflicts(ids()).P).length;const el=$('#sum');
+function renderSum(){const s=stats();const {P}=conflicts(ids());const n=Object.keys(P).length;const el=$('#sum');
   if(renaming){el.innerHTML=`<input class="sel" id="rn" value="${esc(S.scheds[S.active].name)}" aria-label="Schedule name" style="width:200px"><button class="btn pri" id="rnOk" type="button">Save name</button><button class="btn" id="rnX" type="button">Cancel</button>`;$('#rnOk').onclick=()=>{S.scheds[S.active].name=$('#rn').value.trim()||S.scheds[S.active].name;renaming=false;all()};$('#rnX').onclick=()=>{renaming=false;all()};return}
   if(deleting){el.innerHTML=`<span>Delete “${esc(S.scheds[S.active].name)}”? Courses stay in your cart.</span><button class="btn" id="dlOk" type="button" style="color:var(--bad);border-color:var(--bad)">Delete</button><button class="btn" id="dlX" type="button">Keep it</button>`;$('#dlOk').onclick=()=>{S.scheds.splice(S.active,1);S.active=0;deleting=false;all()};$('#dlX').onclick=()=>{deleting=false;all()};return}
   const tg=[[s.wr,'writing'],[s.sk,'skills cr'],[s.bar,'bar subj'],[s.easl.reduce((a,x)=>a+x[1],0),'EASL cr']].filter(x=>x[0]).map(([v,l])=>`<span class="tg"><b>${v}</b>${l}</span>`).join('')+(s.pr?'<span class="tg">Prof Resp</span>':'');
   const load=s.cr>16?'<span class="wn" title="17 credits needs the Registrar form">Over 16</span>':s.cr&&s.cr<11?'<span class="wn" title="Full time for upper-level students is 11 to 16 credits">Under 11</span>':'';
-  el.innerHTML=`<span><b>${s.cr}</b>credits</span>${load}${s.mba?`<span><b>${s.mba}</b>MBA cr</span>`:''}<span><b class="${n?'no':'ok'}">${n}</b>conflicts</span>${tg}`}
+  el.innerHTML=`<span><b>${s.cr}</b>credits</span>${load}${s.mba?`<span><b>${s.mba}</b>MBA cr</span>`:''}${n?`<span class="mwrap"><button type="button" class="cbtn" id="clashBtn" aria-haspopup="true" aria-expanded="${openMenu==='clash'}" title="Jump to a week with a clash"><b class="no">${n}</b>conflict${n>1?'s':''}<i aria-hidden="true">▾</i></button><div class="menu cmenu" id="clashMenu" role="menu"${openMenu==='clash'?'':' hidden'}>${Object.entries(P).map(([k,v])=>`<h4>${esc(k)}</h4>`+[...new Set(v.map(wkOf))].sort().map(w=>`<button type="button" role="menuitemradio" data-k="${esc(k)}" data-wk="${w}" aria-checked="${w===S.week}">Week of ${fD(w)}<span class="cm">${v.filter(d=>wkOf(d)===w).map(fD).join(', ')}</span></button>`).join('')).join('')}</div></span>`:`<span><b class="ok">0</b>conflicts</span>`}${tg}`;
+  const cb=$('#clashBtn');if(cb){cb.onclick=e=>{e.stopPropagation();setMenu(openMenu==='clash'?null:'clash')};$('#clashMenu').onclick=e=>{e.stopPropagation();const b=e.target.closest('button[data-wk]');if(b)goClash(b.dataset.wk,P[b.dataset.k])}}}
 function renderAgenda(){const wk=S.week,d0=D(wk);const uses=d=>ids().some(i=>byId[i].sess.some(s=>s.days.includes(d)));const ND=uses('U')?7:uses('S')?6:5;if(S.mday>=ND)S.mday=0;
   const {P}=conflicts(ids());const clashDates=new Set(Object.values(P).flat());
   let h=`<div class="agenda"><div class="dchips" style="--nd:${ND}">`;
@@ -621,8 +629,9 @@ function renderCal(){{const ag=$('#agenda');if(ag)ag.hidden=true;$('#cal').style
   renderBelow()}
 function renderBelow(){
   const cs=ids().map(i=>byId[i]);const tba=cs.filter(c=>!c.sess.length);const sh=cs.filter(c=>c.sess.length&&!c.sess.some(s=>(D(s.end)-D(s.start))/864e5>20));const {P,B}=conflicts(ids());
-  const cl=Object.entries(P).map(([k,v])=>`<li class="no">${esc(k)} · ${v.length>3?v.length+' dates from '+fD(v[0]):v.map(fD).join(', ')}</li>`).join('')+Object.entries(B).map(([k,v])=>`<li class="wn">${esc(k)} · ${v.length} dates</li>`).join('');
-  $('#below').innerHTML=(tba.length?`<div><h5>No fixed time</h5><ul>${tba.map(c=>`<li>${fmtCode(c)} · ${esc(timeStr(c))}</li>`).join('')}</ul></div>`:'')+(cl?`<div><h5>Clashes across the term</h5><ul>${cl}</ul></div>`:'')+termTrack(cs);bindTrack()}
+  const cl=Object.entries(P).map(([k,v])=>`<li class="no" role="button" tabindex="0" data-k="${esc(k)}" title="Jump to the next week with this clash">${esc(k)} · ${v.length>3?v.length+' dates from '+fD(v[0]):v.map(fD).join(', ')}</li>`).join('')+Object.entries(B).map(([k,v])=>`<li class="wn">${esc(k)} · ${v.length} dates</li>`).join('');
+  $('#below').innerHTML=(tba.length?`<div><h5>No fixed time</h5><ul>${tba.map(c=>`<li>${fmtCode(c)} · ${esc(timeStr(c))}</li>`).join('')}</ul></div>`:'')+(cl?`<div><h5>Clashes across the term</h5><ul>${cl}</ul></div>`:'')+termTrack(cs);bindTrack();
+  document.querySelectorAll('#below li.no[data-k]').forEach(li=>{const go=()=>{const v=P[li.dataset.k]||[];const ws=[...new Set(v.map(wkOf))].sort();if(!ws.length)return;goClash(ws.find(w=>w>S.week)||ws[0],v)};li.onclick=go;li.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}})}
 $('#share').onclick=e=>{e.stopPropagation();const s=S.scheds[S.active];const u=location.origin+location.pathname+'#s='+encodeURIComponent(TERM.label)+'~'+encodeURIComponent(s.name)+'~'+s.ids.join('.');const b=$('#share');
   const done=t=>{b.textContent=t;setTimeout(()=>{b.textContent='Copy share link';setMenu(null)},1200)};if(!s.ids.length){done('Schedule is empty');return}try{navigator.clipboard.writeText(u).then(()=>done('Link copied'),()=>done('Copy blocked'))}catch(err){done('Copy blocked')}};
 function readShare(){const m=location.hash.match(/^#s=([^~]*)~([^~]*)~([\w.]*)$/);if(!m)return;let term,name;try{term=decodeURIComponent(m[1]);name=decodeURIComponent(m[2]).slice(0,60)||'Shared'}catch(e){return}
