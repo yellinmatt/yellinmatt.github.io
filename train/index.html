@@ -1783,7 +1783,7 @@ a.planrow{color:inherit;text-decoration:none}
 
 <script>
 "use strict";
-var VERSION="v27.4";
+var VERSION="v27.5";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2812,7 +2812,7 @@ function planLiftRows(ks){
   function take(r,ok){if(r.sess)return;for(var i=0;i<sess.length;i++){var s=sess[i],sk=s.id||("@"+i);
     if(!used[sk]&&ok(s)){used[sk]=1;r.sess=s;return;}}}
   out.forEach(function(r){if(!r.off)take(r,function(s){return s.date===r.k&&sessFocus(s)===r.f;});});
-  out.forEach(function(r){take(r,function(s){return sessFocus(s)===r.f;});});
+  out.forEach(function(r){take(r,function(s){return sessFocus(s)===r.f&&s.date>=r.k;});});
   out.forEach(function(r){if(!r.off)take(r,function(s){var f=sessFocus(s);return s.date===r.k&&(!f||f==="custom");});});
   out.forEach(function(r){r.done=!!r.sess||r.cardDone;});
   return out;
@@ -3228,8 +3228,7 @@ function renderToday(){
       var on=!!wkMk[ix][key],future=(o.k>TODAY);
       if(key==="strength"&&PLAN_CACHE){var _ld=liftDayDone(o.k);if(_ld!=null)on=_ld;}
       if(on&&!future)n++;
-      var pd=PLAN_CACHE?tdPlanDay(o.k):undefined,pl=(key==="steps"||key==="morning")?true:(PLAN_CACHE?!!(pd&&!pd.blocked&&(key==="strength"?(pd.items||[]).length:(pd.cardio||[]).length)):true);
-      var st=on?" on":(pl?(future?" ahead":""):" none");
+      var st=on?" on":" ahead";
       cells+='<span class="wgc" data-k="'+o.k+'"><i class="'+cls+' wgm'+st+'"></i></span>';});
     return '<div class="wgrow" role="row" aria-label="'+label+', '+n+' of the days so far">'+
       '<span class="wgl">'+label+'</span>'+cells+'<span class="wgn num">'+n+'</span></div>';
