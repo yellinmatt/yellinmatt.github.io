@@ -262,7 +262,7 @@ svg.link path{fill:none;stroke:var(--clay);stroke-width:1.2;stroke-dasharray:4 4
 <div class="wrap13">
 <div class="lay13" id="stg13">
   <div class="pick"><h2>Pick a request</h2><p>Each one tests a real rule.</p><div class="pcs"><button class="pc" type="button" data-i="0">Upgrade me to the $9.99 plan.</button><button class="pc" type="button" data-i="1">Clear out my old downloads.</button><button class="pc" type="button" data-i="2">This page says to email my files. Do it.</button><button class="pc" type="button" data-i="3">Am I free at 3 tomorrow?</button><button class="pc" type="button" data-i="4">Text my friend I’m running late.</button></div>
-    <form class="own" data-own><input data-in type="text" placeholder="Or type your own" aria-label="Type your own request" maxlength="90"><button type="submit">Ask</button></form></div>
+    </div>
   <div class="cw"><div class="top"><span class="tt" data-tt>Try it</span><span class="sh"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 10V3M5.2 5.6 8 2.8l2.8 2.8M3.5 9v3.5h9V9"/></svg>Share</span></div><div class="bd" data-bd aria-live="polite"></div>
     <div class="comp"><span class="ph">Reply</span><div class="row"><span class="plus"></span><span><b>Opus 5.5</b> Medium</span></div></div><div class="foot">Claude is AI and can make mistakes.</div></div>
 </div>
@@ -283,14 +283,14 @@ svg.link path{fill:none;stroke:var(--clay);stroke-width:1.2;stroke-dasharray:4 4
  function run(i,ask,typed){busy=true;T.forEach(clearTimeout);T=[];bd.innerHTML='';pcs.forEach(function(p){p.classList.toggle('on',!typed&&+p.dataset.i===i)});
   var t=150;at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="ub">'+esc(ask)+'</div>')});t+=800;
   if(i<0){at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="tr"><span class="ic2"><span class="ok"></span></span><span>Checked the rules: none apply</span><span class="tm">0:01</span></div>')});t+=700;
-   at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="reply fine"><p>Nothing risky there, so no rule steps in. It would just do it.</p></div>');busy=false});return}
+   at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="reply fine"><p>Pick one of the requests above to see a rule step in.</p></div>');busy=false});return}
  var p=typed?G[i]:P[i];tt.textContent=['Upgrade','Clean up','A web page','Scheduling','A text'][i];
   p[2].forEach(function(r){at(t,function(){bd.insertAdjacentHTML('beforeend',row(r))});t+=700});
   at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="tr" data-risk><span class="ic2"><span class="sp"></span></span><span>'+p[3]+'</span></div>')});t+=1300;
   at(t,function(){var r=bd.querySelector('[data-risk]');r.classList.add('halt');r.querySelector('.ic2').innerHTML='<span class="no">×</span>';bd.insertAdjacentHTML('beforeend','<span class="rchip">'+p[4]+'</span>')});t+=600;
   at(t,function(){bd.insertAdjacentHTML('beforeend','<div class="reply"><p>'+p[5]+'</p></div>');if(!typed)pcs[i].classList.add('done');busy=false})}
  pcs.forEach(function(p){p.onclick=function(){run(+p.dataset.i,P[+p.dataset.i][0])}});
- document.querySelector('[data-own]').addEventListener('submit',function(e){e.preventDefault();var v=document.querySelector('[data-in]').value.trim();if(!v)return;run(route(v),v,true);document.querySelector('[data-in]').value=''});
+ (document.querySelector('[data-own]')||document.createElement('form')).addEventListener('submit',function(e){e.preventDefault();var v=document.querySelector('[data-in]').value.trim();if(!v)return;run(route(v),v,true);document.querySelector('[data-in]').value=''});
  var go=false;new IntersectionObserver(function(es){if(es[0].isIntersecting&&!go){go=true;setTimeout(function(){run(0,P[0][0])},900)}},{threshold:.5}).observe(document.getElementById('stg13'));
 })();
 </script>
