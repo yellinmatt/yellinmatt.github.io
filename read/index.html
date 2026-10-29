@@ -1,0 +1,845 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Read</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: https://*.mzstatic.com https://covers.openlibrary.org https://*.archive.org; connect-src https://itunes.apple.com https://openlibrary.org; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#F4F5F7">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Read">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{
+  --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#ECEEF2; --ink:#10131A; --sub:#5E6573; --faint:#757C88;
+  --line:#E5E8ED; --accent:#2A55D4; --accent-tint:#E6ECFB; --on-accent:#FFFFFF;
+  --good:#12814A; --good-tint:#E2F4EA; --flame:#C25A00; --flame-tint:#FCEBD9; --danger:#C62828;
+  --scrim:rgba(14,17,24,.42); --shadow:0 1px 2px rgba(14,17,24,.04),0 4px 14px rgba(14,17,24,.06);
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --r:16px; color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B0D12; --surface:#151922; --surface-2:#1D222D; --ink:#F2F4F8; --sub:#A0A7B4; --faint:#7D8594;
+  --line:#262C38; --accent:#7D9BFF; --accent-tint:#1E2747; --on-accent:#0B0D12;
+  --good:#3DD68C; --good-tint:#13301F; --flame:#FFA34D; --flame-tint:#3A2410; --danger:#FF6B6B;
+  --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0D12; --surface:#151922; --surface-2:#1D222D; --ink:#F2F4F8; --sub:#A0A7B4; --faint:#7D8594;
+  --line:#262C38; --accent:#7D9BFF; --accent-tint:#1E2747; --on-accent:#0B0D12;
+  --good:#3DD68C; --good-tint:#13301F; --flame:#FFA34D; --flame-tint:#3A2410; --danger:#FF6B6B;
+  --scrim:rgba(0,0,0,.6); --shadow:none; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--bg);color:var(--ink);margin:0}
+body{font-family:var(--sans);font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+main{max-width:640px;margin:0 auto;padding-block:calc(12px + env(safe-area-inset-top,0px)) 120px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:8px 14px}
+header.top .acts{display:flex;gap:8px}
+h1{font-size:28px;font-weight:700;letter-spacing:-.02em;margin:0}
+h2{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--sub);margin:26px 4px 8px}
+.iconbtn{width:44px;height:44px;border-radius:22px;border:0;background:var(--surface);box-shadow:var(--shadow);display:grid;place-items:center;flex:none}
+.iconbtn svg{width:20px;height:20px}
+.card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:16px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.sub{color:var(--sub)} .faint{color:var(--faint);font-size:13px}
+.btn{min-height:44px;border:0;border-radius:12px;padding:0 18px;font-weight:600;background:var(--surface-2)}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.good{background:var(--good);color:var(--on-accent)}
+.btn.ghost{background:transparent;color:var(--accent);padding:0 8px}
+.btn.danger{background:transparent;color:var(--danger)}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.5}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .l{color:var(--sub)} .row .v{font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.hero .big{font-size:44px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.hero .big small{font-size:17px;font-weight:500;color:var(--sub);letter-spacing:0}
+.bar{position:relative;height:10px;border-radius:5px;background:var(--surface-2);overflow:hidden;margin-top:14px}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:5px;transition:width .5s}
+.bar.done i{background:var(--good)}
+.bar .tick{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.5}
+.heroline{display:flex;justify-content:space-between;align-items:center;margin-top:12px;gap:8px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:14px;font-size:13px;font-weight:600;background:var(--surface-2);color:var(--sub);border:0}
+.chip.flame{background:var(--flame-tint);color:var(--flame)}
+.chip.good{background:var(--good-tint);color:var(--good)}
+button.chip{min-height:36px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px}
+.week div{text-align:center;font-size:11px;color:var(--faint)}
+.week b{display:block;margin:4px auto 0;width:26px;height:26px;border-radius:13px;background:var(--surface-2);font-size:11px;line-height:26px;color:var(--faint);font-weight:600}
+.week b.part{background:var(--accent-tint);color:var(--accent)}
+.week b.met{background:var(--good);color:var(--on-accent)}
+.week b.today{box-shadow:inset 0 0 0 2px var(--accent)}
+.cover{flex:none;width:52px;aspect-ratio:2/3;border-radius:4px 6px 6px 4px;display:flex;align-items:flex-end;padding:5px;color:#fff;font-family:var(--serif);font-size:8px;line-height:1.1;overflow:hidden;position:relative;box-shadow:inset 3px 0 0 rgba(0,0,0,.18)}
+img.cover{padding:0!important;object-fit:cover;background:var(--surface-2);display:block;height:auto;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.cover.lg{width:96px;font-size:13px;padding:8px}
+.cover.xl{width:132px;font-size:17px;padding:10px}
+.cbook{display:flex;gap:14px;align-items:flex-start}
+.cbook .meta{min-width:0;flex:1}
+.btitle{font-family:var(--serif);font-weight:600;font-size:19px;line-height:1.2;letter-spacing:-.005em;text-wrap:balance}
+.bauthor{color:var(--sub);font-size:14px;margin-top:2px}
+.pbar{height:6px;border-radius:3px;background:var(--surface-2);margin-top:10px;overflow:hidden}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.cbook .facts{font-size:13px;color:var(--sub);margin-top:6px}
+.cbook .acts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.cbook .acts .btn{padding:0 14px;min-height:40px}
+.tap{border:0;background:transparent;padding:0;text-align:left;display:block;width:100%}
+.search{width:100%;height:44px;border-radius:12px;border:0;background:var(--surface);box-shadow:var(--shadow);padding:0 14px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 2px 4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;min-height:36px;border-radius:18px;border:0;padding:0 14px;background:var(--surface);box-shadow:var(--shadow);font-size:14px;font-weight:600;color:var(--sub)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.chips button span{font-weight:500;opacity:.7;margin-left:4px}
+.list{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.li{display:flex;gap:12px;align-items:center;width:100%;border:0;background:transparent;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);min-height:64px}
+.li:last-child{border-bottom:0}
+.li .cover{width:34px;font-size:0;padding:0}
+.li .m{flex:1;min-width:0}
+.li .tt{font-family:var(--serif);font-weight:600;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .aa{font-size:13px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .rr{font-size:13px;color:var(--faint);text-align:right;flex:none}
+.sortrow{display:flex;justify-content:space-between;align-items:center;margin:10px 4px}
+.sortrow select{border:0;background:transparent;color:var(--accent);font-weight:600;min-height:36px}
+.yearhead{display:flex;justify-content:space-between;align-items:baseline;margin:22px 4px 8px}
+.yearhead b{font-size:20px;font-weight:700}
+.yearhead span{font-size:13px;color:var(--sub)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface-2);border-radius:10px;padding:3px;gap:3px}
+.seg button{border:0;background:transparent;min-height:36px;border-radius:8px;font-weight:600;color:var(--sub)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+.tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tile{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);padding:14px}
+.tile .k{font-size:13px;color:var(--sub)} .tile .n{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.tile .c{font-size:12px;color:var(--faint);margin-top:2px}
+.chart{width:100%;height:auto;display:block}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.calhead b{font-family:var(--serif);font-size:22px;font-weight:600}
+.calsum{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;margin:4px 0 14px;gap:4px}
+.calsum b{display:block;font-size:20px;font-variant-numeric:tabular-nums}
+.calsum span{font-size:11px;color:var(--sub);text-transform:uppercase;letter-spacing:.05em}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal .dow{font-size:11px;color:var(--faint);text-align:center;font-weight:600}
+.cal button{position:relative;aspect-ratio:2/3;border:0;border-radius:6px;background:var(--surface-2);padding:0;overflow:hidden;min-width:0}
+.cal button.empty{background:transparent}
+.cal button span{position:absolute;left:4px;top:3px;font-size:11px;font-weight:600;color:var(--faint)}
+.cal button img,.cal button .cover{position:absolute;inset:0;width:100%;height:100%;border-radius:4px;object-fit:cover}
+.cal button img.second{inset:auto 0 0 auto;width:62%;height:62%;box-shadow:-2px -2px 0 var(--surface)}
+.cal button.met{box-shadow:inset 0 0 0 2px var(--good)}
+.cal button.today span{color:var(--accent)}
+.cal button.has span{color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);z-index:2}
+.dots{display:grid;grid-template-columns:24px repeat(24,1fr);gap:2px;align-items:center;font-size:10px;color:var(--faint)}
+.dots i{height:10px;border-radius:5px;background:var(--surface-2)}
+.dots i.l1{background:var(--accent-tint)} .dots i.l2{background:color-mix(in srgb,var(--accent) 55%,var(--surface))} .dots i.l3{background:var(--accent)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:saturate(1.6) blur(18px);-webkit-backdrop-filter:saturate(1.6) blur(18px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+nav.tabs .in{max-width:640px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr 76px 1fr 1fr;align-items:center;height:60px}
+nav.tabs button{border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;font-weight:600;color:var(--faint);min-height:52px;justify-content:center}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-current="page"]{color:var(--accent)}
+nav.tabs .readbtn{width:60px;height:60px;border-radius:30px;margin:-22px auto 0;background:var(--accent);color:var(--on-accent);box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 40%,transparent)}
+nav.tabs .readbtn.live{background:var(--good)}
+nav.tabs .readbtn svg{width:26px;height:26px}
+.livebanner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:19;background:var(--good);color:var(--on-accent);border:0;border-radius:22px;min-height:44px;padding:0 18px;font-weight:600;box-shadow:var(--shadow)}
+.scrim{position:fixed;inset:0;background:var(--scrim);z-index:55;opacity:0;transition:opacity .2s}
+.scrim.on{opacity:1}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:56;max-height:92vh;overflow-y:auto;background:var(--bg);border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);padding-block:10px calc(24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheet.on{transform:none}
+.sheet .in{max-width:600px;margin:0 auto}
+.grab{width:36px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.shead{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.shead h3{margin:0;font-size:20px;font-weight:700}
+.bookhero{margin:-10px calc(-1 * max(16px,env(safe-area-inset-left,0px))) 0;padding:18px max(16px,env(safe-area-inset-left,0px)) 18px;border-radius:20px 20px 0 0;color:#fff;transition:background .4s}
+.bookhero .bauthor,.bookhero .faint{color:rgba(255,255,255,.78)}
+.bookhero .iconbtn{background:rgba(255,255,255,.18);color:#fff;box-shadow:none}
+label.f{display:block;font-size:13px;color:var(--sub);margin:14px 2px 6px}
+.in input[type=text],.in input[type=search],.in input[type=number],.in input[type=date],.in input[type=datetime-local],.in select,.in textarea{width:100%;min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--surface);padding:8px 12px}
+.in textarea{min-height:80px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prog3{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px;text-align:center;margin-top:12px}
+.prog3 div{background:var(--surface);border-radius:12px;padding:10px 6px}
+.prog3 div.cur{box-shadow:inset 0 0 0 2px var(--accent)}
+.prog3 small{display:block;font-size:12px;color:var(--sub);margin-bottom:4px}
+.prog3 input{width:100%;border:0;background:transparent;text-align:center;font-size:24px;font-weight:700;min-height:36px;padding:0}
+.prog3 b{font-size:24px;font-variant-numeric:tabular-nums;color:var(--faint)}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:44px;height:44px;border-radius:12px;border:0;background:var(--surface-2);font-size:20px;font-weight:600}
+.stepper input{text-align:center;font-weight:700;font-size:20px}
+.stars{display:flex;gap:4px}
+.stars button{width:40px;height:44px;border:0;background:transparent;padding:0;color:var(--flame)}
+.stars svg{width:30px;height:30px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pills button{min-height:36px;border-radius:18px;border:1px solid var(--line);background:var(--surface);padding:0 14px;font-weight:600;font-size:14px;color:var(--sub)}
+.pills button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.ledger .lrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.ledger .lrow:last-child{border-bottom:0}
+.ledger .d{width:44px;text-align:center;flex:none}
+.ledger .d small{display:block;font-size:11px;color:var(--faint);font-weight:600}
+.ledger .d b{font-size:20px}
+.ledger .t{flex:1;min-width:0}
+.ledger .t b{display:block;font-size:13px;letter-spacing:.04em}
+.ledger .t span{font-size:13px;color:var(--sub)}
+.ledger .ok{width:26px;height:26px;border-radius:13px;border:2px solid var(--line);flex:none}
+.ledger .ok.on{background:var(--good);border-color:var(--good)}
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.cgrid button{border:0;background:transparent;padding:0;text-align:left;min-width:0}
+.cgrid img{width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:6px;background:var(--surface-2);display:block}
+.cgrid span{display:block;font-size:11px;color:var(--sub);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.notice{background:var(--flame-tint);color:var(--flame);border-radius:12px;padding:12px 14px;font-weight:600;font-size:14px;text-align:center;max-width:340px;width:100%}
+.rt{position:fixed;inset:0;z-index:50;background:var(--bg);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(20px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));transition:background .6s}
+.rt.dim{--bg:#07080B;--ink:#E9E3D6;--sub:#8F8A80;--surface-2:#16181D;--surface:#101217;--line:#22252C;color-scheme:dark}
+.rt .close{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));left:max(12px,env(safe-area-inset-left,0px))}
+.rt .lamp{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+.rt .clock.long{font-size:58px}
+.rt .clock{font-size:76px;font-weight:300;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1}
+.rt .goalline{color:var(--sub);font-size:15px;text-align:center}
+.rt .ring{width:240px;height:240px;position:relative;display:grid;place-items:center}
+.rt .ring svg{position:absolute;inset:0}
+.rt .pick{border:0;background:var(--surface);border-radius:14px;padding:10px 14px;display:flex;gap:12px;align-items:center;max-width:340px;width:100%;text-align:left;box-shadow:var(--shadow)}
+.rt .ctrl{display:flex;gap:12px;width:100%;max-width:340px}
+.rt .ctrl .btn{flex:1;min-height:54px;font-size:17px;border-radius:16px}
+.rt .opts{display:flex;gap:10px}
+.toggle{min-height:36px;border-radius:18px;border:1px solid var(--line);background:transparent;padding:0 14px;font-size:13px;font-weight:600;color:var(--sub)}
+.toggle[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);z-index:60;background:var(--ink);color:var(--bg);border-radius:20px;padding:10px 18px;font-weight:600;transition:transform .3s;max-width:90vw}
+.toast.on{transform:translate(-50%,0)}
+.empty{padding:28px 16px;text-align:center;color:var(--sub)}
+.sess{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);align-items:center}
+.sess:last-child{border-bottom:0}
+.sess button{border:0;background:transparent;color:var(--accent);font-weight:600;min-height:44px;padding:0 6px}
+.syn{font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--ink);margin:14px 0 0}
+.welcome{max-width:460px;margin:8vh auto 0;text-align:center}
+.welcome h1{font-family:var(--serif);font-size:40px;font-weight:600}
+.welcome ol{text-align:left;color:var(--sub);line-height:1.6;padding-left:20px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<main id="app"></main>
+<nav class="tabs" aria-label="Sections"><div class="in">
+  <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Tonight</button>
+  <button data-tab="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16.5 4.6l3.8 1 -3.9 14.8-3.8-1z"/></svg>Library</button>
+  <button class="readbtn" id="readbtn" aria-label="Start Reading Time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/></svg></button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button data-tab="log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>Log</button>
+</div></nav>
+<div class="scrim" id="scrim" hidden></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" hidden><div class="in" id="sheetin"></div></div>
+<div class="rt" id="rt" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const BUILD = "public";          // "private": library baked in (claude.ai preview). "public": empty shell, data restored from a backup.
+const SEED = null;
+const LS = "read_v1";
+const DAY_ROLL_H = 4;               // a session at 1am counts toward the night before
+const SEED_V = 4;
+const SHELVES = ["Reading","Up Next","Queue","Maybe","Paused","Read","DNF","Reference","Pass","Hidden"];
+const SHELF_LABEL = {"Reading":"Reading","Up Next":"Up Next","Queue":"Want to Read","Maybe":"Maybe","Paused":"Stopped","Read":"Finished","DNF":"Did Not Finish","Reference":"Reference","Pass":"Pass","Hidden":"Not a book"};
+const RANK = ["Read","Reading","Up Next","DNF","Paused","Queue","Reference","Maybe","Pass","Hidden"];
+const DEFAULT_PACE = 0.75;          // pages per minute until his own sessions say otherwise
+const DEF_SETTINGS = {goalType:"minutes",dailyMin:20,dailyPages:20,yearGoal:6,theme:"system",dimDefault:true,idleMin:90};
+
+function fromSeed(b){ return {id:b.id,title:b.t,subtitle:b.sub||"",series:b.ser||"",seriesNo:b.sno||"",isbn:b.isbn||"",author:b.a,genre:b.g||"",
+  pages:b.p||0,status:b.s,rating:b.r||0,syn:b.syn||"",format:normFormat(b.fmt||(b.k?"Ebook":"")),unit:"page",page:b.page||0,recBy:"",
+  started:b.started||"",finished:b.fin||"",fuzzy:b.s==="Read"&&!b.fin?(b.fuzzy||"Not sure"):(b.fuzzy||""),notes:"",added:"2026-09-20",
+  tier:b.tier||"",merged:b.merged||[],cu:b.cu||"",hideWhy:b.hideWhy||""}; }
+function normFormat(f){ return ({Physical:"Print",Kindle:"Ebook","Apple Books":"Ebook",PDF:"Ebook",Audiobook:"Audio"})[f]||f||""; }
+function emptyStore(){ return {v:2,seedV:SEED_V,books:{},sessions:[],activity:[],timer:null,settings:{...DEF_SETTINGS},created:Date.now()}; }
+function seedStore(){
+  const st=emptyStore(); if(!SEED) return st;
+  SEED.books.forEach(b=>st.books[b.id]=fromSeed(b));
+  st.activity=(SEED.activity||[]).map(a=>({id:uid(),...a}));
+  st.settings.yearGoal=SEED.yearGoal||DEF_SETTINGS.yearGoal;
+  return st;
+}
+function migrate(){
+  normalize();
+  if(!SEED||(S.seedV||1)>=SEED_V) return;
+  const fresh=seedStore(), remap={};
+  Object.values(fresh.books).forEach(f=>(f.merged||[]).forEach(old=>remap[old]=f.id));
+  Object.values(S.books).forEach(b=>{
+    const id=remap[b.id]||b.id, f=fresh.books[id];
+    if(!f){ fresh.books[id]=b; return; }
+    f.rating=b.rating||f.rating; f.recBy=b.recBy||""; f.notes=b.notes||""; f.page=Math.max(f.page||0,b.page||0);
+    if(b.pages&&!f.pages) f.pages=b.pages;
+  });
+  S.sessions.forEach(x=>{ if(remap[x.bookId]) x.bookId=remap[x.bookId]; });
+  const seen=new Set(S.activity.map(a=>a.day+a.bookId+a.src));
+  fresh.activity.forEach(a=>{ if(!seen.has(a.day+a.bookId+a.src)) S.activity.push(a); });
+  S.books=fresh.books; S.settings.yearGoal=fresh.settings.yearGoal; S.seedV=SEED_V; save();
+}
+function normalize(){
+  S.v=2; S.sessions=S.sessions||[]; S.activity=S.activity||[];
+  S.settings=Object.assign({},DEF_SETTINGS,S.settings||{});
+  Object.values(S.books).forEach(b=>{ b.format=normFormat(b.format); b.unit=b.unit||"page"; b.cu=b.cu||""; });
+  if(S.timer&&S.timer.runFrom==null) S.timer=null;
+}
+let S;
+function load(){ try{ const raw=localStorage.getItem(LS); if(raw) S=JSON.parse(raw); }catch(e){}
+  if(!S||!S.books) S=BUILD==="public"?emptyStore():seedStore();
+  migrate(); }
+function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){} }
+function hasLibrary(){ return Object.keys(S.books).length>0; }
+
+const pad=n=>String(n).padStart(2,"0");
+function keyOf(ts){ const d=new Date(ts-DAY_ROLL_H*3600e3); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function todayKey(){ return keyOf(Date.now()); }
+function addDays(k,n){ const [y,m,d]=k.split("-").map(Number); const x=new Date(y,m-1,d+n); return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate()); }
+function dateOfKey(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+const WD=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"], MO=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+function fmtDay(k){ const d=dateOfKey(k); return WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate(); }
+function fmtMin(m){ m=Math.round(m); if(m<60) return m+" min"; const h=Math.floor(m/60), r=m%60; return h+"h"+(r?" "+r+"m":""); }
+function fmtClock(ms){ const s=Math.max(0,Math.floor(ms/1000)); const h=Math.floor(s/3600), m=Math.floor(s%3600/60), x=s%60; return (h?h+":"+pad(m):m)+":"+pad(x); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const typo=s=>String(s??"").replace(/'/g,"’");
+function fullTitle(b){ return b.title+(b.subtitle&&b.title.length<5?": "+b.subtitle:""); }
+
+function dayData(){ // minutes, pages and books per night, from timed sessions and logged progress
+  const d={}; const at=k=>d[k]||(d[k]={min:0,pages:0,books:[],active:false});
+  S.sessions.forEach(s=>{ const x=at(keyOf(new Date(s.start).getTime())); x.min+=s.min; x.active=true;
+    if(s.toPage>s.fromPage) x.pages+=s.toPage-s.fromPage; if(!x.books.includes(s.bookId)) x.books.push(s.bookId); });
+  S.activity.forEach(a=>{ const x=at(a.day); x.active=true;
+    if(a.toPage!=null&&a.fromPage!=null&&a.toPage>a.fromPage) x.pages+=a.toPage-a.fromPage; if(a.bookId&&!x.books.includes(a.bookId)) x.books.push(a.bookId); });
+  return d;
+}
+function goalSpec(){ const s=S.settings; return s.goalType==="pages"?{type:"pages",n:Math.max(1,+s.dailyPages||20),unit:"pages"}:s.goalType==="any"?{type:"any",n:1,unit:""}:{type:"minutes",n:Math.max(1,+s.dailyMin||20),unit:"min"}; }
+function dayMet(x){ if(!x) return false; const g=goalSpec(); return g.type==="any"?x.active:g.type==="pages"?x.pages>=g.n:x.min>=g.n; }
+function dayAmount(x){ const g=goalSpec(); if(!x) return 0; return g.type==="pages"?x.pages:g.type==="any"?(x.active?1:0):x.min; }
+function streakInfo(){
+  const d=dayData(), t=todayKey(); const met=k=>dayMet(d[k]);
+  let cur=0, k=met(t)?t:addDays(t,-1); while(met(k)){ cur++; k=addDays(k,-1); }
+  let best=0, run=0; const keys=Object.keys(d).sort();
+  if(keys.length){ let x=keys[0]; while(x<=t){ if(met(x)){run++;best=Math.max(best,run);}else run=0; x=addDays(x,1);} }
+  return {cur,best,todayMet:met(t),today:d[t]||{min:0,pages:0,books:[],active:false},days:d};
+}
+function pace(){ const cut=Date.now()-60*864e5; let p=0,m=0;
+  S.sessions.forEach(s=>{ if(new Date(s.start).getTime()>=cut&&s.toPage>s.fromPage&&s.min>=3){p+=s.toPage-s.fromPage;m+=s.min;} });
+  return m>=30?{ppm:p/m,own:true}:{ppm:DEFAULT_PACE,own:false}; }
+function bookPace(id){ let p=0,m=0; S.sessions.forEach(s=>{ if(s.bookId===id&&s.toPage>s.fromPage&&s.min>=3){p+=s.toPage-s.fromPage;m+=s.min;} }); return m>=20?p/m:null; }
+function nightlyMinutes(){ const g=goalSpec(); return g.type==="minutes"?g.n:g.type==="pages"?g.n/pace().ppm:20; }
+function projection(b){
+  if(!b.pages) return null;
+  const left=Math.max(0,b.pages-(b.page||0)), ppm=bookPace(b.id)||pace().ppm, mins=left/ppm, nights=Math.ceil(mins/nightlyMinutes());
+  return {left,mins,nights,by:addDays(todayKey(),Math.max(0,nights-1)),pct:Math.min(100,Math.round((b.page||0)/b.pages*100))};
+}
+function bookMinutes(id){ return S.sessions.filter(s=>s.bookId===id).reduce((a,s)=>a+s.min,0); }
+function booksBy(status){ return Object.values(S.books).filter(b=>b.status===status); }
+function finishYear(b){ return b.finished?b.finished.slice(0,4):(/(\d{4})/.exec(b.fuzzy||"")||[])[1]||""; }
+function finishedIn(year){ return Object.values(S.books).filter(b=>b.status==="Read"&&finishYear(b)===String(year)); }
+function progressLabel(b){ if(!b.pages) return "Page "+(b.page||0); return b.unit==="percent"?Math.round((b.page||0)/b.pages*100)+"%":"Page "+(b.page||0)+" of "+b.pages; }
+
+function hue(id){ let h=0; for(const c of String(id)) h=(h*31+c.charCodeAt(0))>>>0; return h%360; }
+function drawnCover(b,cls){ const h=hue(b.id||b.title); return `<div class="cover ${cls}" style="background:linear-gradient(160deg,hsl(${h} 45% 38%),hsl(${(h+30)%360} 50% 22%))" aria-hidden="true"><span>${esc(b.title)}</span></div>`; }
+function coverSrc(b){ if(b.cuUser&&b.cu) return b.cu; return (window.COVERS&&COVERS[b.id])||b.cu||""; }
+function cover(b,cls=""){ const src=coverSrc(b); if(!src) return drawnCover(b,cls);
+  return `<img class="cover img ${cls}" src="${esc(src)}" alt="" loading="lazy" decoding="async" data-bid="${esc(b.id)}" data-cls="${esc(cls)}" onerror="coverFail(this)">`; }
+window.coverFail=function(img){ const b=S.books[img.dataset.bid]; if(!b){ img.remove(); return; }
+  const local=window.COVERS&&COVERS[b.id]; if(local&&img.getAttribute("src")!==local){ img.src=local; return; }
+  img.outerHTML=drawnCover(b,img.dataset.cls||""); };
+const tintCache={};
+function tintFor(b,cb){ if(tintCache[b.id]) return cb(tintCache[b.id]); const src=coverSrc(b); if(!src) return cb(null);
+  const im=new Image(); if(!src.startsWith("data:")) im.crossOrigin="anonymous";
+  im.onload=()=>{ try{ const c=document.createElement("canvas"); c.width=c.height=12; const x=c.getContext("2d"); x.drawImage(im,0,0,12,12);
+      const d=x.getImageData(0,0,12,12).data; let r=0,g=0,bl=0,n=0; for(let i=0;i<d.length;i+=4){ r+=d[i];g+=d[i+1];bl+=d[i+2];n++; }
+      r/=n;g/=n;bl/=n; const L=0.2126*r+0.7152*g+0.0722*bl, k=L>90?90/L:1; const col=`rgb(${Math.round(r*k)},${Math.round(g*k)},${Math.round(bl*k)})`;
+      tintCache[b.id]=col; cb(col); }catch(e){ cb(null); } };
+  im.onerror=()=>cb(null); im.src=src; }
+
+const I={
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  lamp:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>',
+  flame:'<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2s5 4.6 5 10a5 5 0 0 1-10 0c0-2 1-3.6 1-3.6S9 11 11 11c0-4 1-9 1-9z"/></svg>',
+  check:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
+  star:(f,i)=>`<svg viewBox="0 0 24 24"><defs><linearGradient id="h${i}"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="transparent"/></linearGradient></defs><path d="M12 2.5l2.9 6 6.6.8-4.9 4.5 1.3 6.5L12 17l-5.9 3.3 1.3-6.5L2.5 9.3l6.6-.8z" fill="${f==="full"?"currentColor":f==="half"?"url(#h"+i+")":"none"}" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>`
+};
+
+let tab="today", libShelf="Reading", libQ="", libSort="recent", statRange="week", calMonth=todayKey().slice(0,7);
+const $=s=>document.querySelector(s);
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("on"),2400); }
+function applyTheme(){ const t=S.settings.theme; if(t==="system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",t); }
+function render(){
+  if(!hasLibrary()&&BUILD==="public"&&!S.startedEmpty){ $("#app").innerHTML=viewWelcome(); document.querySelector("nav.tabs").hidden=true; return; }
+  document.querySelector("nav.tabs").hidden=false;
+  document.querySelectorAll("nav.tabs [data-tab]").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
+  $("#readbtn").classList.toggle("live",!!S.timer);
+  const v={today:viewToday,library:viewLibrary,stats:viewStats,log:viewLog}[tab]();
+  $("#app").innerHTML=v+(S.timer&&!S.timer.fresh&&$("#rt").hidden?`<button class="livebanner num" data-act="openrt">${S.timer.paused?"Paused":"Reading"} · <span id="bannerclock">${fmtClock(timerMs())}</span></button>`:"");
+}
+function viewWelcome(){
+  return `<div class="welcome"><h1>Read</h1><p class="sub">Your library lives on this phone. Bring it over once from the private copy.</p>
+  <ol><li>Open your private Read preview on claude.ai.</li><li>Settings → <b>Copy backup</b>.</li><li>Come back here and paste it below.</li></ol>
+  <div class="in"><textarea id="imp" placeholder="Paste your backup here" aria-label="Backup"></textarea></div>
+  <button class="btn primary wide" style="margin-top:12px" data-act="import">Restore my library</button>
+  <button class="btn ghost wide" style="margin-top:8px" data-act="startempty">Start with an empty library</button></div>`;
+}
+
+function goalHero(st){
+  const g=goalSpec(), t=st.today, amt=dayAmount(t);
+  if(g.type==="any") return {big:st.todayMet?"Read tonight":"Not yet",small:"",pct:st.todayMet?100:0,left:st.todayMet?"":"Any reading counts tonight"};
+  const done=Math.floor(amt), pct=Math.min(100,amt/g.n*100), left=Math.max(0,Math.ceil(g.n-amt));
+  return {big:done,small:` / ${g.n} ${g.unit}`,pct,left:st.todayMet?"":(amt>0?`${left} ${g.unit} to go`:`${g.n} ${g.unit} tonight keeps it going`)};
+}
+function viewToday(){
+  const st=streakInfo(), t=todayKey(), h=goalHero(st);
+  let week=""; const mon=addDays(t,-((dateOfKey(t).getDay()+6)%7));
+  for(let i=0;i<7;i++){ const k=addDays(mon,i), x=st.days[k], dd=dateOfKey(k);
+    week+=`<div>${WD[dd.getDay()][0]}<b class="${dayMet(x)?"met":x&&x.active?"part":""} ${k===t?"today":""}">${dd.getDate()}</b></div>`; }
+  const verdict=st.todayMet?"Goal met"+(st.today.min?" · "+fmtMin(st.today.min)+" read":""):h.left;
+  const streakChip=`<button class="chip ${st.cur?"flame":""}" data-act="streak">${I.flame}<span class="num">${st.cur}</span> night${st.cur===1?"":"s"}</button>`;
+  const reading=booksBy("Reading"), next=booksBy("Up Next");
+  const yr=new Date().getFullYear(), fin=finishedIn(yr).length, yg=+S.settings.yearGoal||0;
+  const doy=(Date.now()-new Date(yr,0,1))/864e5, expect=yg*doy/365, behind=Math.floor(expect)-fin;
+  const close=reading.map(b=>({b,p:projection(b)})).filter(x=>x.p&&x.p.left>0).sort((a,b)=>a.p.mins-b.p.mins)[0];
+  return `<header class="top"><h1>Tonight</h1><div class="acts">${streakChip}<button class="iconbtn" data-act="settings" aria-label="Settings">${I.gear}</button></div></header>
+  <section class="card hero">
+    <div class="big num">${h.big}<small>${h.small}</small></div>
+    <div class="bar ${st.todayMet?"done":""}"><i style="width:${h.pct}%"></i></div>
+    <div class="heroline"><span class="${st.todayMet?"chip good":"sub"}">${verdict}</span></div>
+    <div class="week">${week}</div>
+    ${!st.todayMet?`<button class="btn primary wide" style="margin-top:16px" data-act="openrt">Start Reading Time</button>`:""}
+  </section>
+  ${close&&reading.length>1?`<p class="faint" style="margin:10px 4px 0">${esc(typo(close.b.title))} is the closest to done: ${close.p.left} pages, about ${fmtMin(close.p.mins)}.</p>`:""}
+  <h2>Reading</h2>
+  <div class="stack">${reading.length?reading.map(bookCard).join(""):`<div class="card empty">Nothing on the Reading shelf. Pick one from Up Next.</div>`}</div>
+  ${next.length?`<h2>Up Next</h2><div class="list">${next.map(listRow).join("")}</div>`:""}
+  <h2>${yr} reading challenge</h2>
+  <div class="card">
+    <div class="row"><span class="l">Books finished</span><span class="v">${fin}${yg?" of "+yg:""}</span></div>
+    ${yg?`<div class="bar"><i style="width:${Math.min(100,fin/yg*100)}%"></i><span class="tick" style="left:${Math.min(100,expect/yg*100)}%"></span></div>
+    <div class="row"><span class="l">Pace</span><span class="v">${behind>0?behind+" behind":fin>Math.ceil(expect)?(fin-Math.ceil(expect))+" ahead":"On track"}</span></div>`:""}
+    <div class="row"><span class="l">Longest streak</span><span class="v">${st.best} night${st.best===1?"":"s"}</span></div>
+  </div>`;
+}
+function bookCard(b){
+  const p=projection(b), mins=bookMinutes(b.id);
+  const facts=b.pages?`${progressLabel(b)} · ${p.left} pages left · ~${fmtMin(p.mins)}<br>Done ${p.nights<=1?"tonight":"by "+fmtDay(p.by)} at your nightly goal`:`Add the page count to see when you’ll finish`;
+  return `<article class="card"><div class="cbook">${cover(b,"lg")}<div class="meta">
+    <button class="tap" data-act="book" data-id="${b.id}"><div class="btitle">${esc(typo(b.title))}</div><div class="bauthor">${esc(b.author)}${b.format?" · "+esc(b.format):""}</div></button>
+    ${b.pages?`<div class="pbar"><i style="width:${p.pct}%"></i></div>`:""}
+    <div class="facts num">${facts}${mins?` · ${fmtMin(mins)} so far`:""}</div>
+    <div class="acts"><button class="btn primary" data-act="startbook" data-id="${b.id}">Read</button><button class="btn" data-act="progress" data-id="${b.id}">Log progress</button></div>
+  </div></div></article>`;
+}
+function listRow(b){
+  let rt="";
+  if(b.status==="Reading"&&b.pages) rt=Math.round((b.page||0)/b.pages*100)+"%";
+  else if(b.status==="Read"&&b.rating) rt="★ "+b.rating;
+  else if(b.status==="Read"&&b.finished) rt=MO[+b.finished.slice(5,7)-1]+" "+b.finished.slice(0,4);
+  else if(b.pages) rt=b.pages+"pp";
+  return `<button class="li" data-act="book" data-id="${b.id}">${cover(b)}<div class="m"><div class="tt">${esc(typo(b.title))}</div><div class="aa">${esc(b.author)}${b.series?" · "+esc(typo(b.series))+(b.seriesNo?" #"+esc(b.seriesNo):""):b.format?" · "+esc(b.format):""}</div></div><div class="rr num">${rt}</div></button>`;
+}
+
+function viewLibrary(){
+  const all=Object.values(S.books), counts={}; all.forEach(b=>counts[b.status]=(counts[b.status]||0)+1);
+  const q=libQ.trim().toLowerCase();
+  let rows=q?all.filter(b=>b.status!=="Hidden"&&(b.title+" "+b.subtitle+" "+b.author+" "+b.genre+" "+b.series).toLowerCase().includes(q)):all.filter(b=>b.status===libShelf);
+  const last={}; S.sessions.forEach(s=>{ last[s.bookId]=Math.max(last[s.bookId]||0,new Date(s.start).getTime()); });
+  S.activity.forEach(a=>{ last[a.bookId]=Math.max(last[a.bookId]||0,dateOfKey(a.day).getTime()); });
+  const sorters={recent:(a,b)=>(last[b.id]||0)-(last[a.id]||0)||(finishYear(b)+(b.finished||"")).localeCompare(finishYear(a)+(a.finished||""))||a.title.localeCompare(b.title),
+    title:(a,b)=>a.title.replace(/^(The|A|An) /,"").localeCompare(b.title.replace(/^(The|A|An) /,"")), author:(a,b)=>a.author.split(" ").pop().localeCompare(b.author.split(" ").pop()),
+    rating:(a,b)=>(b.rating||0)-(a.rating||0), short:(a,b)=>(a.pages||9999)-(b.pages||9999)};
+  rows.sort(sorters[libSort]);
+  let body;
+  if(!rows.length) body=`<div class="card empty">No books here.</div>`;
+  else if(!q&&libShelf==="Read"&&libSort==="recent"){ // Margins groups finished books by year against the goal
+    const g={}; rows.forEach(b=>{ const y=finishYear(b)||"Date unknown"; (g[y]=g[y]||[]).push(b); });
+    const yr=String(new Date().getFullYear());
+    body=Object.keys(g).sort((a,b)=>a==="Date unknown"?1:b==="Date unknown"?-1:b.localeCompare(a)).map(y=>`<div class="yearhead"><b>${y}</b><span>${g[y].length} book${g[y].length===1?"":"s"}${y===yr&&S.settings.yearGoal?" of "+S.settings.yearGoal:""}</span></div><div class="list">${g[y].map(listRow).join("")}</div>`).join("");
+    if(!g[yr]) body=`<div class="yearhead"><b>${yr}</b><span>0 of ${S.settings.yearGoal} books</span></div><div class="card empty">Nothing finished yet this year.</div>`+body;
+  } else body=`<div class="list">${rows.map(listRow).join("")}</div>`;
+  return `<header class="top"><h1>Library</h1><button class="iconbtn" data-act="addbook" aria-label="Add a book">${I.plus}</button></header>
+  <input class="search" id="libq" type="search" placeholder="Search ${all.filter(b=>b.status!=="Hidden").length} books" value="${esc(libQ)}" autocomplete="off" aria-label="Search your library">
+  ${q?"":`<div class="chips" role="group" aria-label="Shelves">${SHELVES.filter(s=>counts[s]||s==="Reading").map(s=>`<button data-act="shelf" data-s="${s}" aria-pressed="${s===libShelf}">${SHELF_LABEL[s]}<span>${counts[s]||0}</span></button>`).join("")}</div>`}
+  <div class="sortrow"><span class="faint num">${rows.length} book${rows.length===1?"":"s"}</span>
+    <select id="libsort" aria-label="Sort">${[["recent","Recent"],["title","Title"],["author","Author"],["rating","Rating"],["short","Shortest first"]].map(([k,l])=>`<option value="${k}" ${k===libSort?"selected":""}>${l}</option>`).join("")}</select></div>
+  ${body}`;
+}
+
+function calendarCard(d){
+  const [y,m]=calMonth.split("-").map(Number), first=new Date(y,m-1,1), days=new Date(y,m,0).getDate(), lead=(first.getDay()+6)%7, t=todayKey();
+  let cells=["M","T","W","T","F","S","S"].map(x=>`<div class="dow">${x}</div>`).join("");
+  for(let i=0;i<lead;i++) cells+=`<button class="empty" tabindex="-1" aria-hidden="true"></button>`;
+  let mins=0,pages=0,fin=0,active=0;
+  for(let i=1;i<=days;i++){ const k=`${y}-${pad(m)}-${pad(i)}`, x=d[k];
+    if(x){ mins+=x.min; pages+=x.pages; if(x.active) active++; }
+    const bs=x?x.books.map(id=>S.books[id]).filter(Boolean):[];
+    const art=bs.length?cover(bs[0],"")+(bs[1]?cover(bs[1],"second"):""):"";
+    cells+=`<button class="${bs.length?"has":""} ${dayMet(x)?"met":""} ${k===t?"today":""}" data-act="day" data-k="${k}" aria-label="${fmtDay(k)}${x?", "+Math.round(x.min)+" minutes":""}"><span>${i}</span>${art}</button>`; }
+  Object.values(S.books).forEach(b=>{ if(b.status==="Read"&&b.finished&&b.finished.startsWith(calMonth)) fin++; });
+  const elapsed=calMonth===t.slice(0,7)?+t.slice(8):days;
+  return `<div class="card"><div class="calhead"><button class="iconbtn" data-act="calprev" aria-label="Previous month">${I.left}</button><b>${MONTHS[m-1]} ${y}</b><button class="iconbtn" data-act="calnext" aria-label="Next month" ${calMonth>=t.slice(0,7)?"disabled":""}>${I.right}</button></div>
+  <div class="calsum num"><div><b>${fin}</b><span>Books</span></div><div><b>${pages}</b><span>Pages</span></div><div><b>${fmtMin(mins).replace(" min","m")}</b><span>Time</span></div><div><b>${Math.round(pages/Math.max(1,elapsed))}</b><span>Pages/day</span></div></div>
+  <div class="cal">${cells}</div>
+  <button class="btn wide" style="margin-top:12px" data-act="addsession">+ Add session</button></div>`;
+}
+function viewStats(){
+  const d=dayData(), t=todayKey(), g=goalSpec();
+  let keys=[], label;
+  if(statRange==="week"){ for(let i=6;i>=0;i--) keys.push(addDays(t,-i)); label="Last 7 nights"; }
+  else if(statRange==="month"){ for(let i=29;i>=0;i--) keys.push(addDays(t,-i)); label="Last 30 nights"; }
+  else { for(let i=364;i>=0;i--) keys.push(addDays(t,-i)); label="Last 12 months"; }
+  const inR=new Set(keys), ss=S.sessions.filter(s=>inR.has(keyOf(new Date(s.start).getTime())));
+  const mins=keys.reduce((a,k)=>a+(d[k]?d[k].min:0),0), pages=keys.reduce((a,k)=>a+(d[k]?d[k].pages:0),0), active=keys.filter(k=>d[k]&&d[k].active).length, met=keys.filter(k=>dayMet(d[k])).length;
+  const pmin=ss.filter(s=>s.toPage>s.fromPage).reduce((a,s)=>a+s.min,0), ppages=ss.reduce((a,s)=>a+Math.max(0,s.toPage-s.fromPage),0);
+  const fin=Object.values(S.books).filter(b=>b.status==="Read"&&b.finished&&b.finished>=keys[0]).length;
+  let bars=[];
+  if(statRange==="year"){ const mm={}; keys.forEach(k=>{const m=k.slice(0,7); mm[m]=(mm[m]||0)+(d[k]?d[k].min:0);}); bars=Object.keys(mm).sort().slice(-12).map(m=>({l:MO[+m.slice(5)-1][0],v:mm[m]})); }
+  else bars=keys.map((k,i)=>({l:statRange==="week"?WD[dateOfKey(k).getDay()][0]:(i%5===4?dateOfKey(k).getDate():""),v:d[k]?d[k].min:0,met:dayMet(d[k])}));
+  const ref=g.type==="minutes"?g.n:0;
+  const W=600,H=170,pl=30,pb=22, rawMax=Math.max(statRange==="year"?60:(ref||20),...bars.map(b=>b.v)), st=rawMax>300?120:rawMax>60?30:10, max=Math.ceil(rawMax/st)*st;
+  const step=(W-pl)/bars.length, bw=Math.max(3,step*.62), y=v=>H-pb-(v/max)*(H-pb-10);
+  let svg=`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Minutes read per ${statRange==="year"?"month":"night"}">`;
+  [0,max/2,max].forEach(tv=>svg+=`<line x1="${pl}" x2="${W}" y1="${y(tv)}" y2="${y(tv)}" stroke="var(--line)"/><text x="${pl-6}" y="${y(tv)+4}" text-anchor="end" font-size="11" fill="var(--faint)">${tv}</text>`);
+  if(statRange!=="year"&&ref) svg+=`<line x1="${pl}" x2="${W}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--good)" stroke-dasharray="4 4"/>`;
+  bars.forEach((b,i)=>{ const x=pl+i*step+(step-bw)/2, hh=Math.max(b.v?2:0,H-pb-y(b.v));
+    svg+=`<rect x="${x}" y="${H-pb-hh}" width="${bw}" height="${hh}" rx="${Math.min(4,bw/2)}" fill="${b.met?"var(--good)":"var(--accent)"}"/>`;
+    if(b.l!=="") svg+=`<text x="${x+bw/2}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--faint)">${b.l}</text>`; });
+  svg+="</svg>";
+  // when he reads: weekday x hour, from timed sessions (Margins' "night owl" card)
+  const grid=Array.from({length:7},()=>Array(24).fill(0)); let total=0, late=0;
+  S.sessions.forEach(s=>{ const dt=new Date(s.start); grid[(dt.getDay()+6)%7][dt.getHours()]+=s.min; total+=s.min; if(dt.getHours()>=21||dt.getHours()<4) late+=s.min; });
+  const gmax=Math.max(1,...grid.flat()); let dots="";
+  grid.forEach((row,i)=>{ dots+=`<span>${"MTWTFSS"[i]}</span>`+row.map(v=>`<i class="${v===0?"":v>gmax*.66?"l3":v>gmax*.33?"l2":"l1"}"></i>`).join(""); });
+  const owl=total>=30?(late/total>.5?"Most of your reading happens after 9pm.":"Most of your reading happens before 9pm."):"Time a few sessions to see when you read.";
+  return `<header class="top"><h1>Stats</h1></header>
+  ${calendarCard(d)}
+  <h2>Totals</h2>
+  <div class="seg" role="group" aria-label="Range">${[["week","Week"],["month","Month"],["year","Year"]].map(([k,l])=>`<button data-act="range" data-r="${k}" aria-pressed="${k===statRange}">${l}</button>`).join("")}</div>
+  <p class="faint" style="margin:10px 4px">${label}</p>
+  <div class="tiles">
+    <div class="tile"><div class="k">Time read</div><div class="n">${fmtMin(mins)}</div><div class="c">${active?fmtMin(mins/active)+" a reading night":"No reading logged"}</div></div>
+    <div class="tile"><div class="k">Goal nights</div><div class="n">${met}<span class="sub" style="font-size:16px;font-weight:500"> / ${keys.length}</span></div><div class="c">${g.type==="any"?"Any reading":g.n+" "+g.unit+" each"}</div></div>
+    <div class="tile"><div class="k">Pages</div><div class="n">${pages}</div><div class="c">${pmin>=10?Math.round(ppages/pmin*60)+" pages an hour":"Time sessions to see pace"}</div></div>
+    <div class="tile"><div class="k">Finished</div><div class="n">${fin}</div><div class="c">Streak ${streakInfo().cur} · best ${streakInfo().best}</div></div>
+  </div>
+  <div class="card" style="margin-top:12px">${svg}<div class="faint">${statRange==="year"?"Minutes per month":"Minutes per night"+(ref?" · green line is your goal":"")}</div></div>
+  <h2>When you read</h2>
+  <div class="card"><p style="margin:0 0 10px">${owl}</p><div class="dots">${dots}<span></span>${Array.from({length:24},(_, h)=>`<span style="font-size:9px;text-align:center">${h%6===0?(h===0?"12a":h===12?"12p":h>12?h-12+"p":h+"a"):""}</span>`).join("")}</div></div>`;
+}
+
+function viewLog(){
+  const items=[...S.sessions.map(s=>({k:keyOf(new Date(s.start).getTime()),t:s.start,s})),...S.activity.map(a=>({k:a.day,t:a.day+"T00",a}))].sort((x,y)=>y.t.localeCompare(x.t));
+  const groups={}; items.forEach(x=>(groups[x.k]=groups[x.k]||[]).push(x));
+  const ks=Object.keys(groups).sort().reverse();
+  return `<header class="top"><h1>Log</h1><button class="iconbtn" data-act="addsession" aria-label="Add a past session">${I.plus}</button></header>
+  ${ks.length?ks.map(k=>{ const tot=groups[k].reduce((a,x)=>a+(x.s?x.s.min:0),0);
+    return `<h2>${fmtDay(k)}${tot?" · "+fmtMin(tot):""}</h2><div class="card" style="padding-block:4px">${groups[k].map(x=>x.s?sessRow(x.s):actRow(x.a)).join("")}</div>`; }).join("")
+  :`<div class="card empty">Nothing logged yet. Tap the clock to start Reading Time, or + to add one you forgot.</div>`}`;
+}
+function sessRow(s){ const b=S.books[s.bookId]||{title:"Removed book"}; const t=new Date(s.start);
+  const pg=s.toPage>s.fromPage?` · pp ${s.fromPage}–${s.toPage}`:"";
+  return `<div class="sess"><div style="min-width:0"><div style="font-weight:600">${esc(typo(b.title))}</div><div class="faint num">${fmtMin(s.min)}${pg} · ${t.getHours()%12||12}:${pad(t.getMinutes())}${t.getHours()<12?"am":"pm"}${s.idleTrim?" · stopped after idle":""}${s.note?" · "+esc(s.note):""}</div></div><button data-act="editsession" data-id="${s.id}">Edit</button></div>`; }
+function actRow(a){ const b=S.books[a.bookId]||{title:"Removed book"};
+  const pg=a.toPage!=null?(a.fromPage!=null&&a.toPage>a.fromPage?`pp ${a.fromPage}–${a.toPage}`:`to page ${a.toPage}`):"read";
+  return `<div class="sess"><div style="min-width:0"><div style="font-weight:600">${esc(typo(b.title))}</div><div class="faint num">Progress · ${pg}${a.src==="margins"?" · from Margins":""}</div></div><button data-act="delact" data-id="${a.id}">Remove</button></div>`; }
+
+function openSheet(html){ $("#sheetin").innerHTML=`<div class="grab"></div>`+html; const sc=$("#scrim"), sh=$("#sheet"); sc.hidden=false; sh.hidden=false; sh.scrollTop=0; requestAnimationFrame(()=>{sc.classList.add("on");sh.classList.add("on");}); }
+function closeSheet(){ const sc=$("#scrim"), sh=$("#sheet"); sc.classList.remove("on"); sh.classList.remove("on"); setTimeout(()=>{sc.hidden=true;sh.hidden=true;},280); }
+function head(t){ return `<div class="shead"><h3>${t}</h3><button class="iconbtn" data-act="closesheet" aria-label="Close">${I.x}</button></div>`; }
+
+function sheetBook(id){
+  const b=S.books[id]; if(!b) return; const p=projection(b);
+  const ss=S.sessions.filter(s=>s.bookId===id).sort((a,c)=>c.start.localeCompare(a.start)), acts=S.activity.filter(a=>a.bookId===id);
+  const r=b.rating||0; let stars=""; for(let i=1;i<=5;i++){ const f=r>=i?"full":r>=i-.5?"half":"none"; stars+=`<button data-act="rate" data-id="${id}" data-i="${i}" aria-label="${i} stars">${I.star(f,i)}</button>`; }
+  openSheet(`<div class="bookhero" id="bookhero" style="background:hsl(${hue(b.id)} 30% 28%)">
+    <div class="shead" style="margin-bottom:8px"><span></span><button class="iconbtn" data-act="closesheet" aria-label="Close">${I.x}</button></div>
+    <div class="cbook">${cover(b,"xl")}<div class="meta"><div class="btitle" style="font-size:22px">${esc(typo(b.title))}</div>${b.subtitle?`<div class="faint" style="margin-top:2px">${esc(typo(b.subtitle))}</div>`:""}<div class="bauthor">${esc(b.author)}</div>
+      ${b.series?`<div class="faint" style="margin-top:6px">${b.seriesNo?"Book "+esc(b.seriesNo)+" of ":""}${esc(typo(b.series))}</div>`:""}
+      <div class="faint" style="margin-top:4px">${[b.genre,b.pages?b.pages+" pages":"",b.format].filter(Boolean).map(esc).join(" · ")}</div>
+      ${b.status==="Reading"&&p?`<div class="pbar" style="background:rgba(255,255,255,.25)"><i style="width:${p.pct}%;background:#fff"></i></div><div class="faint num" style="margin-top:6px">${progressLabel(b)} · ~${fmtMin(p.mins)} left</div>`:""}
+    </div></div></div>
+  ${b.hideWhy?`<p class="faint" style="margin-top:12px">${esc(b.hideWhy)}</p>`:""}
+  ${b.syn?`<p class="syn">${esc(typo(b.syn))}</p>`:""}
+  ${b.status==="Reading"?`<div class="grid2" style="margin-top:16px"><button class="btn primary" data-act="startbook" data-id="${id}">Read now</button><button class="btn" data-act="progress" data-id="${id}">Log progress</button></div>`:""}
+  <label class="f">Shelf</label>
+  <div class="pills">${SHELVES.map(s=>`<button data-act="setshelf" data-id="${id}" data-s="${s}" aria-pressed="${b.status===s}">${SHELF_LABEL[s]}</button>`).join("")}</div>
+  ${["Read","DNF","Paused"].includes(b.status)?`<label class="f">Rating${b.tier?" · your old tier: "+esc(typo(b.tier)):""}</label><div class="stars">${stars}</div>`:""}
+  <div class="grid2">
+    <div><label class="f" for="bpages">Pages</label><input id="bpages" type="number" inputmode="numeric" value="${b.pages||""}" data-field="pages" data-id="${id}"></div>
+    <div><label class="f" for="bformat">Format</label><select id="bformat" data-field="format" data-id="${id}">${["","Print","Ebook","Audio"].map(f=>`<option ${b.format===f?"selected":""} value="${f}">${f||"—"}</option>`).join("")}</select></div>
+    <div><label class="f" for="bstarted">Started</label><input id="bstarted" type="date" value="${b.started||""}" data-field="started" data-id="${id}"></div>
+    <div><label class="f" for="bfinished">Finished</label><input id="bfinished" type="date" value="${b.finished||""}" data-field="finished" data-id="${id}"></div>
+  </div>
+  ${b.status==="Read"&&!b.finished?`<label class="f" for="bfuzzy">Or roughly when</label><select id="bfuzzy" data-field="fuzzy" data-id="${id}">${["Not sure","Sometime in 2026","Sometime in 2025","Sometime in 2024","Sometime in 2023","Before 2023"].map(f=>`<option ${b.fuzzy===f?"selected":""}>${f}</option>`).join("")}</select>`:""}
+  <label class="f" for="brec">Recommended by</label><input id="brec" type="text" value="${esc(b.recBy)}" data-field="recBy" data-id="${id}" placeholder="Who told you to read it">
+  <label class="f" for="bnotes">Notes</label><textarea id="bnotes" data-field="notes" data-id="${id}" placeholder="Thoughts, quotes, where you left off">${esc(b.notes)}</textarea>
+  <div class="grid2" style="margin-top:12px"><button class="btn" data-act="cover" data-id="${id}">Change cover</button><button class="btn" data-act="addsession" data-id="${id}">Add past session</button></div>
+  <h2 style="margin-top:22px">Reading history · ${fmtMin(bookMinutes(id))}</h2>
+  <div class="card" style="padding-block:4px">${ss.length||acts.length?ss.map(sessRow).join("")+acts.map(actRow).join(""):`<div class="empty">Nothing logged yet</div>`}</div>
+  <button class="btn danger wide" style="margin-top:12px" data-act="delbook" data-id="${id}">Remove book</button>`);
+  tintFor(b,col=>{ const h=$("#bookhero"); if(h&&col) h.style.background=`linear-gradient(180deg,${col},color-mix(in srgb,${col} 70%,#000))`; });
+}
+function sheetProgress(id){
+  const b=S.books[id], pct=b.unit==="percent";
+  const cur=pct&&b.pages?Math.round((b.page||0)/b.pages*100):(b.page||0);
+  openSheet(head("Log progress")+`<p class="sub" style="margin-top:0">${esc(typo(b.title))}</p>
+  <div class="pills" role="group" aria-label="Track in"><button data-act="unit" data-id="${id}" data-u="page" aria-pressed="${!pct}">Pages</button><button data-act="unit" data-id="${id}" data-u="percent" aria-pressed="${pct}" ${b.pages?"":"disabled"}>Percent</button></div>
+  <div class="prog3 num"><div><small>Last</small><b>${cur}${pct?"%":""}</b></div><div class="cur"><small>Current</small><input id="pgv" type="number" inputmode="numeric" value="${cur}" aria-label="Current ${pct?"percent":"page"}"></div><div><small>${pct?"Total":"Total pages"}</small>${pct?`<b>100%</b>`:`<input id="pgtotal" type="number" inputmode="numeric" value="${b.pages||""}" placeholder="?" aria-label="Total pages">`}</div></div>
+  <div class="grid2" style="margin-top:12px"><button class="btn" data-act="pgstep" data-d="-${pct?1:10}">−${pct?1:10}</button><button class="btn" data-act="pgstep" data-d="${pct?1:10}">+${pct?1:10}</button></div>
+  <label class="f" for="pgday">Day</label><input id="pgday" type="date" value="${todayKey()}" max="${todayKey()}">
+  <button class="btn primary wide" style="margin-top:18px" data-act="saveprogress" data-id="${id}">I read today</button>`);
+}
+function sessionForm(s,bookId,day){
+  const isNew=!s; s=s||{id:uid(),bookId:bookId||(booksBy("Reading")[0]||{}).id,start:day?new Date(dateOfKey(day).getTime()+21*3600e3).toISOString():new Date(Date.now()-30*60e3).toISOString(),min:30,fromPage:0,toPage:0,note:"",src:"manual"};
+  const b=S.books[s.bookId]; if(isNew&&b){ s.fromPage=b.page||0; s.toPage=b.page||0; }
+  const local=d=>{const x=new Date(d); return x.getFullYear()+"-"+pad(x.getMonth()+1)+"-"+pad(x.getDate())+"T"+pad(x.getHours())+":"+pad(x.getMinutes());};
+  const opts=Object.values(S.books).filter(x=>["Reading","Up Next","Paused"].includes(x.status)||x.id===s.bookId).sort((a,c)=>RANK.indexOf(a.status)-RANK.indexOf(c.status)||a.title.localeCompare(c.title));
+  openSheet(head(isNew?"Add a session":"Edit session")+`
+  <label class="f" for="sbook">Book</label><select id="sbook">${opts.map(x=>`<option value="${x.id}" ${x.id===s.bookId?"selected":""}>${esc(typo(x.title))}</option>`).join("")}</select>
+  <div class="grid2"><div><label class="f" for="sstart">Started</label><input id="sstart" type="datetime-local" value="${local(s.start)}"></div>
+  <div><label class="f" for="smin">Minutes</label><input id="smin" type="number" inputmode="numeric" value="${Math.round(s.min)}"></div>
+  <div><label class="f" for="sfrom">From page</label><input id="sfrom" type="number" inputmode="numeric" value="${s.fromPage||0}"></div>
+  <div><label class="f" for="sto">To page</label><input id="sto" type="number" inputmode="numeric" value="${s.toPage||0}"></div></div>
+  <label class="f" for="snote">Note</label><input id="snote" type="text" value="${esc(s.note)}">
+  <button class="btn primary wide" style="margin-top:18px" data-act="savesession" data-id="${s.id}" data-new="${isNew}">Save</button>
+  ${isNew?"":`<button class="btn danger wide" data-act="delsession" data-id="${s.id}">Delete session</button>`}`);
+}
+function sheetDay(k){
+  const x=dayData()[k]; const ss=S.sessions.filter(s=>keyOf(new Date(s.start).getTime())===k), acts=S.activity.filter(a=>a.day===k);
+  openSheet(head(fmtDay(k))+`<p class="sub" style="margin-top:0">${x?`${fmtMin(x.min)} · ${x.pages} pages${dayMet(x)?" · goal met":""}`:"No reading logged"}</p>
+  <div class="card" style="padding-block:4px">${ss.length||acts.length?ss.map(sessRow).join("")+acts.map(actRow).join(""):`<div class="empty">Nothing this day</div>`}</div>
+  <button class="btn primary wide" style="margin-top:12px" data-act="addsession" data-day="${k}">Add a session on this day</button>`);
+}
+function sheetStreak(){
+  const st=streakInfo(), g=goalSpec(), t=todayKey(); let rows="";
+  for(let i=0;i<21;i++){ const k=addDays(t,-i), x=st.days[k], m=dayMet(x), prev=dayMet(st.days[addDays(k,-1)]), dd=dateOfKey(k);
+    const [title,sub]=k===t&&!m?["GET STARTED","Haven’t read tonight"]:m?(prev?["STREAK EXTENDED","You read this night"]:["STARTED STREAK","You read this night"]):x&&x.active?["GOAL NOT MET","Some reading, under the goal"]:["GOAL NOT MET","No reading this night"];
+    rows+=`<div class="lrow"><div class="d"><small>${WD[dd.getDay()].toUpperCase()}</small><b>${dd.getDate()}</b></div><div class="t"><b>${title}</b><span>${sub}</span></div><span class="ok ${m?"on":""}">${m?I.check:""}</span></div>`; }
+  openSheet(head("Streak")+`
+  <label class="f">Nightly goal</label>
+  <div class="pills" role="group" aria-label="Goal type">${[["minutes","Minutes"],["pages","Pages"],["any","Any reading"]].map(([k,l])=>`<button data-act="goaltype" data-g="${k}" aria-pressed="${g.type===k}">${l}</button>`).join("")}</div>
+  ${g.type!=="any"?`<div class="stepper" style="margin-top:12px"><button data-act="goalstep" data-d="-5" aria-label="Less">−</button><input id="sgoal" type="number" inputmode="numeric" value="${g.n}" aria-label="Goal amount"><button data-act="goalstep" data-d="5" aria-label="More">+</button></div>`:`<p class="faint">Starting a book, timing a session or logging progress all count.</p>`}
+  <p class="faint">Changing the goal recounts every night with the new rule.</p>
+  <button class="btn wide" data-act="addsession">Add a past session</button>
+  <div class="card ledger" style="margin-top:12px;padding-block:4px">${rows}</div>`);
+}
+async function searchBooks(q){
+  const out=[];
+  const [ap,ol]=await Promise.allSettled([
+    fetch("https://itunes.apple.com/search?entity=ebook&limit=12&term="+encodeURIComponent(q)).then(r=>r.json()),
+    fetch("https://openlibrary.org/search.json?limit=12&fields=key,title,author_name,cover_i,number_of_pages_median,isbn&q="+encodeURIComponent(q)).then(r=>r.json())]);
+  if(ap.status==="fulfilled") (ap.value.results||[]).forEach(r=>r.artworkUrl100&&out.push({title:r.trackName,author:r.artistName,cu:r.artworkUrl100.replace("100x100bb","400x600bb"),src:"Apple Books"}));
+  if(ol.status==="fulfilled") (ol.value.docs||[]).forEach(d=>out.push({title:d.title,author:(d.author_name||[]).join(", "),cu:d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`:"",pages:d.number_of_pages_median||0,isbn:(d.isbn||[]).find(x=>x.length===13)||"",src:"Open Library"}));
+  if(ap.status==="rejected"&&ol.status==="rejected") throw new Error("offline");
+  return out;
+}
+let searchResults=[];
+function sheetSearch(mode,id){
+  const b=id&&S.books[id]; const q=b?`${b.title} ${b.author}`:"";
+  openSheet(head(mode==="cover"?"Change cover":"Add a book")+`
+  <div class="in" style="display:flex;gap:8px"><input id="sq" type="search" value="${esc(q)}" placeholder="Title or author" aria-label="Search books"><button class="btn primary" data-act="dosearch" data-mode="${mode}" data-id="${id||""}">Search</button></div>
+  <div id="sres">${BUILD==="private"?`<p class="faint">Searching for covers works in the installed app. This preview can’t reach outside sites.</p>`:""}</div>
+  ${mode==="add"?`<h2>Or add it by hand</h2>
+  <label class="f" for="nt">Title</label><input id="nt" type="text" autocomplete="off">
+  <label class="f" for="na">Author</label><input id="na" type="text" autocomplete="off">
+  <div class="grid2"><div><label class="f" for="np">Pages</label><input id="np" type="number" inputmode="numeric"></div>
+  <div><label class="f" for="ns">Shelf</label><select id="ns">${SHELVES.filter(s=>s!=="Hidden").map(s=>`<option value="${s}" ${s==="Queue"?"selected":""}>${SHELF_LABEL[s]}</option>`).join("")}</select></div></div>
+  <button class="btn wide" style="margin-top:14px" data-act="savebook">Add to library</button>`:""}`);
+  if(BUILD==="public"&&q) runSearch(mode,id);
+}
+async function runSearch(mode,id){
+  const box=$("#sres"), q=($("#sq")||{}).value||""; if(!box||!q.trim()) return;
+  box.innerHTML=`<p class="faint">Searching…</p>`;
+  try{ searchResults=(await searchBooks(q)).filter(r=>mode==="add"||r.cu);
+    box.innerHTML=searchResults.length?`<div class="cgrid">${searchResults.map((r,i)=>`<button data-act="${mode==="cover"?"pickcover":"pickbook"}" data-i="${i}" data-id="${id||""}">${r.cu?`<img src="${esc(r.cu)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`:`<div class="cover" style="width:100%;background:var(--surface-2)"></div>`}<span>${esc(r.title)}</span><span>${esc(r.src)}</span></button>`).join("")}</div>`:`<p class="faint">No matches. Try fewer words.</p>`;
+  }catch(e){ box.innerHTML=`<p class="faint">Couldn’t reach the book search. Check your connection.</p>`; }
+}
+function sheetSettings(){
+  const s=S.settings;
+  openSheet(head("Settings")+`
+  <label class="f" for="syear">Books this year</label><input id="syear" type="number" inputmode="numeric" value="${s.yearGoal}">
+  <label class="f" for="sidle">Pause the timer after (minutes)</label><input id="sidle" type="number" inputmode="numeric" value="${s.idleMin}">
+  <label class="f">Appearance</label>
+  <div class="pills">${[["system","Match phone"],["light","Light"],["dark","Dark"]].map(([k,l])=>`<button data-act="theme" data-t="${k}" aria-pressed="${s.theme===k}">${l}</button>`).join("")}</div>
+  <button class="btn primary wide" style="margin-top:18px" data-act="savesettings">Save</button>
+  <p class="faint" style="margin:12px 4px 0">Set the nightly goal from the streak button on Tonight.</p>
+  <h2>Backup</h2>
+  <p class="faint" style="margin:0 4px 10px">${BUILD==="private"?"Copy a backup here, then paste it into the installed app on your phone to move your library over.":"Everything lives on this phone. Copy a backup now and then, and paste one here to restore."}</p>
+  <div class="grid2"><button class="btn" data-act="export">Copy backup</button><button class="btn" data-act="importshow">Restore</button></div>
+  <div id="importbox" hidden><label class="f" for="imp">Paste a backup</label><textarea id="imp"></textarea><button class="btn primary wide" style="margin-top:10px" data-act="import">Restore this backup</button></div>
+  <p class="faint" style="margin:18px 4px 0">A night runs until 4am, so reading after midnight counts for the night before.</p>`);
+}
+
+function timerMs(){ const t=S.timer; if(!t) return 0; return t.accum+(t.paused?0:Date.now()-t.runFrom); }
+function idleCheck(){ // a forgotten timer stops itself instead of logging hours nobody read
+  const t=S.timer; if(!t||t.paused||t.fresh) return false; const lim=Math.max(15,+S.settings.idleMin||90)*60e3;
+  if(Date.now()-t.runFrom>lim){ t.accum+=lim; t.paused=true; t.idle=true; save(); return true; } return false; }
+let rtTick=null, dim=false, wake=null, audio=null;
+function openRT(bookId){
+  if(!S.timer){ const id=bookId||(booksBy("Reading")[0]||{}).id||null;
+    S.timer={bookId:id,startedAt:Date.now(),runFrom:Date.now(),accum:0,paused:true,fresh:true}; save(); }
+  else if(bookId&&S.timer.fresh){ S.timer.bookId=bookId; save(); }
+  dim=S.settings.dimDefault; idleCheck(); $("#rt").hidden=false; drawRT(); clearInterval(rtTick); rtTick=setInterval(tickRT,250);
+}
+function drawRT(){
+  const t=S.timer, b=t&&S.books[t.bookId], el=$("#rt"); el.classList.toggle("dim",dim); const running=t&&!t.paused;
+  el.innerHTML=`<button class="iconbtn close" data-act="rtclose" aria-label="Close">${I.x}</button>
+  <button class="iconbtn lamp" data-act="rtdim" aria-label="${dim?"Lights on":"Lights off"}" aria-pressed="${dim}">${I.lamp}</button>
+  <button class="pick" data-act="rtpick" ${t.fresh?"":"disabled"}>${b?cover(b):""}<div style="min-width:0"><div class="btitle" style="font-size:16px">${b?esc(typo(b.title)):"Choose a book"}</div><div class="faint">${b?progressLabel(b):"Tap to pick"}${t.fresh?" · change":""}</div></div></button>
+  ${t.idle?`<div class="notice">Paused after ${S.settings.idleMin} minutes. Still reading?</div>`:""}
+  <div class="ring">${ringSVG()}<div style="text-align:center"><div class="clock ${timerMs()>=3600e3?"long":""}" id="rtclock">${fmtClock(timerMs())}</div><div class="goalline" id="rtgoal">${goalLine()}</div></div></div>
+  <div class="ctrl">${t.fresh?`<button class="btn primary" data-act="rtstart">Start</button>`:
+    `<button class="btn" data-act="rtpause">${running?"Pause":"Resume"}</button><button class="btn good" data-act="rtfinish">Finish</button>`}</div>
+  <div class="opts"><button class="toggle" data-act="rtrain" aria-pressed="${!!audio}">Rain</button><button class="toggle" data-act="rtwake" aria-pressed="${!!wake}">Keep screen on</button></div>`;
+}
+function liveFrac(){ const g=goalSpec(), st=streakInfo(), live=timerMs()/60000;
+  if(g.type==="minutes") return Math.min(1,(st.today.min+live)/g.n);
+  if(g.type==="pages") return Math.min(1,st.today.pages/g.n);
+  return st.todayMet||live>=1?1:live; }
+function goalLine(){ const g=goalSpec(), st=streakInfo(), f=liveFrac();
+  if(f>=1) return "Tonight’s goal is met";
+  if(g.type==="minutes") return `${Math.ceil(g.n-(st.today.min+timerMs()/60000))} min to tonight’s goal`;
+  if(g.type==="pages") return `${Math.max(0,g.n-st.today.pages)} pages to tonight’s goal`;
+  return "Any reading counts tonight"; }
+function ringSVG(){ const f=liveFrac(), R=112, C=2*Math.PI*R;
+  return `<svg viewBox="0 0 240 240" aria-hidden="true"><circle cx="120" cy="120" r="${R}" fill="none" stroke="var(--surface-2)" stroke-width="8"/><circle id="rtarc" cx="120" cy="120" r="${R}" fill="none" stroke="${f>=1?"var(--good)":"var(--accent)"}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-f)}" transform="rotate(-90 120 120)"/></svg>`; }
+function tickRT(){ if(idleCheck()){ if(!$("#rt").hidden) drawRT(); else render(); }
+  const c=$("#rtclock"); if(c){ c.textContent=fmtClock(timerMs()); c.classList.toggle("long",timerMs()>=3600e3); $("#rtgoal").textContent=goalLine();
+    const a=$("#rtarc"); if(a){ const f=liveFrac(), C=2*Math.PI*112; a.setAttribute("stroke-dashoffset",C*(1-f)); a.setAttribute("stroke",f>=1?"var(--good)":"var(--accent)"); } }
+  const bc=$("#bannerclock"); if(bc) bc.textContent=fmtClock(timerMs()); }
+function closeRT(){ $("#rt").hidden=true; clearInterval(rtTick);
+  if(S.timer&&S.timer.fresh){ S.timer=null; save(); stopRain(); releaseWake(); }
+  else if(S.timer) rtTick=setInterval(tickRT,1000);
+  render(); }
+function finishRT(){
+  const t=S.timer; if(!t.paused){ t.accum+=Date.now()-t.runFrom; t.paused=true; } save();
+  const b=S.books[t.bookId], mins=t.accum/60000, pct=b&&b.unit==="percent"&&b.pages;
+  const guess=b?(b.page||0)+Math.round(mins*pace().ppm):0;
+  openSheet(head("Nice reading")+`<p class="sub" style="margin-top:0">${fmtClock(t.accum)} with ${b?esc(typo(b.title)):"no book"}</p>
+  ${b?`<label class="f" for="endpg">${pct?"What percent are you at?":"What page are you on?"}</label>
+  <div class="stepper"><button data-act="endstep" data-d="-1" aria-label="Back one">−</button><input id="endpg" type="number" inputmode="numeric" value="${pct?Math.min(100,Math.round(guess/b.pages*100)):guess}"><button data-act="endstep" data-d="1" aria-label="Forward one">+</button></div>
+  <p class="faint">Started at ${progressLabel(b).toLowerCase()}</p>
+  ${b.pages?`<button class="btn ghost" data-act="endfinished">I finished the book</button>`:""}`:""}
+  <label class="f" for="endnote">Note</label><input id="endnote" type="text" placeholder="Optional">
+  <button class="btn primary wide" style="margin-top:18px" data-act="savert">Save session</button>
+  <button class="btn danger wide" data-act="discardrt">Discard</button>`);
+}
+function startRain(){ try{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const len=ctx.sampleRate*4, buf=ctx.createBuffer(1,len,ctx.sampleRate), d=buf.getChannelData(0); let last=0;
+  for(let i=0;i<len;i++){ const w=Math.random()*2-1; last=(last+0.02*w)/1.02; d[i]=last*3.2+w*0.035; }
+  const src=ctx.createBufferSource(); src.buffer=buf; src.loop=true; const f=ctx.createBiquadFilter(); f.type="lowpass"; f.frequency.value=1400; const g=ctx.createGain(); g.gain.value=.55;
+  src.connect(f).connect(g).connect(ctx.destination); src.start(); audio=ctx; }catch(e){ toast("Sound isn’t available here"); } }
+function stopRain(){ if(audio){ try{audio.close();}catch(e){} audio=null; } }
+async function getWake(silent){ try{ wake=await navigator.wakeLock.request("screen"); wake.addEventListener("release",()=>{wake=null; if(!$("#rt").hidden) drawRT();}); }catch(e){ wake=null; if(!silent) toast("This browser won’t keep the screen on"); } }
+function releaseWake(){ if(wake){ try{wake.release();}catch(e){} wake=null; } }
+
+function pickBookSheet(){ const opts=[...booksBy("Reading"),...booksBy("Up Next"),...booksBy("Paused")];
+  openSheet(head("What are you reading?")+`<div class="list">${opts.map(b=>`<button class="li" data-act="rtsetbook" data-id="${b.id}">${cover(b)}<div class="m"><div class="tt">${esc(typo(b.title))}</div><div class="aa">${SHELF_LABEL[b.status]}</div></div></button>`).join("")}</div>`); }
+function setShelf(id,s){ const b=S.books[id]; const was=b.status; b.status=s;
+  if(s==="Reading"&&!b.started){ b.started=todayKey(); S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"start"}); }
+  if(s==="Read"){ if(!b.finished) b.finished=todayKey(); if(b.pages) b.page=b.pages; b.fuzzy=""; }
+  save(); if(s==="Read"&&was!=="Read") toast("Finished. That’s "+finishedIn(new Date().getFullYear()).length+" this year"); }
+function exportText(){ const copy=JSON.parse(JSON.stringify(S)); copy.timer=null; return JSON.stringify(copy); }
+function importText(txt){ const n=JSON.parse(txt); if(!n.books||!n.sessions) throw 0; S=n; normalize(); S.seedV=Math.max(S.seedV||1,SEED_V); save(); applyTheme(); }
+document.addEventListener("click",async e=>{
+  const el=e.target.closest("[data-act]"); if(!el){ if(e.target.id==="scrim") closeSheet(); return; }
+  const a=el.dataset.act, id=el.dataset.id;
+  switch(a){
+    case "closesheet": closeSheet(); break;
+    case "settings": sheetSettings(); break;
+    case "streak": sheetStreak(); break;
+    case "book": sheetBook(id); break;
+    case "progress": sheetProgress(id); break;
+    case "unit": { const b=S.books[id]; b.unit=el.dataset.u; save(); sheetProgress(id); break; }
+    case "pgstep": { const i=$("#pgv"); i.value=Math.max(0,(+i.value||0)+ +el.dataset.d); break; }
+    case "saveprogress": { const b=S.books[id], tp=$("#pgtotal"); if(tp&&+tp.value) b.pages=+tp.value;
+      let v=Math.max(0,+$("#pgv").value||0); if(b.unit==="percent"&&b.pages) v=Math.round(Math.min(100,v)/100*b.pages);
+      const day=$("#pgday").value||todayKey(); if(day>todayKey()){ toast("That day is in the future"); break; }
+      S.activity.push({id:uid(),day,bookId:id,fromPage:b.page||0,toPage:v,src:"progress"}); b.page=v;
+      if(b.status!=="Reading"&&b.status!=="Read") setShelf(id,"Reading");
+      if(b.pages&&v>=b.pages) setShelf(id,"Read"); save(); closeSheet(); render(); if(!document.querySelector(".toast.on")) toast("Progress logged"); break; }
+    case "shelf": libShelf=el.dataset.s; render(); break;
+    case "range": statRange=el.dataset.r; render(); break;
+    case "calprev": case "calnext": { const [y,m]=calMonth.split("-").map(Number), d=new Date(y,m-1+(a==="calnext"?1:-1),1); calMonth=d.getFullYear()+"-"+pad(d.getMonth()+1); render(); break; }
+    case "day": sheetDay(el.dataset.k); break;
+    case "setshelf": setShelf(id,el.dataset.s); sheetBook(id); render(); break;
+    case "rate": { const b=S.books[id], i=+el.dataset.i; b.rating=b.rating===i?i-.5:(b.rating===i-.5?0:i); save(); sheetBook(id); render(); break; }
+    case "delbook": if(el.dataset.confirm){ delete S.books[id]; save(); closeSheet(); render(); toast("Removed"); } else { el.dataset.confirm="1"; el.textContent="Tap again to remove"; } break;
+    case "addbook": sheetSearch("add"); break;
+    case "cover": sheetSearch("cover",id); break;
+    case "dosearch": runSearch(el.dataset.mode,el.dataset.id); break;
+    case "pickcover": { const r=searchResults[+el.dataset.i], b=S.books[id]; b.cu=r.cu; b.cuUser=true; delete tintCache[id]; save(); sheetBook(id); render(); toast("Cover changed"); break; }
+    case "pickbook": { const r=searchResults[+el.dataset.i], nid="b"+uid();
+      S.books[nid]={...fromSeed({id:nid,t:r.title,a:r.author,p:r.pages||0,s:"Queue"}),isbn:r.isbn||"",cu:r.cu||"",cuUser:!!r.cu,added:todayKey(),fuzzy:""};
+      save(); closeSheet(); libShelf="Queue"; libQ=""; tab="library"; render(); toast("Added to Want to Read"); break; }
+    case "savebook": { const t=$("#nt").value.trim(); if(!t){ toast("Add a title"); break; } const nid="b"+uid();
+      S.books[nid]={...fromSeed({id:nid,t,a:$("#na").value.trim(),p:+$("#np").value||0,s:$("#ns").value}),added:todayKey(),fuzzy:""};
+      if(S.books[nid].status==="Reading") S.books[nid].started=todayKey(); save(); closeSheet(); libShelf=S.books[nid].status; libQ=""; render(); toast("Added"); break; }
+    case "addsession": sessionForm(null,id,el.dataset.day); break;
+    case "editsession": sessionForm(S.sessions.find(s=>s.id===id)); break;
+    case "savesession": { const isNew=el.dataset.new==="true"; const s=isNew?{id,src:"manual"}:S.sessions.find(x=>x.id===id);
+      const st=new Date($("#sstart").value); if(isNaN(st)){ toast("Pick a start time"); break; }
+      if(st.getTime()>Date.now()){ toast("That start time is in the future"); break; }
+      Object.assign(s,{bookId:$("#sbook").value,start:st.toISOString(),min:Math.max(1,+$("#smin").value||0),fromPage:+$("#sfrom").value||0,toPage:+$("#sto").value||0,note:$("#snote").value.trim()});
+      if(isNew) S.sessions.push(s); const b=S.books[s.bookId]; if(b&&s.toPage>(b.page||0)) b.page=s.toPage;
+      save(); closeSheet(); render(); toast(isNew?"Session added":"Saved"); break; }
+    case "delsession": if(el.dataset.confirm){ S.sessions=S.sessions.filter(s=>s.id!==id); save(); closeSheet(); render(); toast("Deleted"); } else { el.dataset.confirm="1"; el.textContent="Tap again to delete"; } break;
+    case "delact": if(el.dataset.confirm){ S.activity=S.activity.filter(x=>x.id!==id); save(); closeSheet(); render(); toast("Removed"); } else { el.dataset.confirm="1"; el.textContent="Tap again"; } break;
+    case "goaltype": S.settings.goalType=el.dataset.g; save(); sheetStreak(); render(); break;
+    case "goalstep": { const i=$("#sgoal"); i.value=Math.max(5,(+i.value||0)+ +el.dataset.d); const k=S.settings.goalType==="pages"?"dailyPages":"dailyMin"; S.settings[k]=+i.value; save(); render(); break; }
+    case "theme": S.settings.theme=el.dataset.t; applyTheme(); save(); document.querySelectorAll('[data-act="theme"]').forEach(b=>b.setAttribute("aria-pressed",b.dataset.t===S.settings.theme)); break;
+    case "savesettings": S.settings.yearGoal=Math.max(0,+$("#syear").value||0); S.settings.idleMin=Math.max(15,+$("#sidle").value||90); save(); closeSheet(); render(); toast("Saved"); break;
+    case "export": { const txt=exportText(); try{ await navigator.clipboard.writeText(txt); toast("Backup copied"); }catch(err){ $("#importbox").hidden=false; $("#imp").value=txt; $("#imp").select(); toast("Select all and copy"); } break; }
+    case "importshow": $("#importbox").hidden=false; $("#imp").value=""; $("#imp").focus(); break;
+    case "import": try{ importText($("#imp").value); closeSheet(); render(); toast("Library restored: "+Object.keys(S.books).length+" books"); }catch(err){ toast("That isn’t a Read backup"); } break;
+    case "startempty": S.startedEmpty=true; save(); render(); break;
+    case "openrt": openRT(); break;
+    case "startbook": closeSheet(); openRT(id); break;
+    case "rtclose": closeRT(); break;
+    case "rtdim": dim=!dim; drawRT(); break;
+    case "rtpick": pickBookSheet(); break;
+    case "rtsetbook": S.timer.bookId=id; save(); closeSheet(); drawRT(); break;
+    case "rtstart": if(!S.timer.bookId){ pickBookSheet(); break; } Object.assign(S.timer,{fresh:false,paused:false,runFrom:Date.now(),startedAt:Date.now(),accum:0,idle:false}); save();
+      if(!wake&&"wakeLock" in navigator) getWake(true); drawRT(); break;
+    case "rtpause": { const t=S.timer; if(t.paused){ t.paused=false; t.idle=false; t.runFrom=Date.now(); } else { t.accum+=Date.now()-t.runFrom; t.paused=true; } save(); drawRT(); break; }
+    case "rtfinish": finishRT(); break;
+    case "rtrain": if(audio) stopRain(); else startRain(); drawRT(); break;
+    case "rtwake": if(wake) releaseWake(); else await getWake(); drawRT(); break;
+    case "endstep": { const i=$("#endpg"); i.value=Math.max(0,(+i.value||0)+ +el.dataset.d); break; }
+    case "endfinished": { const b=S.books[S.timer.bookId]; $("#endpg").value=b.unit==="percent"?100:b.pages; el.dataset.done="1"; el.textContent="Marked finished"; el.disabled=true; break; }
+    case "savert": { const t=S.timer, b=S.books[t.bookId], mins=t.accum/60000;
+      if(mins<1){ toast("Under a minute, so nothing was saved"); S.timer=null; save(); closeSheet(); closeRT(); break; }
+      const from=b?(b.page||0):0; let to=b?(+$("#endpg").value||from):0; if(b&&b.unit==="percent"&&b.pages) to=Math.round(Math.min(100,to)/100*b.pages); to=Math.max(from,to);
+      S.sessions.push({id:uid(),bookId:t.bookId,start:new Date(t.startedAt).toISOString(),min:Math.round(mins*10)/10,fromPage:from,toPage:to,note:$("#endnote").value.trim(),src:"timer",idleTrim:!!t.idle});
+      if(b){ b.page=to; if(b.status!=="Reading") setShelf(b.id,"Reading"); const fin=document.querySelector('[data-act="endfinished"][data-done]'); if(fin||(b.pages&&to>=b.pages)) setShelf(b.id,"Read"); }
+      S.timer=null; save(); stopRain(); releaseWake(); closeSheet(); $("#rt").hidden=true; clearInterval(rtTick); render();
+      const st=streakInfo(); if(!document.querySelector(".toast.on")) toast(st.todayMet?`Goal met · ${st.cur} night${st.cur===1?"":"s"} in a row`:`${fmtMin(mins)} logged`); break; }
+    case "discardrt": if(el.dataset.confirm){ S.timer=null; save(); stopRain(); releaseWake(); closeSheet(); $("#rt").hidden=true; clearInterval(rtTick); render(); toast("Discarded"); } else { el.dataset.confirm="1"; el.textContent="Tap again to discard"; } break;
+  }
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"){ if(!$("#sheet").hidden) closeSheet(); else if(!$("#rt").hidden) closeRT(); }
+  if(e.key==="Enter"&&e.target.id==="sq"){ e.preventDefault(); const btn=document.querySelector('[data-act="dosearch"]'); if(btn) btn.click(); }
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="libq"){ libQ=e.target.value; const pos=e.target.selectionStart; render(); const i=$("#libq"); i.focus(); i.setSelectionRange(pos,pos); return; }
+  const f=e.target.dataset.field; if(f){ const b=S.books[e.target.dataset.id]; b[f]=f==="pages"?(+e.target.value||0):e.target.value; save(); }
+});
+document.addEventListener("change",e=>{ if(e.target.id==="libsort"){ libSort=e.target.value; render(); } else if(e.target.dataset.field) render(); });
+document.querySelectorAll("nav.tabs [data-tab]").forEach(b=>b.addEventListener("click",()=>{ tab=b.dataset.tab; render(); scrollTo(0,0); }));
+$("#readbtn").addEventListener("click",()=>openRT());
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ idleCheck(); if(!$("#rt").hidden){ drawRT(); if(S.timer&&!S.timer.paused&&!wake&&"wakeLock" in navigator) getWake(true); } else render(); } });
+
+load(); applyTheme(); idleCheck(); render();
+if(S.timer&&!S.timer.fresh) rtTick=setInterval(tickRT,1000);
+setInterval(()=>{ if(tab==="today"&&$("#rt").hidden&&$("#sheet").hidden&&!S.timer) render(); },60000);
+if(BUILD==="public"&&"serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+
+</body>
+</html>
