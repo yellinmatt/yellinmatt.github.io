@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <title>Read</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://*.mzstatic.com https://covers.openlibrary.org https://archive.org https://*.archive.org; connect-src https://itunes.apple.com https://openlibrary.org https://*.workers.dev; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
@@ -537,13 +537,6 @@ body.kb .tabbar,body.kb .mini{opacity:0;pointer-events:none}
 [tabindex="-1"]:focus{outline:none}
 
 .ccard .fl{font-size:0.8125rem;color:var(--accent);margin-top:8px;font-weight:600}
-.stalled{display:flex;gap:12px;background:var(--card);border-radius:16px;padding:12px;box-shadow:inset 0 0 0 .5px var(--line);margin:0 0 18px}
-.stalled .cover{width:48px;flex:none}
-.stalled .tx{flex:1;min-width:0}
-.stalled b{display:block;font:600 0.9688rem/1.25 var(--sans)}
-.stalled span{display:block;font-size:0.8125rem;color:var(--sub);margin-top:2px}
-.stalled .row{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.stalled .chip{height:32px;padding:0 11px;font-size:0.8125rem}
 .fanrow{display:flex;flex:none;width:64px;height:60px;position:relative}
 .fanrow .cover{position:absolute;width:38px;bottom:0;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .fanrow .cover:nth-child(1){left:0;z-index:3}.fanrow .cover:nth-child(2){left:13px;z-index:2}.fanrow .cover:nth-child(3){left:26px;z-index:1}
@@ -576,11 +569,6 @@ body.kb .tabbar,body.kb .mini{opacity:0;pointer-events:none}
 .hero.empty-hero .btn{margin-top:14px}
 .row2{display:flex;gap:10px;margin-top:10px}
 .row2 .btn{height:40px;font-size:0.875rem}
-.then{display:flex;align-items:center;gap:10px;margin-top:10px;padding:10px 12px;background:var(--card);border-radius:14px;box-shadow:inset 0 0 0 .5px var(--line);width:100%;text-align:left}
-.then .cover{width:30px;flex:none}
-.then .tx{flex:1;min-width:0}
-.then b{display:block;font:600 0.875rem/1.25 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.then span{display:block;font-size:0.8125rem;color:var(--sub)}
 .onefield{text-align:center;padding-top:4px}
 .onefield .lbl{margin-bottom:6px}
 .onefield input.page{font:500 3.5rem/1 var(--serif);width:100%;text-align:center;background:none;border:0;outline:none;color:var(--ink);padding:0;-moz-appearance:textfield}
@@ -643,6 +631,24 @@ input[type=search]::-webkit-search-cancel-button,input[type=search]::-webkit-sea
 .shead select{position:relative;padding:12px 0;margin:-12px 0}
 .mini{cursor:pointer}
 @media (max-width:340px){ .shead.bk .tt b{font-size:0.875rem} .player .opts .atile{font-size:0.625rem} }
+
+.thenhead{margin:20px 4px 8px;font:600 0.8125rem/1.2 var(--sans);color:var(--sub)}
+.then{display:flex;align-items:center;background:var(--card);border-radius:14px;box-shadow:inset 0 0 0 .5px var(--line);margin-top:8px;min-height:60px}
+.then .go{flex:1;min-width:0;display:flex;align-items:center;gap:12px;padding:10px 12px;text-align:left;border-radius:14px;color:inherit}
+.then .cover{width:30px;flex:none}
+.then .tx{flex:1;min-width:0}
+.then b{display:block;font:600 0.9375rem/1.25 var(--sans);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.then .tx>span{display:block;font-size:0.8125rem;line-height:1.35;color:var(--sub);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+em.quiet{font-style:normal;color:var(--sub)}
+.then.isquiet .cover{opacity:.72}
+.ask{flex:none;position:relative;height:30px;padding:0 12px;margin-right:12px;border-radius:15px;background:var(--accent-soft);color:var(--accent);font:600 0.8125rem/30px var(--sans);white-space:nowrap}
+.ask::before{content:"";position:absolute;inset:-7px -6px}
+.ask:active{opacity:.6}
+.ask.inl{display:inline-block;height:26px;line-height:26px;padding:0 10px;margin:6px 0 0;vertical-align:middle}
+.cell input.secret{-webkit-text-security:disc;font-family:var(--sans);letter-spacing:.06em}
+.cell input[type=url],.cell input.secret{background:none;border:0;text-align:right;color:var(--sub);padding:0;min-height:44px;min-width:0;flex:1}
+input,textarea,select{font-size:max(16px,1em)}
+.then + .wk{margin-top:22px}
 </style>
 </head>
 <body>
@@ -699,6 +705,7 @@ function seedStore(){
   const st=emptyStore(); if(!SEED) return st;
   SEED.books.forEach(b=>st.books[b.id]=fromSeed(b));
   st.activity=(SEED.activity||[]).map(a=>({id:uid(),...a}));
+  st.sessions=(SEED.sessions||[]).map(x=>({id:uid(),idleTrim:false,...x})); // timed sessions carried over from Margins (2026-10-29)
   st.settings.yearGoal=SEED.yearGoal||DEF_SETTINGS.yearGoal;
   return st;
 }
@@ -1220,17 +1227,19 @@ function tonightLine(){ const st=streakInfo(), g=goalSpec(), t=st.today;
 
 function tonightBook(){ const rd=readingNow(); if(S.timer&&S.books[S.timer.bookId]) return S.books[S.timer.bookId]; return rd[0]||booksBy("Up Next")[0]||booksBy("Queue")[0]||null; }
 function stalledBooks(){ return booksBy("Reading").map(b=>({b,days:daysSince(lastActivityDay(b.id))})).filter(x=>x.days!=null&&x.days>=14&&!(S.timer&&S.timer.bookId===x.b.id)&&!(S.snoozed||{})[x.b.id]).sort((a,b)=>b.days-a.days); }
-function stalledCard(){ const st=stalledBooks(); if(!st.length) return ""; const {b,days}=st[0];
-  return `<div class="stalled" data-key="stalled-${esc(b.id)}">${cover(b)}<div class="tx"><b>${bt(b)} has gone quiet</b><span>No reading in ${days} days · page ${b.page||0}${b.pages?" of "+b.pages:""}</span>
-    <div class="row"><button class="chip" data-act="start" data-id="${esc(b.id)}">Resume</button><button class="chip" data-act="stop" data-id="${esc(b.id)}">Pause it</button><button class="chip" data-act="setshelf" data-v="DNF" data-id="${esc(b.id)}">Did Not Finish</button><button class="chip" data-act="snooze" data-id="${esc(b.id)}" aria-label="Ask again in a week">Later</button></div></div></div>`; }
+function quietOf(id){ const x=stalledBooks().find(x=>x.b.id===id); return x?{days:x.days,since:lastActivityDay(id)}:null; }
+function monthDay(k){ const d=dateOfKey(k); return MO[d.getMonth()]+" "+d.getDate(); }
 function heroCard(){ const b=tonightBook(), st=streakInfo(), tl=tonightLine(); if(b&&!tintCache[b.id]) tintFor(b,()=>{}); readingNow().slice(0,3).forEach(o=>{ if(!tintCache[o.id]) tintFor(o,()=>{}); }); if(!b) return `<div class="hero empty-hero"><div class="r"><span class="k">Tonight</span><div class="t">Nothing on the go</div><div class="w sub">Search for the book you’re reading, or pick one from Want to Read.</div><button class="btn teal" data-act="tab" data-t="search">Find a book</button></div></div>`;
   const live=S.timer&&S.timer.bookId===b.id, reading=b.status==="Reading", fl=reading?finishLine(b):"", others=readingNow().filter(x=>x.id!==b.id);
   return `<div class="hero" data-key="hero-${esc(b.id)}"><button class="cv" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" aria-label="Open ${bt(b)}">${cover(b)}</button>
     <div class="r"><span class="k ${st.todayMet?"done":""}">${st.todayMet?"Done tonight":reading?"Tonight":"Start tonight"}</span><div class="t">${bt(b)}</div><div class="a">${ba(b)}</div>
-    <div class="w num">${reading?(b.unit==="percent"&&b.pages?`<b>${pctOf(b)}%</b> · page ${b.page||0} of ${b.pages}`:`Page <b>${b.page||0}</b>${b.pages?` of ${b.pages} · ${pctOf(b)}%`:""}`):esc(STATUS_WORD[b.status])}${fl?`<br><span class="fl">${esc(fl)}</span>`:st.todayMet?`<br><span class="sub">${esc(tl.s)}</span>`:""}</div>
+    <div class="w num">${reading?(b.unit==="percent"&&b.pages?`<b>${pctOf(b)}%</b> · page ${b.page||0} of ${b.pages}`:`Page <b>${b.page||0}</b>${b.pages?` of ${b.pages} · ${pctOf(b)}%`:""}`):esc(STATUS_WORD[b.status])}${quietOf(b.id)?`<br><em class="quiet">Quiet since ${esc(monthDay(quietOf(b.id).since))}</em> <button class="ask inl" data-act="stalledask" data-id="${esc(b.id)}">Still reading?</button>`:fl?`<br><span class="fl">${esc(fl)}</span>`:st.todayMet?`<br><span class="sub">${esc(tl.s)}</span>`:""}</div>
     ${live?`<button class="btn teal" data-act="openplayer">${I.clock}<span class="livetime num">${fmtCalm(timerMs())}</span><span>· ${S.timer.paused?"Paused":"Reading"}</span></button>`:`<button class="btn teal" data-act="start" data-id="${esc(b.id)}">${I.play}${!reading?"Start this book":st.todayMet?"Read more":"Start reading"}</button>`}</div></div>
     <div class="row2"><button class="btn dark" data-act="progress" data-id="${esc(b.id)}">${I.pages}Log pages</button><button class="btn dark" data-act="pickanother">${I.swap}Another book</button></div>
-    ${others.map(o=>`<button class="then" data-push="book" data-id="${esc(o.id)}" data-ctx="${esc(o.id)}" data-key="then-${esc(o.id)}">${cover(o)}<span class="tx"><b>Also on the go · ${bt(o)}</b><span>Page ${o.page||0}${o.pages?" of "+o.pages:""}${lastActivityDay(o.id)?" · last read "+(daysSince(lastActivityDay(o.id))===0?"tonight":daysSince(lastActivityDay(o.id))===1?"last night":daysSince(lastActivityDay(o.id))+" days ago"):""}</span></span>${chev}</button>`).join("")}`; }
+    ${others.length?`<div class="thenhead">Also on the go</div>`:""}
+    ${others.map(o=>{ const q=quietOf(o.id), ld=lastActivityDay(o.id), dd=ld?daysSince(ld):null;
+      const when=q?`<em class="quiet">Quiet since ${esc(monthDay(q.since))}</em>`:ld?" · last read "+(dd===0?"tonight":dd===1?"last night":dd+" days ago"):"";
+      return `<div class="then${q?" isquiet":""}" data-key="then-${esc(o.id)}"><button class="go" data-push="book" data-id="${esc(o.id)}" data-ctx="${esc(o.id)}">${cover(o)}<span class="tx"><b>${bt(o)}</b><span>${esc(progressLabel(o))}${q?" · ":""}${when}</span></span>${q?"":chev}</button>${q?`<button class="ask" data-act="stalledask" data-id="${esc(o.id)}">Still reading?</button>`:""}</div>`; }).join("")}`; }
 ROUTES.home={title:()=>"Read",compactAt:40,
   render(){ if(!hasLibrary()) return welcomeHTML();
     const st=streakInfo(), q=booksBy("Queue"), nx=booksBy("Up Next");
@@ -1238,7 +1247,6 @@ ROUTES.home={title:()=>"Read",compactAt:40,
       <button class="streakbtn ${st.cur?"":"off"}" data-push="streak" aria-label="Streak, ${st.cur} nights">${I.flame}<span class="num">${st.cur}</span></button>
       <button class="sqbtn" data-push="settings" aria-label="Settings">${I.gear}</button></div></div>
     ${heroCard()}
-    ${stalledCard()}
     ${weekDots()}
     <div class="duo" style="margin-top:22px">
       ${nx.length?fanTile("Up Next","Up Next",nx):fanTile("Want to Read","Queue",q)}
@@ -1259,7 +1267,7 @@ function weekTile(){ const d=dayData(), t=todayKey(); let mins=0, nights=0; for(
   return `<button class="ptile" data-push="stats-week"><h2>This Week ${chev}</h2><div class="big num">${nights}<span class="sub" style="font-size:18px">/7</span></div><div class="lbl">nights read · ${fmtMin(mins)}</div></button>`; }
 function welcomeHTML(){ return `<div class="welcome"><div class="phead"><h1>Read</h1><div class="tools"><button class="sqbtn" data-push="settings" aria-label="Settings">${I.gear}</button></div></div>
   <div class="hero">Read every night.<br>Finish more books.</div><p>Your library lives on this device. Restore a backup from your other device, or search for the book you’re reading now to start fresh.</p>
-  <div class="stack" style="margin-top:22px"><button class="btn" data-act="restore">${I.restore}Restore from a backup</button><button class="btn dark" data-act="tab" data-t="search">${I.search(false)}Add a book</button></div></div>`; }
+  <div class="stack" style="margin-top:22px">${BUILD==="public"?`<button class="btn teal" data-act="syncsheet">${I.restore}Sync from your other devices</button>`:""}<button class="btn${BUILD==="public"?" dark":""}" data-act="restore">${I.restore}Restore from a backup</button><button class="btn dark" data-act="tab" data-t="search">${I.search(false)}Add a book</button></div></div>`; }
 
 ROUTES.library={title:()=>"Library",compactAt:50,
   render(){ const all=Object.values(S.books), n=k=>all.filter(collOf(k).f).length, now=new Date();
@@ -1850,12 +1858,12 @@ function syncStatusLine(){ const c=syncCfg(); if(!c.on||!c.url) return "Off. Eve
   if(c.err) return "Not syncing: "+c.err+"."; const t=Math.max(c.lastPush,c.lastPull); return t?"Synced "+agoWord(t)+".":"Waiting for the first sync."; }
 function agoWord(ts){ const m=Math.round((Date.now()-ts)/60000); if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.round(m/60); if(h<24) return h+"h ago"; return Math.round(h/24)+" days ago"; }
 
-function sheetSync(){ const c=syncCfg(); openSheet({title:"Sync",form:{url:c.url,token:syncToken(),on:c.on},render:()=>`
-  <div class="group"><label class="cell"><span class="k">Worker URL</span><input type="url" data-f="url" value="${esc(F.url)}" placeholder="https://read-sync…workers.dev" autocapitalize="off" autocorrect="off" style="max-width:60%"></label>
-  <label class="cell"><span class="k">Token</span><input type="password" data-f="token" value="${esc(F.token)}" placeholder="Paste" autocomplete="off" style="max-width:60%"></label>
-  <label class="cell"><span class="k">Sync this device</span><span class="switch"><input type="checkbox" data-f="on" ${F.on?"checked":""}><i></i></span></label></div>
-  <div class="gfoot">${esc(syncStatusLine())} The token is kept on this device only and never goes into a backup.</div>
-  <div class="stack" style="margin-top:14px"><button class="btn" data-act="savesync">Save</button><button class="btn dark" data-act="syncnow">Sync now</button></div>`}); }
+function sheetSync(){ const c=syncCfg(); openSheet({title:"Sync",form:{url:c.url||SYNC_DEFAULT,token:syncToken()},render:()=>`
+  <div class="group"><label class="cell"><span class="k">Worker URL</span><input type="url" data-f="url" value="${esc(F.url)}" placeholder="https://read-sync…workers.dev" autocapitalize="off" autocorrect="off" spellcheck="false" style="max-width:60%"></label>
+  <label class="cell"><span class="k">Token</span><input type="text" class="secret" data-f="token" value="${esc(F.token)}" placeholder="Paste" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" data-1p-ignore data-lpignore="true" style="max-width:60%"></label></div>
+  <div class="gfoot">${esc(syncStatusLine())} The token stays on this device and never goes into a backup.</div>
+  <div class="stack" style="margin-top:14px"><button class="btn teal" data-act="savesync">${syncReady()?"Save":"Turn on sync"}</button>${syncReady()?`<button class="btn dark" data-act="syncnow">Sync now</button><button class="btn dark" style="color:var(--danger)" data-act="syncoff">Turn off sync</button>`:""}</div>`}); }
+const SYNC_DEFAULT="https://read-sync.yellinmatt.workers.dev";
 
 function nudgeSupported(){ return BUILD==="public"&&"serviceWorker" in navigator&&"PushManager" in window&&"Notification" in window; }
 async function nudgeEnable(){ if(!syncReady()){ toast("Set up sync first"); return false; }
@@ -1935,6 +1943,7 @@ document.addEventListener("click",e=>{
     case "readdates": sheetReadDates(id,+el.dataset.read); break;
     case "savereaddates": { const b=S.books[F.id], r=b.reads[F.i]; if(F.started&&F.finished&&F.finished<F.started){ toast("The end is before the start"); break; } r.started=F.started; r.finished=F.finished; touch(b); save(); closeSheet(true); update(); toast("Dates saved"); break; }
     case "delread": { const before=snapshot(), b=S.books[F.id]; b.reads.splice(F.i,1); touch(b); save(); closeSheet(true); update(); undoable("Earlier read removed",before); break; }
+    case "stalledask": stalledAsk(id); break;
     case "snooze": { const b=S.books[id]; S.snoozed=S.snoozed||{}; S.snoozed[id]=addDays(todayKey(),7); save(); update(); toast("Will ask again in a week"); break; }
     case "tquick": F.target=addDays(todayKey(),+el.dataset.d); refreshSheet(); break;
     case "savetarget": { const b=S.books[F.id]; if(F.target&&F.target<todayKey()){ toast("That day has passed"); break; } b.target=F.target||""; touch(b); save(); closeSheet(true); update(); toast(b.target?"Target set":"Target removed"); break; }
@@ -1983,7 +1992,8 @@ document.addEventListener("click",e=>{
     case "theme": S.settings.theme=el.dataset.v; touchSettings(); save(); applyTheme(); update(); break;
     case "backup": doBackup(); break;
     case "syncsheet": sheetSync(); break;
-    case "savesync": { const url=(F.url||"").trim().replace(/\/$/,""); try{ localStorage.setItem(TOKEN_KEY,(F.token||"").trim()); }catch(e){} syncSet({url,on:!!F.on,err:""}); closeSheet(true); update(); if(syncReady()){ toast("Sync on"); syncPull(); } else toast(F.on?"Add the URL and token":"Sync off"); break; }
+    case "savesync": { const url=(F.url||"").trim().replace(/\/$/,""), tok=(F.token||"").trim(); try{ localStorage.setItem(TOKEN_KEY,tok); }catch(e){} syncSet({url,on:!!(url&&tok),err:""}); closeSheet(true); update(); if(syncReady()){ toast("Sync on · fetching your library"); syncPull().then(()=>{ const c=syncCfg(); if(c.err) toast("Not syncing: "+c.err); else { toast("Synced"); G.scheduleSync(); } }); } else toast("Paste the token to turn sync on"); break; }
+    case "syncoff": { syncSet({on:false}); closeSheet(true); update(); toast("Sync off · this device keeps its copy"); break; }
     case "syncnow": { if(!syncReady()){ toast("Add the URL and token first"); break; } toast("Syncing…"); syncPush().then(()=>{ const c=syncCfg(); toast(c.err?"Not syncing: "+c.err:"Synced"); refreshSheet(); }); break; }
     case "copybackup": if(sheet&&sheet.copy) sheet.copy(); break;
     case "restore": sheetRestore(); break;
@@ -2057,6 +2067,15 @@ function openDeepLink(){ const m=/^#(book|start)=([\w.-]+)$/.exec(location.hash|
   if(tab!=="home") switchTab("home"); if(topE().route!=="book"||topE().params.id!==b.id) push("book",{id:b.id});
   if(m[1]==="start") setTimeout(()=>startSession(b.id),350); }
 boot();
+
+function stalledAsk(id){ const b=S.books[id], q=quietOf(id); if(!b) return;
+  const at=progressLabel(b), since=q?monthDay(q.since):"";
+  const act=(fn)=>()=>{ const before=snapshot(); fn(before); };
+  alertCard({title:"Still reading "+typo(b.title)+"?",message:(since?"Nothing logged since "+since+". ":"")+"You’re at "+at.replace(/^Page/,"page")+".",buttons:[
+    {label:"Read it tonight",style:"teal",fn:()=>startSession(id)},
+    {label:"Move to Stopped",style:"dark",fn:act(before=>{ setShelf(id,"Paused"); update(); undoable("Moved "+typo(b.title)+" to Stopped",before); })},
+    {label:"Did Not Finish",style:"dark",fn:act(before=>{ setShelf(id,"DNF"); update(); undoable("Moved "+typo(b.title)+" to Did Not Finish",before); })},
+    {label:"Ask me in a week",style:"dark",fn:()=>{ S.snoozed=S.snoozed||{}; S.snoozed[id]=addDays(todayKey(),7); save(); update(); toast("Will ask again in a week"); }}]}); }
 
 </script>
 </body>
