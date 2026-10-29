@@ -1,4 +1,4 @@
-var CACHE = "read-v1";
+var CACHE = "read-v4";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 self.addEventListener("install", function (e) { self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () { return null; }); })); })); });
