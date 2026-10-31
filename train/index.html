@@ -995,6 +995,7 @@ svg.lring[data-dir="flat"] text[data-lvnum]{fill:var(--dir-flat)}
 
 
 
+/* the two levels, side by side, tier-coloured *//* body band */
 
 .plday{border-top:1px solid var(--line);margin:0 -2px}
 .plday:first-of-type{border-top:0}
@@ -1783,7 +1784,7 @@ a.planrow{color:inherit;text-decoration:none}
 
 <script>
 "use strict";
-var VERSION="v27.5";
+var VERSION="v27.6";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2383,20 +2384,22 @@ function prFor(exId){var ex=LIB[exId];if(!ex||ex.unit==="s")return null;var best
 
 function computeStreak(){refreshDate();var s=0,d=new Date(NOW);if(!isDone(keyOf(d)))d.setDate(d.getDate()-1);
   for(var i=0;i<500;i++){var k=keyOf(d);if(isDone(k)||tdRestPlanned(k)){s++;d.setDate(d.getDate()-1);}else break;}return s;}
-function didKindOn(kind,k){return kind==="lift"?strengthOn(k):cardioDayOn(k);}
+var STREAK_MIN={lift:2,cardio:1,steps:3,morning:3};
+function didKindOn(kind,k){return kind==="lift"?strengthOn(k):kind==="cardio"?cardioDayOn(k):kind==="steps"?stepsHitOn(k):anchorComplete(k);}
 function dayStreak(pred){refreshDate();var d=new Date(NOW),n=0;if(!pred(keyOf(d)))d.setDate(d.getDate()-1);
   for(var i=0;i<1000;i++){if(!pred(keyOf(d)))break;n++;d.setDate(d.getDate()-1);}return n;}
 function streakLineHTML(){
-  var L=kindStreak("lift"),C=kindStreak("cardio"),St=dayStreak(stepsHitOn),M=dayStreak(anchorComplete);
+  var L=kindStreak("lift"),C=kindStreak("cardio"),St=kindStreak("steps"),M=kindStreak("morning");
   function it(lab,n,u){return '<span class="wsk'+(n?'':' zero')+'"><span>'+lab+'</span><b class="num">'+n+'<small>'+u+'</small></b></span>';}
-  return '<div class="wstreak" role="note" aria-label="Streaks: strength '+L+' weeks, cardio '+C+' weeks, steps '+St+' days, morning '+M+' days">'+
-    it("Strength",L,"wk")+it("Cardio",C,"wk")+it("Steps",St,"d")+it("Morning",M,"d")+'</div>';
+  return '<div class="wstreak" role="note" aria-label="Streaks: strength '+L+' weeks, cardio '+C+' weeks, steps '+St+' weeks, morning '+M+' weeks">'+
+    it("Strength",L,"wk")+it("Cardio",C,"wk")+it("Steps",St,"wk")+it("Morning",M,"wk")+'</div>';
 }
 function weekKeyOf(d){var x=new Date(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return keyOf(x);}
 function kindInWeek(kind,mondayKey){
   var p=mondayKey.split("-"),d=new Date(+p[0],+p[1]-1,+p[2]);
-  for(var i=0;i<7;i++){if(didKindOn(kind,keyOf(d)))return true;d.setDate(d.getDate()+1);}
-  return false;
+  var n=0,need=STREAK_MIN[kind]||1;
+  for(var i=0;i<7;i++){var k=keyOf(d);if(k<=TODAY&&didKindOn(kind,k))n++;d.setDate(d.getDate()+1);}
+  return n>=need;
 }
 function kindStreak(kind){
   refreshDate();
@@ -4082,7 +4085,7 @@ function weekMetrics(back,capDays){
     if(k>today)return;
     if(capDays!=null&&i>=capDays)return;
     m.days++;
-    if(S.sessions.some(function(s){return s.date===k&&s.type==="lift";}))m.lifts++;
+    if(S.sessions.some(function(s){return s.date===k&&s.type==="lift"&&!s.draft;}))m.lifts++;
     if(proteinMet(k).met)m.protein++;
     if(isDone(k))m.moved++;
     if(anchorComplete(k))m.anchor++;
@@ -8006,7 +8009,7 @@ function pastItems(kind){
   }else{
     var seen={};
     (S.sessions||[]).forEach(function(x){
-      if(x.type!=="lift"||!x.date)return;
+      if(x.type!=="lift"||!x.date||x.draft)return;
       var sets=0,ex=0;
       (x.entries||[]).forEach(function(e){
         var n=(e.sets||[]).filter(function(t){return t.completed;}).length;
@@ -8025,12 +8028,6 @@ function pastItems(kind){
       if(!log[k]||seen[k])continue;
       seen[k]=true;
       out.push({date:k,head:log[k]+" push-ups",sub:"morning ladder",pu:true});
-    }
-    for(var a in (S.anchor||{})){
-      if(seen[a])continue;
-      var rec=S.anchor[a],sl=anchorSlugs(a),n=sl.filter(function(x,qi){return rec[qi]||rec[x];}).length;
-      if(!n)continue;
-      out.push({date:a,head:"morning flow",sub:n+" of "+anchorSlugs(a).length+" done",anchor:true});
     }
   }
   out.sort(function(a,b){return a.date<b.date?1:-1;});
@@ -8143,7 +8140,7 @@ function stepsHitOn(k){
 }
 function strengthOn(k){
   if(puDayReps(k)>0)return true;
-  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift";});
+  return (S.sessions||[]).some(function(s){return s.date===k&&s.type==="lift"&&!s.draft;});
 }
 function movedOn(k){return exerciseOn(k);}
 function cardioDayOn(k){
