@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Read</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https://*.mzstatic.com https://covers.openlibrary.org https://archive.org https://*.archive.org; connect-src https://itunes.apple.com https://openlibrary.org https://*.workers.dev; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
@@ -693,6 +693,7 @@ const SHELF_LABEL = {"Reading":"Reading","Up Next":"Up Next","Queue":"Want to Re
 const RANK = ["Read","Reading","Up Next","DNF","Paused","Queue","Reference","Maybe","Pass","Hidden"];
 const DEFAULT_PACE = 0.75;          // pages per minute until his own sessions say otherwise
 const DEF_SETTINGS = {goalType:"any",dailyMin:20,dailyPages:20,yearGoal:6,theme:"auto",dimDefault:true,idleMin:90};
+const SEED_AT = 1;                  // stamp of a starter record never edited on this device: older than any real edit, so a real copy anywhere wins
 
 function personName(a){ const m=/^([^,]+),\s*([^,]+)$/.exec(String(a||"").trim()); return m&&!/\b(jr|sr|ii|iii|phd|md)\b/i.test(m[2])?m[2]+" "+m[1]:a; }
 function fromSeed(b){ return {id:b.id,title:b.t,subtitle:b.sub||"",series:b.ser||"",seriesNo:b.sno||"",isbn:b.isbn||"",author:personName(b.a),genre:b.g||"",
@@ -716,13 +717,14 @@ function migrate(){
   Object.values(fresh.books).forEach(f=>(f.merged||[]).forEach(old=>remap[old]=f.id));
   Object.values(S.books).forEach(b=>{
     const id=remap[b.id]||b.id, f=fresh.books[id];
-    if(!f){ fresh.books[id]=b; return; }
+    if(!f){ fresh.books[id]=b; return; } if(b.updatedAt&&S.needsAdopt) f.updatedAt=b.updatedAt;   // fresh, never-synced store only: an untouched starter stays SEED_AT, an edited one keeps its edit time (a synced store keeps pristine's rule, so the server copy wins)
     f.rating=b.rating||f.rating; f.recBy=b.recBy||""; f.notes=b.notes||""; f.page=Math.max(f.page||0,b.page||0);
     if(b.pages&&!f.pages) f.pages=b.pages;
   });
   S.sessions.forEach(x=>{ if(remap[x.bookId]) x.bookId=remap[x.bookId]; });
   const seen=new Set(S.activity.map(a=>a.day+a.bookId+a.src));
-  fresh.activity.forEach(a=>{ if(!seen.has(a.day+a.bookId+a.src)) S.activity.push(a); });
+  fresh.activity.forEach(a=>{ if(!seen.has(a.day+a.bookId+a.src)){ if(S.needsAdopt) a.updatedAt=SEED_AT; S.activity.push(a); } });
+  if(S.needsAdopt) Object.values(fresh.books).forEach(f=>{ if(!f.updatedAt) f.updatedAt=SEED_AT; });   // a book new in this seed is a starter too, until the first adopt
   S.books=fresh.books; S.settings.yearGoal=fresh.settings.yearGoal;
   if((S.seedV||1)<5){ S.settings.goalType="any"; S.goalLog=[{since:"0000-00-00",type:"any",n:1}]; S.activity=S.activity.filter(x=>x.src!=="margins").concat(fresh.activity.filter(x=>x.src==="margins")); } // Margins counts any reading activity; its progress days now carry pages
   S.seedV=SEED_V; save();
@@ -742,9 +744,40 @@ function mergeStores(a,b){ const out=emptyStore(); out.v=Math.max(a.v||2,b.v||2)
   const gl={}; [...(a.goalLog||[]),...(b.goalLog||[])].forEach(g=>{ if(!gl[g.since]||(g.updatedAt||0)>(gl[g.since].updatedAt||0)) gl[g.since]=g; }); out.goalLog=Object.values(gl).sort((x,y)=>x.since.localeCompare(y.since));
   out.lastBook=((b.lastBookAt||0)>(a.lastBookAt||0)?b.lastBook:a.lastBook)||a.lastBook||b.lastBook; out.lastBookAt=Math.max(a.lastBookAt||0,b.lastBookAt||0);
   out.snoozed=Object.assign({},a.snoozed||{},b.snoozed||{}); out.timer=a.timer||null; return out; }
-function touch(rec){ if(rec) rec.updatedAt=Date.now(); return rec; }
-function touchSettings(){ S.settingsAt=Date.now(); }
-function tombstone(id){ S.deleted=S.deleted||{}; S.deleted[id]=Date.now(); }
+function nextStamp(prev){ return Math.max(Date.now(),(+prev||0)+1); }
+function touch(rec){ if(rec) rec.updatedAt=nextStamp(rec.updatedAt); return rec; }
+function touchSettings(){ S.settingsAt=nextStamp(S.settingsAt); }
+let stampIdx={};   // id -> updatedAt as of the last save, so a tombstone written after the record is gone still knows its stamp
+function indexStamps(){ const m={}; ["books","lists"].forEach(k=>Object.values(S[k]||{}).forEach(r=>{ if(r) m[r.id]=r.updatedAt||0; })); ["sessions","activity"].forEach(k=>(S[k]||[]).forEach(r=>{ if(r&&r.id!=null) m[r.id]=r.updatedAt||0; })); stampIdx=m; }
+function tombstone(id){ S.deleted=S.deleted||{}; S.deleted[id]=nextStamp(Math.max(S.deleted[id]||0,stampIdx[id]||0)); }
+let snapAt=0;   // set while an action is between its snapshot and its undoable(); sync holds merges meanwhile (65-sync.js syncHold)
+function snapshot(){ snapAt=Date.now(); return JSON.stringify(S); }
+const REC_MAPS=["books","lists"], REC_ARRS=["sessions","activity"];
+function byId(a){ const m={}; (a||[]).forEach(r=>{ if(r&&r.id!=null) m[r.id]=r; }); return m; }
+function diffStores(a,b){ const J=JSON.stringify, d={recs:[],dead:{},goal:[],settings:null,lastBook:null,snoozed:null};
+  const da=a.deleted||{}, db=b.deleted||{}; new Set([...Object.keys(da),...Object.keys(db)]).forEach(id=>{ if(da[id]!==db[id]) d.dead[id]=da[id]||0; });
+  for(const k of [...REC_MAPS,...REC_ARRS]){ const arr=REC_ARRS.includes(k), x=arr?byId(a[k]):(a[k]||{}), y=arr?byId(b[k]):(b[k]||{});
+    new Set([...Object.keys(x),...Object.keys(y)]).forEach(id=>{ if(J(x[id])!==J(y[id])) d.recs.push({k,id,prev:x[id]||null,i:arr?(a[k]||[]).indexOf(x[id]):-1,
+      at:Math.max((x[id]||{}).updatedAt||0,(y[id]||{}).updatedAt||0,db[id]||0)}); }); }
+  const sa=a.settings||{}, sb=b.settings||{}, keys={}; new Set([...Object.keys(sa),...Object.keys(sb)]).forEach(k=>{ if(J(sa[k])!==J(sb[k])) keys[k]=sa[k]; });
+  if(Object.keys(keys).length) d.settings={keys,at:Math.max(a.settingsAt||0,b.settingsAt||0)};   // only the keys the action changed
+  const ga={}, gb={}; (a.goalLog||[]).forEach(g=>ga[g.since]=g); (b.goalLog||[]).forEach(g=>gb[g.since]=g);
+  new Set([...Object.keys(ga),...Object.keys(gb)]).forEach(k=>{ if(J(ga[k])!==J(gb[k])) d.goal.push({since:k,prev:ga[k]||null,at:Math.max((ga[k]||{}).updatedAt||0,(gb[k]||{}).updatedAt||0)}); });
+  if(a.lastBook!==b.lastBook) d.lastBook={v:a.lastBook==null?null:a.lastBook,at:Math.max(a.lastBookAt||0,b.lastBookAt||0)};
+  if(J(a.snoozed||{})!==J(b.snoozed||{})) d.snoozed=a.snoozed||{};
+  return d; }
+function undoDiff(d,was){ const copy=x=>JSON.parse(JSON.stringify(x)); S.deleted=S.deleted||{};
+  d.recs.forEach(({k,id,prev,i,at})=>{ const arr=REC_ARRS.includes(k);
+    if(prev){ const r=copy(prev); r.updatedAt=at+1;
+      if(arr){ S[k]=S[k]||[]; const j=S[k].findIndex(x=>x.id===id); if(j>=0) S[k][j]=r; else S[k].splice(i>=0?Math.min(i,S[k].length):S[k].length,0,r); } else { S[k]=S[k]||{}; S[k][id]=r; }
+      if(id in d.dead){ if(d.dead[id]) S.deleted[id]=d.dead[id]; else delete S.deleted[id]; } }
+    else { if(arr) S[k]=(S[k]||[]).filter(x=>x.id!==id); else if(S[k]) delete S[k][id]; S.deleted[id]=Math.max(S.deleted[id]||0,at+1); } });
+  if(d.settings){ Object.entries(d.settings.keys).forEach(([k,v])=>{ if(v===undefined) delete S.settings[k]; else S.settings[k]=copy(v); }); S.settingsAt=Math.max(S.settingsAt||0,d.settings.at+1); }
+  d.goal.forEach(({since,prev,at})=>{ S.goalLog=S.goalLog||[]; // goalLog has no tombstones: an entry the action added is overwritten with the goal in force before it
+    const older=(was.goalLog||[]).filter(g=>g.since<since).pop()||{type:"any",n:1}, r=prev?{...copy(prev),updatedAt:at+1}:{since,type:older.type,n:older.n,updatedAt:at+1};
+    const j=S.goalLog.findIndex(g=>g.since===since); if(j>=0) S.goalLog[j]=r; else { S.goalLog.push(r); S.goalLog.sort((x,y)=>x.since.localeCompare(y.since)); } });
+  if(d.lastBook){ S.lastBook=d.lastBook.v; S.lastBookAt=d.lastBook.at+1; }
+  if(d.snoozed) S.snoozed=copy(d.snoozed); }
 function commit(label,fn,opts={}){ const before=snapshot(); let out; try{ out=fn(); }catch(e){ console.error(e); return; }
   save(); if(typeof update==="function") update(); if(label) undoable(label,before,opts.dropTimer); return out; }
 function normalize(){
@@ -757,10 +790,44 @@ function normalize(){
   upgradeStore();
 }
 let S;
-function load(){ try{ const raw=localStorage.getItem(LS); if(raw) S=JSON.parse(raw); }catch(e){}
-  if(!S||!S.books) S=BUILD==="public"?emptyStore():seedStore();
-  migrate(); }
-function save(){ try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){} if(G.scheduleSync) G.scheduleSync(); }
+let storeBlocked=false, aside=null, writeFail=false; const storeShown=new Set(), BLOCKED_MSG="Read can’t reach this device’s storage, so changes stay only until you close it.";
+function hashText(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619)>>>0; } return h.toString(36)+s.length.toString(36); }
+function writeAside(){ if(!aside) return true; // a key already holding other text is never overwritten: the next free suffix is used
+  try{ for(let n=0;;n++){ const k=aside.key+(n?"_"+n:""), v=localStorage.getItem(k); if(v===aside.raw) break; if(v==null){ localStorage.setItem(k,aside.raw); break; } } aside=null; return true; }catch(e){ return false; } }
+function storeNote(msg){ if(storeShown.has(msg)) return; storeShown.add(msg); // one line, and never over an Undo toast
+  const show=()=>{ if(typeof toast!=="function") return; if(toast._undo){ setTimeout(show,800); return; } toast(msg); }; setTimeout(show,0); }
+let seedIdx=null;
+function seedBook(id){ if(!SEED) return null; if(!seedIdx){ seedIdx={}; SEED.books.forEach(b=>seedIdx[b.id]=b); } const b=seedIdx[id]; if(!b) return null;
+  const r=fromSeed(b); r.format=normFormat(r.format); r.unit=r.unit||"page"; r.cu=r.cu||""; return r; }
+const SHELF_FIELDS=["status","started","finished","page","reads","pageBefore","_pb","fuzzy"];
+function rebaseSeed(srv,loc,base){ const J=JSON.stringify, out={...srv}, newer=(loc.updatedAt||0)>(srv.updatedAt||0); let n=0;
+  const put=k=>{ n++; if(loc[k]===undefined) delete out[k]; else out[k]=loc[k]; }, changed=k=>J(loc[k])!==J(base[k]), seedOnSrv=k=>J(srv[k])===J(base[k]);
+  if(SHELF_FIELDS.some(changed)&&SHELF_FIELDS.every(seedOnSrv)) SHELF_FIELDS.forEach(put);
+  new Set([...Object.keys(loc),...Object.keys(base)]).forEach(k=>{ if(k==="updatedAt"||SHELF_FIELDS.includes(k)) return; if(changed(k)&&(newer||seedOnSrv(k))) put(k); });
+  if(!n) return srv; out.updatedAt=Math.max(loc.updatedAt||0,(srv.updatedAt||0)+1); return out; }
+function stampSeed(st){ Object.values(st.books).forEach(b=>b.updatedAt=SEED_AT); st.sessions.forEach(x=>x.updatedAt=SEED_AT); st.activity.forEach(x=>x.updatedAt=SEED_AT); return st; }
+function load(){ let raw=null, bad=false;
+  try{ raw=localStorage.getItem(LS); }catch(e){ storeBlocked=true; logError("storage",e); storeNote(BLOCKED_MSG); }
+  if(raw){ try{ S=JSON.parse(raw); }catch(e){ S=null; } if(!S||typeof S!=="object"||!S.books){ S=null; bad=true; } }
+  if(bad){ aside={key:LS+"_corrupt_"+hashText(raw),raw}; const kept=writeAside(); S=emptyStore(); S.needsAdopt=true;
+    const synced=typeof syncReady==="function"&&syncReady();   // promise sync only where it is set up
+    storeNote(!kept?"Couldn’t read your library or keep a copy of it, so Read isn’t saving.":synced?"Couldn’t read your library. A copy is kept on this device, and sync brings your library back.":"Couldn’t read your library. A copy is kept on this device; Restore from a backup brings it back."); }
+  else if(!S){ S=BUILD==="public"?emptyStore():stampSeed(seedStore()); S.needsAdopt=true; }
+  migrate(); indexStamps(); }
+function persist(){ // the one write of read_v1; false when it didn't land
+  indexStamps();
+  if(storeBlocked){ let raw; try{ raw=localStorage.getItem(LS); }catch(e){ storeNote(BLOCKED_MSG); return false; }
+    if(raw){ storeNote("Read couldn’t open your library when it started, so it isn’t saving. Close and reopen Read."); return false; } storeBlocked=false; }
+  if(!writeAside()){ storeNote("Couldn’t read your library or keep a copy of it, so Read isn’t saving."); return false; }
+  try{ localStorage.setItem(LS,JSON.stringify(S)); writeFail=false; return true; }
+  catch(e){ if(!writeFail){ writeFail=true; logError("save",e); const m=e&&e.name==="QuotaExceededError"?"Couldn’t save: storage is full. Changes stay until you close Read.":"Couldn’t save on this device. Changes stay until you close Read."; storeShown.delete(m); storeNote(m); } return false; } }
+function save(){ persist(); if(G.scheduleSync) G.scheduleSync(); }
+function asidePending(){ return !!aside; }        // the unreadable text could not be copied aside (Restore asks before replacing it)
+function dropAside(){ aside=null; }               // only after he confirms that Restore replaces it for good
+function scrubMsg(m){ m=String(m==null?"":m).replace(/https?:\/\/\S+/g,"<url>").replace(/(["“‘`'])[^"”’`']*["”’`']/g,"<text>");
+  try{ Object.values((S&&S.books)||{}).forEach(b=>{ [b&&b.title,b&&b.author,b&&b.notes].forEach(t=>{ if(t&&t.length>2) m=m.split(t).join("<book>"); }); }); }catch(e){}
+  m=m.slice(0,40); if(/[A-Za-z]{2,}\s+[A-Za-z]{2,}\s+[A-Za-z]{2,}/.test(m)) m=m.replace(/[A-Za-z]/g,"x"); return m; }
+function logError(kind,e,at){ try{ const L=JSON.parse(localStorage.getItem("read_errlog")||"[]"); L.push({t:Date.now(),k:kind,type:String((e&&e.name)||typeof e).slice(0,30),m:scrubMsg(e&&e.message!=null?e.message:e),at:String(at||"").slice(0,20)}); localStorage.setItem("read_errlog",JSON.stringify(L.slice(-50))); }catch(x){} }
 function hasLibrary(){ return Object.keys(S.books).length>0; }
 
 const pad=n=>String(n).padStart(2,"0");
@@ -791,7 +858,7 @@ function dayData(){ // minutes, pages and books per night, from timed sessions a
 function goalFor(k){ const L=S.goalLog||[]; let g=null; for(const e of L){ if(e.since<=k) g=e; } g=g||L[0];
   return g?{type:g.type,n:g.n,unit:g.type==="pages"?"pages":g.type==="minutes"?"min":""}:goalSpec(); }
 function logGoal(){ const g=goalSpec(), t=todayKey(); S.goalLog=S.goalLog||[]; const last=S.goalLog[S.goalLog.length-1];
-  if(last&&last.since===t) Object.assign(last,{type:g.type,n:g.n}); else S.goalLog.push({since:t,type:g.type,n:g.n}); }
+  if(last&&last.since===t) Object.assign(last,{type:g.type,n:g.n,updatedAt:nextStamp(last.updatedAt)}); else S.goalLog.push({since:t,type:g.type,n:g.n,updatedAt:Date.now()}); }
 function goalSpec(){ const s=S.settings; return s.goalType==="pages"?{type:"pages",n:Math.max(1,+s.dailyPages||20),unit:"pages"}:s.goalType==="any"?{type:"any",n:1,unit:""}:{type:"minutes",n:Math.max(1,+s.dailyMin||20),unit:"min"}; }
 function dayMet(x){ if(!x) return false; const g=x.k?goalFor(x.k):goalSpec(); return g.type==="any"?x.active:g.type==="pages"?x.pages>=g.n:x.min>=g.n; }
 function dayAmount(x){ const g=goalSpec(); if(!x) return 0; return g.type==="pages"?x.pages:g.type==="any"?(x.active?1:0):x.min; }
@@ -833,6 +900,7 @@ const G=typeof window!=="undefined"?window:globalThis;
 G.coverFail=function(img){ const b=S.books[img.dataset.bid]; if(!b){ img.remove(); return; }
   const local=G.COVERS&&G.COVERS[b.id]; if(local&&img.getAttribute("src")!==local){ img.src=local; return; }
   img.outerHTML=drawnCover(b,img.dataset.cls||""); };
+if(G.addEventListener){ G.addEventListener("error",e=>logError("error",e.error||e.message,(e.lineno||0)+":"+(e.colno||0))); G.addEventListener("unhandledrejection",e=>logError("promise",e.reason)); }
 const tintCache={};
 function tintFor(b,cb){ if(tintCache[b.id]) return cb(tintCache[b.id]); const src=coverSrc(b); if(!src) return cb(null);
   const im=new Image(); if(!src.startsWith("data:")) im.crossOrigin="anonymous";
@@ -894,7 +962,7 @@ function decodeEanRow(bits){ // bits: array of 0/1 across one row (1 = dark). Re
   for(let i=1;i<runs.length-58;i++){ if(runs[i].v===1&&runs[i-1].v===0&&runs[i-1].n>=runs[i].n*2){ const d=tryFrom(i); if(d) return d; } }
   return null; }
 
-if(typeof module!=="undefined"&&module.exports){ module.exports={mergeStores,decodeEanRow,EAN_L,EAN_G,EAN_R,EAN_PAR,listsOf,nextRating,starFill,fmtRating,monthStats,prevMonth,keyOf,todayKey,addDays,dateOfKey,fmtMin,fmtCalm,fmtClock,dayData,goalFor,goalSpec,dayMet,streakInfo,pace,bookPace,projection,finishYear,finishedIn,upgradeStore,touch,tombstone,emptyStore,seedStore,load,save,normalize,migrate,lastActivityDay,daysSince,get S(){ return S; },set S(v){ S=v; }}; }
+if(typeof module!=="undefined"&&module.exports){ module.exports={mergeStores,decodeEanRow,EAN_L,EAN_G,EAN_R,EAN_PAR,listsOf,nextRating,starFill,fmtRating,monthStats,prevMonth,keyOf,todayKey,addDays,dateOfKey,fmtMin,fmtCalm,fmtClock,dayData,goalFor,goalSpec,dayMet,streakInfo,pace,bookPace,projection,finishYear,finishedIn,upgradeStore,touch,tombstone,emptyStore,seedStore,load,save,persist,snapshot,diffStores,undoDiff,scrubMsg,logError,stampSeed,SEED_AT,normalize,migrate,lastActivityDay,daysSince,get S(){ return S; },set S(v){ S=v; }}; }
 
 const sv=(d,o="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${o}>${d}</svg>`;
 const I={
@@ -1175,8 +1243,8 @@ function initLongPress(){
 
 function toast(msg,undo){ const t=$("#toast"); t.innerHTML=`<span>${esc(msg)}</span>${undo?`<button data-act="undo">Undo</button>`:""}`; t.classList.toggle("solo",!undo); toast._undo=undo||null;
   t.classList.remove("on"); void t.offsetWidth; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>{ t.classList.remove("on"); toast._undo=null; },undo?7000:2200); }
-function snapshot(){ return JSON.stringify(S); }
-function undoable(label,before,dropTimer){ toast(label,()=>{ const keepTimer=S.timer; S=JSON.parse(before); S.timer=dropTimer===true?null:dropTimer==="restore"?S.timer:keepTimer; save(); if(sheet) closeSheet(true); update(); renderMini(); toast("Undone"); }); }
+function undoable(label,before,dropTimer){ const was=JSON.parse(before), d=diffStores(was,S); snapAt=0;
+  toast(label,()=>{ const keepTimer=S.timer; undoDiff(d,was); S.timer=dropTimer===true?null:dropTimer==="restore"?(was.timer||null):keepTimer; save(); if(sheet) closeSheet(true); update(); renderMini(); toast("Undone"); }); }
 
 document.addEventListener("input",e=>{ const el=e.target.closest("[data-f]"); if(!el) return; const k=el.dataset.f;
   if(el.type==="date"&&el.max&&el.value>el.max){ el.value=el.max; toast("That day hasn’t happened yet"); }
@@ -1575,7 +1643,7 @@ function saveSession(){ const t=S.timer; if(!t) return; const b=S.books[F.bookId
   let to=F.to===""?F.from:Math.max(0,+F.to); if(b.pages) to=Math.min(to,b.pages);
   const s={id:uid(),bookId:F.bookId,start:new Date(F.start).toISOString(),min:F.min,sec:F.min===Math.max(1,Math.round(F.ms/60000))?Math.round(F.ms/1000):F.min*60,fromPage:F.from,toPage:to,note:(F.note||"").trim(),src:"timer",idleTrim:!!t.idle,updatedAt:Date.now()};
   S.sessions.push(s); b._pb=b.page||0; if(to!==(b.page||0)) b.page=to; touch(b); if(b.status!=="Reading"&&b.status!=="Read") setShelf(b.id,"Reading",true);
-  S.timer=null; S.lastBook=b.id; let done=false; if(b.pages&&to>=b.pages&&b.status!=="Read"){ setShelf(b.id,"Read",true); done=true; }
+  S.timer=null; S.lastBook=b.id; S.lastBookAt=nextStamp(S.lastBookAt); let done=false; if(b.pages&&to>=b.pages&&b.status!=="Read"){ setShelf(b.id,"Read",true); done=true; }
   save(); stopAmbience(); closeSheet(true); update(); haptic();
   setTimeout(()=>{ if(done) finishedCelebration(b,before,"restore",s); else recapSheet(s,before,done); },reduced()?0:260); }
 function discardSession(){ const before=snapshot(); S.timer=null; save(); stopAmbience(); closeSheet(true); closePlayer(); update(); undoable("Session discarded",before,"restore"); }
@@ -1698,7 +1766,9 @@ function sheetRestore(){ openSheet({title:"Restore",form:{txt:""},render:()=>`<p
   <textarea class="notes" data-f="txt" placeholder="Paste backup text">${esc(F.txt)}</textarea>
   <label class="btn dark" style="margin-top:10px;position:relative">Choose a backup file<input type="file" accept="application/json,.json,.txt" id="restorefile" style="position:absolute;inset:0;opacity:0"></label>
   <button class="btn" style="margin-top:10px" data-act="dorestore">Restore</button>`}); }
-function importText(txt){ const n=JSON.parse(txt); if(!n.books||!n.sessions) throw new Error("bad"); S=n; normalize(); S.seedV=Math.max(S.seedV||1,SEED_V); save(); applyTheme(); }
+function importText(txt,force){ const n=JSON.parse(txt); if(!n.books||!n.sessions) throw new Error("bad"); if(force) dropAside(); S=n; normalize(); S.seedV=Math.max(S.seedV||1,SEED_V);
+  const t=Date.now(); delete S.needsAdopt; [S.books,S.lists||{}].forEach(m=>Object.values(m).forEach(r=>{ if(r) r.updatedAt=t; })); S.sessions.forEach(r=>r.updatedAt=t); S.activity.forEach(r=>r.updatedAt=t);
+  (S.goalLog||[]).forEach(g=>g.updatedAt=t); S.settingsAt=t; if(S.lastBook) S.lastBookAt=t; save(); applyTheme(); }
 
 function sheetListForm(id,bookId){ const l=id?S.lists[id]:null; openSheet({title:l?"Edit List":"New List",form:{id:id||"",name:l?l.name:"",bookId:bookId||""},focus:'input[data-f="name"]',render:()=>`
   <div class="group"><label class="cell"><span class="k">Name</span><input type="text" data-f="name" data-live value="${esc(F.name)}" placeholder="e.g. Summer, Lent to Dad" maxlength="40" enterkeyhint="done" autocapitalize="words"></label></div>
@@ -1739,9 +1809,9 @@ function startSession(id){ const b=S.books[id]; if(!b) return;
     alertCard({title:"You’re reading "+typo(cur?cur.title:"another book"),message:"Switch this session to "+typo(b.title)+"? The time so far moves with it.",buttons:[{label:"Switch Book",fn:()=>{ switchBook(id); openPlayer(); }},{label:"Keep "+typo(cur?cur.title:"it"),style:"dark",cancel:true,fn:openPlayer}]}); return; }
   if(S.timer){ openPlayer(); return; }
   const before=b.status; if(b.status!=="Reading") setShelf(id,"Reading",true);
-  S.timer={bookId:id,startedAt:Date.now(),runFrom:Date.now(),accum:0,paused:false,fromPage:b.page||0,wasStatus:before}; S.lastBook=id; save();
+  S.timer={bookId:id,startedAt:Date.now(),runFrom:Date.now(),accum:0,paused:false,fromPage:b.page||0,wasStatus:before}; S.lastBook=id; S.lastBookAt=nextStamp(S.lastBookAt); save();
   haptic(); openPlayer(); startAmbience(); update(); }
-function switchBook(id){ const t=S.timer; if(!t) return; const b=S.books[id]; if(b.status!=="Reading") setShelf(id,"Reading",true); t.bookId=id; t.fromPage=b.page||0; S.lastBook=id; save(); update(); mediaSession(); }
+function switchBook(id){ const t=S.timer; if(!t) return; const b=S.books[id]; if(b.status!=="Reading") setShelf(id,"Reading",true); t.bookId=id; t.fromPage=b.page||0; S.lastBook=id; S.lastBookAt=nextStamp(S.lastBookAt); save(); update(); mediaSession(); }
 function togglePause(){ const t=S.timer; if(!t) return; haptic();
   if(t.paused){ t.paused=false; t.idle=false; t.runFrom=Date.now(); startAmbience(true); } else { t.accum+=Date.now()-t.runFrom; t.paused=true; stopAmbience(true); }
   save(); renderPlayer(); renderMini(); update(); }
@@ -1836,25 +1906,54 @@ function initPlayerDrag(){ const p=$("#player"); let d=null;
   p.addEventListener("pointerup",end); p.addEventListener("pointercancel",end); }
 
 const SYNC_KEY="read_sync", TOKEN_KEY="read_sync_token";
-let syncT=0, syncBusy=false, syncAgain=false;
+let syncT=0, syncBusy=false, syncAgain=false, syncRetry=0, pushRetryT=0, pullRetryT=0, pullT=0, lateT=0, syncLate=[];
 function syncCfg(){ try{ return Object.assign({url:"",on:false,lastPush:0,lastPull:0,err:""},JSON.parse(localStorage.getItem(SYNC_KEY)||"{}")); }catch(e){ return {url:"",on:false,lastPush:0,lastPull:0,err:""}; } }
 function syncSet(patch){ const c=Object.assign(syncCfg(),patch); try{ localStorage.setItem(SYNC_KEY,JSON.stringify(c)); }catch(e){} return c; }
 function syncToken(){ try{ return localStorage.getItem(TOKEN_KEY)||""; }catch(e){ return ""; } }
 function syncReady(){ const c=syncCfg(); return c.on&&/^https:\/\//.test(c.url)&&!!syncToken(); }
-function syncBody(){ const copy=JSON.parse(JSON.stringify(S)); delete copy.timer; copy.lastBookAt=copy.lastBookAt||0; return copy; }
+function syncBody(){ const copy=JSON.parse(JSON.stringify(S)); delete copy.timer; delete copy.needsAdopt; REC_ARRS.forEach(k=>{ copy[k]=(copy[k]||[]).filter(r=>!r.orphan); }); copy.lastBookAt=copy.lastBookAt||0; if(!copy.lastBookAt) delete copy.lastBook; return copy; }
 async function syncCall(path,opts={}){ const c=syncCfg(); const r=await fetch(c.url.replace(/\/$/,"")+path,{method:opts.method||"GET",headers:Object.assign({"Authorization":"Bearer "+syncToken(),"X-Read-Device":deviceName()},opts.body?{"Content-Type":"application/json"}:{}),body:opts.body?JSON.stringify(opts.body):undefined});
   if(r.status===401||r.status===403) throw new Error("signed out"); if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); }
 function deviceName(){ try{ let d=localStorage.getItem("read_device"); if(!d){ d=(/iPhone/.test(navigator.userAgent)?"iPhone":"web")+"-"+Math.random().toString(36).slice(2,6); localStorage.setItem("read_device",d); } return d; }catch(e){ return "web"; } }
-function adopt(remote){ const merged=mergeStores(S,remote); const keepTimer=S.timer; S=merged; S.timer=keepTimer; normalize(); try{ localStorage.setItem(LS,JSON.stringify(S)); }catch(e){} }
+function storeHasData(r){ return !!r&&(Object.keys(r.books||{}).length+(r.sessions||[]).length+(r.activity||[]).length+Object.keys(r.lists||{}).length>0); }
+function adopt(remote){ const keepTimer=S.timer; let merged;
+  if(S.needsAdopt&&storeHasData(remote)){ const loc=JSON.parse(JSON.stringify(S));
+    REC_MAPS.forEach(k=>Object.keys(loc[k]||{}).forEach(id=>{ if((loc[k][id].updatedAt||0)<=SEED_AT) delete loc[k][id]; }));
+    REC_ARRS.forEach(k=>{ loc[k]=(loc[k]||[]).filter(r=>(r.updatedAt||0)>SEED_AT); }); loc.goalLog=(loc.goalLog||[]).filter(g=>g.updatedAt);
+    Object.keys(loc.books).forEach(id=>{ const srv=(remote.books||{})[id];
+      if(srv){ const base=seedBook(id); if(base) loc.books[id]=rebaseSeed(srv,loc.books[id],base); }   // a starter book he touched: his changed fields on the server copy
+      else if((remote.deleted||{})[id]>SEED_AT&&seedBook(id)){ delete loc.books[id];               // the server deleted that starter book: a touch here never brings it back,
+        REC_ARRS.forEach(k=>loc[k].forEach(r=>{ if(r.bookId===id) r.orphan=true; })); } });        // and what he logged on it stays on this device only (orphan, never pushed)
+    loc.settingsAt=0; loc.goalLog=[];   // the server's settings (and the goal history that goes with them) win whole: toggles flipped before the first sync never push defaults over his real ones
+    merged=mergeStores(remote,loc); }
+  else merged=mergeStores(S,remote);   // the merge result never carries needsAdopt: an empty server leaves a normal library
+  S=merged; S.timer=keepTimer; normalize(); return persist(); }
+function localAhead(R){ const n=r=>r?(r.updatedAt||0):-1, rd=R.deleted||{};
+  for(const k of REC_MAPS){ const m=R[k]||{}; for(const id in (S[k]||{})) if(n(S[k][id])>n(m[id])) return true; }
+  for(const k of REC_ARRS){ const m=byId(R[k]); for(const r of (S[k]||[])) if(r&&r.id!=null&&!r.orphan&&n(r)>n(m[r.id])) return true; }
+  for(const id in (S.deleted||{})) if((S.deleted[id]||0)>(rd[id]||0)) return true;
+  if((S.settingsAt||0)>(R.settingsAt||0)||(S.lastBookAt||0)>(R.lastBookAt||0)) return true;
+  const g=byKey(R.goalLog); for(const e of (S.goalLog||[])) if(!g[e.since]||(e.updatedAt||0)>(g[e.since].updatedAt||0)) return true;
+  const z=R.snoozed||{}; for(const id in (S.snoozed||{})) if(!z[id]||S.snoozed[id]>z[id]) return true;
+  return false; }
+function byKey(a){ const m={}; (a||[]).forEach(e=>{ if(e&&e.since!=null) m[e.since]=e; }); return m; }
+function syncHold(){ return !!(typeof toast!=="undefined"&&toast&&toast._undo)||Date.now()-snapAt<2000; }
+function land(remote,pull){ if(syncHold()){ syncLate.push({remote,pull}); clearTimeout(lateT); lateT=setTimeout(landLate,1000); return; } landNow(remote,pull); }
+function landLate(){ if(syncHold()){ lateT=setTimeout(landLate,1000); return; } const q=syncLate; syncLate=[]; q.forEach(x=>landNow(x.remote,x.pull)); if(typeof update==="function"&&!sheet) update(); }
+function landNow(remote,pull){ const saved=adopt(remote); if(pull&&saved) syncSet({lastPull:Date.now(),err:""}); if(pull&&localAhead(remote)) G.scheduleSync(); } // one push per pull at most, never a loop
+function syncRetryLater(fn,e){ if(/signed out/.test(e&&e.message||"")) return; const ms=Math.min(3600e3,5000*Math.pow(2,Math.min(syncRetry++,20)));   // backoff 5 s … 1 h
+  if(fn===syncPull){ clearTimeout(pullRetryT); pullRetryT=setTimeout(fn,ms); } else { clearTimeout(pushRetryT); pushRetryT=setTimeout(fn,ms); } }   // push and pull keep separate timers
 G.scheduleSync=function(){ if(!syncReady()) return; clearTimeout(syncT); syncT=setTimeout(syncPush,5000); };
-async function syncPush(){ if(!syncReady()) return; if(syncBusy){ syncAgain=true; return; } syncBusy=true;
-  try{ const before=snapshot(); const merged=await syncCall("/push",{method:"POST",body:syncBody()}); if(snapshot()!==before){ syncAgain=true; } adopt(merged); syncSet({lastPush:Date.now(),err:""}); if(typeof update==="function"&&!sheet) update(); }
-  catch(e){ syncSet({err:e.message||"failed"}); }
-  finally{ syncBusy=false; if(syncAgain){ syncAgain=false; G.scheduleSync(); } if(topE&&topE().route==="settings") renderEntry(topE()); } }
-async function syncPull(){ if(!syncReady()||syncBusy) return; syncBusy=true;
-  try{ const remote=await syncCall("/pull"); adopt(remote); syncSet({lastPull:Date.now(),err:""}); if(typeof update==="function") update(); }
-  catch(e){ syncSet({err:e.message||"failed"}); }
-  finally{ syncBusy=false; if(topE&&topE().route==="settings") renderEntry(topE()); } }
+async function syncPush(){ if(!syncReady()) return; if(S.needsAdopt) return syncPull();   // never push before the first adopt
+  if(syncHold()){ clearTimeout(syncT); syncT=setTimeout(syncPush,1000); return; }
+  if(syncBusy){ syncAgain=true; return; } syncBusy=true; let fail=null;
+  try{ const before=JSON.stringify(S); const merged=await syncCall("/push",{method:"POST",body:syncBody()}); if(JSON.stringify(S)!==before){ syncAgain=true; } land(merged,false); syncRetry=0; syncSet({lastPush:Date.now(),err:""}); if(typeof update==="function"&&!sheet) update(); }
+  catch(e){ fail=e; syncSet({err:e.message||"failed"}); }
+  finally{ syncBusy=false; if(fail) syncRetryLater(syncPush,fail); else if(syncAgain){ syncAgain=false; G.scheduleSync(); } if(topE&&topE().route==="settings") renderEntry(topE()); } }
+async function syncPull(){ if(!syncReady()) return; if(syncHold()){ clearTimeout(pullT); pullT=setTimeout(syncPull,1000); return; } if(syncBusy) return; syncBusy=true; let fail=null;
+  try{ const remote=await syncCall("/pull"); land(remote,true); syncRetry=0; if(typeof update==="function") update(); }
+  catch(e){ fail=e; syncSet({err:e.message||"failed"}); }
+  finally{ syncBusy=false; if(fail) syncRetryLater(syncPull,fail); if(topE&&topE().route==="settings") renderEntry(topE()); } }
 function syncStatusLine(){ const c=syncCfg(); if(!c.on||!c.url) return "Off. Everything stays on this device."; if(!syncToken()) return "Paste the token to turn it on.";
   if(c.err) return "Not syncing: "+c.err+"."; const t=Math.max(c.lastPush,c.lastPull); return t?"Synced "+agoWord(t)+".":"Waiting for the first sync."; }
 function agoWord(ts){ const m=Math.round((Date.now()-ts)/60000); if(m<1) return "just now"; if(m<60) return m+" min ago"; const h=Math.round(m/60); if(h<24) return h+"h ago"; return Math.round(h/24)+" days ago"; }
@@ -1883,14 +1982,14 @@ function applyTheme(){ const t=S.settings.theme||"auto"; const dark=matchMedia("
   const v=(t==="auto"||t==="system")?(dark?"dark":"paper"):t==="paper"?"paper":"dark"; document.documentElement.setAttribute("data-theme",v);
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=v==="paper"?"#F4EFE7":"#1A1819"; }
 function setShelf(id,s,quiet){ const b=S.books[id]; if(!b) return; const was=b.status; b.status=s; touch(b);
-  if(s==="Reading"&&(!b.started||was==="Read")){ if(was==="Read"){ b.reads=(b.reads||[]).concat([{started:b.started,finished:b.finished}]); b.finished=""; b.page=0; } b.started=todayKey(); S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"start"}); }
+  if(s==="Reading"&&(!b.started||was==="Read")){ if(was==="Read"){ b.reads=(b.reads||[]).concat([{started:b.started,finished:b.finished}]); b.finished=""; b.page=0; } b.started=todayKey(); S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"start",updatedAt:Date.now()}); }
   if(s==="Read"&&was!=="Read"){ b.finished=todayKey(); b.pageBefore=b._pb!=null?b._pb:(b.page||0); delete b._pb; if(b.pages) b.page=b.pages; b.fuzzy=""; S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"finish",updatedAt:Date.now()}); }
   if(s!=="Read"&&was==="Read"&&s!=="Reading") b.finished="";
   if(!quiet) save(); }
 function bookMenu(id){ const b=S.books[id]; if(!b) return;
   const items=[]; if(b.status==="Reading") items.push({label:"Start Session",icon:I.clock,fn:()=>startSession(id)},{label:"Update Progress",icon:I.pages,fn:()=>sheetProgress(id)});
   else if(b.status!=="Read") items.push({label:"Start Reading",icon:I.reading,fn:()=>startBook(id)});
-  items.push({label:"Change Shelf",icon:I.bookmark,fn:()=>sheetShelf({id})},{label:b.fav?"Remove Favorite":"Favorite",icon:I.heart,fn:()=>{ b.fav=!b.fav; save(); update(); }},{label:"Change Cover",icon:I.photo,fn:()=>sheetCover(id)});
+  items.push({label:"Change Shelf",icon:I.bookmark,fn:()=>sheetShelf({id})},{label:b.fav?"Remove Favorite":"Favorite",icon:I.heart,fn:()=>{ b.fav=!b.fav; touch(b); save(); update(); }},{label:"Change Cover",icon:I.photo,fn:()=>sheetCover(id)});
   contextMenu(b,items); }
 function startBook(id){ const before=snapshot(), b=S.books[id]; setShelf(id,"Reading"); update(); undoable("Now reading "+typo(b.title),before); }
 function finishBook(id){ const before=snapshot(), b=S.books[id]; setShelf(id,"Read"); save(); update(); finishedCelebration(b,before); }
@@ -1916,10 +2015,10 @@ document.addEventListener("click",e=>{
     case "minimize": closePlayer(); break;
     case "pause": togglePause(); break;
     case "stopsession": stopSession(); break;
-    case "rainsound": S.settings.rain=S.settings.rain===false; save(); if(S.settings.rain===false) stopAmbience(); else if(S.timer&&!S.timer.paused) startAmbience(); renderPlayer(); break;
-    case "awake": S.settings.awake=S.settings.awake===false; save(); if(S.settings.awake!==false) getWake(); else releaseWake(); renderPlayer(); break;
-    case "dim": S.settings.dim=!S.settings.dim; save(); renderPlayer(); break;
-    case "clock": S.settings.calmClock=!S.settings.calmClock; save(); lastText=""; tick(); haptic(); break;
+    case "rainsound": S.settings.rain=S.settings.rain===false; touchSettings(); save(); if(S.settings.rain===false) stopAmbience(); else if(S.timer&&!S.timer.paused) startAmbience(); renderPlayer(); break;
+    case "awake": S.settings.awake=S.settings.awake===false; touchSettings(); save(); if(S.settings.awake!==false) getWake(); else releaseWake(); renderPlayer(); break;
+    case "dim": S.settings.dim=!S.settings.dim; touchSettings(); save(); renderPlayer(); break;
+    case "clock": S.settings.calmClock=!S.settings.calmClock; touchSettings(); save(); lastText=""; tick(); haptic(); break;
     case "changebook": closePlayer(); setTimeout(()=>sheetPick(bid=>{ closeSheet(true); switchBook(bid); setTimeout(openPlayer,200); },"Change Book"),200); break;
     case "pickbook": if(sheet&&sheet.onPick) sheet.onPick(id); break;
     case "endmin": F.min=Math.max(1,F.min+ +el.dataset.d); refreshSheet(); break;
@@ -1969,7 +2068,7 @@ document.addEventListener("click",e=>{
       if(!bid){ const have=inLibrary(t.r); bid=have?have.id:addFromResult(t.r,"Queue"); }
       const b=S.books[bid]; if(s==="Read") setShelf(bid,"Read"); else setShelf(bid,s); touch(b); save(); closeSheet(true); update(); haptic();
       undoable((t.id?"Moved to ":"Added to ")+(COLL[s]?COLL[s].label:s),before); if(!t.id&&topE().route!=="book"){ if(tab==="search") switchTab("library"); push("book",{id:bid}); } break; }
-    case "libview": S.settings.libView=(S.settings.libView||"grid")==="grid"?"list":"grid"; save(); renderEntry(topE()); break;
+    case "libview": S.settings.libView=(S.settings.libView||"grid")==="grid"?"list":"grid"; touchSettings(); save(); renderEntry(topE()); break;
     case "findin": { const cs=colState[el.dataset.k]; cs.find=!cs.find; if(!cs.find) cs.q=""; renderEntry(topE()); if(cs.find) setTimeout(()=>{ const i=topE().el.querySelector("[data-colq]"); if(i) i.focus(); },30); break; }
     case "sort": { const cs=colState[el.dataset.k]; popMenu(el,[{title:"Sort",items:SORTS.filter(([k])=>k!=="list"||el.dataset.k.startsWith("list:")).filter(([k])=>k!=="series"||el.dataset.k.startsWith("series:")||cs.sort==="series").map(([k,l,ic])=>({label:l,icon:typeof I[ic]==="function"?I[ic](false):I[ic],on:cs.sort===k,fn:()=>{ cs.sort=k; if(k==="color") warmTints(); renderEntry(topE()); }}))}]); break; }
     case "showonly": { const cs=colState[el.dataset.k]; const opts=[["all","All Items"],["Reading","Currently Reading"],["Up Next","Up Next"],["Queue","Want to Read"],["Read","Finished"],["Paused","Stopped"],["DNF","Did Not Finish"]];
@@ -1998,7 +2097,8 @@ document.addEventListener("click",e=>{
     case "syncnow": { if(!syncReady()){ toast("Add the URL and token first"); break; } toast("Syncing…"); syncPush().then(()=>{ const c=syncCfg(); toast(c.err?"Not syncing: "+c.err:"Synced"); refreshSheet(); }); break; }
     case "copybackup": if(sheet&&sheet.copy) sheet.copy(); break;
     case "restore": sheetRestore(); break;
-    case "dorestore": { if(!(F.txt||"").trim()){ toast("Paste a backup first"); break; } alertCard({title:"Replace this library?",message:"The backup replaces every book and session on this device.",buttons:[{label:"Restore",style:"red",fn:()=>{ try{ importText(F.txt); closeSheet(true); rebuildAll(); toast("Library restored"); }catch(err){ toast("That isn’t a Read backup"); } }},{label:"Cancel",style:"dark",cancel:true}]}); break; }
+    case "dorestore": { if(!(F.txt||"").trim()){ toast("Paste a backup first"); break; } const lost=asidePending(); // the unreadable library has no copy: say so before it is replaced
+      alertCard({title:lost?"Replace the unreadable library?":"Replace this library?",message:lost?"Read couldn’t keep a copy of the library it couldn’t read. Restoring replaces it for good.":"The backup replaces every book and session on this device.",buttons:[{label:lost?"Restore Anyway":"Restore",style:"red",fn:()=>{ try{ importText(F.txt,lost); closeSheet(true); rebuildAll(); toast("Library restored"); }catch(err){ toast("That isn’t a Read backup"); } }},{label:"Cancel",style:"dark",cancel:true}]}); break; }
   }
 });
 function runTile(t,id){ const b=S.books[id], before=snapshot();
@@ -2010,7 +2110,7 @@ function runTile(t,id){ const b=S.books[id], before=snapshot();
     case "startbook": startBook(id); break;
     case "setshelf": setShelf(id,t.v); update(); undoable("Moved to "+COLL[t.v].label,before); break;
     case "unfinish": { const fin=b.finished; b.status="Reading"; b.finished=""; if(b.pageBefore!=null){ b.page=b.pageBefore; delete b.pageBefore; }
-      S.activity=S.activity.filter(a=>!(a.bookId===id&&a.src==="finish"&&a.day===fin)); touch(b); save(); update(); undoable("Back to Currently Reading · page "+(b.page||0),before); break; }
+      S.activity=S.activity.filter(a=>{ const gone=a.bookId===id&&a.src==="finish"&&a.day===fin; if(gone) tombstone(a.id); return !gone; }); touch(b); save(); update(); undoable("Back to Currently Reading · page "+(b.page||0),before); break; }
     case "remove": removeBook(id); break;
     case "dates": sheetDates(id); break;
     case "ratesheet": sheetRate(id); break;
@@ -2055,13 +2155,13 @@ function boot(){
   rebuildAll();
   initSwipeBack(); initLongPress(); initPlayerDrag(); initFocusTrap(); initIdleTouch();
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
-  $("#player .ringwrap").addEventListener("click",()=>{ S.settings.calmClock=!S.settings.calmClock; save(); lastText=""; tick(); haptic(); });
+  $("#player .ringwrap").addEventListener("click",()=>{ S.settings.calmClock=!S.settings.calmClock; touchSettings(); save(); lastText=""; tick(); haptic(); });
   if(S.timer){ idleCheck(); renderMini(); if(S.timer.idle) setTimeout(idlePrompt,500); }
   document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"){ if(S.timer){ if(idleCheck()) idlePrompt(); tick(); if(playerOpen&&S.settings.awake!==false) getWake(); } update(); } });
   setInterval(()=>{ if(!S.timer&&document.visibilityState==="visible"){ const k=todayKey(); if(k!==boot._day){ boot._day=k; update(); } } },60000); boot._day=todayKey();
   if(BUILD==="public"&&"serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
   openDeepLink(); addEventListener("hashchange",openDeepLink);
-  if(syncReady()){ syncPull(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") syncPull(); }); }
+  if(syncReady()) syncPull(); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") syncPull(); }); // syncPull checks syncReady, so sync turned on later also pulls on foreground
   if(BUILD==="public"&&"serviceWorker" in navigator&&syncReady()) navigator.serviceWorker.ready.then(swShare).catch(()=>{});
 }
 function openDeepLink(){ const m=/^#(book|start)=([\w.-]+)$/.exec(location.hash||""); if(!m) return; const b=S.books[m[2]]; history.replaceState(null,"",location.pathname+location.search); if(!b) return;
