@@ -1022,12 +1022,12 @@ window.MYIntro={run:run,mini:mini,T:T,CAL:CAL,
 "use strict";
 var D=document.documentElement;D.classList.add('js');
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,HOVER=matchMedia('(hover:hover)').matches;
-var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=20'}});
+var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=21'}});
 var P=[
  {k:'brief',n:'The Morning Brief',kind:'Published daily',href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
-  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself.',
+  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself. It also reads as an app on your phone, with one headline at 7 AM.',app:'brief/',
   facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
-  ch:[[0,'The archive'],[2.86,'Today’s edition'],[12.05,'AI'],[17.93,'Markets'],[23.81,'Law'],[29.7,'Entertainment']]},
+  ch:[[0,'The archive'],[2.86,'Today’s edition'],[12.05,'AI'],[17.93,'Markets'],[23.81,'Law'],[29.7,'Entertainment'],[34.9,'The app']]},
  {k:'versed',n:'Well-Versed',kind:'Published daily',href:'well-versed/',url:'mattyellin.com/well-versed/',open:'Read today’s lesson',tint:'#17221d',hue:'#8fd1ae',
   lede:'One lesson a day toward a general education, each a long illustrated essay across art, history, science, food and craft, with the hard terms explained in place. Every lesson is kept in a library.',
   facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
@@ -1064,12 +1064,12 @@ var introDone=function(){},heroWait=2,heroTick=function(){if(--heroWait<=0&&intr
 })();
 
 var cards=[];
-function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=20';v.setAttribute('aria-hidden','true');return v}
+function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=21';v.setAttribute('aria-hidden','true');return v}
 try{var st=$('#stack');
   P.forEach(function(p,i){
     var c=el('article','card');c.id='w-'+p.k;c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
     var facts=p.facts.map(function(f){return '<div><dt>'+f[0]+'</dt><dd>'+f[1]+'</dd></div>'}).join('');
-    var go=p.href?'<a class="btn p" href="'+p.href+'">'+p.open+'</a>':'<span class="eye">Private, so there is no public link.</span>';
+    var go=p.href?'<a class="btn p" href="'+p.href+'">'+p.open+'</a>'+(p.app?'<a class="btn" href="'+p.app+'">Open the app</a>':''):'<span class="eye">Private, so there is no public link.</span>';
     c.innerHTML='<div class="txt"><div class="no"><b class="num">0'+(i+1)+'</b><span>'+p.kind+'</span>'+(p.isNew?'<span class="tag">New</span>':'')+'</div><h3>'+p.n+'</h3><p>'+p.lede+'</p><dl class="facts">'+facts+'</dl><div class="cta">'+go+'</div></div>';
     var v=p.still?null:vid(p.k),m,scr;
     if(p.phone){m=el('div','media phone','<div class="glass"><span class="isl" aria-hidden="true"></span></div>');scr=m.firstChild}
