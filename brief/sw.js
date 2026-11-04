@@ -1,0 +1,14 @@
+const V='brief-29fbe4cc7f',SHELL=['./','./manifest.webmanifest','./icons/icon-192.png','./icons/apple-touch-icon.png'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V&&k.startsWith('brief-')&&k!=='brief-img').map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.method!=='GET'||u.origin!==location.origin)return;
+ if(u.pathname.endsWith('/latest.json'))return;
+ if(u.pathname.includes('/img/')){e.respondWith(caches.open('brief-img').then(c=>c.match(e.request).then(r=>r||fetch(e.request).then(n=>{if(n.ok)c.put(e.request,n.clone());return n}))));return}
+ const fb=()=>caches.match(e.request,{ignoreSearch:true}).then(r=>r||caches.match('./'));
+ e.respondWith(new Promise(res=>{let done=false;const fin=r=>{if(!done&&r){done=true;res(r)}};
+  fetch(e.request).then(n=>{if(n.ok){const cp=n.clone();caches.open(V).then(c=>c.put(e.request,cp))}done?0:(done=true,res(n))})
+   .catch(()=>fb().then(r=>{if(r)fin(r);else if(!done){done=true;res(Response.error())}}));
+  if(e.request.mode==='navigate')setTimeout(()=>fb().then(fin),3000)}))});
+self.addEventListener('message',e=>{const d=e.data||{};if(!d.keep)return;e.waitUntil(caches.open('brief-img').then(c=>c.keys().then(ks=>Promise.all(ks.filter(k=>!d.keep.some(p=>k.url.endsWith(p))).map(k=>c.delete(k)))).then(()=>Promise.all((d.warm||[]).map(u=>c.match(u).then(r=>r||fetch(u).then(n=>n.ok&&c.put(u,n)).catch(()=>{})))))))});
+self.addEventListener('push',e=>{e.waitUntil(fetch('./latest.json',{cache:'no-store'}).then(r=>r.json()).catch(()=>({})).then(j=>self.registration.showNotification('The Morning Brief',{body:j.headline||'Today’s edition is ready.',icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag:'brief-'+(j.date||''),data:{url:'./'}})))});
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(ws=>{for(const w of ws){if(w.url.includes('/brief/')){if('navigate' in w)w.navigate(w.url).catch(()=>{});return w.focus()}}return clients.openWindow('./')}))});
