@@ -240,6 +240,10 @@ img.ld{opacity:0}
 .endp:has(.nt:not([hidden]))>p{display:none}
 .ntd:focus{outline:none}
 .nth:focus{outline:none}
+.story{touch-action:pan-y}
+.story.pull{overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+@keyframes fr{from{transform:translateX(48px);opacity:0}}@keyframes fl{from{transform:translateX(-48px);opacity:0}}
+.view.from-r{animation:fr .34s var(--ease)}.view.from-l{animation:fl .34s var(--ease)}
 
 </style>
 <div id="app"></div>
@@ -398,7 +402,7 @@ function openEdition(n){edN=n;const old=V(),y=$('#sc')?$('#sc').scrollTop:0,html
 function backToPast(dx){const old=V(),y=$('#sc')?$('#sc').scrollTop:0,html=old.innerHTML,W=old.offsetWidth;$$('.gv').forEach(x=>x.remove());past(edN);if(RM())return;
  const v=V(),g=ghost(html,y);g.classList.add('gtop');app.append(g);g.style.transition='none';g.style.transform=`translateX(${dx||0}px)`;v.style.transition='none';v.style.transform=`translateX(${-30+30*(dx||0)/W}%)`;v.getBoundingClientRect();
  g.style.transition='';v.style.transition='';requestAnimationFrame(()=>{g.style.transform='translateX(100%)';v.style.transform=''});setTimeout(()=>g.remove(),520)}
-function story(i,from){const it=E.items[i];cur=i;storyFrom=from||document.activeElement;const w=document.createElement('div');w.className='story m-'+(RM()?'fade':OPEN());w.id='st';
+function buildStory(i){const it=E.items[i];const w=document.createElement('div');w.className='story m-'+(RM()?'fade':OPEN());w.dataset.i=i;
  w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-label',it.h);
  const d=dia(it,Math.min(app.clientWidth||390,560)-40),cr=it.cap||it.credit?`<div class="cap">${it.cap||''}${it.credit?`<span class="cr">${esc(it.credit)}</span>`:''}</div>`:'';
  w.innerHTML=`<header class="nb"><button class="ic" data-a="closest" aria-label="Back">${IC.back}</button><div class="t sans">${esc(short(it.sec))}</div><button class="ic aa" data-a="set" aria-label="Reading settings">Aa</button></header><div class="sbody g" tabindex="-1">
@@ -408,25 +412,84 @@ function story(i,from){const it=E.items[i];cur=i;storyFrom=from||document.active
  ${!d&&it.fig?`<div class="kf"><b>${esc(it.fig.v)}</b><span>${esc(it.fig.l)}</span></div>`:''}
  ${it.why?`<div class="whyb"><b>Why it matters</b><p>${it.why}</p></div>`:''}
  <button class="btnp" data-a="full">Read the full story</button><div id="fb" hidden>${it.paras.map((p,j)=>`<p class="p"${j?'':' tabindex="-1"'}>${gl(p)}</p>`).join('')}</div></div>`;
+ return w}
+function story(i,from){storyFrom=from||document.activeElement;const w=buildStory(i);
  const v=V();app.append(w);fade(w);const src=from&&from.closest?from.closest('[data-s]'):null;
  if(w.classList.contains('m-zoom'))zoomFrom(w,src||$(`[data-s="${i}"]`));
  const go=()=>{w.style.transform='';w.style.clipPath='';w.classList.add('on');if(v){v.classList.add('under');v.inert=true}
   const done=()=>{Chart.play(w);$('.bias',w).classList.add('go')};RM()?done():w.addEventListener('transitionend',function f(e){if(e.target!==w)return;w.removeEventListener('transitionend',f);done()})};
- requestAnimationFrame(()=>requestAnimationFrame(go));
- navbar($('.sbody',w),$('.nb',w),$('h1',w));$('[data-a="closest"]',w).focus({preventScroll:true});swipeBack(w,closest);
+ requestAnimationFrame(()=>requestAnimationFrame(go));wire(w,i)}
+// a story on screen: its bar, back gestures, paging and focus trap
+function wire(w,i){w.id='st';cur=i;
+ navbar($('.sbody',w),$('.nb',w),$('h1',w));$('[data-a="closest"]',w).focus({preventScroll:true});swipeBack(w,closest);pager(w);pullDown(w);
  w.addEventListener('keydown',e=>{if(e.key!=='Tab'||$('#sh'))return;const f=$$('a,button:not([hidden]),[tabindex="0"]',w).filter(x=>!x.closest('[hidden]')),a=f[0],z=f[f.length-1],c=document.activeElement;if(e.shiftKey&&(c===a||!w.contains(c))){e.preventDefault();z.focus()}else if(!e.shiftKey&&c===z){e.preventDefault();a.focus()}})}
 // zoom: the story starts as the tapped card's rectangle and grows to the screen (FLIP: transform plus a clipped inset)
 function zoomFrom(w,c){if(!c){w.classList.replace('m-zoom','m-fade');return}const a=app.getBoundingClientRect(),r=c.getBoundingClientRect(),s=r.width/a.width,rad=parseFloat(getComputedStyle(c).borderRadius)||12;
  w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${rad/s}px)`;w._card=i=>c}
-function closest(){const w=$('#st');if(!w)return;const v=V();w.id='';
+function closest(down){const w=$('#st');if(!w)return;const v=V();w.id='';
  if(w.classList.contains('m-zoom')&&!w.style.transform){const c=$(`[data-s="${cur}"]`),a=app.getBoundingClientRect(),r=c&&c.getBoundingClientRect();
   if(r&&r.bottom>a.top&&r.top<a.bottom){w.classList.add('out');w.classList.remove('on');const s=r.width/a.width;w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${(parseFloat(getComputedStyle(c).borderRadius)||12)/s}px)`}
   else{w.classList.replace('m-zoom','m-fade');w.classList.add('out');w.classList.remove('on')}}
+ else if(down){w.style.transition='transform .34s var(--ease),border-radius .34s var(--ease)';w.style.transform=`translateY(${w.offsetHeight}px) scale(.92)`}
  else{w.style.transform='';w.classList.add('out');w.classList.remove('on')}
- if(v){v.style.transform='';v.classList.remove('under');v.inert=false}
+ if(v){v.style.transition='';v.style.transform='';v.classList.remove('under');v.inert=false}
  const rm=()=>w.remove();RM()?setTimeout(rm,220):w.addEventListener('transitionend',e=>{if(e.target===w)rm()});setTimeout(rm,600);
  if(dirty&&mode==='paper'){dirty=false;keep();today();const b=$(`[data-s="${cur}"]`);if(b)b.focus({preventScroll:true});return}
  if(storyFrom&&document.contains(storyFrom))storyFrom.focus({preventScroll:true})}
+// gesture guards: a touch that starts in something that scrolls sideways, or while a page is still gliding from a
+// scroll, is left alone, so reading up and down never turns a page
+const hscroll=el=>{for(;el&&el!==app;el=el.parentElement){const c=getComputedStyle(el);if(/(auto|scroll)/.test(c.overflowX)&&el.scrollWidth>el.clientWidth+2)return true}return false};
+const lastScroll=new WeakMap();document.addEventListener('scroll',e=>{if(e.target&&e.target.nodeType===1)lastScroll.set(e.target,performance.now())},{capture:true,passive:true});
+const moving=(el,ms=150)=>!!el&&performance.now()-(lastScroll.get(el)||0)<ms;
+// Flick between screens: on Today, flick left for Past; on Past, flick right for Today; on an old edition, flick
+// right to go back to Past. Same sideways test as paging; a flick is 70 px or a quick 40 px.
+(()=>{let x0=null,y0=0,t0=0,on=0;
+ app.addEventListener('touchstart',e=>{if($('#st')||$('#sh')||e.target.closest('.tabs,.gv')||hscroll(e.target)||moving($('#sc')))return;const t=e.touches[0];
+  if(t.clientX-app.getBoundingClientRect().left<=30&&tab==='past'&&mode==='paper')return;x0=t.clientX;y0=t.clientY;t0=performance.now();on=1},{passive:true});
+ app.addEventListener('touchmove',e=>{if(x0==null||!on)return;const t=e.touches[0],ax=t.clientX-x0,ay=t.clientY-y0;if(Math.abs(ay)>8&&Math.abs(ay)*1.6>Math.abs(ax))on=0},{passive:true});
+ app.addEventListener('touchend',e=>{if(x0==null)return;const ok=on,t=e.changedTouches[0],ax=t.clientX-x0,ay=t.clientY-y0,dt=performance.now()-t0;x0=null;
+  if(!ok||Math.abs(ax)<Math.abs(ay)*1.6||!(Math.abs(ax)>70||Math.abs(ax)>40&&dt<250))return;
+  if(tab==='today'&&mode==='paper'&&ax<0)slideTo('past');
+  else if(tab==='past'&&mode==='archive'&&ax>0)slideTo('today');
+  else if(tab==='past'&&mode==='paper'&&ax>0)backToPast(0)},{passive:true})})();
+function slideTo(k){const b=$(`.tabs [data-a="${k}"]`);if(!b)return;b.click();const v=V();if(v&&!RM()){v.classList.add(k==='past'?'from-r':'from-l');setTimeout(()=>v.classList.remove('from-r','from-l'),400)}}
+// Paging, as in Apple News: swipe left for the next story and right for the one before, in the order the paper shows
+// them. The next story follows the finger; it commits past 30% of the width or on a flick, and the first and last
+// stories resist. The left 30 px stays the back gesture. Arrow keys do the same.
+function order(){const v=V(),o=v?[...new Set($$('[data-s]',v).map(x=>+x.dataset.s))]:[];return o.length?o:E.items.map((_,k)=>k)}
+function turn(w,nb,dir,dx){const W=w.offsetWidth,t='transform .38s var(--ease)';w.style.transition=t;nb.style.transition=t;
+ w.style.transform=`translateX(${-dir*W}px)`;nb.style.transform='translateX(0)';w.id='';
+ setTimeout(()=>{w.remove();nb.style.transition='none';nb.classList.add('on');nb.style.transform='';nb.getBoundingClientRect();nb.style.transition='';
+  const i=+nb.dataset.i,r=V()&&$(`[data-s="${i}"]`,V());if(r){storyFrom=r;r.scrollIntoView({block:'center'})}wire(nb,i);Chart.play(nb);$('.bias',nb).classList.add('go')},RM()?0:400)}
+function page(dir){const w=$('#st');if(!w||$('#sh')||!w.classList.contains('on'))return;const o=order(),k=o.indexOf(cur)+dir;if(k<0||k>=o.length)return;
+ const nb=buildStory(o[k]);nb.style.transition='none';nb.style.transform=`translateX(${dir*w.offsetWidth}px)`;app.append(nb);fade(nb);nb.getBoundingClientRect();turn(w,nb,dir)}
+function pager(w){let x0=null,y0=0,dx=0,on=0,dir=0,nb=null,pts=[];const W=()=>w.offsetWidth;
+ w.addEventListener('touchstart',e=>{if($('#sh')||w.id!=='st'||!w.classList.contains('on')||hscroll(e.target)||moving($('.sbody',w)))return;const t=e.touches[0];if(t.clientX-w.getBoundingClientRect().left<=30)return;x0=t.clientX;y0=t.clientY;dx=0;on=0;dir=0;pts=[]},{passive:true});
+ w.addEventListener('touchmove',e=>{if(x0==null)return;const t=e.touches[0],ax=t.clientX-x0,ay=t.clientY-y0;
+  if(!on){if(Math.abs(ay)>8&&Math.abs(ay)*1.6>Math.abs(ax)){x0=null;return}if(Math.abs(ax)<16||Math.abs(ax)<Math.abs(ay)*1.6)return;on=1;w.style.transition='none'}
+  const d=ax<0?1:-1;if(d!==dir){if(nb){nb.remove();nb=null}dir=d;const o=order(),k=o.indexOf(cur)+d;
+   if(k>=0&&k<o.length){nb=buildStory(o[k]);nb.style.transition='none';app.append(nb);fade(nb)}}
+  dx=nb?ax:ax*.25;const now=performance.now();pts.push([now,dx]);while(pts.length&&now-pts[0][0]>150)pts.shift();
+  w.style.transform=`translateX(${dx}px)`;if(nb)nb.style.transform=`translateX(${dir*W()+dx}px)`},{passive:true});
+ const end=()=>{if(x0==null)return;x0=null;if(!on)return;const now=performance.now(),z=pts[pts.length-1],win=z?pts.filter(p=>z[0]-p[0]<=100):[],a=win[0],
+  vel=z&&now-z[0]<100&&win.length>1&&z[0]>a[0]?(z[1]-a[1])/(z[0]-a[0]):0;
+  if(nb&&(-dx*dir>W()*.3||-vel*dir>.4)){turn(w,nb,dir,dx);return}
+  const t='transform .34s var(--ease)';w.style.transition=t;w.style.transform='';if(nb){const n=nb;n.style.transition=t;n.style.transform=`translateX(${dir*W()}px)`;setTimeout(()=>n.remove(),360)}nb=null};
+ w.addEventListener('touchend',end);w.addEventListener('touchcancel',()=>{dx=0;end()})}
+// Pull down from the top of a story to go back to the paper: the page follows the finger, shrinks a little and rounds its
+// corners; it closes past 22% of the height or on a downward flick, and springs back otherwise.
+function pullDown(w){const sb=$('.sbody',w);let y0=null,x0=0,dy=0,on=0,pts=[],v=null;const H=()=>w.offsetHeight;
+ w.addEventListener('touchstart',e=>{if($('#sh')||w.id!=='st'||!w.classList.contains('on')||sb.scrollTop>0||moving(sb,300))return;const t=e.touches[0];if(t.clientX-w.getBoundingClientRect().left<=30)return;y0=t.clientY;x0=t.clientX;dy=0;on=0;pts=[]},{passive:true});
+ w.addEventListener('touchmove',e=>{if(y0==null)return;const t=e.touches[0],ay=t.clientY-y0,ax=t.clientX-x0;
+  if(!on){if(ay<0||Math.abs(ax)*1.5>ay&&Math.abs(ax)>6){y0=null;return}e.preventDefault();if(ay<12)return;on=1;v=V();w.style.transition='none';w.classList.add('pull');if(v){v.style.transition='transform .3s var(--ease)';v.style.transform='translateX(0)'}}
+  e.preventDefault();dy=Math.max(0,ay);const p=Math.min(1,dy/H()),now=performance.now();pts.push([now,dy]);while(pts.length&&now-pts[0][0]>150)pts.shift();
+  w.style.transform=`translateY(${dy}px) scale(${1-p*.08})`;w.style.borderRadius=`${Math.min(28,8+p*60)}px`},{passive:false});
+ const end=()=>{if(y0==null)return;y0=null;if(!on)return;const now=performance.now(),z=pts[pts.length-1],win=z?pts.filter(p=>z[0]-p[0]<=100):[],a=win[0],
+  vel=z&&now-z[0]<100&&win.length>1&&z[0]>a[0]?(z[1]-a[1])/(z[0]-a[0]):0;
+  if(dy>H()*.25||vel>.7&&dy>40){closest(true);return}
+  const t='transform .34s var(--ease),border-radius .34s var(--ease)';w.style.transition=t;w.style.transform='';w.style.borderRadius='';if(v){v.style.transition='';v.style.transform=''}
+  setTimeout(()=>w.classList.remove('pull'),360)};
+ w.addEventListener('touchend',end);w.addEventListener('touchcancel',()=>{dy=0;end()})}
 // swipe back from the left edge, as on iOS: follows the finger; commits past half the width or on a flick, judged
 // by the speed over the last 80 ms before release, so a slow drag that is held springs back. under(): the layer beneath.
 function swipeBack(w,done,under){let x0=null,y0=0,dx=0,on=false,pts=[],v=null;const W=()=>w.offsetWidth;
@@ -511,7 +574,7 @@ app.addEventListener('click',ev=>{const T=ev.target;
  else if(k==='note')sheet(`<p>${E.note.replace(/^\s*Editor’s note\.?\s*/i,'')}</p>`,'Editor’s note');
  else if(k==='push')pushToggle(a);
  else if(k==='fs+')fs(1);else if(k==='fs-')fs(-1)});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#sh'))closeS();else if($('#st'))closest();else if(tab==='past'&&mode==='paper')backToPast(0)}if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('gloss')){e.preventDefault();e.target.click()}});
+document.addEventListener('keydown',e=>{if((e.key==='ArrowRight'||e.key==='ArrowLeft')&&$('#st')&&!$('#sh')&&!/INPUT|TEXTAREA/.test(e.target.tagName)){e.preventDefault();page(e.key==='ArrowRight'?1:-1);return}if(e.key==='Escape'){if($('#sh'))closeS();else if($('#st'))closest();else if(tab==='past'&&mode==='paper')backToPast(0)}if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('gloss')){e.preventDefault();e.target.click()}});
 const nyNow=()=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hour12:false}).formatToParts(new Date()),g=t=>p.find(x=>x.type===t).value;return{date:`${g('year')}-${g('month')}-${g('day')}`,hour:+g('hour')%24}};
 const LOADED=nyNow().date;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&nyNow().date!==LOADED&&navigator.onLine!==false){keep();location.reload()}});
