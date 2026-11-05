@@ -203,7 +203,7 @@ img.ld{opacity:0}
 .enter.entered :is(.lt,.lead,.fr){opacity:1;transform:none;transition:opacity .42s var(--ease-out) calc(var(--i,0)*70ms),transform .42s var(--ease-out) calc(var(--i,0)*70ms)}
 .tabs{transition:transform .3s var(--ease)}.tabs.away{transform:translateY(100%)}
 #fb.in .p{animation:fin .2s var(--ease-out)}@keyframes fin{from{opacity:0}}
-@media (prefers-reduced-motion:reduce){.story[class*=m-]{transform:none!important;clip-path:none!important;opacity:0;transition:opacity .2s}.story[class*=m-].on{opacity:1}.view.under{transform:none!important}.tabs.away{transform:none}#fb.in .p{animation:none}}
+@media (prefers-reduced-motion:reduce){.story[class*=m-]:not(.drag){transform:none!important;clip-path:none!important;opacity:0;transition:opacity .2s}.story[class*=m-].on{opacity:1}.view.under{transform:none!important}.tabs.away{transform:none}#fb.in .p{animation:none}}
 .jl{padding-bottom:24px}
 .je{position:relative;display:flex;gap:14px;align-items:flex-start;width:100%;text-align:left;padding:20px max(20px,var(--ir)) 20px max(20px,var(--il));touch-action:manipulation;transition:transform var(--dur-press,.34s) var(--spring-press)}
 .je:active{transform:scale(.985);transition-duration:.1s}
@@ -246,6 +246,7 @@ img.ld{opacity:0}
 .view.from-r{animation:fr .34s var(--ease)}.view.from-l{animation:fl .34s var(--ease)}
 .story:after{content:"";position:absolute;inset:0;background:var(--dim);opacity:0;pointer-events:none}
 .view[style*="--dimo"]:after,.gv[style*="--dimo"]:after,.story[style*="--dimo"]:after{opacity:var(--dimo)!important;transition:none!important}
+.view:after,.gv:after,.story:after{z-index:4}
 .drag{will-change:transform}
 .gtopx{z-index:2;box-shadow:-1px 0 0 var(--hair),-12px 0 32px rgba(0,0,0,.14)}
 .story.pull{overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.32)}
@@ -423,9 +424,9 @@ function buildStory(i){const it=E.items[i];const w=document.createElement('div')
 function story(i,from){storyFrom=from||document.activeElement;const w=buildStory(i);
  const v=V();app.append(w);fade(w);const src=from&&from.closest?from.closest('[data-s]'):null;
  if(w.classList.contains('m-zoom'))zoomFrom(w,src||$(`[data-s="${i}"]`));
- if(w.classList.contains('m-push')&&!RM()){const W=app.offsetWidth;if(settling)settling.finish();hold(w,v);setX(w,W);w.classList.add('on');if(v)v.inert=true;arrive(w);
+ if(w.classList.contains('m-push')&&!RM()){const W=app.offsetWidth;if(settling)settling.finish();hold(w,v);setX(w,W);w.classList.add('on');if(v)v.inert=true;modalTabs(1);arrive(w);
   run(0,1,0,p=>{setX(w,W*(1-p));if(v){setX(v,-.3*W*p);dimTo(v,p)}},{d:.5},()=>{clean(w);if(v){v.classList.add('under');clean(v)}Chart.play(w);$('.bias',w).classList.add('go')});wire(w,i);return}
- const go=()=>{w.style.transform='';w.style.clipPath='';w.classList.add('on');if(v){v.classList.add('under');v.inert=true}
+ const go=()=>{w.style.transform='';w.style.clipPath='';w.classList.add('on');if(v){v.classList.add('under');v.inert=true;modalTabs(1)}
   const done=()=>{Chart.play(w);$('.bias',w).classList.add('go')};RM()?done():w.addEventListener('transitionend',function f(e){if(e.target!==w)return;w.removeEventListener('transitionend',f);done()})};
  requestAnimationFrame(()=>requestAnimationFrame(go));wire(w,i)}
 // a story on screen: its bar, back gestures, paging and focus trap
@@ -443,7 +444,7 @@ function closest(down){const w=$('#st');if(!w)return;const v=V();if(settling)set
   else{w.classList.replace('m-zoom','m-fade');w.classList.add('out');w.classList.remove('on')}}
  else if(down){w.style.transition='transform .34s var(--ease),border-radius .34s var(--ease)';w.style.transform=`translateY(${w.offsetHeight}px) scale(.92)`}
  else{w.style.transform='';w.classList.add('out');w.classList.remove('on')}
- if(v){v.style.transition='';v.style.transform='';v.classList.remove('under');v.inert=false}
+ if(v){v.style.transition='';v.style.transform='';v.classList.remove('under');v.inert=false;modalTabs(0)}
  const rm=()=>w.remove();RM()?setTimeout(rm,220):w.addEventListener('transitionend',e=>{if(e.target===w)rm()});setTimeout(rm,600);
  if(dirty&&mode==='paper'){dirty=false;keep();today();const b=$(`[data-s="${cur}"]`);if(b)b.focus({preventScroll:true});return}
  if(storyFrom&&document.contains(storyFrom))storyFrom.focus({preventScroll:true})}
@@ -467,6 +468,7 @@ function spring(from,to,v,set,{d=.42,b=0}={}){if(RM())d=Math.min(d,.24);let raf=
   raf=requestAnimationFrame(f)});
  return{done,stop(){stopped=true;cancelAnimationFrame(raf)}}}
 let settling=null,flungAt=0;
+const modalTabs=on=>{const t=$('.tabs');if(t){t.inert=!!on;if(!on)t.classList.remove('away')}};
 // a spring as a CSS easing (linear() sampled at 60 Hz) for choreographed, untouched motion; ease-out where linear() is missing
 const EZ={};function sEase(d=.6,b=0){const k=d+'/'+b;if(EZ[k])return EZ[k];const w=2*Math.PI/d,z=Math.max(.05,1-b),v=[];let t=0;
  for(;t<2;t+=1/60){let x;if(z>=1)x=(-1-w*t)*Math.exp(-w*t);else{const wd=w*Math.sqrt(1-z*z);x=Math.exp(-z*w*t)*(-Math.cos(wd*t)-z*w/wd*Math.sin(wd*t))}v.push((1+x).toFixed(4));if(t>.1&&Math.abs(x)<.002)break}
@@ -490,7 +492,7 @@ function intro(){const v=V();if(!v)return;if(RM()){v.animate([{opacity:0},{opaci
  L.push([$('.tabs'),[{transform:'translateY(110%)'},{transform:'none'}],700,.55]);
  const an=play(L),stop=()=>an.forEach(a=>{try{a.finish()}catch(e){}});['pointerdown','touchstart','keydown','wheel'].forEach(t=>addEventListener(t,stop,{once:true,capture:true,passive:true}))}
 // run a spring to its end state; a new touch finishes it at once, so a quick second swipe never waits
-function run(from,to,v,set,opt,end){const a=spring(from,to,v,set,opt),me={finish(){a.stop();set(to);settling=null;end()}};settling=me;
+function run(from,to,v,set,opt,end){if(RM()){set(to);settling=null;end();return}const a=spring(from,to,v,set,opt),me={finish(){a.stop();set(to);settling=null;end()}};settling=me;
  a.done.then(ok=>{if(ok&&settling===me){settling=null;end()}})}
 const setX=(el,x)=>{if(el)el.style.transform=`translate3d(${x}px,0,0)`};
 const dimTo=(el,q)=>{if(el)el.style.setProperty('--dimo',Math.max(0,Math.min(1,q)).toFixed(3))};
@@ -498,7 +500,7 @@ function hold(...els){els.forEach(el=>{if(el){el.style.transition='none';el.clas
 function clean(...els){els.forEach(el=>{if(!el)return;el.style.transition='none';el.style.transform='';el.style.removeProperty('--dimo');el.style.borderRadius='';el.style.clipPath='';el.style.opacity='';el.style.transformOrigin='';el.classList.remove('pull','drag');el.getBoundingClientRect();el.style.transition=''})}
 const velo=pts=>{const z=pts[pts.length-1];if(!z||performance.now()-z[0]>100)return[0,0];const a=pts.find(p=>z[0]-p[0]<=100)||z;const dt=z[0]-a[0];return dt>0?[(z[1]-a[1])/dt,(z[2]-a[2])/dt]:[0,0]};
 // the story is closed with no animation of its own: the gesture already moved it
-function closeNow(w,v){w.id='';w.remove();if(v){v.classList.remove('under');v.inert=false;clean(v)}
+function closeNow(w,v){w.id='';w.remove();if(v){v.classList.remove('under');v.inert=false;modalTabs(0);clean(v)}
  if(dirty&&mode==='paper'){dirty=false;keep();today();const b=$(`[data-s="${cur}"]`);if(b)b.focus({preventScroll:true});return}
  if(storyFrom&&document.contains(storyFrom))storyFrom.focus({preventScroll:true})}
 // Paging between stories (Apple News): the next story pushes in over this one; the one before is revealed beneath it.
@@ -510,7 +512,7 @@ function mkPage(w,dir){const W=app.offsetWidth,o=order(),k=o.indexOf(cur)+dir;le
   release(vx){const x=g.x;if(!nb){run(rb(x,W),0,0,p=>setX(w,p),{d:.38},()=>clean(w));return}
    const c=dir>0?proj(x,vx)<-W/2:proj(x,vx)>W/2;
    run(x,c?-dir*W:0,vx,g.render,{d:c?.42:.36},()=>{if(!c){nb.remove();clean(w);return}
-    w.id='';w.remove();clean(nb);nb.classList.add('on');const i=+nb.dataset.i,r=V()&&$(`[data-s="${i}"]`,V());if(r){storyFrom=r;r.scrollIntoView({block:'center'})}
+    w.id='';w.remove();nb.classList.add('on');clean(nb);const i=+nb.dataset.i,r=V()&&$(`[data-s="${i}"]`,V());if(r){storyFrom=r;jumping=1;jumpTick();r.scrollIntoView({block:'center'})}
     wire(nb,i);Chart.play(nb);$('.bias',nb).classList.add('go')})}};
  return g}
 function page(dir){const w=$('#st');if(!w||$('#sh')||!w.classList.contains('on'))return;if(settling)settling.finish();const g=mkPage(w,dir);if(g.nb)g.release(-dir*2)}
@@ -627,7 +629,7 @@ function contents(){sheet(`<p class="small" style="margin-top:0!important">${day
 function fs(d){const i=Math.max(0,Math.min(FS.length-1,FS.indexOf(S.fs)+d));S.fs=FS[i];document.documentElement.style.setProperty('--fs',S.fs);save();const v=$('#fv');if(v)v.textContent=Math.round(S.fs*100)+'%'}
 app.addEventListener('click',ev=>{const T=ev.target;if(performance.now()-flungAt<200){ev.preventDefault();return}
  const g=T.closest('.gloss');if(g){const b=g.querySelector('.gloss-body'),k=b.querySelector('.gloss-kind');sheet(`<div class="kick">${k?k.textContent:''}</div><h3 style="margin-top:6px">${g.firstChild.textContent}</h3><p>${b.textContent.replace(k?k.textContent:'','')}</p>`,'Note');return}
- const s=T.closest('[data-s]');if(s){story(+s.dataset.s);return}
+ const s=T.closest('[data-s]');if(s){story(+s.dataset.s,s);return}
  const o=T.closest('[data-open]');if(o){closeS(1);setTimeout(()=>story(+o.dataset.open,$('[data-a="contents"]')),RM()?0:200);return}
  const e=T.closest('[data-ed]');if(e){openEdition(+e.dataset.ed);return}
  const go=T.closest('[data-go]');if(go){const n=document.getElementById(go.dataset.go),tb=$('.tabs');if(tb)tb.classList.remove('away');jumping=1;jumpTick();n&&n.scrollIntoView({behavior:RM()?'auto':'smooth'});return}
