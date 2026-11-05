@@ -249,6 +249,9 @@ img.ld{opacity:0}
 .drag{will-change:transform}
 .gtopx{z-index:2;box-shadow:-1px 0 0 var(--hair),-12px 0 32px rgba(0,0,0,.14)}
 .story.pull{overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.32)}
+.iw{display:inline-block}
+.drag .nb.sc-on,.gv .nb.sc-on{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--ground)}
+.story,.view,.gv{contain:layout paint}
 
 </style>
 <div id="app"></div>
@@ -401,12 +404,11 @@ function pastHTML(){const L=ED.slice(1);
 // a copy of the screen being left, kept on screen while the next one moves over or away from it
 function ghost(html,y){const g=document.createElement('div');g.className='gv';g.innerHTML=html;const inner=g.querySelector(':scope>.view');if(inner)inner.replaceWith(...inner.childNodes);$$('[id]',g).forEach(x=>x.removeAttribute('id'));g.inert=true;g.setAttribute('aria-hidden','true');fade(g);const s=$('.sc',g);if(s)requestAnimationFrame(()=>{s.scrollTop=y||0});return g}
 let edN=0;
-function openEdition(n){edN=n;const old=V(),y=$('#sc')?$('#sc').scrollTop:0,html=old.innerHTML;E=ED[n];today();if(RM())return;
- const v=V(),g=ghost(html,y);app.prepend(g);v.classList.add('pin');v.style.transition='none';v.getBoundingClientRect();v.style.transition='';
- requestAnimationFrame(()=>{v.classList.remove('pin');g.classList.add('gunder')});setTimeout(()=>g.remove(),520)}
-function backToPast(dx){const old=V(),y=$('#sc')?$('#sc').scrollTop:0,html=old.innerHTML,W=old.offsetWidth;$$('.gv').forEach(x=>x.remove());past(edN);if(RM())return;
- const v=V(),g=ghost(html,y);g.classList.add('gtop');app.append(g);g.style.transition='none';g.style.transform=`translateX(${dx||0}px)`;v.style.transition='none';v.style.transform=`translateX(${-30+30*(dx||0)/W}%)`;v.getBoundingClientRect();
- g.style.transition='';v.style.transition='';requestAnimationFrame(()=>{g.style.transform='translateX(100%)';v.style.transform=''});setTimeout(()=>g.remove(),520)}
+// Opening an old edition and going back to Past run through the same two layers and springs as the swipes; a tap is a
+// swipe that was already flicked at 1.2 px/ms.
+function nav(ax,ed){if(settling)settling.finish();if(RM())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-1.2:1.2);return true}
+function openEdition(n){if(!nav(-1,n)){edN=n;E=ED[n];today()}}
+function backToPast(){if(!nav(1))past(edN)}
 function buildStory(i){const it=E.items[i];const w=document.createElement('div');w.className='story m-'+(RM()?'fade':OPEN());w.dataset.i=i;
  w.setAttribute('role','dialog');w.setAttribute('aria-modal','true');w.setAttribute('aria-label',it.h);
  const d=dia(it,Math.min(app.clientWidth||390,560)-40),cr=it.cap||it.credit?`<div class="cap">${it.cap||''}${it.credit?`<span class="cr">${esc(it.credit)}</span>`:''}</div>`:'';
@@ -421,6 +423,8 @@ function buildStory(i){const it=E.items[i];const w=document.createElement('div')
 function story(i,from){storyFrom=from||document.activeElement;const w=buildStory(i);
  const v=V();app.append(w);fade(w);const src=from&&from.closest?from.closest('[data-s]'):null;
  if(w.classList.contains('m-zoom'))zoomFrom(w,src||$(`[data-s="${i}"]`));
+ if(w.classList.contains('m-push')&&!RM()){const W=app.offsetWidth;if(settling)settling.finish();hold(w,v);setX(w,W);w.classList.add('on');if(v)v.inert=true;arrive(w);
+  run(0,1,0,p=>{setX(w,W*(1-p));if(v){setX(v,-.3*W*p);dimTo(v,p)}},{d:.5},()=>{clean(w);if(v){v.classList.add('under');clean(v)}Chart.play(w);$('.bias',w).classList.add('go')});wire(w,i);return}
  const go=()=>{w.style.transform='';w.style.clipPath='';w.classList.add('on');if(v){v.classList.add('under');v.inert=true}
   const done=()=>{Chart.play(w);$('.bias',w).classList.add('go')};RM()?done():w.addEventListener('transitionend',function f(e){if(e.target!==w)return;w.removeEventListener('transitionend',f);done()})};
  requestAnimationFrame(()=>requestAnimationFrame(go));wire(w,i)}
@@ -431,7 +435,9 @@ function wire(w,i){w.id='st';cur=i;w._nb={};setTimeout(()=>{if(w.id!=='st')retur
 // zoom: the story starts as the tapped card's rectangle and grows to the screen (FLIP: transform plus a clipped inset)
 function zoomFrom(w,c){if(!c){w.classList.replace('m-zoom','m-fade');return}const a=app.getBoundingClientRect(),r=c.getBoundingClientRect(),s=r.width/a.width,rad=parseFloat(getComputedStyle(c).borderRadius)||12;
  w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${rad/s}px)`;w._card=i=>c}
-function closest(down){const w=$('#st');if(!w)return;const v=V();w.id='';
+function closest(down){const w=$('#st');if(!w)return;const v=V();if(settling)settling.finish();
+ if(!down&&w.classList.contains('m-push')&&!RM()&&w.id==='st'){const W=app.offsetWidth;hold(w,v);run(0,1,0,p=>{setX(w,W*p);if(v){setX(v,-.3*W*(1-p));dimTo(v,1-p)}},{d:.42},()=>closeNow(w,v));return}
+ w.id='';
  if(w.classList.contains('m-zoom')&&!w.style.transform){const c=$(`[data-s="${cur}"]`),a=app.getBoundingClientRect(),r=c&&c.getBoundingClientRect();
   if(r&&r.bottom>a.top&&r.top<a.bottom){w.classList.add('out');w.classList.remove('on');const s=r.width/a.width;w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${(parseFloat(getComputedStyle(c).borderRadius)||12)/s}px)`}
   else{w.classList.replace('m-zoom','m-fade');w.classList.add('out');w.classList.remove('on')}}
@@ -461,6 +467,28 @@ function spring(from,to,v,set,{d=.42,b=0}={}){if(RM())d=Math.min(d,.24);let raf=
   raf=requestAnimationFrame(f)});
  return{done,stop(){stopped=true;cancelAnimationFrame(raf)}}}
 let settling=null,flungAt=0;
+// a spring as a CSS easing (linear() sampled at 60 Hz) for choreographed, untouched motion; ease-out where linear() is missing
+const EZ={};function sEase(d=.6,b=0){const k=d+'/'+b;if(EZ[k])return EZ[k];const w=2*Math.PI/d,z=Math.max(.05,1-b),v=[];let t=0;
+ for(;t<2;t+=1/60){let x;if(z>=1)x=(-1-w*t)*Math.exp(-w*t);else{const wd=w*Math.sqrt(1-z*z);x=Math.exp(-z*w*t)*(-Math.cos(wd*t)-z*w/wd*Math.sin(wd*t))}v.push((1+x).toFixed(4));if(t>.1&&Math.abs(x)<.002)break}
+ const ok=window.CSS&&CSS.supports('transition-timing-function','linear(0, 1)');return EZ[k]={easing:ok?`linear(${v.join(',')},1)`:'cubic-bezier(.2,.8,.2,1)',duration:Math.round(t*1000)}}
+function play(list){const A=app.getBoundingClientRect(),out=[];list.forEach(([el,kf,delay,d,b])=>{if(!el)return;const r=el.getBoundingClientRect();if(r.top>A.bottom||r.bottom<A.top)return;const e=sEase(d,b);out.push(el.animate(kf,{duration:e.duration,easing:e.easing,delay,fill:'backwards'}))});return out}
+const rise=(y,blur)=>[{opacity:0,transform:`translateY(${y}px)`,...(blur?{filter:`blur(${blur}px)`}:{})},{opacity:1,transform:'none',...(blur?{filter:'blur(0px)'}:{})}];
+// a story's page arrives in reading order as it slides in: kicker, headline, summary, bias bar, then the picture or chart
+function arrive(w){if(RM())return;const b=$('.sbody',w);if(!b)return;play([...b.children].slice(0,7).map((el,k)=>[el,rise(k<2?22:16),110+k*55,.62]))}
+// Launch: the masthead sets word by word, the date line follows, the lead picture opens from a rounded window as it settles,
+// then the lead's words and the stories on the first screen rise in order, and the bars come in last. About 1.3 s; any touch
+// or key finishes it at once. Reduced Motion: a 250 ms fade.
+function intro(){const v=V();if(!v)return;if(RM()){v.animate([{opacity:0},{opacity:1}],{duration:250});return}
+ const h1=$('#lt h1',v),L=[];if(h1&&!h1.querySelector('.iw')){h1.innerHTML=h1.textContent.split(' ').map(x=>`<span class="iw">${x}</span>`).join(' ')}
+ $$('.iw',v).forEach((x,k)=>L.push([x,rise(14,6),60+k*95,.75]));
+ L.push([$('.folio',v),rise(8),380,.6],[$('.late',v),rise(8),430,.6]);
+ const lead=$('.lead',v),li=lead&&$('img',lead);
+ if(li)L.push([li,[{opacity:0,transform:'scale(1.1)',clipPath:'inset(7% 7% 7% 7% round 30px)'},{opacity:1,transform:'scale(1)',clipPath:'inset(0% 0% 0% 0% round 0px)'}],400,1,.04]);
+ if(lead)[...lead.children].filter(c=>c!==li).forEach((c,k)=>L.push([c,rise(18),620+k*70,.62]));
+ $$('.s1.fr,.ex,.sec',v).forEach((c,k)=>L.push([c,rise(26),820+k*90,.7]));
+ $$('.nb .ic',v).forEach(x=>L.push([x,[{opacity:0},{opacity:1}],300,.5]));
+ L.push([$('.tabs'),[{transform:'translateY(110%)'},{transform:'none'}],700,.55]);
+ const an=play(L),stop=()=>an.forEach(a=>{try{a.finish()}catch(e){}});['pointerdown','touchstart','keydown','wheel'].forEach(t=>addEventListener(t,stop,{once:true,capture:true,passive:true}))}
 // run a spring to its end state; a new touch finishes it at once, so a quick second swipe never waits
 function run(from,to,v,set,opt,end){const a=spring(from,to,v,set,opt),me={finish(){a.stop();set(to);settling=null;end()}};settling=me;
  a.done.then(ok=>{if(ok&&settling===me){settling=null;end()}})}
@@ -510,8 +538,9 @@ function mkPull(w){const W=app.offsetWidth,H=app.offsetHeight,v=V(),i=cur,sc=v&&
 // Flicking between screens: Today to Past (Past pushes in from the right), Past to Today and an old edition back to
 // Past (the screen slides away to the right, the one beneath comes back). The real screen is drawn at once; a copy of
 // the one being left stays on screen until the gesture settles, and the original comes back if it is cancelled.
-function mkScreen(ax){const W=app.offsetWidth,sc=$('#sc'),y=sc?sc.scrollTop:0,html=V().innerHTML;let over,under,fwd,undo;
- if(tab==='today'&&mode==='paper'&&E===ED[0]&&ax<0){keep();past();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;undo=()=>{tab='today';E=ED[0];today()}}
+function mkScreen(ax,ed){const W=app.offsetWidth,sc=$('#sc'),y=sc?sc.scrollTop:0,html=V().innerHTML;let over,under,fwd,undo;
+ if(ed!=null&&tab==='past'&&mode==='archive'){edN=ed;E=ED[ed];today();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;undo=()=>past(ed)}
+ else if(tab==='today'&&mode==='paper'&&E===ED[0]&&ax<0){keep();past();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;undo=()=>{tab='today';E=ED[0];today()}}
  else if(tab==='past'&&mode==='archive'&&ax>0){keep();tab='today';E=ED[0];today();under=V();over=ghost(html,y);app.append(over);fwd=0;undo=()=>past()}
  else if(tab==='past'&&mode==='paper'&&ax>0){const n=edN;keep();past(n);under=V();over=ghost(html,y);app.append(over);fwd=0;undo=()=>{E=ED[n];today()}}
  else return null;
@@ -607,9 +636,9 @@ app.addEventListener('click',ev=>{const T=ev.target;if(performance.now()-flungAt
  const a=T.closest('[data-a]');if(!a)return;const k=a.dataset.a;
  if(k==='close')closeS();
  else if(k==='closest')closest();
- else if(k==='today'){if(tab==='today'&&E===ED[0]){$('#sc').scrollTo({top:0,behavior:RM()?'auto':'smooth'});return}keep();tab='today';E=ED[0];today()}
- else if(k==='past'&&a.closest('.nb')){backToPast(0)}
- else if(k==='past'){if(tab==='past'&&mode==='archive'){$('#sc').scrollTo({top:0,behavior:RM()?'auto':'smooth'});return}past()}
+ else if(k==='today'){if(tab==='today'&&E===ED[0]){$('#sc').scrollTo({top:0,behavior:RM()?'auto':'smooth'});return}if(tab==='past'&&mode==='archive'&&nav(1))return;keep();tab='today';E=ED[0];today()}
+ else if(k==='past'&&a.closest('.nb')){backToPast()}
+ else if(k==='past'){if(tab==='past'&&mode==='archive'){$('#sc').scrollTo({top:0,behavior:RM()?'auto':'smooth'});return}if(tab==='today'&&E===ED[0]?nav(-1):nav(1))return;past()}
  else if(k==='contents')contents();else if(k==='set')settings();else if(k==='who')who();
  else if(k==='full'){const fb=$('#fb');fb.hidden=false;a.hidden=true;fb.classList.add('in');const p=$('.p',fb);if(p)p.focus({preventScroll:true})}
  else if(k==='note')sheet(`<p>${E.note.replace(/^\s*Editor’s note\.?\s*/i,'')}</p>`,'Editor’s note');
@@ -620,6 +649,6 @@ const nyNow=()=>{const p=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_
 const LOADED=nyNow().date;
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&nyNow().date!==LOADED&&navigator.onLine!==false){keep();location.reload()}});
 if(!!navigator.serviceWorker&&/\/brief\//.test(location.pathname)){navigator.serviceWorker.register('sw.js').then(r=>{const keepImgs=ED.flatMap(e=>e.items.map(x=>x.img).filter(Boolean));navigator.serviceWorker.ready.then(s=>s.active&&s.active.postMessage({keep:keepImgs,warm:ED[0].items.map(x=>x.img).concat(ED.map(e=>e.cover)).filter(Boolean).map(u=>new URL(u,location.href).href)}))}).catch(()=>{})}
-addEventListener('pagehide',keep);today();
+addEventListener('pagehide',keep);S.pos[ED[0].date]=0;today();intro();
 
 </script>
