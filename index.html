@@ -810,6 +810,8 @@ html.intro-on .bar .mk{visibility:hidden}
 <section class="s" id="shipped" aria-labelledby="sh2"><div class="wrap">
   <div class="intro"><div><div class="eye">Changelog</div><h2 class="h2" id="sh2">Recently shipped</h2></div></div>
   <ol class="log" id="log">
+    <li style="--c:#8fd1ae"><time>Nov 5</time><span class="pj"><i></i>Well-Versed</span><a href="well-versed/app/"><b>Now an app</b><small>Today’s lesson comes as a card you swipe, and each lesson you finish unlocks flashcards that come back before you forget them.</small></a></li>
+    <li style="--c:#ff8a6b"><time>Nov 4</time><span class="pj"><i></i>The Morning Brief</span><a href="brief/"><b>An app on your phone</b><small>Today’s edition and every past one in your pocket, in a light or a dark look, with one headline at 7 AM.</small></a></li>
     <li style="--c:#5fd4bf"><time>Oct 29</time><span class="pj"><i></i>Read</span><a href="#w-read"><b>Launched</b><small>A nightly reading tracker: a timed session with rain, the page you stopped on, a streak and a gentle nudge.</small></a></li>
     <li style="--c:#ededed"><time>Oct 19</time><span class="pj"><i></i>This site</span><a href="#top"><b>A new front page</b><small>A new introduction, a live map of the system behind the work, the numbers it has run up, an About card, and privacy, terms and accessibility pages.</small></a></li>
     <li style="--c:#ededed"><time>Oct 19</time><span class="pj"><i></i>This site</span><a href="#work"><b>New walk-throughs</b><small>Well-Versed, the course planner and Claude OS now show each tool the way a reader would use it.</small></a></li>
@@ -1022,16 +1024,16 @@ window.MYIntro={run:run,mini:mini,T:T,CAL:CAL,
 "use strict";
 var D=document.documentElement;D.classList.add('js');
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,HOVER=matchMedia('(hover:hover)').matches;
-var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=21'}});
+var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=22'}});
 var P=[
  {k:'brief',n:'The Morning Brief',kind:'Published daily',href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
   lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself. It also reads as an app on your phone, with one headline at 7 AM.',app:'brief/',
   facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
   ch:[[0,'The archive'],[2.86,'Today’s edition'],[12.05,'AI'],[17.93,'Markets'],[23.81,'Law'],[29.7,'Entertainment'],[34.9,'The app']]},
- {k:'versed',n:'Well-Versed',kind:'Published daily',href:'well-versed/',url:'mattyellin.com/well-versed/',open:'Read today’s lesson',tint:'#17221d',hue:'#8fd1ae',
-  lede:'One lesson a day toward a general education, each a long illustrated essay across art, history, science, food and craft, with the hard terms explained in place. Every lesson is kept in a library. It also comes as a phone app, with cards from each lesson to keep what you read.',app:'well-versed/app/',
+ {k:'versed',n:'Well-Versed',kind:'Published daily · phone app',phone:true,href:'well-versed/app/',url:'mattyellin.com/well-versed/',open:'Open the app',tint:'#17221d',hue:'#8fd1ae',
+  lede:'One lesson a day toward a general education, each an illustrated essay across art, history, science, food and craft, with the hard terms explained in place. It lives on your phone now. Today’s lesson comes as a card you swipe, every lesson you finish unlocks flashcards that come back just before you would forget them, and the shelf keeps the whole library by collection.',
   facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
-  ch:[[0,'Home'],[12.81,'Ozymandias'],[24.46,'The library'],[27.85,'A history lesson'],[36.93,'Coverage'],[39.85,'An arts lesson']]},
+  ch:[[0,'Today'],[6.2,'A lesson'],[18.6,'Cards'],[31.03,'Shelf']]},
  {k:'bits',n:'Greatest Bits',kind:'Published · archive',href:'greatest-bits/',url:'mattyellin.com/greatest-bits/',open:'Search the archive',tint:'#2a1414',hue:'#ff7a5c',
   lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found. Search a name, open the comic, play a bit, then follow the rest of their work and career.',
   facts:[['Comics','<span class="num" data-gbc>459</span>'],['Bits','<span class="num" data-gbb>2,284</span>']],
@@ -1064,7 +1066,7 @@ var introDone=function(){},heroWait=2,heroTick=function(){if(--heroWait<=0&&intr
 })();
 
 var cards=[];
-function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=21';v.setAttribute('aria-hidden','true');return v}
+function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=22';v.setAttribute('aria-hidden','true');return v}
 try{var st=$('#stack');
   P.forEach(function(p,i){
     var c=el('article','card');c.id='w-'+p.k;c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
@@ -1131,7 +1133,7 @@ try{if(HOVER){var pk=$('#peek'),pi=$('#peek img'),pb=$('#peek .pc b'),ps=$('#pee
     if(k==='versed'){var v=$('#tVersedHead');if(v&&v.textContent.indexOf('Today')!==0)return 'Today: '+v.textContent}
     for(var i=0;i<P.length;i++)if(P[i].k===k)return P[i].lede.split('. ')[0].replace(/\.$/,'')+'.';return LINE[k]||''}
   function name(k){for(var i=0;i<P.length;i++)if(P[i].k===k)return P[i].n;return k==='system'?'Claude OS':''}
-  function show(a){var k=a.dataset.peek;pi.src=IMGS[k];pb.textContent=name(k);ps.textContent=line(k);clearTimeout(t);t=setTimeout(function(){pk.classList.add('on')},pk.classList.contains('on')?0:180)}
+  function show(a){var k=a.dataset.peek;pi.src=k==='versed'?'assets/work/versed-peek.jpg?v=22':IMGS[k];pb.textContent=name(k);ps.textContent=line(k);clearTimeout(t);t=setTimeout(function(){pk.classList.add('on')},pk.classList.contains('on')?0:180)}
   function place(x,y){x=Math.min(x+18,innerWidth-316);var h=pk.offsetHeight||250;if(y+22+h>innerHeight)y=y-h-26;else y=y+22;pk.style.left=Math.max(8,x)+'px';pk.style.top=Math.max(8,y)+'px'}
   function hide(){clearTimeout(t);pk.classList.remove('on')}
   [].forEach.call(document.querySelectorAll('[data-peek]'),function(a){
