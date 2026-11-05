@@ -340,11 +340,21 @@ function markRead(l){var t=WV.today();if(l.state!=='read'){l.state='read';S.read
 var LSN_THEME=[
  ":host(.lhost){--t-2:calc(clamp(0.6875rem,0.5057rem + 0.909vw,0.75rem) * var(--fs,1));--t-1:calc(clamp(0.8125rem,0.6307rem + 0.909vw,0.875rem) * var(--fs,1));--t0:calc(clamp(1rem,0.8182rem + 0.909vw,1.0625rem) * var(--fs,1));--t1:calc(clamp(1.125rem,0.8523rem + 1.36vw,1.219rem) * var(--fs,1));--t2:calc(clamp(1.3125rem,0.9489rem + 1.82vw,1.4375rem) * var(--fs,1));--t3:calc(clamp(1.625rem,1.08rem + 2.73vw,1.8125rem) * var(--fs,1));--t4:calc(clamp(2rem,0.9091rem + 5.45vw,2.375rem) * var(--fs,1));--t-read:calc(clamp(1.0625rem,0.8807rem + 0.909vw,1.125rem) * var(--fs,1))}",
  ".wvb a.wv-ext{color:inherit;border-bottom:1px dashed color-mix(in oklch,var(--accent) 70%,transparent)}.wvb .wv-exti{color:var(--accent);font-family:var(--sans);font-size:.8em}",
- ":host(.lhost){display:block;--bg:var(--rbg);--ink:var(--rink);--muted:var(--rsub);--rule:var(--rrule);--rule-soft:color-mix(in oklch,var(--rrule) 55%,var(--rbg));--soft:var(--rsoft);--accent:var(--racc);--plate:var(--rplate);--pop:var(--rpop);--serif:\"Spectral\",Georgia,\"Times New Roman\",serif;--sans:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Helvetica Neue\",Arial,sans-serif;--poster:\"Anton\",\"Arial Narrow\",Impact,sans-serif;--g:var(--gut,20px);--wall:#0b0a09;color-scheme:light}",
+ ":host(.lhost){display:block;--bg:var(--rbg);--ink:var(--rink);--muted:var(--rsub);--rule:var(--rrule);--rule-soft:color-mix(in oklch,var(--rrule) 55%,var(--rbg));--soft:var(--rsoft);--accent:var(--racc);--plate:var(--rplate);--pop:var(--rpop);--serif:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Helvetica Neue\",Arial,sans-serif;--sans:-apple-system,BlinkMacSystemFont,\"SF Pro Text\",\"Helvetica Neue\",Arial,sans-serif;--poster:\"Anton\",\"Arial Narrow\",Impact,sans-serif;--g:var(--gut,20px);--wall:#0b0a09;color-scheme:light}",
  ":host(.lhost.night){color-scheme:dark}",
  ".wvb{background:var(--bg);color:var(--ink);font-family:var(--serif);text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}",
  ".wvb .folio,.wvb .spread{max-width:none;padding:var(--s5,24px) var(--g) var(--s6,32px)}",
  ".wvb h1,.wvb .rule{display:none}",
+ ".wvb{font-family:var(--sans)}",
+ ".wvb .deck{font-style:normal!important;font-weight:500;max-width:40ch;color:var(--ink)}",
+ ".wvb .body p,.wvb ol.steps li{hyphens:manual!important;-webkit-hyphens:manual!important;line-height:1.55!important}",
+ ".wvb em,.wvb i{font-style:italic}",
+ ".wvb .read{background:var(--soft)!important;border:0!important;border-radius:18px!important;padding:var(--s5) var(--s4)!important}",
+ ".wvb .read-body{border:0!important;padding-left:0!important}",
+ ".wvb .read-source,.wvb .watch-cap{font-style:normal!important}",
+ ".wvb .watch{background:var(--soft)!important;border:0!important;border-radius:18px!important;padding:var(--s4)!important}",
+ ".wvb table.compare th{font:400 var(--t1)/1.1 var(--poster);text-transform:uppercase;letter-spacing:.01em}",
+ ".wvb .em-label{font:400 var(--t1)/1.1 var(--poster);text-transform:uppercase;letter-spacing:.01em;color:var(--ink)}",
  ".wvb .kicker{text-align:left;margin:0 0 var(--s2);font:600 var(--t-2)/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}",
  ".wvb .deck{text-align:left;margin:0 0 var(--s5);max-width:36ch;font-size:var(--t1);line-height:1.45;font-style:italic;color:var(--muted);text-wrap:pretty}",
  ".wvb .body>*{max-width:65ch;margin-left:0;margin-right:0}",
@@ -513,7 +523,7 @@ function readLesson(l){
  if(l.h==='gerrymander.html'){reader();return}
  S.seen[l.h]=Date.now();autoTheme();
  var d=open('<div class="prog"><i id="pb"></i></div><div class="rtop"><button data-a="closeRead" aria-label="Close">✕</button><button data-a="aa" aria-label="Text settings">Aa</button></div><div class="bfloat"><button class="bosb" data-tl="'+l.i+'" aria-label="Talk to Boswell">'+bosMini()+'</button></div>'+bosBar(' data-tl="'+l.i+'"')+lessonHero(l)+'<div id="lh" class="lhost"></div><div class="lend" id="le" hidden><button class="lendb" data-tl="'+l.i+'">'+bosMini()+'<span>Talk to Boswell</span></button>'+upNext(l)+'</div>','reader reveal');d._l=l;
- syncHost();readerChrome(d,function(){var h=d.querySelector('.lhero');return h?h.offsetHeight-60:0});var host=d.querySelector('#lh'),pb=d.querySelector('#pb'),sh=host.attachShadow({mode:'open'}),ready=false,pinning=false;
+ d.style.setProperty('--fam',famOf(l.f)[2]);syncHost();readerChrome(d,function(){var h=d.querySelector('.lhero');return h?h.offsetHeight-60:0});var host=d.querySelector('#lh'),pb=d.querySelector('#pb'),sh=host.attachShadow({mode:'open'}),ready=false,pinning=false;
  function prog(){if(!ready)return;var mx=d.scrollHeight-d.clientHeight,p=mx>0?d.scrollTop/mx:0;pb.style.width=(p*100)+'%';S.pos[l.h]=p;if(!pinning)S.anc[l.h]=anchorOf(d,sh);if(p>(S.prog[l.h]||0))S.prog[l.h]=p;if(p>.92&&l.state!=='read'){markRead(l);WV.save()}}
  function closeGloss(except){sh.querySelectorAll('.gloss[data-open]').forEach(function(x){if(x===except)return;x.removeAttribute('data-open');x.removeAttribute('data-flip');var b=x.querySelector('.gloss-body');if(b){b.style.left=b.style.right=b.style.transform=''}})}
  function openGloss(g){closeGloss(g);g.setAttribute('data-open','true');var b=g.querySelector('.gloss-body');if(!b)return;var r=b.getBoundingClientRect();if(r.top<8)g.setAttribute('data-flip','true');r=b.getBoundingClientRect();var W=d.clientWidth;if(r.left<8){b.style.left=(8-g.getBoundingClientRect().left)+'px';b.style.right='auto';b.style.transform='none'}else if(r.right>W-8){b.style.left='auto';b.style.right=(g.getBoundingClientRect().right-(W-8))+'px';b.style.transform='none'}}
@@ -923,5 +933,7 @@ if((S.opts.vxr||0)<5){S.opts.vx=Object.assign({},S.opts.vx||{},{N:VXD.N});S.opts
 applyLook();applyVx();
 C.forEach(function(c){var l=c.h&&byH(c.h);if(l&&l.state==='read')c.unl=true});
 root();
+/* a shared link: ?l=<slug> opens that lesson in the reader */
+(function(){var m=/[?&]l=([a-z0-9-]+)/.exec(location.search);if(!m)return;var l=byH(m[1]+'.html');if(l)readLesson(l)})();
 
 document.addEventListener('dragstart',function(e){if(e.target.closest&&e.target.closest('#app'))e.preventDefault()});
