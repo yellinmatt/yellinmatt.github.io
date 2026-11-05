@@ -1024,12 +1024,12 @@ window.MYIntro={run:run,mini:mini,T:T,CAL:CAL,
 "use strict";
 var D=document.documentElement;D.classList.add('js');
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,HOVER=matchMedia('(hover:hover)').matches;
-var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=23'}});
+var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=24'}});
 var P=[
- {k:'brief',n:'The Morning Brief',kind:'Published daily',href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
+ {k:'brief',n:'The Morning Brief',kind:'Published daily · phone app',phone:true,href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
   lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself. It also reads as an app on your phone, with one headline at 7 AM.',app:'brief/',
   facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
-  ch:[[0,'The archive'],[2.86,'Today’s edition'],[12.05,'AI'],[17.93,'Markets'],[23.81,'Law'],[29.7,'Entertainment'],[34.9,'The app']]},
+  ch:[[0,'Today'],[4.5,'A story'],[10.67,'Past'],[18.67,'Settings']]},
  {k:'versed',n:'Well-Versed',kind:'Published daily · phone app',phone:true,href:'well-versed/app/',url:'mattyellin.com/well-versed/',open:'Open the app',tint:'#17221d',hue:'#8fd1ae',
   lede:'One lesson a day toward a general education, each an illustrated essay across art, history, science, food and craft, with the hard terms explained in place. It lives on your phone now. Today’s lesson comes as a card you swipe, every lesson you finish unlocks flashcards that come back just before you would forget them, and the shelf keeps the whole library by collection.',
   facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
@@ -1066,7 +1066,7 @@ var introDone=function(){},heroWait=2,heroTick=function(){if(--heroWait<=0&&intr
 })();
 
 var cards=[];
-function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=23';v.setAttribute('aria-hidden','true');return v}
+function vid(k){var v=el('video');v.muted=true;v.loop=true;v.playsInline=true;v.setAttribute('playsinline','');v.preload=cards.length?'none':'auto';v.poster=IMGS[k];v.src='assets/work/'+k+'-v.mp4?v=24';v.setAttribute('aria-hidden','true');return v}
 try{var st=$('#stack');
   P.forEach(function(p,i){
     var c=el('article','card');c.id='w-'+p.k;c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
@@ -1133,7 +1133,7 @@ try{if(HOVER){var pk=$('#peek'),pi=$('#peek img'),pb=$('#peek .pc b'),ps=$('#pee
     if(k==='versed'){var v=$('#tVersedHead');if(v&&v.textContent.indexOf('Today')!==0)return 'Today: '+v.textContent}
     for(var i=0;i<P.length;i++)if(P[i].k===k)return P[i].lede.split('. ')[0].replace(/\.$/,'')+'.';return LINE[k]||''}
   function name(k){for(var i=0;i<P.length;i++)if(P[i].k===k)return P[i].n;return k==='system'?'Claude OS':''}
-  function show(a){var k=a.dataset.peek;pi.src=k==='versed'?'assets/work/versed-peek.jpg?v=23':IMGS[k];pb.textContent=name(k);ps.textContent=line(k);clearTimeout(t);t=setTimeout(function(){pk.classList.add('on')},pk.classList.contains('on')?0:180)}
+  function show(a){var k=a.dataset.peek;pi.src=(k==='versed'||k==='brief')?'assets/work/'+k+'-peek.jpg?v=24':IMGS[k];pb.textContent=name(k);ps.textContent=line(k);clearTimeout(t);t=setTimeout(function(){pk.classList.add('on')},pk.classList.contains('on')?0:180)}
   function place(x,y){x=Math.min(x+18,innerWidth-316);var h=pk.offsetHeight||250;if(y+22+h>innerHeight)y=y-h-26;else y=y+22;pk.style.left=Math.max(8,x)+'px';pk.style.top=Math.max(8,y)+'px'}
   function hide(){clearTimeout(t);pk.classList.remove('on')}
   [].forEach.call(document.querySelectorAll('[data-peek]'),function(a){
