@@ -183,8 +183,12 @@ img.ld{opacity:0}
 .tg{padding-top:20px}.tg .kick{display:flex;gap:8px;align-items:center;color:var(--sec)}.tg i{width:16px;height:4px;border-radius:2px;background:var(--tc)}
 .tg a{display:flex;justify-content:space-between;align-items:center;min-height:48px;border-bottom:.5px solid var(--hair);font:400 calc(17*var(--u)) var(--serif)}
 .tg a span:last-child{color:var(--sec)}
-.csec{padding:20px 0 4px;font:500 calc(11*var(--u)) var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--accent-t)}
-.crow{display:block;width:100%;min-height:48px;padding:12px 0;border-bottom:.5px solid var(--hair);font:400 calc(17*var(--u))/1.3 var(--serif);transition:opacity .12s}.crow:active{opacity:.55}
+.sin .cmeta{margin:0 0 2px;font:400 calc(14*var(--u))/1.35 var(--sans);color:var(--sec)}
+.sin .csec{margin:0;padding:24px 0 6px;font:600 calc(13*var(--u))/1.2 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--sec)}
+.crow{display:grid;grid-template-columns:calc(24*var(--u)) 1fr;gap:0 12px;align-items:baseline;width:100%;min-height:52px;padding:13px 0;text-align:left}
+.crow+.crow:before{content:"";position:absolute;left:calc(24*var(--u) + 12px);right:0;top:0;border-top:.5px solid var(--hair)}
+.cn{font:500 calc(14*var(--u)) var(--sans);color:var(--sec);font-variant-numeric:tabular-nums}
+.ch{font:500 calc(17*var(--u))/1.3 var(--serif);color:var(--ink);text-wrap:pretty}
 
 :root[data-theme=dark] :is(.lead,.s1,.row,.fig) img{filter:brightness(.9)}
 @media (prefers-color-scheme:dark){:root[data-theme=auto] :is(.lead,.s1,.row,.fig) img{filter:brightness(.9)}}
@@ -253,6 +257,7 @@ img.ld{opacity:0}
 .iw{display:inline-block}
 .drag .nb.sc-on,.gv .nb.sc-on{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--ground)}
 .story,.view,.gv{contain:layout paint}
+.gv.parked{visibility:hidden;transform:translate3d(110%,0,0);pointer-events:none}
 
 </style>
 <div id="app"></div>
@@ -331,7 +336,7 @@ const OPEN=()=>DM.open||'push';document.documentElement.dataset.rows=DM.rows||'t
 document.addEventListener('touchstart',()=>{},{passive:true}); // lets iOS Safari apply :active press states
 const COL={L:'var(--t-L)',LL:'var(--t-LL)',C:'var(--t-C)',LR:'var(--t-LR)',R:'var(--t-R)'},TN={L:'Left',LL:'Lean left',C:'Center',LR:'Lean right',R:'Right'},TO=['L','LL','C','LR','R'];
 const sv=(w,h,d,sw=1.8)=>`<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
-const IC={list:sv(22,22,'<path d="M4 6h14M4 11h14M4 16h9"/>'),back:sv(12,20,'<path d="M10 2L2 10l8 8"/>',2.2),x:sv(12,12,'<path d="M2 2l8 8M10 2l-8 8"/>',2),
+const IC={list:sv(22,22,'<circle cx="4.5" cy="6" r="1.25" fill="currentColor" stroke="none"/><circle cx="4.5" cy="11" r="1.25" fill="currentColor" stroke="none"/><circle cx="4.5" cy="16" r="1.25" fill="currentColor" stroke="none"/><path d="M9 6h10M9 11h10M9 16h10"/>',1.7),back:sv(12,20,'<path d="M10 2L2 10l8 8"/>',2.2),x:sv(12,12,'<path d="M2 2l8 8M10 2l-8 8"/>',2),
  today:sv(26,24,'<rect x="3" y="3.5" width="20" height="17" rx="3"/><path d="M7 8.5h12M7 12.5h6M7 16h6M15.5 12.5h3.5v3.5h-3.5z"/>',1.7),
  past:sv(26,24,'<rect x="7" y="2.5" width="14" height="16" rx="2.5"/><path d="M4.5 6v13.5a2 2 0 0 0 2 2H18"/><path d="M10.5 7h7M10.5 10.5h7M10.5 14h4"/>',1.7)};
 let E=ED[0],tab='today',mode='paper',timer=null,opener=null,cur=null,storyFrom=null,dirty=false,pastY=0;
@@ -376,7 +381,7 @@ function today(){clearInterval(timer);mode='paper';
 
  reveal(sc);ntLate=ED[0].date<nl.date?(nl.hour>=7?'out':'early'):false;endNote();
  if(DM.enter==='rise'&&!today.done&&!sc.scrollTop&&!RM()){sc.classList.add('enter');$$('.lt,.lead,.fr',sc).forEach((x,n)=>x.style.setProperty('--i',n));requestAnimationFrame(()=>requestAnimationFrame(()=>sc.classList.add('entered')))}today.done=1;
- timer=setInterval(()=>{S.pos[e.date]=Math.round(sc.scrollTop);save()},1000)}
+ timer=setInterval(()=>{S.pos[e.date]=Math.round(sc.scrollTop);save()},1000);warm()}
 // quiet bars (demo option): the tab bar slides away on scroll down and returns on any scroll up
 // the feed's own motion: each story below the first screen rises 24 px and fades in as it enters, once
 function reveal(sc){if((DM.feed||'rise')!=='rise'||RM()||!('IntersectionObserver' in window))return;const H=sc.clientHeight;
@@ -390,7 +395,7 @@ const keep=()=>{const sc=$('#sc');if(sc&&mode==='paper')S.pos[E.date]=Math.round
 const tabs=()=>`<nav class="tabs" aria-label="Tabs"><button data-a="today" ${tab==='today'?'aria-current="page"':''}>${IC.today}<span>Today</span></button><button data-a="past" ${tab==='past'?'aria-current="page"':''}>${IC.past}<span>Past</span></button></nav>`;
 // Past: the timeline of editions, grouped by month.
 function past(focusEd){clearInterval(timer);keep();tab='past';mode='archive';E=ED[0];app.innerHTML=pastHTML()+tabs();
- const sc=$('#sc');sc.scrollTop=pastY;sc.addEventListener('scroll',()=>{pastY=sc.scrollTop},{passive:true});navbar(sc,$('.nb'),$('#lt'));fade(app);hideBars(sc);reveal(sc);const fr=focusEd&&$(`[data-ed="${focusEd}"]`);(fr||sc).focus({preventScroll:true})}
+ const sc=$('#sc');sc.scrollTop=pastY;sc.addEventListener('scroll',()=>{pastY=sc.scrollTop},{passive:true});navbar(sc,$('.nb'),$('#lt'));fade(app);hideBars(sc);reveal(sc);const fr=focusEd&&$(`[data-ed="${focusEd}"]`);(fr||sc).focus({preventScroll:true});warm()}
 // Past: a timeline of editions (Day One, Apple Journal). Each day: the weekday over a large day number, the full lead
 // headline, the paper’s own one-line summary of that morning, four of the day’s photos, and the edition’s size.
 // The whole entry is the button’s name, so a screen reader hears the date, headline, summary and size in order.
@@ -403,7 +408,7 @@ function pastHTML(){const L=ED.slice(1);
  return `<div class="view"><header class="nb"><i></i><div class="t">Past</div><button class="ic aa" data-a="set" aria-label="Reading settings">Aa</button></header><main class="sc" id="sc" tabindex="-1"><div class="lt g" id="lt"><h1 style="font-style:normal">Past</h1></div>
  <div class="jl">${months.map(g=>`<section aria-label="${g.m}"><h2 class="pmh">${g.m.split(' ')[0]}</h2>${g.rows.map(entry).join('')}</section>`).join('')}</div></main></div>`}
 // a copy of the screen being left, kept on screen while the next one moves over or away from it
-function ghost(html,y){const g=document.createElement('div');g.className='gv';g.innerHTML=html;const inner=g.querySelector(':scope>.view');if(inner)inner.replaceWith(...inner.childNodes);$$('[id]',g).forEach(x=>x.removeAttribute('id'));g.inert=true;g.setAttribute('aria-hidden','true');fade(g);const s=$('.sc',g);if(s)requestAnimationFrame(()=>{s.scrollTop=y||0});return g}
+function ghost(html,y){const g=document.createElement('div');g.className='gv';g.innerHTML=html;const inner=g.querySelector(':scope>.view');if(inner)inner.replaceWith(...inner.childNodes);$$('[id]',g).forEach(x=>x.removeAttribute('id'));g.inert=true;g.setAttribute('aria-hidden','true');$$('.rv',g).forEach(x=>x.classList.remove('rv','in'));fade(g);const s=$('.sc',g);if(s)requestAnimationFrame(()=>{s.scrollTop=y||0});return g}
 let edN=0;
 // Opening an old edition and going back to Past run through the same two layers and springs as the swipes; a tap is a
 // swipe that was already flicked at 1.2 px/ms.
@@ -425,7 +430,7 @@ function story(i,from){storyFrom=from||document.activeElement;const w=buildStory
  const v=V();app.append(w);fade(w);const src=from&&from.closest?from.closest('[data-s]'):null;
  if(w.classList.contains('m-zoom'))zoomFrom(w,src||$(`[data-s="${i}"]`));
  if(w.classList.contains('m-push')&&!RM()){const W=app.offsetWidth;if(settling)settling.finish();hold(w,v);setX(w,W);w.classList.add('on');if(v)v.inert=true;modalTabs(1);arrive(w);
-  run(0,1,0,p=>{setX(w,W*(1-p));if(v){setX(v,-.3*W*p);dimTo(v,p)}},{d:.5},()=>{clean(w);if(v){v.classList.add('under');clean(v)}Chart.play(w);$('.bias',w).classList.add('go')});wire(w,i);return}
+  const P=plan(0,1,0,{d:.5});glide(ms=>{const p=P.at(ms);return[[w,tx(W*(1-p))],[v,tx(-.3*W*p),p]]},P.dur,()=>{clean(w);if(v){v.classList.add('under');clean(v)}Chart.play(w);$('.bias',w).classList.add('go')},null);wire(w,i);return}
  const go=()=>{w.style.transform='';w.style.clipPath='';w.classList.add('on');if(v){v.classList.add('under');v.inert=true;modalTabs(1)}
   const done=()=>{Chart.play(w);$('.bias',w).classList.add('go')};RM()?done():w.addEventListener('transitionend',function f(e){if(e.target!==w)return;w.removeEventListener('transitionend',f);done()})};
  requestAnimationFrame(()=>requestAnimationFrame(go));wire(w,i)}
@@ -437,7 +442,7 @@ function wire(w,i){w.id='st';cur=i;w._nb={};setTimeout(()=>{if(w.id!=='st')retur
 function zoomFrom(w,c){if(!c){w.classList.replace('m-zoom','m-fade');return}const a=app.getBoundingClientRect(),r=c.getBoundingClientRect(),s=r.width/a.width,rad=parseFloat(getComputedStyle(c).borderRadius)||12;
  w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${rad/s}px)`;w._card=i=>c}
 function closest(down){const w=$('#st');if(!w)return;const v=V();if(settling)settling.finish();
- if(!down&&w.classList.contains('m-push')&&!RM()&&w.id==='st'){const W=app.offsetWidth;hold(w,v);run(0,1,0,p=>{setX(w,W*p);if(v){setX(v,-.3*W*(1-p));dimTo(v,1-p)}},{d:.42},()=>closeNow(w,v));return}
+ if(!down&&w.classList.contains('m-push')&&!RM()&&w.id==='st'){const W=app.offsetWidth;hold(w,v);const P=plan(0,1,0,{d:.42});glide(ms=>{const p=P.at(ms);return[[w,tx(W*p)],[v,tx(-.3*W*(1-p)),1-p]]},P.dur,()=>closeNow(w,v),null);return}
  w.id='';
  if(w.classList.contains('m-zoom')&&!w.style.transform){const c=$(`[data-s="${cur}"]`),a=app.getBoundingClientRect(),r=c&&c.getBoundingClientRect();
   if(r&&r.bottom>a.top&&r.top<a.bottom){w.classList.add('out');w.classList.remove('on');const s=r.width/a.width;w.style.transformOrigin='0 0';w.style.transform=`translate(${r.left-a.left}px,${r.top-a.top}px) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,a.height-r.height/s)}px 0 round ${(parseFloat(getComputedStyle(c).borderRadius)||12)/s}px)`}
@@ -453,20 +458,24 @@ function closest(down){const w=$('#st');if(!w)return;const v=V();if(settling)set
 const hscroll=el=>{for(;el&&el!==app;el=el.parentElement){const c=getComputedStyle(el);if(/(auto|scroll)/.test(c.overflowX)&&el.scrollWidth>el.clientWidth+2)return true}return false};
 const lastScroll=new WeakMap();document.addEventListener('scroll',e=>{if(e.target&&e.target.nodeType===1)lastScroll.set(e.target,performance.now())},{capture:true,passive:true});
 const moving=(el,ms=150)=>!!el&&performance.now()-(lastScroll.get(el)||0)<ms;
-// ---------- Motion: every swipe in the app runs through one controller with one set of physics ----------
-// Springs are Apple's (duration d, bounce b: ζ = 1 − b, ω = 2π/d) and start at the finger's speed, so a release
-// continues the hand's motion; the projection rule (UIScrollView deceleration .998/ms: x + 499·v) decides where a
-// flick was headed; the rubber band (c = 0.55) resists where there is nowhere to go. Two layers move at once: the
-// layer on top follows the finger 1:1 with a soft shadow, the layer beneath moves at 30% and dims, as in iOS.
+// ---------- Motion: every swipe and tap transition runs through one controller with one set of physics ----------
+// Apple's rules (WWDC18 "Designing Fluid Interfaces"; WWDC23 "Animate with springs"):
+// · the layer under the finger tracks it 1:1, drawn once per frame;
+// · on release the motion continues at the finger's speed (velocity hand-off) and only slows from there: a release
+//   never speeds up past the hand, so the spring's response is softened when the finger was slower than the spring;
+// · where a flick was headed is projected with UIScrollView's deceleration (.998/ms: x + 499·v);
+// · past an end the layer rubber-bands (c = .55); X and Y run as separate springs;
+// · anything in motion can be caught by the next touch and carried on from where it is on screen.
+// The spring is solved once on release and played by the compositor (Web Animations, sampled every 1/60 s), so work on
+// the main thread, such as a picture decoding, cannot make it stutter.
 const proj=(x,v)=>x+499*v;
 const rb=(d,dim,c=.55)=>{const a=Math.abs(d);return Math.sign(d)*a*dim*c/(dim+c*a)};
-function spring(from,to,v,set,{d=.42,b=0}={}){if(RM())d=Math.min(d,.24);let raf=0,stopped=false;const w=2*Math.PI/d,z=Math.max(.05,1-b),x0=from-to,v0=v*1000;
- const done=new Promise(res=>{const t0=performance.now();let last=from;
-  const f=now=>{if(stopped)return res(false);const t=(now-t0)/1000;let x;
-   if(z>=1)x=(x0+(v0+w*x0)*t)*Math.exp(-w*t);else{const wd=w*Math.sqrt(1-z*z);x=Math.exp(-z*w*t)*(x0*Math.cos(wd*t)+(v0+z*w*x0)/wd*Math.sin(wd*t))}
-   const pos=to+x;set(pos);if((t>.06&&Math.abs(x)<.35&&Math.abs(pos-last)<.35)||t>1.6){set(to);return res(true)}last=pos;raf=requestAnimationFrame(f)};
-  raf=requestAnimationFrame(f)});
- return{done,stop(){stopped=true;cancelAnimationFrame(raf)}}}
+const sAt=(x0,v0,w,z,t)=>{if(z>=1)return(x0+(v0+w*x0)*t)*Math.exp(-w*t);const wd=w*Math.sqrt(1-z*z);return Math.exp(-z*w*t)*(x0*Math.cos(wd*t)+(v0+z*w*x0)/wd*Math.sin(wd*t))};
+// a planned spring from → to with release velocity v (px/ms); at(ms) gives the position, dur the settle time
+function plan(from,to,v,{d=.42,b=0}={}){const x0=from-to,v0=v*1000,z=Math.max(.05,1-b);let w=2*Math.PI/(RM()?Math.min(d,.24):d);
+ if(x0&&v0*x0<0)w=Math.min(w,Math.max(2*Math.PI/.52,2*Math.abs(v0)/Math.abs(x0)));
+ let t=0,p=x0;for(;t<1.6;t+=1/120){const x=sAt(x0,v0,w,z,t);if(t>.05&&Math.abs(x)<.3&&Math.abs(x-p)<.05)break;p=x}
+ return{to,dur:Math.max(16,t*1000),at:ms=>ms>=t*1000?to:to+sAt(x0,v0,w,z,ms/1000)}}
 let settling=null,flungAt=0;
 const modalTabs=on=>{const t=$('.tabs');if(t){t.inert=!!on;if(!on)t.classList.remove('away')}};
 // a spring as a CSS easing (linear() sampled at 60 Hz) for choreographed, untouched motion; ease-out where linear() is missing
@@ -491,86 +500,119 @@ function intro(){const v=V();if(!v)return;if(RM()){v.animate([{opacity:0},{opaci
  $$('.nb .ic',v).forEach(x=>L.push([x,[{opacity:0},{opacity:1}],300,.5]));
  L.push([$('.tabs'),[{transform:'translateY(110%)'},{transform:'none'}],700,.55]);
  const an=play(L),stop=()=>an.forEach(a=>{try{a.finish()}catch(e){}});['pointerdown','touchstart','keydown','wheel'].forEach(t=>addEventListener(t,stop,{once:true,capture:true,passive:true}))}
-// run a spring to its end state; a new touch finishes it at once, so a quick second swipe never waits
-function run(from,to,v,set,opt,end){if(RM()){set(to);settling=null;end();return}const a=spring(from,to,v,set,opt),me={finish(){a.stop();set(to);settling=null;end()}};settling=me;
- a.done.then(ok=>{if(ok&&settling===me){settling=null;end()}})}
 const setX=(el,x)=>{if(el)el.style.transform=`translate3d(${x}px,0,0)`};
 const dimTo=(el,q)=>{if(el)el.style.setProperty('--dimo',Math.max(0,Math.min(1,q)).toFixed(3))};
+const tx=x=>`translate3d(${x}px,0,0)`,cl=q=>Math.max(0,Math.min(1,q));
+// a frame is a list of [element, transform, dim (0–1 or null), extra styles]
+function apply(F){F.forEach(([el,tr,dm,ex])=>{if(!el)return;el.style.transform=tr;if(dm!=null)el.style.setProperty('--dimo',cl(dm).toFixed(3));if(ex)Object.assign(el.style,ex)})}
 function hold(...els){els.forEach(el=>{if(el){el.style.transition='none';el.classList.add('drag')}})}
-function clean(...els){els.forEach(el=>{if(!el)return;el.style.transition='none';el.style.transform='';el.style.removeProperty('--dimo');el.style.borderRadius='';el.style.clipPath='';el.style.opacity='';el.style.transformOrigin='';el.classList.remove('pull','drag');el.getBoundingClientRect();el.style.transition=''})}
-const velo=pts=>{const z=pts[pts.length-1];if(!z||performance.now()-z[0]>100)return[0,0];const a=pts.find(p=>z[0]-p[0]<=100)||z;const dt=z[0]-a[0];return dt>0?[(z[1]-a[1])/dt,(z[2]-a[2])/dt]:[0,0]};
+function clean(...els){els.forEach(el=>{if(!el)return;el.getAnimations().forEach(a=>a.cancel());el.style.transition='none';el.style.transform='';el.style.removeProperty('--dimo');el.style.borderRadius='';el.style.clipPath='';el.style.opacity='';el.style.transformOrigin='';el.classList.remove('pull','drag');el.getBoundingClientRect();el.style.transition=''})}
+// play frameAt(ms) for dur ms on the compositor; the next touch can stop it where it is (and get the time) or finish it
+function glide(frameAt,dur,end,g,at){if(settling)settling.finish();
+ if(RM()||dur<20){apply(frameAt(dur));settling=null;end();return}
+ const n=Math.max(2,Math.ceil(dur/16.67)+1),F=[];for(let i=0;i<n;i++)F.push(frameAt(i*dur/(n-1)));
+ const an=[],o={duration:dur,easing:'linear',fill:'forwards'};
+ F[0].forEach(([el,,dm,ex],k)=>{if(!el)return;el.style.removeProperty('--dimo');
+  an.push(el.animate(F.map(f=>Object.assign({transform:f[k][1]},f[k][3]||{})),o));
+  if(dm!=null)an.push(el.animate(F.map(f=>({opacity:cl(f[k][2])})),{...o,pseudoElement:'::after'}))});
+ // every layer starts on the frame the finger lifted, together, so no frame is lost at the hand-off
+ const t0=document.timeline.currentTime??performance.now();an.forEach(a=>{a.startTime=t0});let over=false;
+ const halt=t=>{over=true;apply(frameAt(t));an.forEach(a=>a.cancel());if(settling===me)settling=null};
+ const me={g,at,stop(){if(over)return 0;const t=Math.min(dur,performance.now()-t0);halt(t);return t},finish(){if(over)return;halt(dur);end()}};
+ settling=me;Promise.all(an.map(a=>a.finished)).then(()=>{if(!over){halt(dur);end()}},()=>{})}
+// least-squares velocity over the last 80 ms of the finger (px/ms), steadier than two samples
+const velo=pts=>{const z=pts[pts.length-1];if(!z||performance.now()-z[0]>90)return[0,0];const P=pts.filter(p=>z[0]-p[0]<=80);if(P.length<2)return[0,0];
+ const n=P.length,mt=P.reduce((s,p)=>s+p[0],0)/n,f=i=>{const m=P.reduce((s,p)=>s+p[i],0)/n;let a=0,b=0;P.forEach(p=>{a+=(p[0]-mt)*(p[i]-m);b+=(p[0]-mt)**2});return b?a/b:0};return[f(1),f(2)]};
 // the story is closed with no animation of its own: the gesture already moved it
 function closeNow(w,v){w.id='';w.remove();if(v){v.classList.remove('under');v.inert=false;modalTabs(0);clean(v)}
- if(dirty&&mode==='paper'){dirty=false;keep();today();const b=$(`[data-s="${cur}"]`);if(b)b.focus({preventScroll:true});return}
+ if(dirty&&mode==='paper'){dirty=false;keep();today();const b=$(`[data-s="${cur}"]`,V());if(b)b.focus({preventScroll:true});return}
  if(storyFrom&&document.contains(storyFrom))storyFrom.focus({preventScroll:true})}
+// a layer gesture: frame(x) for any x, release(v) plans the spring and glides; catchable mid-flight
+function layer(frame,{min,max,commit,done,undo,dOk=.42,dNo=.36}){const g={x:0,frame,render(x){g.x=Math.max(min,Math.min(max,x));apply(frame(g.x))},
+ release(v){const to=commit(g.x,v);const P=plan(g.x,to,v,{d:to===0?dNo:dOk});const at=ms=>Math.max(min,Math.min(max,P.at(ms)));glide(ms=>frame(at(ms)),P.dur,()=>{g.x=to;to===0?undo():done(to)},g,at)}};
+ return g}
 // Paging between stories (Apple News): the next story pushes in over this one; the one before is revealed beneath it.
 function order(){const v=V(),o=v?[...new Set($$('[data-s]',v).map(x=>+x.dataset.s))]:[];return o.length?o:E.items.map((_,k)=>k)}
 function mkPage(w,dir){const W=app.offsetWidth,o=order(),k=o.indexOf(cur)+dir;let nb=null;hold(w);
- if(k>=0&&k<o.length){nb=(w._nb&&w._nb[dir])||buildStory(o[k]);if(w._nb)delete w._nb[dir];hold(nb);setX(nb,dir>0?W:-.3*W);if(dir>0)app.append(nb);else{app.insertBefore(nb,w);dimTo(nb,1)}fade(nb)}
- const g={nb,x:0,render(x){if(!nb){setX(w,rb(x,W));g.x=x;return}
-   if(dir>0){x=Math.min(0,Math.max(-W,x));setX(nb,W+x);setX(w,.3*x);dimTo(w,-x/W)}else{x=Math.max(0,Math.min(W,x));setX(w,x);setX(nb,-.3*(W-x));dimTo(nb,1-x/W)}g.x=x},
-  release(vx){const x=g.x;if(!nb){run(rb(x,W),0,0,p=>setX(w,p),{d:.38},()=>clean(w));return}
-   const c=dir>0?proj(x,vx)<-W/2:proj(x,vx)>W/2;
-   run(x,c?-dir*W:0,vx,g.render,{d:c?.42:.36},()=>{if(!c){nb.remove();clean(w);return}
-    w.id='';w.remove();nb.classList.add('on');clean(nb);const i=+nb.dataset.i,r=V()&&$(`[data-s="${i}"]`,V());if(r){storyFrom=r;jumping=1;jumpTick();r.scrollIntoView({block:'center'})}
-    wire(nb,i);Chart.play(nb);$('.bias',nb).classList.add('go')})}};
- return g}
-function page(dir){const w=$('#st');if(!w||$('#sh')||!w.classList.contains('on'))return;if(settling)settling.finish();const g=mkPage(w,dir);if(g.nb)g.release(-dir*2)}
+ if(k>=0&&k<o.length){nb=(w._nb&&w._nb[dir])||buildStory(o[k]);if(w._nb)delete w._nb[dir];hold(nb);if(dir>0)app.append(nb);else app.insertBefore(nb,w);fade(nb);Chart.play(nb);const bi=$('.bias',nb);if(bi)bi.classList.add('go')}
+ if(!nb){const g={x:0,render(x){g.x=x;setX(w,rb(x,W))},release(v){const s=rb(g.x,W),P=plan(s,0,v*.3,{d:.4});glide(ms=>[[w,tx(P.at(ms))]],P.dur,()=>clean(w),null)}};return g}
+ return layer(x=>dir>0?[[nb,tx(W+x)],[w,tx(.3*x),-x/W]]:[[w,tx(x)],[nb,tx(-.3*(W-x)),1-x/W]],
+  {min:dir>0?-W:0,max:dir>0?0:W,commit:(x,v)=>dir>0?(proj(x,v)<-W/2?-W:0):(proj(x,v)>W/2?W:0),
+   undo:()=>{nb.remove();clean(w)},
+   done:()=>{w.id='';w.remove();nb.classList.add('on');clean(nb);const i=+nb.dataset.i,r=V()&&$(`[data-s="${i}"]`,V());if(r){storyFrom=r;jumping=1;jumpTick();r.scrollIntoView({block:'center'})}wire(nb,i)}})}
+function page(dir){const w=$('#st');if(!w||$('#sh')||!w.classList.contains('on'))return;if(settling)settling.finish();const g=mkPage(w,dir);if(g.frame)g.release(-dir*.9)}
 // Closing a story by dragging it from its left edge: it follows the finger and the paper slides back in beneath it.
 function mkBack(w){const W=app.offsetWidth,v=V();hold(w,v);
- const g={x:0,render(x){x=Math.max(0,Math.min(W,x));setX(w,x);if(v){setX(v,-.3*W*(1-x/W));dimTo(v,1-x/W)}g.x=x},
-  release(vx){const c=proj(g.x,vx)>W/2&&vx>=-.05;run(g.x,c?W:0,vx,g.render,{d:c?.42:.36},()=>{if(c)closeNow(w,v);else clean(w,v)})}};
- return g}
-// Pulling a story down from its top (Photos, App Store): it shrinks and rounds as it follows the finger, the paper comes
-// back beneath it, and on release it lands in its own row on the paper; short of that it springs back.
+ return layer(x=>[[w,tx(x)],[v,tx(-.3*W*(1-x/W)),1-x/W]],{min:0,max:W,commit:(x,vx)=>proj(x,vx)>W/2&&vx>=-.05?W:0,done:()=>closeNow(w,v),undo:()=>clean(w,v)})}
+// Pulling a story down from its top (Photos, App Store): it shrinks and rounds as it follows the finger, the paper settles
+// beneath it, and on release it carries the finger's motion into its own row on the paper; short of that it springs back.
 function mkPull(w){const W=app.offsetWidth,H=app.offsetHeight,v=V(),i=cur,sc=v&&$('.sc',v),row=v&&$(`[data-s="${i}"]`,v);
- if(row&&sc){const A=app.getBoundingClientRect(),r=row.getBoundingClientRect();if(r.top<A.top+70||r.bottom>A.bottom-90)sc.scrollTop+=r.top-A.top-Math.max(80,(H-r.height)/2)}
+ if(row&&sc){const A=app.getBoundingClientRect(),r=row.getBoundingClientRect();if(r.top<A.top+70||r.bottom>A.bottom-90){jumping=1;jumpTick();sc.scrollTop+=r.top-A.top-Math.max(80,(H-r.height)/2)}}
  hold(w,v);w.classList.add('pull');w.style.transformOrigin='0 0';
- const g={x:0,y:0,st:null,render(x,y){y=Math.max(0,y);const p=1-Math.pow(1-Math.min(1,y/180),2),s=1-.18*Math.min(1,y/520),tx=x*.45+W*(1-s)/2,ty=y+H*(1-s)*.12,r=Math.min(38,14+y/6);
-   w.style.transform=`translate3d(${tx}px,${ty}px,0) scale(${s})`;w.style.borderRadius=`${r/s}px`;if(v){setX(v,-.3*W*(1-p));dimTo(v,1-p)}g.x=x;g.y=y;g.st={tx,ty,s,r,p}},
-  release(vx,vy,cancel){const{x,y,st}=g;
-   if(cancel||!st||!(proj(y,vy)>H*.3&&vy>-.05)){run(1,0,-vy/Math.max(40,y),k=>g.render(x*k,y*k),{d:.36},()=>clean(w,v));return}
+ const pose=(x,y)=>{y=Math.max(0,y);const p=1-Math.pow(1-Math.min(1,y/180),2),s=1-.18*Math.min(1,y/520);return{tx:x*.45+W*(1-s)/2,ty:y+H*(1-s)*.12,s,r:Math.min(38,14+y/6),p}};
+ const fr=(q,ch,op)=>[[w,`translate3d(${q.tx}px,${q.ty}px,0) scale(${q.s})`,null,{borderRadius:ch==null?`${q.r/q.s}px`:'0px',clipPath:ch==null?'none':`inset(0 0 ${Math.max(0,H-ch)}px 0 round ${q.r/q.s}px)`,opacity:String(op==null?1:op)}],[v,tx(-.3*W*(1-q.p)),1-q.p]];
+ const g={x:0,y:0,st:null,render(x,y){g.x=x;g.y=Math.max(0,y);const q=pose(x,g.y);g.st=q;apply(fr(q))},
+  release(vx,vy,cancel){const{x,y}=g,q=g.st||pose(0,0);
+   if(cancel||!(proj(y,vy)>H*.3&&vy>-.05)){const PX=plan(x,0,vx,{d:.38}),PY=plan(y,0,vy,{d:.38}),D=Math.max(PX.dur,PY.dur);glide(ms=>fr(pose(PX.at(ms),PY.at(ms))),D,()=>clean(w,v),null);return}
    const A=app.getBoundingClientRect(),rw=v&&$(`[data-s="${i}"]`,v),rr=rw&&rw.getBoundingClientRect(),on=rr&&rr.bottom>A.top+20&&rr.top<A.bottom-20;
    const T=on?{tx:rr.left-A.left,ty:rr.top-A.top,s:rr.width/W,h:rr.height,r:12}:{tx:W*.2,ty:H*.4,s:.6,h:H*.25,r:24};
-   w.style.borderRadius='0';const L=(a,b,u)=>a+(b-a)*u;
-   run(0,1,Math.max(0,vy)/Math.max(80,T.ty-st.ty),u=>{u=Math.max(0,Math.min(1.03,u));const s=L(st.s,T.s,u),ch=L(H,T.h/T.s,u);
-    w.style.transform=`translate3d(${L(st.tx,T.tx,u)}px,${L(st.ty,T.ty,u)}px,0) scale(${s})`;w.style.clipPath=`inset(0 0 ${Math.max(0,H-ch)}px 0 round ${L(st.r,T.r,u)/s}px)`;
-    w.style.opacity=String(1-Math.max(0,Math.min(1,(u-.45)/.5)));if(v){const q=L(st.p,1,Math.min(1,u));setX(v,-.3*W*(1-q));dimTo(v,1-q)}},{d:.46,b:.06},()=>closeNow(w,v))}};
+   // separate springs: position X and Y carry the finger's velocity; size, clip and fade follow on their own spring
+   const PX=plan(q.tx,T.tx,vx*.45,{d:.5}),PY=plan(q.ty,T.ty,vy,{d:.5}),PU=plan(0,1,0,{d:.46,b:.04}),D=Math.max(PX.dur,PY.dur,PU.dur),L=(a,b,u)=>a+(b-a)*u;
+   glide(ms=>{const u=Math.max(0,Math.min(1.03,PU.at(ms))),s=L(q.s,T.s,u),ch=L(H,T.h/T.s,u);return fr({tx:PX.at(ms),ty:PY.at(ms),s,r:L(q.r,T.r,u),p:L(q.p,1,Math.min(1,u))},ch,1-Math.max(0,Math.min(1,(u-.45)/.5)))},D,()=>closeNow(w,v),null)}};
  return g}
 // Flicking between screens: Today to Past (Past pushes in from the right), Past to Today and an old edition back to
 // Past (the screen slides away to the right, the one beneath comes back). The real screen is drawn at once; a copy of
 // the one being left stays on screen until the gesture settles, and the original comes back if it is cancelled.
-function mkScreen(ax,ed){const W=app.offsetWidth,sc=$('#sc'),y=sc?sc.scrollTop:0,html=V().innerHTML;let over,under,fwd,undo;
- if(ed!=null&&tab==='past'&&mode==='archive'){edN=ed;E=ED[ed];today();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;undo=()=>past(ed)}
- else if(tab==='today'&&mode==='paper'&&E===ED[0]&&ax<0){keep();past();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;undo=()=>{tab='today';E=ED[0];today()}}
- else if(tab==='past'&&mode==='archive'&&ax>0){keep();tab='today';E=ED[0];today();under=V();over=ghost(html,y);app.append(over);fwd=0;undo=()=>past()}
- else if(tab==='past'&&mode==='paper'&&ax>0){const n=edN;keep();past(n);under=V();over=ghost(html,y);app.append(over);fwd=0;undo=()=>{E=ED[n];today()}}
+// The screen being revealed is a copy prepared while the app is idle (inserting it costs under 2 ms; drawing Past in
+// full costs about 23), and the real screen is drawn after the motion ends, out of sight, from identical content.
+const warmG={};let todayCopy=null;
+// a copy is parked in the page, hidden and off to the side, so its layout is done before any finger needs it
+const park=(g,y)=>{g.classList.add('parked');app.append(g);setY(g,y);return g};
+function warm(){clearTimeout(warm.t);warm.t=setTimeout(()=>{if(settling||$('#st'))return;$$('.gv.parked').forEach(x=>x.remove());
+ if((tab==='today'&&mode==='paper'&&E===ED[0])||(tab==='past'&&mode==='paper')){const sc=$('#sc');if(tab==='today')todayCopy={html:V().innerHTML,y:sc?sc.scrollTop:0};warmG.past=park(ghost(pastHTML(),pastY),pastY);warmG.today=null}
+ else if(tab==='past'&&mode==='archive'&&todayCopy){warmG.today=park(ghost(todayCopy.html,todayCopy.y),todayCopy.y);warmG.past=null}},400)}
+function copyOf(k){let g=warmG[k];warmG[k]=null;if(g&&g.isConnected){g.classList.remove('parked');return g}
+ g=k==='past'?ghost(pastHTML(),pastY):todayCopy?ghost(todayCopy.html,todayCopy.y):null;if(g){app.append(g);setY(g,k==='past'?pastY:todayCopy.y)}return g}
+const setY=(g,y)=>{const s=$('.sc',g);if(s)s.scrollTop=y||0};
+function mkScreen(ax,ed){const W=app.offsetWidth,sc=$('#sc'),y=sc?sc.scrollTop:0;let over,under,fwd,done,undo;
+ if(ed!=null&&tab==='past'&&mode==='archive'){const html=V().innerHTML;edN=ed;E=ED[ed];today();over=V();under=ghost(html,y);app.insertBefore(under,over);fwd=1;done=()=>{under.remove();clean(over)};undo=()=>{under.remove();past(ed)}}
+ else if(tab==='today'&&mode==='paper'&&E===ED[0]&&ax<0){keep();if(todayCopy)todayCopy.y=y;over=copyOf('past');if(!over)return null;under=V();fwd=1;done=()=>past();undo=()=>{over.remove();clean(under)}}
+ else if(tab==='past'&&mode==='archive'&&ax>0){under=copyOf('today');if(!under)return null;over=V();fwd=0;done=()=>{tab='today';E=ED[0];today()};undo=()=>{under.remove();clean(over)}}
+ else if(tab==='past'&&mode==='paper'&&ax>0){const n=edN;keep();under=copyOf('past');over=V();fwd=0;done=()=>past(n);undo=()=>{under.remove();clean(over)}}
  else return null;
  hold(over,under);over.classList.add('gtopx');
- const g={x:0,render(x){if(fwd){x=Math.min(0,Math.max(-W,x));setX(over,W+x);setX(under,.3*x);dimTo(under,-x/W)}else{x=Math.max(0,Math.min(W,x));setX(over,x);setX(under,-.3*(W-x));dimTo(under,1-x/W)}g.x=x},
-  release(vx){const c=fwd?proj(g.x,vx)<-W/2:proj(g.x,vx)>W/2,to=c?(fwd?-W:W):0;
-   run(g.x,to,vx,g.render,{d:c?.42:.36},()=>{over.classList.remove('gtopx');if(c){if(fwd){under.remove();clean(over)}else{over.remove();clean(under)}}else{if(fwd)under.remove();else over.remove();undo()}})}};
+ const g=layer(x=>fwd?[[over,tx(W+x)],[under,tx(.3*x),-x/W]]:[[over,tx(x)],[under,tx(-.3*(W-x)),1-x/W]],
+  {min:fwd?-W:0,max:fwd?0:W,commit:(x,v)=>fwd?(proj(x,v)<-W/2?-W:0):(proj(x,v)>W/2?W:0),
+   done:()=>{over.classList.remove('gtopx');done()},undo:()=>{over.classList.remove('gtopx');undo()}});
  g.render(0);return g}
-// The one controller. Sideways means at least 16 px and 1.6 times more sideways than up or down; anything more vertical
+// Taps use the same layers: a tap is a swipe already moving at 0.9 px/ms.
+function nav(ax,ed){if(settling)settling.finish();if(RM())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-.9:.9);return true}
+// The one controller. Sideways means at least 12 px and 1.6 times more sideways than up or down; anything more vertical
 // is reading and is left to the page. A swipe never starts in something that scrolls sideways or while a scroll is still
-// gliding, and a story pulls down only after it has rested at the top.
-// Move and end are listened for on the touched element itself: a flick between screens redraws the screen under the
-// finger, and a removed element still receives its own touch events but no longer passes them up.
+// gliding, and a story pulls down only after it has rested at the top. Move and end are listened for on the touched
+// element itself: a flick between screens redraws the screen under the finger, and a removed element still receives
+// its own touch events but no longer passes them up. iOS delivers one move per display frame, so each is drawn at once.
 (()=>{let G=null;
  const move=e=>{if(!G)return;const t=e.touches[0],ax=t.clientX-G.x0,ay=t.clientY-G.y0;
   if(!G.m){if(G.top&&ay>0&&ay>=Math.abs(ax))e.preventDefault();
-   if(G.top&&ay>=12&&ay>=1.5*Math.abs(ax))G.m=mkPull(G.w);
-   else if(Math.abs(ax)>=16&&Math.abs(ax)>=1.6*Math.abs(ay)){if(G.w&&G.edge&&ax>0)G.m=mkBack(G.w);else if(G.glide||G.hs){off();return}else G.m=G.w?mkPage(G.w,ax<0?1:-1):mkScreen(ax);if(!G.m){off();return}}
-   else if(Math.abs(ay)>8&&Math.abs(ay)*1.6>Math.abs(ax)){off();return}
-   if(!G.m)return}
+   if(G.top&&ay>=10&&ay>=1.5*Math.abs(ax))G.m=mkPull(G.w);
+   else if(Math.abs(ax)>=12&&Math.abs(ax)>=1.6*Math.abs(ay)){if(G.w&&G.edge&&ax>0)G.m=mkBack(G.w);else if(G.glide||G.hs){off();return}else G.m=G.w?mkPage(G.w,ax<0?1:-1):mkScreen(ax);if(!G.m){off();return}}
+   else if(!(G.top&&ay>0)&&Math.abs(ay)>8&&Math.abs(ay)*1.6>Math.abs(ax)){off();return}
+   if(!G.m)return;
+   // start from where the gesture was recognised, so the layer never leaps the slop distance
+   if(G.m.st!==undefined)G.oy=ay;else G.ox=ax}
   if(G.m.st!==undefined)e.preventDefault();
-  const now=performance.now();G.pts.push([now,ax,ay]);while(G.pts.length>2&&now-G.pts[0][0]>120)G.pts.shift();G.m.render(ax,ay)};
+  const now=performance.now();G.pts.push([now,ax,ay]);while(G.pts.length>2&&now-G.pts[0][0]>140)G.pts.shift();G.ax=ax-(G.ox||0);G.ay=ay-(G.oy||0);G.m.render(G.ax+(G.bx||0),G.ay)};
  const end=()=>{if(!G)return;const g=G;off();if(!g.m)return;const[vx,vy]=velo(g.pts);if(Math.abs(vx)>.25||Math.abs(vy)>.25)flungAt=performance.now();g.m.release(vx,vy)};
  const cancel=()=>{if(!G)return;const g=G;off();if(g.m)g.m.release(0,0,true)};
  function off(){if(G&&G.tg){G.tg.removeEventListener('touchmove',move);G.tg.removeEventListener('touchend',end);G.tg.removeEventListener('touchcancel',cancel)}G=null}
- app.addEventListener('touchstart',e=>{if(settling)settling.finish();off();if($('#sh')||e.touches.length>1)return;
-  const t=e.touches[0],w=$('#st'),A=app.getBoundingClientRect();if(w&&!w.classList.contains('on'))return;if(!w&&e.target.closest('.tabs'))return;
-  const sb=w?$('.sbody',w):$('#sc'),tg=e.target;G={tg,x0:t.clientX,y0:t.clientY,w,m:null,edge:t.clientX-A.left<=30,top:!!w&&sb.scrollTop<=0&&!moving(sb,300),glide:moving(sb),hs:hscroll(tg),pts:[]};
+ app.addEventListener('touchstart',e=>{off();if($('#sh')||e.touches.length>1){if(settling)settling.finish();return}
+  const t=e.touches[0],tg=e.target;let caught=null,bx=0;
+  // catch a layer in flight: stop it where it is and carry on from there with this finger
+  if(settling&&settling.g&&settling.at){const s=settling,ms=s.stop();caught=s.g;bx=s.at(ms);caught.x=bx;flungAt=performance.now()}else if(settling)settling.finish();
+  const w=$('#st'),A=app.getBoundingClientRect();
+  if(!caught){if(w&&!w.classList.contains('on'))return;if(!w&&e.target.closest('.tabs'))return}
+  const sb=w?$('.sbody',w):$('#sc');G={tg,x0:t.clientX,y0:t.clientY,w,m:caught,bx,ax:0,ay:0,edge:t.clientX-A.left<=30,top:!!w&&sb&&sb.scrollTop<=0&&!moving(sb,300),glide:moving(sb),hs:hscroll(tg),pts:[]};
   tg.addEventListener('touchmove',move,{passive:false});tg.addEventListener('touchend',end);tg.addEventListener('touchcancel',cancel)},{passive:true})})();
 function sheet(html,label,id){opener=document.activeElement;closeS(1);const w=document.createElement('div');w.className='shw';w.id='sh';if(id)w.dataset.k=id;
  w.innerHTML=`<div class="scrim" data-a="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="${label}" tabindex="-1"><div class="shh"><h2>${label}</h2><button class="x" data-a="close" aria-label="Close">${IC.x}</button></div><div class="sin g">${html}</div></div>`;
@@ -625,7 +667,9 @@ function settings(){const A=[['light','Light','l'],['dark','Dark','d'],['auto','
  <span class="lbl">Read these first</span><div class="caps">${ALLSEC.map(n=>`<button data-like="${n}" aria-pressed="${S.like.includes(n)}">${short(n)}</button>`).join('')}</div><p class="small">Sections you pick move up the paper.</p>`,'Reading settings','set');
  const box=$('#pushbox');if(box&&pushable()){if(!standalone()&&/iPhone|iPad/.test(navigator.userAgent)){box.innerHTML='<p class="small" style="margin-top:0!important">To get the 7:00 AM headline, add the Brief to your Home Screen first: Share, then Add to Home Screen.</p>'}
   else Promise.race([pushState(),new Promise(r=>setTimeout(()=>r('none'),2000))]).then(st=>{if(st==='none'){box.previousElementSibling.hidden=true;box.remove();return}box.innerHTML=`<div class="rowt"><span>7:00 AM headline</span><button class="sw2" role="switch" data-a="push" aria-checked="${st==='on'}" aria-label="7:00 AM headline"></button></div><p class="small" id="pushnote">One headline each morning, when the paper is out.</p>`})}}
-function contents(){sheet(`<p class="small" style="margin-top:0!important">${day(E.date,{weekday:'long',month:'long',day:'numeric'})}</p>${secs(E).map(g=>`<div class="csec">${g.name}</div>${g.rows.map(([it,i])=>`<button class="crow" data-open="${i}">${it.h}</button>`).join('')}`).join('')}`,'Contents')}
+// Contents, as Apple Books lays out a book's: the edition's size, then each section with its stories numbered in
+// reading order; a story opens from here and swiping carries on in the same order.
+function contents(){let k=0;sheet(`<p class="cmeta tn">No. ${E.no} · ${E.items.length} stories · ${Math.max(1,Math.round(E.min))} min read</p>${secs(E).map(g=>`<section class="cgrp" aria-label="${esc(nm(g.name))}"><h3 class="csec">${g.name}</h3>${g.rows.map(([it,i])=>`<button class="crow" data-open="${i}"><span class="cn tn" aria-hidden="true">${++k}</span><span class="ch">${it.h}</span></button>`).join('')}</section>`).join('')}`,'Contents')}
 function fs(d){const i=Math.max(0,Math.min(FS.length-1,FS.indexOf(S.fs)+d));S.fs=FS[i];document.documentElement.style.setProperty('--fs',S.fs);save();const v=$('#fv');if(v)v.textContent=Math.round(S.fs*100)+'%'}
 app.addEventListener('click',ev=>{const T=ev.target;if(performance.now()-flungAt<200){ev.preventDefault();return}
  const g=T.closest('.gloss');if(g){const b=g.querySelector('.gloss-body'),k=b.querySelector('.gloss-kind');sheet(`<div class="kick">${k?k.textContent:''}</div><h3 style="margin-top:6px">${g.firstChild.textContent}</h3><p>${b.textContent.replace(k?k.textContent:'','')}</p>`,'Note');return}
