@@ -1,4 +1,4 @@
-var CACHE = "read-v6";
+var CACHE = "read-v7";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 self.addEventListener("install", function (e) { self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () { return null; }); })); })); });
@@ -23,9 +23,11 @@ function coverFetch(r, wait) {
 self.addEventListener("fetch", function (e) { var r = e.request; if (r.method !== "GET") return; var u = new URL(r.url);
   if (isCover(r, u)) { if (r.cache !== "no-store" && r.cache !== "reload") e.respondWith(coverFetch(r, function (p) { e.waitUntil(p); })); return; }
   if (u.origin !== self.location.origin) return;
-  var net = fetch(r).then(function (res) { if (res && res.ok) { var c = res.clone(); e.waitUntil(caches.open(CACHE).then(function (x) { return x.put(r, c); })); } return res; });
-  e.respondWith(caches.match(r, { ignoreSearch: r.mode === "navigate" }).then(function (m) { if (m) { e.waitUntil(net.catch(function () {})); return m; }
-    return net.catch(function () { return caches.match("./index.html"); }); })); });
+  var net = fetch(r).then(function (res) { if (!res || !res.ok) return res; var c = res.clone();
+    return caches.open(CACHE).then(function (x) { return x.put(r, c); }).then(function () { return res; }, function () { return res; }); });
+  e.waitUntil(net.catch(function () {}));
+  e.respondWith(caches.match(r, { ignoreSearch: r.mode === "navigate" }).then(function (m) {
+    return m || net.catch(function () { return caches.match("./index.html"); }); })); });
 function db() { return new Promise(function (ok, no) { var q = indexedDB.open("read-sw", 1); q.onupgradeneeded = function () { q.result.createObjectStore("kv"); }; q.onsuccess = function () { ok(q.result); }; q.onerror = function () { no(q.error); }; }); }
 function kvGet(k) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction("kv").objectStore("kv").get(k); t.onsuccess = function () { ok(t.result); }; t.onerror = function () { ok(null); }; }); }).catch(function () { return null; }); }
 function kvSet(k, v) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = function () { ok(true); }; t.onerror = function () { ok(false); }; }); }).catch(function () { return false; }); }
