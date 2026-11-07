@@ -364,6 +364,7 @@
 
   function push() {
     var t = getToken(); if (!t) return;
+    if (global.WK_OPEN) return;
     if (Date.now() < nextPushAt) return;
     var S = loadState(); if (!S) return;
     var p = toWire(S);
