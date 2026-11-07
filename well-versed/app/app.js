@@ -143,7 +143,7 @@ function vToday(){
  if(!cx){cx=cols[day%cols.length];acl=artFor(B[cx[0][1]])}
  h+=collCard(cx[0],cx[1],acl,used);
 
- return '<div class="hud">'+ringsSvg()+'<div class="tnav"><button class="trw" data-a="trw" aria-label="Previous card">'+I.rw+'</button><span class="tdots" id="tdots" aria-hidden="true"></span></div>'+(st?'<b>'+st+' DAY'+(st===1?'':'S')+'</b>':'<b></b>')+'</div><div class="feed tstack" id="feed" role="region" aria-roledescription="carousel" aria-label="Today">'+h+'<div class="tedge" data-a="tnext" role="button" tabindex="0" aria-label="Next card"><i></i></div></div>'}
+ return '<div class="hud">'+ringsSvg()+'<div class="tnav"><button class="trw" data-a="trw" aria-label="Previous card">'+I.rw+'</button><span class="tdots" id="tdots" aria-hidden="true"></span></div>'+(st?'<b>'+st+(st===1?' day':' days')+'</b>':'<b></b>')+'</div><div class="feed tstack" id="feed" role="region" aria-roledescription="carousel" aria-label="Today">'+h+'<div class="tedge" data-a="tnext" role="button" tabindex="0" aria-label="Next card"><i></i></div></div>'}
 
 /* reader */
 var PIN=[[0,0,1,'A map as a monster.'],[.62,.0,2.3,'Salisbury in its jaws.'],[.1,.25,2.1,'Andover for a chest.'],[.4,.62,2.4,'Marblehead curls into a talon.'],[.02,.68,2.6,'Chelsea hangs off like a spur.']];
@@ -915,9 +915,9 @@ function markExternal(sh){sh.querySelectorAll('a[data-wvl]').forEach(function(a)
 /* the share card as a picture, offered only where the viewer can save it */
 function shareImage(){var W=1080,H=1350,cv=document.createElement('canvas'),x=cv.getContext('2d'),all=fieldStats(),wv=all.filter(function(f){return f.tier==='Well-Versed'}),rd=L.filter(function(l){return l.state==='read'}),st=streak();cv.width=W;cv.height=H;
  x.fillStyle='#0b0a09';x.fillRect(0,0,W,H);x.fillStyle='rgba(251,247,240,.78)';x.font='600 34px -apple-system,Helvetica,Arial,sans-serif';x.fillText('Well-Versed',80,120);
- x.fillStyle='#fbf7f0';x.font='180px Anton,Impact,sans-serif';x.fillText((wv.length+(wv.length===1?' FIELD':' FIELDS')),76,320);
+ x.fillStyle='#fbf7f0';x.font='180px "DM Serif Display",Georgia,serif';x.fillText((wv.length+(wv.length===1?' field':' fields')),76,320);
  x.font='italic 44px Spectral,Georgia,serif';x.fillText('Well-versed in '+wv.length+' of '+all.length,80,400);
- x.fillStyle='#c6cc4e';x.font='72px Anton,Impact,sans-serif';wv.slice(0,3).forEach(function(f,i){x.fillText(plain(f.n).toUpperCase(),80,500+i*86)});
+ x.fillStyle='#c6cc4e';x.font='72px "DM Serif Display",Georgia,serif';wv.slice(0,3).forEach(function(f,i){x.fillText(plain(f.n),80,500+i*86)});
  x.fillStyle='rgba(251,247,240,.78)';x.font='500 36px -apple-system,Helvetica,Arial,sans-serif';x.fillText(rd.length+(rd.length===1?' lesson':' lessons')+(st?' · '+st+(st===1?' day':' days')+' in a row':''),80,820);
  var th=rd.slice(0,12),s=(W-160-5*10)/6;return Promise.all(th.map(function(l,i){return new Promise(function(res){var im=new Image();im.onload=function(){var cx=80+(i%6)*(s+10),cy=900+Math.floor(i/6)*(s+10),r=Math.min(im.width,im.height);x.drawImage(im,(im.width-r)/2,(im.height-r)/2,r,r,cx,cy,s,s);res()};im.onerror=res;im.src=T[l.no]||''})})).then(function(){return new Promise(function(res){cv.toBlob(res,'image/png')})})}
 app.addEventListener('click',function(e){var b=e.target.closest('[data-a="saveshare"]');if(!b)return;var a=document.getElementById('sacts'),dl=a&&a._dl;if(!dl)return;b.disabled=true;
