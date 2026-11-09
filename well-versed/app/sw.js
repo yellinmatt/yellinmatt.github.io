@@ -2,7 +2,7 @@
    The app shell is cached on install and opens from cache. Today's library and deck are fetched fresh when
    online (they change every morning), waiting at most 1.5 s before the cached copy opens. Lessons and images are cached
    the first time they are opened, so anything read once can be read again without a connection. */
-var V='wvapp-541f251c92',SHELL=['./','index.html','app.css','app.js','store.js','data.js','library.js','deck.js','install.js','manifest.webmanifest','icons/icon-192.png'];
+var V='wvapp-1d9debe60e',SHELL=['./','index.html','app.css','app.js','store.js','data.js','library.js','deck.js','install.js','manifest.webmanifest','icons/icon-192.png'];
 var FRESH=/(?:library|deck)\.js$/;
 self.addEventListener('install',function(e){e.waitUntil(caches.open(V).then(function(c){return c.addAll(SHELL)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('wvapp-')===0&&k!==V}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});
