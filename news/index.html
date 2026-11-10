@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="The Morning Brief">
+<meta name="theme-color" content="#f8f4ea" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101217" media="(prefers-color-scheme: dark)">
+<meta name="format-detection" content="telephone=no">
+<title>The Morning Brief</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme:light dark;
+  --paper:#f8f4ea;--ink:#1a1a1a;--ink-soft:#2a2a2a;--muted:#5f5e5a;--faint:#888780;
+  --rule:#d3d1c7;--rule-strong:#888780;--accent:#b53636;--link:#1a4a8e;
+  --cover-overlay-1:rgba(13,13,13,.95);--cover-overlay-2:rgba(13,13,13,.55);
+  --serif:'Spectral',Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',ui-sans-serif,Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#101217;--ink:#f0ece2;--ink-soft:#d8d4c8;--muted:#a3a7b0;--faint:#7d818b;
+  --rule:#262a32;--rule-strong:#3c414b;--accent:#d4604f;--link:#88b0e8;
+  --cover-overlay-1:rgba(0,0,0,.95);--cover-overlay-2:rgba(0,0,0,.55);
+}}
+*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--paper);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;text-size-adjust:100%;-webkit-text-size-adjust:100%}
+body{max-width:1140px;margin:0 auto;padding:calc(env(safe-area-inset-top,40px) + 36px) max(22px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(22px,env(safe-area-inset-left))}
+a{color:inherit;text-decoration:none}
+
+/* M1 masthead: tighter kerning, 2px red rule. Scales for desktop. */
+.mast{text-align:center;border-bottom:2px solid var(--accent);padding-bottom:16px;margin-bottom:18px}
+.wordmark{font-size:clamp(56px,5.8vw,72px);font-weight:500;letter-spacing:-.022em;line-height:1;color:var(--ink)}
+.mast-meta{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+.intro{font-size:clamp(16px,1.5vw,19px);font-style:italic;color:var(--muted);text-align:center;line-height:1.55;max-width:560px;margin:0 auto 22px}
+
+/* B-VAR 4 cover. Height scales from phone (~280px) to desktop (~520px) without going off-screen.
+   Photo cropped lower (center 38%) so portraits/buildings don't show too much sky on desktop. */
+.cover{position:relative;display:block;margin:0 -22px 22px;color:#f8f4ea;overflow:hidden;height:clamp(280px,52vw,520px);background:#1a1410}
+.cover .photo{position:absolute;inset:0;background-size:cover;background-position:center 38%;background-color:#1a1410}
+.cover .grad{position:absolute;inset:0;background:linear-gradient(0deg,var(--cover-overlay-1) 0%,var(--cover-overlay-2) 55%,rgba(13,13,13,.15) 100%)}
+.cover .topleft{position:absolute;top:14px;left:22px;font-family:var(--sans);font-size:clamp(11px,1.1vw,12px);letter-spacing:.18em;text-transform:uppercase;color:rgba(248,244,234,.9);z-index:2;line-height:1.65;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.cover .topleft b{color:#d4604f;font-weight:600}
+.cover .body{position:absolute;left:22px;right:22px;bottom:18px;z-index:2}
+.cover .kicker{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:#d4604f;margin-bottom:9px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+.cover h2{font-family:var(--serif);font-size:clamp(30px,3.8vw,42px);font-weight:600;line-height:1.08;letter-spacing:-.012em;color:#f8f4ea;margin:0 0 12px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.cover .teaser{font-family:var(--serif);font-size:clamp(16px,1.4vw,18px);line-height:1.5;color:rgba(248,244,234,.92);border-top:.5px solid rgba(248,244,234,.28);padding-top:11px;margin-top:11px;font-style:italic}
+.cover .teaser b{color:#d4604f;font-weight:600;font-style:normal;font-family:var(--sans);font-size:11px;letter-spacing:.16em;text-transform:uppercase;margin-right:6px}
+
+/* Archive list — quieter, smaller, scales for desktop */
+.more-label{font-family:var(--sans);font-size:clamp(11px,1.1vw,13px);letter-spacing:.22em;text-transform:uppercase;color:var(--faint);margin:24px auto 4px;max-width:760px;font-weight:600}
+ul.days{list-style:none;padding:0;margin:0 auto;max-width:760px;border-top:.5px solid var(--rule)}
+ul.days li{border-bottom:.5px solid var(--rule)}
+ul.days a{display:block;padding:18px 4px;transition:background .15s ease}
+ul.days a:hover,ul.days a:active{background:rgba(0,0,0,.025)}
+ul.days .d{display:block;font-family:var(--sans);font-size:clamp(11px,1.1vw,12px);color:var(--faint);letter-spacing:.16em;text-transform:uppercase;margin-bottom:6px}
+ul.days .l{display:block;font-size:clamp(21px,1.9vw,23px);font-weight:500;line-height:1.32;color:var(--ink);letter-spacing:-.005em}
+
+.footer{margin-top:32px;padding-top:16px;max-width:760px;margin-left:auto;margin-right:auto;border-top:.5px solid var(--rule);font-size:11px;font-style:italic;color:var(--faint);text-align:center;letter-spacing:.04em}
+.footer a{color:var(--link);font-style:normal}
+</style>
+<meta name="description" content="A daily world brief on law, markets, AI and entertainment, compiled every morning by Matthew Yellin.">
+<meta property="og:title" content="The Morning Brief">
+<meta property="og:description" content="A daily world brief on law, markets, AI and entertainment, compiled every morning by Matthew Yellin.">
+<meta property="og:url" content="https://mattyellin.com/news/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Morning Brief">
+<meta property="og:image" content="https://mattyellin.com/assets/og/brief.jpg?v=2026-10-21">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Morning Brief, a daily world brief on markets, law, the world and entertainment.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://mattyellin.com/news/">
+</head>
+<body>
+  <a href="https://mattyellin.com/" style="display:inline-block;font-family:var(--sans);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:18px">&larr; mattyellin.com</a>
+  <header class="mast">
+    <div class="wordmark">The Morning Brief</div>
+    <div class="mast-meta">A daily world brief &middot; Est. 19 May 2026</div>
+  </header>
+  <p class="intro">Markets, law, the world and entertainment, written fresh every morning.</p>
+<!--TODAY-->
+  <div class="more-label">Recent briefs</div>
+  <ul class="days">
+    <li><a href="2026-11-10.html"><span class="d">Tuesday, November 10</span><span class="l">Anthropic sends bankers IPO terms for up to $69.3 billion, then tells them the pricing was inaccurate</span></a></li>
+    <li><a href="2026-11-09.html"><span class="d">Monday, November 9</span><span class="l">Nvidia’s board opens an independent investigation of Jensen Huang over a reported Chinese intelligence effort</span></a></li>
+    <li><a href="2026-11-08.html"><span class="d">Sunday, November 8</span><span class="l">Herzog hands Eisenkot, not Netanyahu, the first chance to form Israel&rsquo;s next government</span></a></li>
+    <li><a href="2026-11-07.html"><span class="d">Saturday, November 7</span><span class="l">Employers add 165,000 jobs in October, more than twice the forecast, and markets price a December rate hike</span></a></li>
+    <li><a href="2026-11-06.html"><span class="d">Friday, November 6</span><span class="l">The Nasdaq falls 5.52% into a correction as investors reprice the AI buildout after the Democratic sweep</span></a></li>
+    <li><a href="2026-11-05.html"><span class="d">Thursday, November 5</span><span class="l">CVS will split in two by 2028, unwinding the Caremark and Aetna build</span></a></li>
+    <li><a href="2026-11-04.html"><span class="d">Wednesday, November 4</span><span class="l">Democrats win the House and the Senate in a rebuke of Trump, and the subpoena power changes hands</span></a></li>
+    <li><a href="2026-11-03.html"><span class="d">Tuesday, November 3</span><span class="l">Marvell agrees to buy Lumentum in a $115 billion stock deal, and the shares paying for it fall 12.7%</span></a></li>
+    <li><a href="archive.html"><span class="d">The archive</span><span class="l">Every edition since September 1, 2026</span></a></li>
+  </ul>
+  <div class="footer">Compiled by Matthew Yellin &middot; <a href="https://github.com/yellinmatt/yellinmatt.github.io">Source on GitHub</a></div>
+</body>
+</html>

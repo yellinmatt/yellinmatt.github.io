@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reels Lab — Greatest Bits</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+ --red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;
+ --ig-pink:#E1306C;--ig-ink:#72243E;--ig-cream:#FBEAF0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--cream);color:var(--ink);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit}img{display:block;max-width:100%}
+
+.frame{max-width:980px;margin:0 auto;padding:32px 28px 80px}
+.back{display:inline-block;margin-bottom:18px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);text-decoration:none}
+.back:hover{color:var(--red)}
+.lab-tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600;display:inline-block;border:2px solid var(--red);padding:5px 12px;border-radius:999px}
+h1{font-family:'Anton',sans-serif;font-size:clamp(56px,9vw,108px);text-transform:uppercase;line-height:.86;letter-spacing:-.01em;margin:20px 0 14px}
+.deck{font-family:'Fraunces',Georgia,serif;font-size:clamp(17px,2vw,21px);line-height:1.45;max-width:62ch;color:#332c22}
+.rule{height:4px;background:var(--ink);margin:30px 0 32px;max-width:80px}
+section{margin-bottom:46px}
+.sec-tag{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--mut);font-weight:600;margin-bottom:10px}
+h2{font-family:'Anton',sans-serif;font-size:clamp(28px,3.6vw,40px);text-transform:uppercase;letter-spacing:-.005em;line-height:.92;margin-bottom:10px}
+p{font-size:15.5px;line-height:1.65;color:#1a1a17;max-width:62ch}
+
+/* the bit-row visual — same shape as the catalogue uses */
+.row-stack{display:flex;flex-direction:column;gap:14px;margin-top:14px}
+.bit-row{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:14px 16px;position:relative;transition:transform .12s}
+.bit-row:hover{transform:translateY(-1px);box-shadow:5px 5px 0 var(--ink)}
+.bit-row.ig{border-color:var(--ig-ink)}
+.bit-head{display:flex;align-items:center;gap:14px}
+.play{font-family:'Archivo',sans-serif;font-weight:900;font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:10px 14px;cursor:pointer;white-space:nowrap;flex:0 0 auto}
+.bit-row.ig .play{background:var(--ig-cream);color:var(--ig-ink);border-color:var(--ig-ink)}
+.bit-meta{min-width:0;flex:1}
+.bit-t{font-family:'Archivo',sans-serif;font-weight:900;font-size:17px;line-height:1.2;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--yellow);padding:2px 7px;border-radius:5px}
+.bit-row.ig .tag{background:var(--ig-ink);color:var(--ig-cream)}
+.bit-d{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--mut);line-height:1.5;margin-top:3px}
+.player-slot{margin-top:12px}
+.player-slot:empty{display:none}
+.player-slot .yt-iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:8px;background:#000}
+.player-slot .ig-blockquote{margin:0!important;background:#fff;border:0!important;padding:0!important;min-width:0!important;border-radius:8px;overflow:hidden}
+.player-slot .ig-frame-wrap{max-width:420px;margin:0 auto}
+
+/* "as it appears on a comic page" preview */
+.in-context{background:#fff;border:3px solid var(--ink);border-radius:14px;overflow:hidden}
+.ic-bar{background:var(--ink);color:var(--cream);padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.ic-bar .url{color:var(--yellow)}
+.ic-body{padding:24px 28px}
+.ic-h{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600;margin-bottom:6px}
+.ic-name{font-family:'Anton',sans-serif;font-size:46px;text-transform:uppercase;line-height:.9;margin-bottom:10px}
+.ic-pill{font-family:'IBM Plex Mono',monospace;font-size:11px;border:1.5px solid var(--ink);padding:3px 10px;border-radius:999px;margin-right:6px;background:#fff}
+.ic-band{margin-top:24px;padding-top:18px;border-top:2px solid var(--ink)}
+.ic-band .b-lab{font-family:'Archivo',sans-serif;font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.06em;color:var(--red);margin-bottom:10px}
+
+/* try-it */
+.try{background:#fff;border:3px solid var(--ink);border-radius:14px;padding:20px 22px}
+.try label{display:block;font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px}
+.try input{width:100%;font-family:'IBM Plex Mono',monospace;font-size:14px;border:2px solid var(--ink);background:var(--cream);padding:11px 13px;border-radius:8px;outline:0}
+.try input:focus{border-color:var(--red)}
+.try .row2{display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap}
+.try button{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;background:var(--red);color:#fff;border:0;padding:11px 18px;border-radius:8px;cursor:pointer}
+.try button.ghost{background:transparent;color:var(--ink);border:2px solid var(--ink);padding:9px 16px}
+.try .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.try-out{margin-top:16px;min-height:120px}
+
+/* footnote */
+.note{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--mut);background:#fff;border:1px dashed var(--mut);border-radius:8px;padding:12px 14px;line-height:1.6}
+.note b{color:var(--ink)}
+.schema{background:var(--ink);color:var(--cream);border-radius:12px;padding:18px 22px;font-family:'IBM Plex Mono',monospace;font-size:13.5px;line-height:1.7;margin-top:10px}
+.schema .cmt{color:#9d8b6c}
+.schema .new{color:#ff7aa2;font-weight:600}
+
+.approve{background:#fff;border-left:7px solid var(--red);padding:16px 20px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="frame">
+
+<a class="back" href="../audit.html">&larr; back to audit</a>
+<span class="lab-tag">Design Lab · Reels</span>
+<h1>Reels.</h1>
+<p class="deck">An Instagram reel rendered as a Greatest Bits bit. Same chrome as the YouTube bit, just the embed swaps. The shortcode below is the verified Quiet Piggy reel. Hit play to confirm, then scroll to see it living inside Maddy Kelly's actual comic page.</p>
+<div class="rule"></div>
+
+<!-- ─────────── 1) Reel bits, stacked like a real catalogue band -->
+<section>
+ <div class="sec-tag">1 / Reel bits · play them</div>
+ <h2>Each card is one bit. Click to play.</h2>
+ <p>Resting state = a regular bit card with the IG tag. Click → IG's official embed renders inline (caption, handle, video, View-on-Instagram link, removal fallback). Same affordance as our YouTube bits; the IG card just lives inside the iframe.</p>
+
+ <div class="row-stack">
+
+  <div class="bit-row ig" id="reel-1">
+   <div class="bit-head">
+    <button class="play" data-sc="DYxBiZZSkgH">&#9654; Play</button>
+    <div class="bit-meta">
+     <div class="bit-t">Quiet Piggy · Maddy Kelly's reel <span class="tag">IG</span></div>
+     <div class="bit-d">Politics · @itsmaddykelly · shortcode DYxBiZZSkgH · <em style="color:#3B6D11">verified working</em></div>
+    </div>
+   </div>
+   <div class="player-slot"></div>
+  </div>
+
+ </div>
+</section>
+
+<!-- ─────────── 2) In-context preview -->
+<section>
+ <div class="sec-tag">2 / Now live on Maddy Kelly's actual comic page</div>
+ <h2>Mixed band · 3 YT bits + 1 IG reel.</h2>
+ <p>This isn't a mockup anymore — open <a href="../comic.html?c=maddy-kelly" style="color:var(--red);text-decoration:underline">comic.html?c=maddy-kelly</a> in production and you'll see exactly this. The IG reel sits in her Start Here band alongside her Tonight Show + JFL + 22 Minutes YouTube bits. Click any one, it plays inline.</p>
+ <div class="in-context" style="margin-top:14px">
+  <div class="ic-bar">
+   <span>Preview · comic page</span>
+   <span class="url">/comic.html?c=maddy-kelly</span>
+  </div>
+  <div class="ic-body">
+   <div class="ic-h">Comic</div>
+   <div class="ic-name">Maddy Kelly</div>
+   <div><span class="ic-pill">1998–</span><span class="ic-pill">Canadian</span><span class="ic-pill">2020s</span></div>
+
+   <div class="ic-band">
+    <div class="b-lab">Start Here · the essentials</div>
+
+    <div class="row-stack">
+     <div class="bit-row">
+      <div class="bit-head">
+       <button class="play" data-yt="ZS5bBblObq4">&#9654; Play</button>
+       <div class="bit-meta">
+        <div class="bit-t">Tickling and Consent / Worshipping Hilary Duff <span class="tag">YT</span></div>
+        <div class="bit-d">Identity · The Tonight Show 2024 · id ZS5bBblObq4</div>
+       </div>
+      </div>
+      <div class="player-slot"></div>
+     </div>
+
+     <div class="bit-row ig">
+      <div class="bit-head">
+       <button class="play" data-sc="DYxBiZZSkgH">&#9654; Play</button>
+       <div class="bit-meta">
+        <div class="bit-t">Quiet Piggy · live reaction reel <span class="tag">IG</span></div>
+        <div class="bit-d">Politics · reel · @itsmaddykelly</div>
+       </div>
+      </div>
+      <div class="player-slot"></div>
+     </div>
+
+     <div class="bit-row">
+      <div class="bit-head">
+       <button class="play" data-yt="ch7zrzkl5Is">&#9654; Play</button>
+       <div class="bit-meta">
+        <div class="bit-t">Quiet Piggy! (writer credit) <span class="tag">YT</span></div>
+        <div class="bit-d">Politics · This Hour Has 22 Minutes 2025 · id ch7zrzkl5Is</div>
+       </div>
+      </div>
+      <div class="player-slot"></div>
+     </div>
+    </div>
+   </div>
+
+  </div>
+ </div>
+</section>
+
+<!-- ─────────── 3) Try-it -->
+<section>
+ <div class="sec-tag">3 / Try a shortcode</div>
+ <h2>Paste any reel.</h2>
+ <p>Drop the 11-character shortcode (after <code style="font-family:'IBM Plex Mono',monospace">/reel/</code> or <code style="font-family:'IBM Plex Mono',monospace">/p/</code> in any IG URL). The card below renders it using the production embed.</p>
+
+ <div class="try" style="margin-top:14px">
+  <label for="sc">Shortcode</label>
+  <input id="sc" type="text" placeholder="DYxBiZZSkgH" value="DYxBiZZSkgH">
+  <div class="row2">
+   <button id="go">Render reel</button>
+   <button class="ghost" id="clr">Clear</button>
+   <div class="hint">embed via instagram.com/p/&lt;shortcode&gt;/embed</div>
+  </div>
+  <div class="try-out" id="try-out"></div>
+ </div>
+</section>
+
+<!-- ─────────── 4) Schema + approval -->
+<section>
+ <div class="sec-tag">4 / Schema · approve to roll out</div>
+ <h2>One optional field.</h2>
+ <div class="schema">
+  <div class="cmt">// current YouTube bit · unchanged</div>
+  <div>{ t, subj, sp, yr, id }</div>
+  <div style="height:8px"></div>
+  <div class="cmt">// new Instagram reel bit · no `id`, uses `shortcode`</div>
+  <div>{ t, subj, sp, yr, <span class="new">src: "instagram", shortcode: "DRLq4H-jPiW", handle: "@itsmaddykelly"</span> }</div>
+ </div>
+ <div class="approve" style="margin-top:18px">
+  <b style="font-family:'Archivo',sans-serif;text-transform:uppercase;font-weight:900;font-size:14px;letter-spacing:.06em">Approval gate.</b><br>
+  Reels above play cleanly: I port the bit-player branch to <b>comic.html</b> + <b>special.html</b> next round and start a focused research batch for 5 IG-first comics (Maddy Kelly, Hannah Berner, Patti Harrison, Catherine Cohen, plus one you pick). Once the pilot looks right, IG reels open up across the catalogue's modern comics.<br><br>
+  Reels above don't play: tell me what you see and I'll iterate.
+ </div>
+</section>
+
+<div class="note">
+ <b>Embed mechanism:</b> Instagram's official <code style="font-family:'IBM Plex Mono',monospace">embed.js</code> processes <code style="font-family:'IBM Plex Mono',monospace">&lt;blockquote class="instagram-media"&gt;</code> markup into a full IG card (thumbnail · handle · caption · video · View-on-Instagram link · removal fallback). Same pattern Instagram documents for any embed. Click-to-play stays cheap until you actually want the reel — no scripts run on resting state.
+</div>
+
+</div>
+
+<script async src="https://www.instagram.com/embed.js"></script>
+<script>
+function ytFrame(id){return '<iframe class="yt-iframe" src="https://www.youtube.com/embed/'+id+'?rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';}
+
+function igCard(sc){
+ // IG's official blockquote embed pattern — embed.js renders the full card
+ return '<div class="ig-frame-wrap"><blockquote class="instagram-media ig-blockquote" data-instgrm-permalink="https://www.instagram.com/reel/'+sc+'/" data-instgrm-version="14"></blockquote></div>';
+}
+
+function processIG(){
+ if(window.instgrm && window.instgrm.Embeds){ window.instgrm.Embeds.process(); }
+}
+
+document.querySelectorAll('.play').forEach(function(btn){
+ btn.addEventListener('click', function(){
+  var slot = btn.closest('.bit-row').querySelector('.player-slot');
+  if(slot.innerHTML){ slot.innerHTML=''; btn.innerHTML='&#9654; Play'; return; }
+  if(btn.dataset.sc){
+   slot.innerHTML = igCard(btn.dataset.sc);
+   processIG();
+  } else if(btn.dataset.yt){
+   slot.innerHTML = ytFrame(btn.dataset.yt);
+  }
+  btn.innerHTML='&#9632; Close';
+ });
+});
+
+document.getElementById('go').addEventListener('click', function(){
+ var sc = document.getElementById('sc').value.trim();
+ if(!sc) return;
+ document.getElementById('try-out').innerHTML = igCard(sc);
+ processIG();
+});
+document.getElementById('clr').addEventListener('click', function(){
+ document.getElementById('try-out').innerHTML = '';
+ document.getElementById('sc').value = '';
+});
+</script>
+
+</body>
+</html>

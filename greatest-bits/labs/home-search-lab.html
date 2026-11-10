@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lab — Home Search Variations</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--cream);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}
+.labwrap{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
+.labhead{margin-bottom:32px}
+.labhead .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
+.labhead h1{font-family:'Anton',sans-serif;font-size:48px;line-height:1;margin:8px 0;text-transform:uppercase;color:#fff}
+.labhead p{color:#cfc6b4;font-size:14px;max-width:65ch}
+.labhead p code{background:#0d0d0d;padding:2px 6px;border-radius:3px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--yellow)}
+.variant{margin:42px 0;border:1px solid #2a2a2a}
+.variant .meta{padding:18px 22px;background:#0d0d0d;display:flex;align-items:baseline;gap:14px}
+.variant .vk{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--yellow)}
+.variant .vt{font-family:'Anton',sans-serif;font-size:28px;text-transform:uppercase;line-height:.95;color:#fff}
+.variant .vd{flex:1;text-align:right;color:#9a9082;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.variant .body{padding:0;background:var(--cream);color:var(--ink)}
+.variant .notes{padding:20px 22px;background:#0d0d0d;color:#cfc6b4;font-size:13px;line-height:1.6;border-top:1px solid #2a2a2a}
+.variant .notes b{color:var(--yellow);font-weight:700}
+.variant .notes ul{margin:8px 0 0 20px}
+.variant .notes li{margin:4px 0}
+
+/* Shared mini-page styling — mimics actual home page elements */
+.mini{}
+.mini .hh{position:relative;background:var(--red);color:var(--cream);padding:24px 26px 0;overflow:hidden;text-align:center}
+.mini .hh .collage{display:flex;gap:10px;justify-content:center;margin-bottom:6px}
+.mini .hh .collage span{display:block;width:48px;height:60px;border:2px solid var(--cream);background:#2a2a2a;transform:rotate(var(--r))}
+.mini .hh .collage span:nth-child(1){--r:-5deg}.mini .hh .collage span:nth-child(2){--r:3deg;margin-top:10px}.mini .hh .collage span:nth-child(3){--r:-2deg}.mini .hh .collage span:nth-child(4){--r:4deg;margin-top:10px}.mini .hh .collage span:nth-child(5){--r:-4deg}
+.mini .hh h1{font-family:'Anton',sans-serif;font-size:clamp(48px,11vw,128px);text-transform:uppercase;line-height:.78;margin:4px 0 0}
+.mini .hh h1 .y{color:var(--yellow)}
+.mini .hh .swap{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.02em;margin:12px 0 0;color:#fff7ec}
+.mini .hh .swap em{color:var(--yellow);font-style:normal;border-bottom:3px solid var(--yellow)}
+.mini .hh .cotd{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:14px}
+.mini .hh .cotd a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--cream);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:999px}
+.mini .hh .cotd a b{color:var(--yellow);font-weight:400}
+.mini .hh .tick{margin:18px -26px 0;background:var(--ink);color:var(--cream);overflow:hidden;white-space:nowrap;padding:10px 0;font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;letter-spacing:.07em;text-transform:uppercase}
+.mini .hh .tick .trk span{margin:0 18px}.mini .hh .tick .trk .s{color:var(--yellow)}
+.mini .sec{max-width:1000px;margin:0 auto;padding:32px 24px 0}
+.mini .glabel{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.mini .glabel .t{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
+.mini .glabel .rule{flex:1;height:2px;background:var(--ink)}
+.mini .trio{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.mini .bcard{border:3px solid var(--ink);background:#fff;padding:14px;min-height:96px}
+.mini .bcard .tt{font-family:'Anton',sans-serif;font-size:20px;text-transform:uppercase;line-height:.95;margin-bottom:6px}
+.mini .bcard .dd{color:#3a3128;font-size:12px;line-height:1.4}
+.mini .indexband{margin-top:18px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);padding:22px 24px;display:grid;grid-template-columns:1fr auto auto;gap:14px 28px;align-items:center}
+.mini .indexband .ttl{font-family:'Anton',sans-serif;font-size:32px;text-transform:uppercase;line-height:.92}
+.mini .indexband .ttl .y{color:var(--yellow)}
+.mini .indexband .sb{color:#cfc6b4;font-size:13px;margin-top:5px;max-width:48ch}
+.mini .indexband .stats{display:flex;gap:22px;border-left:1px solid #2a2a2a;padding-left:24px}
+.mini .indexband .stats .n{font-family:'Anton',sans-serif;font-size:36px;line-height:.85;color:var(--yellow)}
+.mini .indexband .stats .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cfc6b4;margin-top:3px}
+.mini .indexband .cta{justify-self:end;font-family:'Archivo',sans-serif;font-weight:800;font-size:13px;background:var(--yellow);color:var(--ink);border-radius:999px;padding:11px 18px;white-space:nowrap}
+.mini .padbot{height:30px}
+
+/* === VARIATION A — Newsstand banner === */
+.va-bar{background:var(--ink);color:var(--cream);padding:18px 26px;border-top:3px solid var(--yellow);border-bottom:3px solid var(--yellow)}
+.va-bar .inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;gap:16px}
+.va-bar .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--yellow);font-weight:600}
+.va-bar input{flex:1;border:0;background:#262626;color:var(--cream);padding:14px 18px;font-family:'IBM Plex Mono',monospace;font-size:15px;outline:none;border-radius:0;border-left:3px solid var(--yellow)}
+.va-bar input::placeholder{color:#9a9082}
+.va-bar input:focus{background:#1a1a1a;border-left-color:var(--red)}
+.va-bar .esc{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;color:#9a9082;background:#262626;padding:5px 9px;border-radius:3px}
+
+/* === VARIATION B — Hero second-deck (search inside the red masthead) === */
+.vb-input-wrap{margin:18px auto 4px;max-width:540px;display:flex;align-items:center;gap:10px;background:var(--cream);border:3px solid var(--ink);padding:4px 4px 4px 16px}
+.vb-input-wrap .lens{color:var(--ink);font-size:18px}
+.vb-input-wrap input{flex:1;border:0;background:transparent;font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--ink);padding:10px 0;outline:none}
+.vb-input-wrap input::placeholder{color:var(--mut)}
+.vb-input-wrap .btn{font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:var(--yellow);color:var(--ink);padding:10px 16px;border:0;cursor:pointer}
+
+/* === VARIATION C — Magnify card === */
+.vc-wrap{margin:22px 0 0}
+.vc-card{display:grid;grid-template-columns:1fr auto;gap:0;border:3px solid var(--ink);background:#fff;align-items:stretch;transition:box-shadow .16s}
+.vc-card:hover{box-shadow:9px 9px 0 var(--red)}
+.vc-card .left{padding:18px 22px}
+.vc-card .left .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:600}
+.vc-card .left input{display:block;width:100%;border:0;background:transparent;font-family:'Anton',sans-serif;font-size:32px;color:var(--ink);text-transform:uppercase;padding:8px 0 4px;outline:none;letter-spacing:-.005em}
+.vc-card .left input::placeholder{color:var(--mut)}
+.vc-card .left .hint{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mut)}
+.vc-card .right{background:var(--yellow);width:96px;display:flex;align-items:center;justify-content:center;border-left:3px solid var(--ink);font-size:38px}
+
+/* === VARIATION D — Index-band fusion === */
+.vd-band{margin-top:18px;border:3px solid var(--ink);background:var(--ink);color:var(--cream);padding:22px 24px;display:grid;grid-template-columns:1fr;gap:14px}
+.vd-band .top{display:flex;align-items:baseline;gap:14px}
+.vd-band .ttl{font-family:'Anton',sans-serif;font-size:30px;text-transform:uppercase;line-height:.92}
+.vd-band .ttl .y{color:var(--yellow)}
+.vd-band .sb{color:#cfc6b4;font-size:13px;flex:1}
+.vd-band .search{display:flex;align-items:center;gap:12px;background:#262626;border:2px solid #3a3a3a;padding:4px 4px 4px 18px;transition:border-color .15s,background .15s}
+.vd-band .search:focus-within{border-color:var(--yellow);background:#1a1a1a}
+.vd-band .search .lens{color:var(--yellow);font-size:18px}
+.vd-band .search input{flex:1;border:0;background:transparent;color:var(--cream);padding:14px 0;font-family:'IBM Plex Mono',monospace;font-size:15px;outline:none}
+.vd-band .search input::placeholder{color:#7a716a}
+.vd-band .search .cta{background:var(--yellow);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:900;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:11px 16px}
+.vd-band .stats{display:flex;gap:24px;color:#cfc6b4;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.vd-band .stats b{color:var(--yellow);font-family:'Anton',sans-serif;font-size:18px;letter-spacing:0;font-weight:400;margin-right:4px;vertical-align:-1px}
+
+/* === VARIATION E — Sticky-on-scroll bar (rendered as the docked state for review) === */
+.ve-stickywrap{}
+.ve-stickywrap .navbar{position:relative;background:var(--ink);color:var(--cream);display:flex;align-items:center;gap:18px;padding:14px 26px}
+.ve-stickywrap .navbar .logo{font-family:'Anton',sans-serif;font-size:21px;text-transform:uppercase}
+.ve-stickywrap .navbar .logo b{color:var(--yellow);font-weight:400}
+.ve-stickywrap .navbar .links{display:flex;gap:18px;font-family:'Archivo',sans-serif;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--cream)}
+.ve-stickywrap .navbar .sp{flex:1}
+.ve-stickywrap .sticky{background:var(--ink);border-top:1px solid #2a2a2a;border-bottom:3px solid var(--yellow);padding:11px 26px;display:flex;justify-content:center}
+.ve-stickywrap .sticky .input{display:flex;align-items:center;gap:10px;width:100%;max-width:780px;background:#262626;border:2px solid #3a3a3a;padding:4px 4px 4px 16px;transition:border-color .15s}
+.ve-stickywrap .sticky .input:focus-within{border-color:var(--yellow)}
+.ve-stickywrap .sticky .lens{color:var(--yellow);font-size:16px}
+.ve-stickywrap .sticky input{flex:1;border:0;background:transparent;color:var(--cream);padding:10px 0;font-family:'IBM Plex Mono',monospace;font-size:14px;outline:none}
+.ve-stickywrap .sticky input::placeholder{color:#7a716a}
+.ve-stickywrap .sticky .key{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:#9a9082;background:#1a1a1a;padding:4px 8px;border-radius:3px}
+.ve-stickywrap .sticky .cta{background:var(--yellow);color:var(--ink);font-family:'Archivo',sans-serif;font-weight:900;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:9px 14px}
+.ve-stickywrap .scrollnote{padding:14px 26px;color:#9a9082;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;text-transform:uppercase;text-align:center;background:#0d0d0d}
+
+.legend{margin-top:20px;padding:18px 22px;border:1px dashed #3a3a3a;background:#0d0d0d;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#9a9082;line-height:1.7}
+.legend b{color:var(--yellow)}
+</style>
+</head>
+<body>
+<div class="labwrap">
+
+<div class="labhead">
+  <div class="k">Design Lab · Home Search</div>
+  <h1>Five placements for the home-page search</h1>
+  <p>Each variation places the same search component differently on the home page. The mini-mockup above each note shows where the input sits in the page flow. Counts (<code>430 comics · 1,221 specials · 879 bits</code>) are the actual live data. Pick the one that reads right; I'll then build it for real and wire it to a fuller search index (subject, kind, era, blurb, bio).</p>
+</div>
+
+<!-- ============== VARIATION A — Newsstand Banner ============== -->
+<section class="variant">
+  <div class="meta"><span class="vk">Variation A</span><span class="vt">Newsstand banner</span><span class="vd">between masthead and the 100 Best trio</span></div>
+  <div class="body">
+    <div class="mini">
+      <div class="hh">
+        <div class="collage"><span></span><span></span><span></span><span></span><span></span></div>
+        <h1>Greatest <span class="y">Bits</span></h1>
+        <div class="swap">Stand-up's <em>greatest hits</em>, on one page.</div>
+        <div class="cotd"><a>Comic of the day: <b>George Carlin</b> &#8594;</a><a>Bit of the day: <b>Seven Words</b> &#8594;</a></div>
+        <div class="tick"><div class="trk"><span>George Carlin</span><span class="s">&#10022;</span><span>Richard Pryor</span><span class="s">&#10022;</span><span>Eddie Murphy</span><span class="s">&#10022;</span></div></div>
+      </div>
+      <!-- search bar -->
+      <div class="va-bar">
+        <div class="inner">
+          <span class="tag">Find a bit</span>
+          <input type="text" placeholder="A joke about a horse, a special, a comic… search 430 / 1,221 / 879">
+          <span class="esc">↵ ENTER</span>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+        <div class="trio">
+          <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">From Pryor to Mulaney, ranked.</div></div>
+          <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+          <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse in the Hospital.</div></div>
+        </div>
+      </div>
+      <div class="padbot"></div>
+    </div>
+  </div>
+  <div class="notes">
+    <b>What this is:</b> a black bar with yellow rules above and below, sitting right between the red masthead and the trio cards. The placeholder reads "A joke about a horse, a special, a comic…" — sells the use case as you arrive.
+    <ul>
+      <li><b>Pro:</b> immediate, can't miss it; mirrors the existing ticker frame so it feels native to the design</li>
+      <li><b>Con:</b> adds a fourth horizontal stripe to the upper page (collage / wordmark / ticker / search); some visual fatigue</li>
+      <li><b>Vibe:</b> newspaper masthead → wire-services search</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== VARIATION B — Hero Second Deck ============== -->
+<section class="variant">
+  <div class="meta"><span class="vk">Variation B</span><span class="vt">Hero second-deck</span><span class="vd">inside the red masthead, under the word-swap line</span></div>
+  <div class="body">
+    <div class="mini">
+      <div class="hh">
+        <div class="collage"><span></span><span></span><span></span><span></span><span></span></div>
+        <h1>Greatest <span class="y">Bits</span></h1>
+        <div class="swap">Stand-up's <em>greatest hits</em>, on one page.</div>
+        <!-- search inline in hero -->
+        <div class="vb-input-wrap">
+          <span class="lens">⌕</span>
+          <input type="text" placeholder="Find a comic, a special, a bit…">
+          <button class="btn">Search</button>
+        </div>
+        <div class="cotd"><a>Comic of the day: <b>George Carlin</b> &#8594;</a><a>Bit of the day: <b>Seven Words</b> &#8594;</a></div>
+        <div class="tick"><div class="trk"><span>George Carlin</span><span class="s">&#10022;</span><span>Richard Pryor</span><span class="s">&#10022;</span></div></div>
+      </div>
+      <div class="sec">
+        <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+        <div class="trio">
+          <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">From Pryor to Mulaney, ranked.</div></div>
+          <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+          <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse in the Hospital.</div></div>
+        </div>
+      </div>
+      <div class="padbot"></div>
+    </div>
+  </div>
+  <div class="notes">
+    <b>What this is:</b> the search becomes part of the hero, slotted between the animated word-swap line and the comic-of-the-day chips. Cream box on red, ink border, yellow Search button.
+    <ul>
+      <li><b>Pro:</b> highest visual priority — the search is the first call to action; the masthead becomes a unified search-and-discover hero</li>
+      <li><b>Con:</b> dilutes the masthead's wordmark dominance; the cream-on-red contrast becomes the strongest pull rather than the typography</li>
+      <li><b>Vibe:</b> Google homepage minimalism wearing Greatest Bits clothes</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== VARIATION C — Magnify Card ============== -->
+<section class="variant">
+  <div class="meta"><span class="vk">Variation C</span><span class="vt">Magnify card</span><span class="vd">between the trio and the Index band</span></div>
+  <div class="body">
+    <div class="mini">
+      <div class="hh">
+        <div class="collage"><span></span><span></span><span></span><span></span><span></span></div>
+        <h1>Greatest <span class="y">Bits</span></h1>
+        <div class="swap">Stand-up's <em>greatest hits</em>, on one page.</div>
+        <div class="cotd"><a>Comic of the day: <b>George Carlin</b> &#8594;</a></div>
+        <div class="tick"><div class="trk"><span>George Carlin</span><span class="s">&#10022;</span><span>Richard Pryor</span><span class="s">&#10022;</span></div></div>
+      </div>
+      <div class="sec">
+        <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+        <div class="trio">
+          <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">From Pryor to Mulaney, ranked.</div></div>
+          <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+          <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+        </div>
+        <!-- magnify card -->
+        <div class="vc-wrap">
+          <div class="vc-card">
+            <div class="left">
+              <div class="k">Find a bit · 430 comics · 1,221 specials · 879 bits</div>
+              <input type="text" placeholder="A joke about a horse…">
+              <div class="hint">Press <b>/</b> anywhere to search · Enter to open</div>
+            </div>
+            <div class="right">⌕</div>
+          </div>
+        </div>
+        <div class="mini-indexband-spacer" style="height:18px"></div>
+        <div class="indexband">
+          <div><div class="ttl">The <span class="y">Index</span></div><div class="sb">The complete anatomy of stand-up: every comic, every special, every bit.</div></div>
+          <div class="stats"><div><div class="n">430</div><div class="l">Comics</div></div><div><div class="n">1,221</div><div class="l">Specials</div></div><div><div class="n">879</div><div class="l">Bits</div></div></div>
+          <span class="cta">Browse the Index &#8594;</span>
+        </div>
+      </div>
+      <div class="padbot"></div>
+    </div>
+  </div>
+  <div class="notes">
+    <b>What this is:</b> a standalone card in the trio family — same 3px ink border, same 9px red drop-shadow on hover, same atom-card grammar. Sits between the trio and the Index band, with a giant yellow magnifying-glass button on the right.
+    <ul>
+      <li><b>Pro:</b> the search becomes a first-class section with its own header and stats; reads as a deliberate feature, not a UI affordance jammed in</li>
+      <li><b>Con:</b> further from the fold; users have to scroll past the trio first; competes with the Index band right below it</li>
+      <li><b>Vibe:</b> a postcard from the catalogue ("looking for something?")</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== VARIATION D — Index-band Fusion ============== -->
+<section class="variant">
+  <div class="meta"><span class="vk">Variation D</span><span class="vt">Index-band fusion</span><span class="vd">replaces the current Index band's CTA</span></div>
+  <div class="body">
+    <div class="mini">
+      <div class="hh">
+        <div class="collage"><span></span><span></span><span></span><span></span><span></span></div>
+        <h1>Greatest <span class="y">Bits</span></h1>
+        <div class="swap">Stand-up's <em>greatest hits</em>, on one page.</div>
+        <div class="tick"><div class="trk"><span>George Carlin</span><span class="s">&#10022;</span><span>Richard Pryor</span><span class="s">&#10022;</span></div></div>
+      </div>
+      <div class="sec">
+        <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+        <div class="trio">
+          <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney.</div></div>
+          <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+          <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+        </div>
+        <!-- Index band, now centered on search -->
+        <div class="vd-band">
+          <div class="top">
+            <div><div class="ttl">The <span class="y">Index</span></div></div>
+            <div class="sb">Every comic, special, and bit — searchable.</div>
+          </div>
+          <div class="search">
+            <span class="lens">⌕</span>
+            <input type="text" placeholder="A joke about a horse, a comic, a special…">
+            <span class="cta">Search</span>
+          </div>
+          <div class="stats"><span><b>430</b> Comics</span><span><b>1,221</b> Specials</span><span><b>879</b> Bits</span></div>
+        </div>
+      </div>
+      <div class="padbot"></div>
+    </div>
+  </div>
+  <div class="notes">
+    <b>What this is:</b> the Index band, which currently shows just stats and a "Browse →" CTA, becomes a full search surface. Title + subtitle on top, full-width search input in the middle, stats inline as labels (no separate count column). The CTA goes away; the search IS the way you browse the Index.
+    <ul>
+      <li><b>Pro:</b> consolidates two ideas (search + Index entry point) into one; the Index band stops being passive; the search inherits authority from the dark black band aesthetic</li>
+      <li><b>Con:</b> kills the current count-up animation moment; loses the at-a-glance stats column</li>
+      <li><b>Vibe:</b> the catalogue's command line</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============== VARIATION E — Sticky-on-Scroll ============== -->
+<section class="variant">
+  <div class="meta"><span class="vk">Variation E</span><span class="vt">Sticky-on-scroll bar</span><span class="vd">slides in after the masthead leaves the viewport</span></div>
+  <div class="body">
+    <div class="mini">
+      <div class="ve-stickywrap">
+        <div class="navbar">
+          <a class="logo">Greatest <b>Bits</b></a>
+          <span class="links"><a>Comics</a><a>Specials</a><a>Bits</a><a>Index</a><a>History</a></span>
+          <span class="sp"></span>
+        </div>
+        <div class="sticky">
+          <div class="input">
+            <span class="lens">⌕</span>
+            <input type="text" placeholder="Search 430 comics, 1,221 specials, 879 bits — try 'horse' or 'mulaney' or 'kid gorgeous'…">
+            <span class="key">/</span>
+            <span class="cta">Search</span>
+          </div>
+        </div>
+        <div class="scrollnote">— rendered docked; appears once you scroll past the masthead —</div>
+      </div>
+      <div class="sec">
+        <div class="glabel"><span class="t">The 100 Best</span><span class="rule"></span></div>
+        <div class="trio">
+          <div class="bcard"><div class="tt">100 Best Comics</div><div class="dd">Pryor to Mulaney.</div></div>
+          <div class="bcard"><div class="tt">100 Best Specials</div><div class="dd">Bring the Pain to Inside.</div></div>
+          <div class="bcard"><div class="tt">100 Best Bits</div><div class="dd">Seven Words to The Horse.</div></div>
+        </div>
+      </div>
+      <div class="padbot"></div>
+    </div>
+  </div>
+  <div class="notes">
+    <b>What this is:</b> the home page top stays as it is (masthead untouched). As you scroll past the masthead, a tall yellow-bordered search bar slides down under the nav and stays pinned. Always one keystroke away once you start browsing. The "/" key focuses it from anywhere.
+    <ul>
+      <li><b>Pro:</b> non-disruptive at first impression; becomes maximally available the moment a user is in browsing mode</li>
+      <li><b>Con:</b> first-time visitors miss it until they scroll; adds a sticky element competing with the existing nav</li>
+      <li><b>Vibe:</b> Google-style persistence; ambient utility rather than headline feature</li>
+    </ul>
+  </div>
+</section>
+
+<div class="legend">
+  <b>Live link:</b> <a href="https://yellinmatt.github.io/greatest-bits/labs/home-search-lab.html">yellinmatt.github.io/greatest-bits/labs/home-search-lab.html</a><br>
+  <b>What's NOT shown:</b> the live result-dropdown, the result row styling, or the result-page treatment. Those come from the existing global search overlay and are unchanged. This lab is strictly about <b>where the input goes on the home page and what frame it sits in</b>.<br>
+  <b>Pick by:</b> letter (A/B/C/D/E) or by hybrid (e.g., "C, but on red instead of cream").
+</div>
+
+</div>
+</body>
+</html>

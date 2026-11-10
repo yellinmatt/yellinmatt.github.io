@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Greenroom Dispatch — combined + popups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+:root{--red:#e8341c;--cream:#fff3e4;--yellow:#ffd23e;--ink:#0d0d0d;--mut:#8a7a64;--paper:#fffaf0}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+.labtop{background:var(--ink);color:var(--cream);padding:24px 0 20px}
+.labtop .k{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--yellow)}
+.labtop h1{font-family:'Anton',sans-serif;font-size:clamp(28px,4.6vw,46px);text-transform:uppercase;line-height:.9;margin:8px 0 9px}
+.labtop p{font-family:'Fraunces',Georgia,serif;font-size:16px;color:#e8ddc9;max-width:82ch;line-height:1.5}
+.sample-flag{background:var(--yellow);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;text-align:center;padding:7px}
+
+.kick{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.kick.special{color:var(--red)}.kick.tour{color:#1c1c1c}.kick.podcast{color:#9a7b00}.kick.award{color:#6b3fc4}.kick.fest{color:#2c6e49}.kick.obit{color:#6b6155}
+.src{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--yellow);padding-bottom:1px}
+.cpage{font-family:'Archivo',sans-serif;font-weight:800;font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--ink);background:var(--yellow);border:1.5px solid var(--ink);border-radius:999px;padding:2px 9px;white-space:nowrap;display:inline-block}
+.dek{font-family:'Fraunces',Georgia,serif;line-height:1.5;color:#3a3225}
+
+.gd{padding:44px 0 60px}
+.plate{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;border-bottom:3px solid var(--ink);padding-bottom:10px}
+.plate .nm{font-family:'Anton',sans-serif;font-size:clamp(26px,3.4vw,40px);text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+.plate .nm .y{color:var(--yellow);-webkit-text-stroke:1.5px var(--ink)}
+.plate .meta{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);text-align:right;white-space:nowrap;line-height:1.7}
+.plate .meta .all{color:var(--red);font-weight:600;border-bottom:1.5px solid var(--red)}
+.gd-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;align-items:stretch;margin-top:22px}
+
+.hero{border:3px solid var(--ink);border-radius:14px;box-shadow:8px 8px 0 var(--ink);background:var(--ink);color:#fff;display:flex;overflow:hidden;cursor:pointer;transition:transform .14s,box-shadow .14s;text-align:left}
+.hero:hover{transform:translate(-3px,-3px);box-shadow:11px 11px 0 var(--ink)}
+.hero .photo{width:43%;background-size:cover;background-position:50% 16%;border-right:3px solid var(--ink);flex:0 0 auto}
+.hero .body{padding:22px 24px;display:flex;flex-direction:column}
+.hero .hl{font-family:'Anton',sans-serif;font-size:clamp(26px,3vw,38px);text-transform:uppercase;line-height:.94;margin:10px 0 10px}
+.hero .dek{color:#e6ddcd;font-size:16.5px}
+.hero .ft{display:flex;align-items:center;gap:12px;margin-top:auto;padding-top:18px;flex-wrap:wrap}
+.hero .ft .dl{font-family:'IBM Plex Mono';font-size:11px;font-weight:600;color:#fff;letter-spacing:.06em}
+.hero .ft .src{color:var(--yellow);border-color:var(--yellow)}
+
+.briefs{display:flex;flex-direction:column;gap:12px}
+.brief{display:grid;grid-template-columns:62px 1fr;gap:14px;align-items:center;background:#fff;border:2px solid var(--ink);border-radius:11px;padding:12px 14px;cursor:pointer;transition:transform .12s,box-shadow .12s,background .12s;text-align:left}
+.brief:hover{transform:translateX(2px);box-shadow:5px 5px 0 var(--ink);background:var(--paper)}
+.brief .tile{width:62px;height:62px;border-radius:8px;border:2px solid var(--ink);background-size:cover;background-position:50% 16%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;overflow:hidden}
+.brief .tile .g{font-family:'Anton';font-size:24px;line-height:1}
+.brief .tile.special{background-color:var(--red)}.brief .tile.tour{background-color:var(--ink);color:var(--yellow)}
+.brief .tile.podcast{background-color:var(--yellow)}.brief .tile.award{background-color:#6b3fc4;color:#fff}
+.brief .tile.fest{background-color:#2c6e49;color:#fff}.brief .tile.obit{background-color:#564f44;color:var(--cream)}
+.brief .ktop{display:flex;align-items:center;gap:7px;margin-bottom:3px}
+.brief .ktop .dt{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--mut);letter-spacing:.04em}
+.brief .bh{font-family:'Archivo';font-weight:800;font-size:16px;line-height:1.13;margin-bottom:3px}
+.brief .bd{font-family:'Fraunces',Georgia,serif;font-size:13px;color:#5a5040;line-height:1.35;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.brief .bsrc{font-family:'IBM Plex Mono';font-size:10px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:5px}
+.brief .bsrc b{color:var(--ink);border-bottom:2px solid var(--yellow);font-weight:600}
+.allrow{margin-top:14px;text-align:right}
+.allrow a{font-family:'Archivo';font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink);border-bottom:2px solid var(--yellow);padding-bottom:2px}
+@media(max-width:820px){.gd-grid{grid-template-columns:1fr}.hero{flex-direction:column}.hero .photo{width:100%;min-height:200px;border-right:0;border-bottom:3px solid var(--ink)}}
+
+.gdmodal{position:fixed;inset:0;background:rgba(13,13,13,.78);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:24px;z-index:50}
+.gdmodal.on{display:flex}
+.gdpanel{background:var(--cream);border:3px solid var(--ink);border-radius:16px;box-shadow:14px 14px 0 rgba(13,13,13,.35);max-width:760px;width:100%;max-height:90vh;overflow:hidden;position:relative;display:flex;animation:pop .16s ease}
+@keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
+.gdpanel .ph{flex:0 0 270px;align-self:stretch;min-height:380px;background-size:cover;background-position:50% 18%;border-right:3px solid var(--ink)}
+.gdpanel .ph.band{display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;text-orientation:mixed;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:#fff}
+.gdpanel .pad{flex:1;padding:26px 30px 28px;overflow-y:auto}
+@media(max-width:640px){.gdpanel{flex-direction:column;max-height:92vh}.gdpanel .ph{flex:0 0 auto;width:100%;min-height:0;aspect-ratio:4/5;max-height:300px;border-right:0;border-bottom:3px solid var(--ink)}.gdpanel .ph.band{writing-mode:horizontal-tb;aspect-ratio:auto;min-height:120px;font-size:15px}}
+.gdpanel .mk{margin-bottom:9px}
+.gdpanel h3{font-family:'Anton',sans-serif;font-size:clamp(26px,3.4vw,36px);text-transform:uppercase;line-height:.96;margin-bottom:12px}
+.gdpanel .mdl{font-family:'IBM Plex Mono';font-size:11px;font-weight:600;color:var(--mut);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+.gdpanel .mdl .d{color:var(--ink)}
+.gdpanel .body{font-family:'Fraunces',Georgia,serif;font-size:17px;line-height:1.55;color:#322c22}
+.gdpanel .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.gdpanel .btn{font-family:'Archivo';font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.03em;padding:11px 16px;border:2px solid var(--ink);border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.gdpanel .btn.read{background:var(--yellow);color:var(--ink)}
+.gdpanel .btn.comic{background:#fff;color:var(--ink)}
+.gdpanel .btn.read:hover,.gdpanel .btn.comic:hover{transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--ink)}
+.gdpanel .x{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;background:var(--ink);color:var(--cream);border:0;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2}
+.gdpanel .src-note{font-family:'IBM Plex Mono';font-size:10.5px;color:var(--mut);margin-top:14px;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="labtop"><div class="wrap">
+  <div class="k">Greatest Bits · Section Lab · v4 (interactive)</div>
+  <h1>Greenroom Dispatch — hero + elevated briefs + popups</h1>
+  <p>The photo-lead hero and the briefs, combined — and the briefs are now mini news-cards (thumbnail, dateline, headline, one-line dek, source) so they carry the hero's weight. <b>Click the hero or any brief</b> to open the detail popup, styled like the Comic-of-the-Day lightbox.</p>
+</div></div>
+<div class="sample-flag">Sample dispatches — click any item to preview the popup. Live section pulls real, dated, sourced data.</div>
+
+<div class="wrap">
+  <section class="gd">
+    <div class="plate"><div class="nm">GREENROOM DISPA<span class="y">T</span>CH</div><div class="meta">The week in stand-up · No. 14<br>Week of Jun 2, 2026 · <span class="all">All dispatches →</span></div></div>
+    <div class="gd-grid">
+
+      <!-- HERO -->
+      <button class="hero"
+        data-kick="New Special" data-kc="special" data-date="Jun 2, 2026"
+        data-hl="Shane Gillis dates his third Netflix hour"
+        data-dek="Netflix has set a spring release for the follow-up to Beautiful Dogs, Shane Gillis's most-streamed special to date. It's the biggest test yet of whether a comic who broke through on podcasts and a packed club-tour calendar can open like a traditional marquee Netflix headliner — and a signal of how aggressively the platform is betting on the new club generation."
+        data-src="Deadline" data-url="#" data-comic="Shane Gillis" data-cid="shane-gillis"
+        data-photo="https://image.tmdb.org/t/p/h632/ijRXBDjfazwne2jxjWEaaWqPw2.jpg">
+        <div class="photo" style="background-image:url('https://image.tmdb.org/t/p/h632/ijRXBDjfazwne2jxjWEaaWqPw2.jpg')"></div>
+        <div class="body">
+          <span class="kick special" style="color:#fff">New Special</span>
+          <div class="hl">Shane Gillis dates his third Netflix hour</div>
+          <div class="dek">The follow-up to <i>Beautiful Dogs</i> takes a spring slot — the biggest test yet of the podcast-era club star on a marquee stage.</div>
+          <div class="ft"><span class="dl">JUN 2</span><span class="src">via Deadline ↗</span><span class="cpage">→ Shane Gillis</span></div>
+        </div>
+      </button>
+
+      <!-- BRIEFS -->
+      <div>
+        <div class="briefs">
+          <button class="brief"
+            data-kick="Tour" data-kc="tour" data-date="Jun 1, 2026"
+            data-hl="Bargatze books 18 new fall arena dates"
+            data-dek="The clean-comedy juggernaut extends the 'Big Dumb Eyes' tour with eighteen additional arena stops across the Midwest and South, as Nate Bargatze continues a run that has made him one of the highest-grossing touring comics working today."
+            data-src="The Comic's Comic" data-url="#" data-comic="Nate Bargatze" data-cid="nate-bargatze"
+            data-photo="https://image.tmdb.org/t/p/h632/60KdELrwXRuNAKJveTaZIpHyDUU.jpg">
+            <div class="tile tour" style="background-image:url('https://image.tmdb.org/t/p/h632/60KdELrwXRuNAKJveTaZIpHyDUU.jpg')"></div>
+            <div><div class="ktop"><span class="kick tour">Tour</span><span class="dt">· Jun 1</span></div><div class="bh">Bargatze books 18 fall arena dates</div><div class="bd">The "Big Dumb Eyes" run grows again across the Midwest and South.</div><div class="bsrc">via <b>The Comic's Comic</b></div></div>
+          </button>
+
+          <button class="brief"
+            data-kick="Podcast" data-kc="podcast" data-date="May 31, 2026"
+            data-hl="What a road feature actually clears, in numbers"
+            data-dek="Joke Wrld puts hard figures to the club-pay fight every working comic is having — breaking down what a feature act really takes home after the door split, travel, and lodging on a typical weekend on the road."
+            data-src="Joke Wrld" data-url="#" data-comic="" data-cid="">
+            <div class="tile podcast"><span class="g">♪</span></div>
+            <div><div class="ktop"><span class="kick podcast">Podcast</span><span class="dt">· May 31</span></div><div class="bh">What a road feature actually clears</div><div class="bd">Hard numbers on the club-pay fight every comic is having.</div><div class="bsrc">via <b>Joke Wrld</b></div></div>
+          </button>
+
+          <button class="brief"
+            data-kick="Award" data-kc="award" data-date="May 30, 2026"
+            data-hl="Mark Twain Prize names this year's honoree"
+            data-dek="The Kennedy Center has named its next Mark Twain Prize recipient, the genre's top lifetime honor, capping a four-decade stand-up career with a televised tribute gala this fall."
+            data-src="Kennedy Center" data-url="#" data-comic="" data-cid="">
+            <div class="tile award"><span class="g">★</span></div>
+            <div><div class="ktop"><span class="kick award">Award</span><span class="dt">· May 30</span></div><div class="bh">Mark Twain Prize names its honoree</div><div class="bd">The genre's top lifetime honor, announced for the fall gala.</div><div class="bsrc">via <b>Kennedy Center</b></div></div>
+          </button>
+
+          <button class="brief"
+            data-kick="Festival" data-kc="fest" data-date="May 29, 2026"
+            data-hl="Netflix Is A Joke Fest unveils its 2026 lineup"
+            data-dek="Netflix has revealed the bill for its 2026 Is A Joke Fest — two weeks of Los Angeles shows spanning arenas and clubs, with dozens of names from the Greatest Bits roster on the schedule."
+            data-src="Netflix" data-url="#" data-comic="" data-cid="">
+            <div class="tile fest"><span class="g">✦</span></div>
+            <div><div class="ktop"><span class="kick fest">Festival</span><span class="dt">· May 29</span></div><div class="bh">Netflix Is A Joke Fest lineup is out</div><div class="bd">Two weeks of LA shows; dozens of roster names on the bill.</div><div class="bsrc">via <b>Netflix</b></div></div>
+          </button>
+        </div>
+        <div class="allrow"><a href="#">All dispatches →</a></div>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+<!-- POPUP -->
+<div class="gdmodal" id="gdModal">
+  <div class="gdpanel" id="gdPanel">
+    <button class="x" id="gdX" aria-label="Close">&times;</button>
+    <div class="ph" id="gdPh"></div>
+    <div class="pad">
+      <div class="mk"><span class="kick" id="gdKick"></span></div>
+      <h3 id="gdHl"></h3>
+      <div class="mdl" id="gdDate"></div>
+      <div class="body" id="gdBody"></div>
+      <div class="acts" id="gdActs"></div>
+      <div class="src-note">Greatest Bits indexes and links to the original reporting; we never republish full articles.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const m=document.getElementById('gdModal'),x=document.getElementById('gdX');
+  const ph=document.getElementById('gdPh'),kick=document.getElementById('gdKick'),hl=document.getElementById('gdHl'),date=document.getElementById('gdDate'),body=document.getElementById('gdBody'),acts=document.getElementById('gdActs');
+  const COLOR={special:'#e8341c',tour:'#0d0d0d',podcast:'#9a7b00',award:'#6b3fc4',fest:'#2c6e49',obit:'#564f44'};
+  function open(el){
+    const d=el.dataset;
+    if(d.photo){ph.className='ph';ph.style.backgroundImage="url('"+d.photo+"')";ph.style.background="";ph.style.backgroundImage="url('"+d.photo+"')";ph.textContent='';}
+    else{ph.className='ph band';ph.style.backgroundImage='';ph.style.background=COLOR[d.kc]||'#0d0d0d';ph.textContent=d.kick;}
+    kick.textContent=d.kick;kick.className='kick '+d.kc;
+    hl.textContent=d.hl;
+    date.innerHTML='<span class="d">'+d.date+'</span> · via '+d.src;
+    body.textContent=d.dek;
+    let a='<a class="btn read" href="'+d.url+'" target="_blank" rel="noopener">Read at '+d.src+' ↗</a>';
+    if(d.comic){a+='<a class="btn comic" href="comic.html?c='+d.cid+'">→ '+d.comic+'’s page</a>';}
+    acts.innerHTML=a;
+    m.classList.add('on');document.body.style.overflow='hidden';
+  }
+  function close(){m.classList.remove('on');document.body.style.overflow='';}
+  document.querySelectorAll('.hero,.brief').forEach(b=>b.addEventListener('click',()=>open(b)));
+  x.addEventListener('click',close);
+  m.addEventListener('click',e=>{if(e.target===m)close();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+})();
+</script>
+</body>
+</html>

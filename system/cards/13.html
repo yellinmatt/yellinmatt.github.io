@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Card 13 · Claude OS</title>
+<meta name="check-settle" content="6000">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0a0b0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#0a0b0e;--ink:#efede7;--ink2:#c4c3bd;--mut:#8b8f98;--line:rgba(255,255,255,.08);--line2:rgba(255,255,255,.16);--acc:#ff6a4d;
+  --app:#191919;--app2:#1f1f1f;--t1:rgba(255,255,255,.93);--t2:rgba(255,255,255,.57);--t3:rgba(255,255,255,.38);--hair:rgba(255,255,255,.08);
+  --bub:rgba(255,255,255,.05);--comp:#303030;--sel:rgba(255,255,255,.07);--clay:#d97757;--ok:#7fd6a6;
+  --sans:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--serif:"Newsreader",Georgia,serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --ease:cubic-bezier(.16,1,.3,1);color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+.w{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{margin:0;text-wrap:balance}
+p{margin:0;text-wrap:pretty}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px;border-radius:6px}
+
+.brief{padding-block:56px 28px}
+.bar{display:flex;gap:6px;align-items:center;padding-bottom:20px;flex-wrap:wrap}
+.bar button{display:inline-flex;align-items:center;gap:8px;font:500 14px var(--sans);color:var(--mut);padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line2);min-height:40px}
+.bar button i{font:500 12px var(--mono);font-style:normal;color:var(--mut)}
+.bar button[aria-selected="true"]{color:var(--bg);background:var(--ink);box-shadow:none}
+.bar button[aria-selected="true"] i{color:var(--acc)}
+@media (hover:hover){.bar button[aria-selected="false"]:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink2)}}
+.bar .rp{margin-left:auto;font:500 13px var(--mono)}
+.ctl{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;font-size:13.5px;color:var(--mut)}
+.ctl button{font:500 13px var(--mono);color:var(--ink2);padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line2);min-height:40px}
+@media (hover:hover){.ctl button:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink2)}}
+.fr code.ev{font:500 13.6px var(--sans);min-width:44px}
+.fr:has(.ev){grid-template-columns:14px auto minmax(0,1fr)}
+.fr:has(.ev) span{white-space:normal;color:var(--t2)}
+.rl{margin:-8px 0 0;padding-left:20px}.rl li{margin:4px 0}
+.scroll{scroll-behavior:smooth}
+.reply .hd{margin:0 0 6px;font:600 15px/1.3 var(--serif);color:var(--t1)}
+.reply .todo{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.todo li{display:grid;grid-template-columns:18px minmax(0,1fr);gap:8px}
+.todo li::before{content:"";width:12px;height:12px;margin-top:6px;border-radius:3px;box-shadow:inset 0 0 0 1.4px var(--t2)}
+.sched{margin:0;display:grid;grid-template-columns:52px minmax(0,1fr);gap:3px 12px}
+.sched dt{font:500 14px/1.6 var(--sans);color:var(--t2);font-variant-numeric:tabular-nums}
+.sched dd{margin:0}.sched em{font-style:normal;font:400 13.6px var(--sans);color:var(--t3);margin-left:6px}
+.tl,.tl button{min-width:0;max-width:100%;text-align:left}.tl .lbl{white-space:nowrap;flex:none}.tl button .tm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.tl .chev{flex:none}
+.say{color:var(--ink2);margin-bottom:16px;font-size:16px}
+.pane[hidden]{display:none}
+.end{color:var(--mut);font-size:14px;padding-block:28px 64px}
+.kick{font:500 12.5px var(--mono);color:var(--mut)}
+.brief h1{font:600 clamp(36px,4.4vw,60px)/.98 var(--sans);letter-spacing:-.045em;margin-top:14px}
+.brief .goal{font-size:18px;color:var(--ink2);margin-top:16px}
+.brief .goal b{color:var(--ink);font-weight:500}
+.brief dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px 20px;align-content:start;font-size:15px;color:var(--ink2)}
+.brief dt{font:500 12px var(--mono);color:var(--mut);padding-top:3px}
+.brief dd{margin:0}
+
+.m{padding-block:0}
+.stage{position:relative}
+
+.app{background:var(--app);border-radius:12px;box-shadow:0 0 0 1px var(--hair),0 40px 90px -40px rgba(0,0,0,.8);overflow:hidden;color:var(--t1);font:400 14.9px/1.5 var(--sans);display:grid;grid-template-columns:212px minmax(0,1fr) 270px;height:680px}
+.app.two{grid-template-columns:minmax(0,1fr)}
+.side{border-right:1px solid var(--hair);display:flex;flex-direction:column;padding:12px 8px;gap:2px;min-width:0}
+.side .brand{display:flex;align-items:center;justify-content:space-between;padding:4px 8px 12px;font:500 19px/1 var(--serif);letter-spacing:-.01em}
+svg.ic{width:16px;height:16px;flex:none;fill:none;stroke:var(--t2);stroke-width:1.3;stroke-linecap:round;stroke-linejoin:round}
+.side .brand svg.ic{width:18px;height:18px}
+.side a{display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;color:var(--t1);text-decoration:none;font-size:14.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side a svg.ic{stroke:var(--t1);opacity:.85}
+.side .grp{font:400 12.5px var(--sans);color:var(--t3);padding:14px 8px 6px}
+.side a.on{background:var(--sel)}
+.side .me{margin-top:auto;display:flex;align-items:center;gap:8px;padding:8px;font-size:14px;color:var(--t1)}
+.side .me i{width:22px;height:22px;border-radius:50%;background:#3a3a3a;font:600 11px/22px var(--sans);text-align:center;font-style:normal;color:var(--t2)}
+.chat{display:flex;flex-direction:column;min-width:0;position:relative}
+.top{display:flex;align-items:center;justify-content:space-between;height:46px;padding:0 16px;border-bottom:1px solid transparent}
+.top .tt{font-size:14.4px;color:var(--t1);display:flex;gap:8px;align-items:center}
+.top .tt::after{content:"";width:6px;height:6px;border:solid var(--t2);border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-2px)}
+.top .sh{font-size:13.6px;color:var(--t2);display:flex;gap:7px;align-items:center}
+.top .sh svg.ic{width:15px;height:15px}
+.scroll{flex:1;overflow:hidden;padding:18px 0 0}
+.col{max-width:600px;margin:0 auto;padding:0 28px;display:grid;gap:16px;align-content:start}
+.ub{justify-self:end;max-width:86%;background:var(--bub);border-radius:12.75px;padding:11px 16px;font:400 15.4px/1.45 var(--sans);color:var(--t1)}
+.reply{font:400 16px/1.5 var(--serif);color:var(--t1)}
+.reply p+p,.reply p+ul{margin-top:8px}
+.reply ul{margin:6px 0 0;padding-left:20px}
+.reply li{margin:3px 0}
+.reply b{font-weight:500}
+.tl{display:flex;align-items:center;gap:8px;font:400 15px/1.4 var(--sans);color:var(--t2);user-select:none}
+.tl .dots{display:inline-flex;gap:3px;width:22px}
+.tl .dots i{width:4px;height:4px;border-radius:50%;background:var(--clay);animation:pl 1.1s infinite}
+.tl .dots i:nth-child(2){animation-delay:.15s}.tl .dots i:nth-child(3){animation-delay:.3s}
+@keyframes pl{0%,80%,100%{opacity:.25}40%{opacity:1}}
+.tl .ck{width:22px;display:inline-grid;place-items:center}
+.tl .ck::before{content:"";width:5px;height:9px;border:solid var(--t2);border-width:0 1.5px 1.5px 0;transform:rotate(45deg) translateY(-1px)}
+.tl .tm{font-size:13.6px;color:var(--t3)}
+.tl .chev{width:6px;height:6px;border:solid var(--t3);border-width:0 1.5px 1.5px 0;transform:rotate(-45deg);transition:transform .25s var(--ease)}
+.tl.open .chev{transform:rotate(45deg)}
+.tl button{display:flex;align-items:center;gap:8px;color:inherit}
+.files{display:grid;gap:2px;margin:-6px 0 0 30px;overflow:hidden;transition:max-height .45s var(--ease),opacity .3s}
+.files.shut{max-height:0;opacity:0;margin-top:-16px}
+.fr{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:center;padding:5px 0;font-size:13.6px;color:var(--t2);opacity:0;transform:translateY(3px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.fr.on{opacity:1;transform:none}
+.fr svg.fi{width:14px;height:14px;stroke:var(--t3)}
+.fr.hit svg.fi{stroke:var(--clay)}
+.fr code{font:400 12.8px var(--mono);color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fr span{font-size:13px;color:var(--t3);white-space:nowrap}
+.fr.hit code{color:var(--clay)}
+.comp{margin:10px 16px 0;background:var(--comp);border-radius:14.9px;padding:12px 14px 10px;display:grid;gap:14px}
+.comp .ph{font-size:15px;color:var(--t3)}
+.comp .row{display:flex;justify-content:space-between;align-items:center;font-size:13.4px;color:var(--t2)}
+.comp .row b{font-weight:400;color:var(--t1)}
+.comp .plus{width:18px;height:18px;position:relative}
+.comp .plus::before,.comp .plus::after{content:"";position:absolute;left:8px;top:2px;width:1.5px;height:14px;background:var(--t2)}
+.comp .plus::after{transform:rotate(90deg)}
+.foot{text-align:center;font-size:12.4px;color:var(--t3);padding:8px 0 10px}
+.panel{border-left:1px solid var(--hair);padding:14px 16px;display:grid;align-content:start;gap:22px;min-width:0}
+.panel .ph4{margin:0 0 10px;font:500 13.8px var(--sans);color:var(--t1)}
+.pl{display:grid;gap:9px;position:relative;padding-left:20px}
+.pl::before{content:"";position:absolute;left:4px;top:6px;bottom:6px;width:1px;background:var(--hair)}
+.pl div{font-size:14.2px;line-height:1.35;color:var(--t2);position:relative}
+.pl div::before{content:"";position:absolute;left:-19px;top:6px;width:7px;height:7px;border-radius:50%;background:var(--app);box-shadow:inset 0 0 0 1.4px var(--t3)}
+.pl div.now{color:var(--t1)}.pl div.now::before{background:var(--clay);box-shadow:none}
+.pl div.done{color:var(--t3)}
+.pl div.done::before{background:var(--t3);box-shadow:none}
+.used{display:grid;gap:8px}
+.used div{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:14px;color:var(--t2);transition:color .3s}
+.used div svg.ic{width:15px;height:15px;stroke:var(--t3);transition:stroke .3s}
+.used div em{font-style:normal;font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px}
+.used div.lit{color:var(--t1)}.used div.lit svg.ic{stroke:var(--t1)}
+.seq{opacity:0;transform:translateY(4px);transition:opacity .45s var(--ease),transform .45s var(--ease)}
+.seq.on{opacity:1;transform:none}
+.cap2{font-size:14px;color:var(--mut);margin-top:12px;max-width:70ch}
+
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.pair .app{height:470px}
+.lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;font:500 13px var(--mono);color:var(--mut)}
+.lab b{font:600 15px var(--sans);color:var(--ink);letter-spacing:-.01em}
+.pair .lab.os b{color:var(--acc)}
+
+.depth{position:relative;height:640px}
+.finder{position:absolute;right:0;top:0;width:72%;height:330px;background:#232323;border-radius:12px;box-shadow:0 0 0 1px var(--hair),0 30px 70px -30px rgba(0,0,0,.8);overflow:hidden;font:400 13.4px/1.4 var(--sans);color:var(--t1)}
+.finder .fb{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;background:#2a2a2a;border-bottom:1px solid var(--hair);font-size:13px;color:var(--t2)}
+.finder .fb .d{display:flex;gap:7px;margin-right:12px}.finder .fb .d i{width:11px;height:11px;border-radius:50%;background:#3d3d3d}
+.cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));height:calc(100% - 40px)}
+.cols div{border-right:1px solid var(--hair);padding:6px}
+.cols div:last-child{border-right:0}
+.it{display:flex;align-items:center;gap:8px;padding:4px 8px;border-radius:6px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background .3s,color .3s}
+.it i{width:14px;height:11px;border-radius:2px;background:#5a8fd8;flex:none}
+.it svg.ic{width:15px;height:15px;stroke:var(--t2)}
+.it.sel{background:#3a3a3a}
+.it.hit{background:rgba(217,119,87,.24);color:#fff;box-shadow:inset 0 0 0 1px rgba(217,119,87,.6)}
+.depth .app{position:absolute;left:0;top:190px;width:56%;height:450px;grid-template-columns:minmax(0,1fr);z-index:2}
+svg.link{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
+svg.link path{fill:none;stroke:var(--clay);stroke-width:1.2;stroke-dasharray:4 4;opacity:.85}
+
+@media (max-width:1100px){.app{grid-template-columns:minmax(0,1fr) 250px}.app .side{display:none}}
+@media (max-width:860px){
+  .brief,.mh{grid-template-columns:minmax(0,1fr)}
+  .app{grid-template-columns:minmax(0,1fr);height:auto;min-height:520px}.app .panel{display:none}
+  .pair{grid-template-columns:minmax(0,1fr)}
+  .depth{height:auto}.finder{position:relative;width:100%;height:300px}.depth .app{position:relative;top:auto;width:100%;margin-top:-60px;height:auto;min-height:480px}
+  svg.link{display:none}
+}
+@media (prefers-reduced-motion:reduce){.seq,.fr,.files{transition-duration:.9s}.tl .dots i{animation-duration:2s}}
+
+.top{gap:12px}.top .tt{flex:none}
+.mem{flex:1;display:flex;align-items:center;gap:8px;justify-content:flex-end;font:400 12.8px var(--sans);color:var(--t3);min-width:0}
+.mem .mbar{width:min(140px,30%);height:6px;border-radius:3px;background:rgba(255,255,255,.07);display:flex;overflow:hidden}
+.sg{height:100%;width:0;transition:width 1s var(--ease)}
+.sg.r{background:#7d818c}.sg.f{background:var(--clay)}.sg.c{background:#d9d6cf}
+.mem .pc{font-variant-numeric:tabular-nums;min-width:30px;text-align:right;color:var(--t2)}
+.mem.drain .pc{color:var(--clay)}
+.closed{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%) scale(.96);background:#2a2a2a;color:var(--t1);font:500 14px var(--sans);padding:10px 18px;border-radius:999px;box-shadow:0 0 0 1px var(--hair);opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .4s var(--ease),transform .4s var(--ease)}
+.closed.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.col>*{animation:in .5s var(--ease) both}
+@keyframes in{from{opacity:0;transform:translateY(4px)}}
+.col.fade>*{opacity:0;transition:opacity .6s}
+.fr2{display:flex;gap:8px;align-items:center;margin:-8px 0 0 30px;font-size:13.6px;color:var(--t2)}.fr2 code{font:400 12.8px var(--mono);color:var(--clay)}
+.cmd{font:500 14px var(--mono);color:var(--clay)}
+.pair .app{height:610px}
+.steps{display:flex;align-items:center;gap:12px;list-style:none;margin:0;padding:0}
+.steps li{display:inline-flex;align-items:center;gap:10px;font:500 15px var(--sans);color:var(--mut);white-space:nowrap;transition:color .4s}
+.steps .num{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;font:500 12.5px var(--mono);box-shadow:inset 0 0 0 1px var(--line2);transition:background .4s,color .4s,box-shadow .4s}
+.steps li.ln{flex:1;height:2px;border-radius:1px;background:var(--line);overflow:hidden;min-width:16px}
+.steps li.ln i{display:block;height:100%;width:0;background:var(--acc)}
+.steps li.now{color:var(--ink)}.steps li.now .num{background:var(--acc);color:#16171d;box-shadow:none}
+.steps li.done{color:var(--ink2)}.steps li.done .num{background:rgba(255,255,255,.1);color:var(--ink);box-shadow:none}
+.cap{font:400 clamp(18px,1.6vw,22px)/1.35 var(--sans);letter-spacing:-.01em;color:var(--ink);margin:22px 0 22px;min-height:1.35em;transition:opacity .35s}
+.cap.out{opacity:0}
+.sys{border-radius:12px;background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px var(--hair);padding:10px 12px;display:grid;gap:4px;font-size:13.6px}
+.sys .hd2{display:flex;align-items:center;gap:8px;color:var(--t1);font-weight:500;margin-bottom:2px}
+.sys .hd2 em{font-style:normal;font-weight:400;color:var(--t3);margin-left:auto;font-size:12.8px}
+.sys .sr{display:grid;grid-template-columns:14px auto minmax(0,1fr);gap:8px;align-items:center;color:var(--t2);animation:in .45s var(--ease) both}
+.sys .sr b{font:500 12px var(--mono);color:var(--t3);text-align:center}
+.sys .sr code{font:400 12.8px var(--mono);color:var(--t1)}
+.sys .sr span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sys .sr.hit code,.sys .sr.hit b{color:var(--clay)}
+.sys.save{box-shadow:inset 0 0 0 1px rgba(217,119,87,.4)}
+.sys.lost .sr.plain code{text-decoration:none}
+.col{padding-bottom:18px}
+.pair .scroll{min-height:0}.pair .app{grid-template-rows:minmax(0,1fr)}.pair .chat{min-height:0}
+.sys.lost .hd2{color:var(--t2)}.sys.lost .sr b{color:#e0796a}.sys.lost .sr span{color:var(--t3)}.sys.lost .sr code{color:var(--t2);text-decoration:line-through;text-decoration-color:rgba(224,121,106,.7)}
+.note{display:inline-flex;justify-self:start;align-items:center;gap:8px;font-size:12.8px;color:var(--t2);padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.05);margin-top:-8px}
+.note b{font-weight:500;color:var(--t3)}.note.bad{color:#f0a093;background:rgba(224,121,106,.12)}.note.good{color:var(--clay);background:rgba(217,119,87,.12)}
+.key{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;font-size:13.5px;color:var(--mut);align-items:center}
+.key span{display:inline-flex;align-items:center;gap:8px}.key i{width:10px;height:6px;border-radius:2px}
+.key button{margin-left:auto;font:500 13px var(--mono);color:var(--ink2);padding:9px 14px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line2);min-height:40px}
+@media (hover:hover){.key button:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink2)}}
+@media (max-width:860px){.steps{gap:8px}.steps li:not(.ln){font-size:0;gap:0}.steps li.now{font-size:14px;gap:8px}.mem .ml{display:none}.top .sh{display:none}.mem .mbar{width:100px}.pair .app{height:420px;min-height:0}}
+.brief .dek{font-size:clamp(18px,1.5vw,21px);line-height:1.45;color:var(--ink2);margin-top:16px;max-width:60ch}
+.intro{position:absolute;inset:0;z-index:30;display:grid;place-items:center;border-radius:14px;background:rgba(10,11,14,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:opacity .5s var(--ease)}
+.intro.off{opacity:0;pointer-events:none}
+.intro button{display:inline-flex;align-items:center;gap:12px;font:500 17px var(--sans);color:#16171d;background:var(--ink);padding:14px 24px 14px 18px;border-radius:999px;min-height:48px;box-shadow:0 20px 50px -20px rgba(0,0,0,.8)}
+.intro button svg{width:14px;height:16px;fill:var(--acc);margin-left:4px}
+.intro button span{color:#5c5f66;font-weight:400;font-size:14px}
+@media (hover:hover){.intro button:hover{background:#fff}}
+.endc{position:absolute;inset:0;z-index:31;display:grid;place-items:center;text-align:center;border-radius:14px;background:rgba(10,11,14,.84);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .9s var(--ease);padding:24px}
+.endc>div{transform:translateY(12px);transition:transform .9s var(--ease)}
+.endc p{font:600 clamp(28px,3.4vw,48px)/1.06 var(--sans);letter-spacing:-.04em;color:var(--ink);max-width:24ch;margin:0 auto;text-wrap:balance}
+.endc p i{font-style:normal;color:var(--acc)}
+.endc button{margin-top:26px;font:500 13px var(--mono);color:var(--ink2);padding:9px 16px;border-radius:999px;box-shadow:inset 0 0 0 1px var(--line2);min-height:40px}
+@media (hover:hover){.endc button:hover{color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink2)}}
+.endc.on{opacity:1;pointer-events:auto}.endc.on>div{transform:none}
+.gnote{max-width:68ch;color:var(--mut);font-size:13.5px;padding-block:28px 64px}
+.cap{max-width:58ch}
+
+.cy-hero{padding-block:40px 0;text-align:center}
+.cy-hero .kick{font:500 12.5px var(--mono);color:var(--mut)}
+.cy-hero h1{margin-top:12px;font:600 clamp(40px,5vw,72px)/.98 var(--sans);letter-spacing:-.05em}
+.cy-hero .dek{margin:16px auto 0;color:var(--ink2);font-size:clamp(17px,1.5vw,20px);line-height:1.45;max-width:50ch}
+.cy-wrap{position:relative;max-width:1240px;margin:28px auto 0;padding:0 16px}
+.cy-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;transition:filter .5s,opacity .5s}
+.cy-wrap.pre .cy-grid{filter:blur(2px) saturate(.6);opacity:.45}
+.cy-lbl{display:flex;align-items:center;gap:8px;margin:0 2px 10px;font:500 12px var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.cy-lbl i{width:7px;height:7px;border-radius:50%;background:#3a3c44;transition:background .3s,box-shadow .3s}
+.cy-busy .cy-lbl.b i{background:#ff6a4d;box-shadow:0 0 10px rgba(255,106,77,.9)}
+.cy-lbl b{margin-left:auto;font-weight:500;text-transform:none;letter-spacing:0;color:var(--t3)}
+.cy-app{height:720px;display:grid;grid-template-columns:172px minmax(0,1fr);background:#191919;border-radius:14px;box-shadow:0 0 0 1px rgba(255,255,255,.08),0 50px 100px -40px rgba(0,0,0,.9);overflow:hidden;color:#f2f1ee;font:400 15px/1.5 var(--sans)}
+.cy-side{background:#141414;border-right:1px solid rgba(255,255,255,.06);padding:12px 8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.cy-brand{padding:4px 8px 14px;font:500 20px/1 var(--serif);letter-spacing:-.01em}
+.cy-side a{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;font-size:13.8px;color:#c9c9cc;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy-side a.on{background:#262626;color:#f2f1ee}
+.cy-new span{width:20px;height:20px;border-radius:50%;background:#e85d42;color:#fff;display:grid;place-items:center;font:500 15px/1 var(--sans)}
+.cy-g{padding:16px 8px 6px;font-size:12.5px;color:#8f8f94}
+.cy-me{margin-top:auto;display:flex;align-items:center;gap:8px;padding:8px;font-size:13.5px;color:#c9c9cc}.cy-me i{width:24px;height:24px;border-radius:50%;background:#3a3a3a;color:#e2e2e4;font:600 11.5px/24px var(--sans);text-align:center;font-style:normal}
+.cy-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.cy-top{height:48px;flex:none;display:flex;align-items:center;gap:6px;padding:0 18px;font:500 14.5px var(--sans);color:#f2f1ee}
+.cy-top svg{width:12px;height:12px;fill:none;stroke:#8f8f94;stroke-width:1.4}.cy-top em{margin-left:auto;font-style:normal;font-size:13px;color:#c9c9cc;padding:5px 11px;border-radius:8px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.cy-sc{flex:1;min-height:0;overflow-y:auto;scroll-behavior:smooth;scrollbar-width:thin}
+.cy-col{max-width:600px;margin:0 auto;padding:10px 22px 14px;display:flex;flex-direction:column;gap:14px}
+.cy-hello{margin:70px auto 0;display:flex;align-items:center;gap:12px;font:400 30px/1.1 var(--serif);color:#f2f1ee}.cy-hello b{font-weight:400}
+.cy-spark{color:#ff6a4d;font-size:28px;line-height:1;display:inline-block}.cy-spark.sm{font-size:14px}
+.cy-ub{align-self:flex-end;max-width:85%;padding:10px 15px;border-radius:14px;background:#2b2b2b;color:#f2f1ee;animation:in .35s var(--ease) both}
+.cy-ub code{font:500 14px var(--mono);color:#ffb09f}
+.cy-me2{align-self:flex-end;max-width:85%;padding:10px 15px;border-radius:14px;background:#2b2b2b;animation:in .35s var(--ease) both}
+.cy-me2::before{content:"Matthew answers";display:block;font:500 11px var(--mono);color:#8f8f94;margin-bottom:2px}
+.cy-wk{display:flex;align-items:center;gap:9px;font-size:14px;color:#b4b4b8;animation:in .3s var(--ease) both}
+.cy-wk .cy-spark{font-size:17px;animation:cyspin 2.4s linear infinite}@keyframes cyspin{to{transform:rotate(360deg)}}
+.cy-wk.done .cy-spark{animation:none;opacity:.6}
+.cy-wk .tx{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e2e2e4;animation:cysh 1.4s ease-in-out infinite}
+.cy-wk.done .tx{animation:none;color:#b4b4b8}@keyframes cysh{50%{color:#a0a0a4}}
+.cy-wk a{margin-left:auto;flex:none;font-size:13px;color:#ffb09f;text-decoration:none;display:none}
+.cy-rp{font:400 16.5px/1.6 var(--serif);color:#f2f1ee;animation:in .45s var(--ease) both}
+.cy-q,.cy-sk{padding:13px 15px;border-radius:12px;background:#262626;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);font:400 16px/1.5 var(--serif);animation:in .35s var(--ease) both}
+.cy-q span{display:block;font:500 11px var(--mono);color:#8f8f94;margin-bottom:4px;letter-spacing:.04em}
+.cy-x{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:14px;color:#8f8f94;animation:in .3s var(--ease) both}
+.cy-x s{text-decoration-color:rgba(255,106,77,.9)}.cy-x b{color:#ffb09f;font:600 15px/1 var(--sans)}
+.cy-chip{font:500 12.5px var(--sans);color:#ffb8a6;padding:3px 10px;border-radius:999px;background:rgba(255,106,77,.14);box-shadow:inset 0 0 0 1px rgba(255,106,77,.45)}
+.cy-brief{border-radius:12px;background:#262626;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);overflow:hidden;animation:in .4s var(--ease) both}
+.cy-bh{display:flex;justify-content:space-between;gap:10px;padding:11px 15px;border-bottom:1px solid rgba(255,255,255,.07);font-size:13px;color:#8f8f94}.cy-bh b{font:500 15px var(--serif);color:#f2f1ee}
+.cy-bi{display:flex;gap:12px;align-items:flex-start;padding:10px 15px}.cy-bi i{flex:none;width:8px;height:8px;margin-top:7px;border-radius:50%}
+.cy-bi i.a{background:#7aa7ff}.cy-bi i.b{background:#ff6a4d}.cy-bi i.c{background:#e8c26a}
+.cy-bi b{display:block;font-weight:500;font-size:14.5px}.cy-bi span{font-size:13.5px;color:#8f8f94}
+.cy-pl,.cy-as{display:grid;gap:6px;animation:in .35s var(--ease) both}
+.cy-pl div{display:grid;grid-template-columns:104px 90px 1fr;gap:10px;align-items:baseline;padding:9px 12px;border-radius:10px;background:#262626;font-size:14px}.cy-pl span{color:#8f8f94;font-size:13px}.cy-pl em{font-style:normal}
+.cy-as div{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:9px 12px;border-radius:10px;background:#262626;font-size:14px}.cy-as span{color:#8f8f94}
+.cy-nw,.cy-mv{margin:0;padding:0;list-style:none;display:grid;gap:6px;animation:in .35s var(--ease) both}
+.cy-nw li,.cy-mv li{display:flex;gap:10px;justify-content:space-between;padding:9px 12px;border-radius:10px;background:#262626;font-size:14px}.cy-nw span{flex:none;font:500 12px var(--mono);color:#8f8f94}
+.cy-mv li{justify-content:flex-start}.cy-mv li::before{content:"";flex:none;width:6px;height:6px;margin-top:8px;border-radius:50%;background:#ff6a4d}
+.cy-sk code{display:block;font:500 12px var(--mono);color:#ffb09f}.cy-sk b{display:block;margin-top:5px;font:600 17px var(--sans)}.cy-sk span{font:400 13.5px var(--sans);color:#8f8f94}
+.cy-end{padding:14px 16px;border-radius:12px;background:rgba(255,106,77,.1);box-shadow:inset 0 0 0 1px rgba(255,106,77,.45);font:500 16px/1.4 var(--sans);animation:in .45s var(--ease) both}
+.cy-end small{display:block;font:500 11px var(--mono);color:#ffb8a6;letter-spacing:.06em;margin-bottom:5px}
+.cy-end button{margin-top:12px;min-height:40px;padding:8px 16px;border-radius:999px;background:#f2f1ee;color:#191919;font:600 14px var(--sans)}
+.cy-ft{flex:none;padding:6px 18px 16px}
+.cy-pick{max-width:600px;margin:0 auto 10px}
+.cy-pk{margin:0 4px 8px;font:500 11.5px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:#8f8f94}
+.cy-chs{display:grid;gap:6px}
+.cy-c{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:9px 13px;border-radius:12px;background:#141414;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);text-align:left;font:500 14.5px/1.35 var(--sans);color:#f2f1ee;transition:background .2s,box-shadow .2s;animation:in .35s var(--ease) both}
+.cy-c i{flex:none;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font:500 11.5px var(--mono);font-style:normal;color:#c9c9cc;background:#262626}
+.cy-c:nth-child(2){animation-delay:.07s}.cy-c:nth-child(3){animation-delay:.14s}
+@media (hover:hover){.cy-c:hover{background:rgba(255,106,77,.14);box-shadow:inset 0 0 0 1px rgba(255,106,77,.7)}.cy-c:hover i{background:#ff6a4d;color:#141414}}
+.cy-c:focus-visible,.cy-start:focus-visible,.cy-end button:focus-visible{outline:2px solid #ff6a4d;outline-offset:2px}
+.cy-c em{margin-left:auto;flex:none;font:500 11px var(--mono);font-style:normal;letter-spacing:.04em;color:#8f8f94;padding:2px 7px;border-radius:6px;background:#262626}
+.cy-c.risk{box-shadow:inset 0 0 0 1px rgba(255,106,77,.4)}.cy-c.risk em{color:#ffb8a6;background:rgba(255,106,77,.16)}
+.cy-c.done{opacity:.45;cursor:default}.cy-c.done i{background:transparent;color:#7fd4a8}
+.cy-main{position:relative}
+.cy-toast{position:absolute;left:50%;top:58px;transform:translate(-50%,-8px);display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;background:#262626;box-shadow:0 0 0 1px rgba(255,106,77,.5),0 12px 30px -10px #000;font-size:13px;color:#f2f1ee;white-space:nowrap;opacity:0;pointer-events:none;z-index:3}
+.cy-toast b{font:500 12.5px var(--mono);color:#ffb8a6}.cy-toast .cy-spark{font-size:14px}
+.cy-toast.on{animation:cyt 2.6s var(--ease) both}@keyframes cyt{0%{opacity:0;transform:translate(-50%,-8px)}12%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-4px)}}
+.cy-who{display:block;margin-bottom:-6px;font:600 10.5px var(--mono);letter-spacing:.08em;color:#e8c26a}.cy-who.r{color:#ffb8a6}
+.cy-chs.wait .cy-c:first-child{animation:cyp 2s ease-in-out infinite}@keyframes cyp{50%{box-shadow:inset 0 0 0 1px rgba(255,106,77,.85)}}
+.cy-comp{max-width:600px;margin:0 auto;padding:12px 14px 10px;border-radius:18px;background:#262626;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.cy-ta{min-height:24px;font-size:15.5px;color:#f2f1ee;white-space:nowrap;overflow:hidden}.cy-ph{color:#8f8f94}
+.cy-ta.typing::after{content:"";display:inline-block;width:1.5px;height:17px;margin-left:1px;vertical-align:-3px;background:#f2f1ee;animation:cyb 1s steps(1) infinite}@keyframes cyb{50%{opacity:0}}
+.cy-crow{display:flex;align-items:center;gap:10px;margin-top:10px;color:#8f8f94;font-size:14px}
+.cy-plus,.cy-tool{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.cy-model{margin-left:auto;color:#c9c9cc;font-size:13.5px}
+.cy-send{width:32px;height:32px;border-radius:9px;background:#4a3530;color:#c9c9cc;display:grid;place-items:center;font:600 15px var(--sans);transition:background .2s}.cy-send.hot{background:#e85d42;color:#fff}
+.cy-back{display:flex;flex-direction:column;min-width:0}
+.cy-finder{height:368px;display:flex;flex-direction:column;background:#1e1e20;border-radius:12px;box-shadow:0 0 0 1px rgba(255,255,255,.1),0 30px 60px -30px rgba(0,0,0,.9);overflow:hidden;color:#e6e6e8;font:400 13px/1.3 var(--sans)}
+.cy-fbar{height:40px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2a2a2d;border-bottom:1px solid rgba(0,0,0,.5)}
+.cy-tl{display:flex;gap:7px}.cy-tl i{width:11px;height:11px;border-radius:50%;background:#ff5f57}.cy-tl i:nth-child(2){background:#febc2e}.cy-tl i:nth-child(3){background:#28c840}
+.cy-nav{color:#a1a1a6;font-size:17px;letter-spacing:6px}.cy-fbar b{font-weight:600;font-size:13px}.cy-fsr{margin-left:auto;color:#8e8e93}
+.cy-fbody{flex:1;min-height:0;display:grid;grid-template-columns:118px minmax(0,1fr)}
+.cy-fside{background:#252528;padding:8px 6px;border-right:1px solid rgba(0,0,0,.45);display:flex;flex-direction:column;gap:1px;min-width:0}
+.cy-fside p{margin:8px 6px 3px;font-size:11px;font-weight:600;color:#8e8e93}
+.cy-fside a{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:6px;font-size:12.5px;color:#d1d1d6;transition:background .3s}
+.cy-fside a.on{background:rgba(255,255,255,.1)}.cy-fside a i{width:7px;height:7px;border-radius:50%;background:#48484a;transition:background .3s,box-shadow .3s}
+.cy-fside a.live{background:rgba(52,199,89,.16)}.cy-fside a.live i{background:#34c759;box-shadow:0 0 8px #34c759}
+.cy-fi{width:18px;height:15px;flex:none}
+.cy-cols{position:relative;display:flex;overflow-x:auto;scroll-behavior:smooth;scrollbar-width:none}
+.cy-cl{flex:none;width:148px;border-right:1px solid rgba(255,255,255,.07);padding:5px 4px;overflow-y:auto}
+.cy-it{display:flex;align-items:center;gap:6px;height:24px;padding:0 6px;border-radius:5px;white-space:nowrap;color:#e6e6e8;transition:background .25s}
+.cy-it span{overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+.cy-it .ch{color:#8e8e93;font-size:11px}
+.cy-it.path{background:rgba(255,255,255,.09)}
+.cy-it.sel{background:#0a64d8;color:#fff}.cy-it.sel .ch{color:#fff}
+.cy-it.sav{background:#a8452c;color:#fff}.cy-it.skl{background:#8a6a12;color:#fff}
+.cy-it.fresh span::after{content:" ●";color:#ff9f6b;font-size:10px}
+.cy-it.sav.fresh span::after{color:#fff}
+.cy-pg{width:13px;height:16px;flex:none;border-radius:2px;background:#f2f2f4;position:relative}
+.cy-pg::after{content:attr(data-e);position:absolute;left:0;right:0;bottom:2px;text-align:center;font:700 5px/1 var(--sans);color:#636366;text-transform:uppercase}
+.cy-pg.pdf::after{color:#e0443e}.cy-pg.doc::after{color:#2b6fd6}
+.cy-pv{flex:none;width:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;text-align:center;animation:in .3s var(--ease) both}
+.cy-pv .big{width:52px;height:64px;border-radius:4px;background:#f2f2f4;display:grid;place-items:end center;padding-bottom:8px;font:700 10px var(--sans);color:#636366;text-transform:uppercase}
+.cy-pv b{font-size:13px;font-weight:600;word-break:break-all}.cy-pv span{font-size:12px;color:#8e8e93}
+.cy-pv em{font-style:normal;font-size:11.5px;padding:2px 8px;border-radius:999px}
+.cy-pv em.r{background:rgba(10,100,216,.25);color:#9cc4ff}.cy-pv em.w{background:rgba(255,159,107,.2);color:#ffbf9a}.cy-pv em.s{background:rgba(232,194,106,.2);color:#f3d58c}
+.cy-path{flex:none;display:flex;align-items:center;gap:4px;height:28px;padding:0 10px;border-top:1px solid rgba(0,0,0,.45);background:#232326;overflow-x:auto;scrollbar-width:none;white-space:nowrap;font-size:12px;color:#c7c7cc}
+.cy-path span{display:inline-flex;align-items:center;gap:5px;padding:2px 6px;border-radius:5px;animation:in .25s var(--ease) both}.cy-path .cy-fi{width:14px;height:12px}.cy-path .cy-pg{width:10px;height:13px}
+.cy-path b{color:#8e8e93;font-weight:400}.cy-path span.cur{color:#fff}.cy-path span.cur.sel{background:#0a64d8}.cy-path span.cur.sav{background:#a8452c}.cy-path span.cur.skl{background:#8a6a12}
+.cy-gr{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;animation:in .35s var(--ease) both}.cy-gr div{padding:9px 12px;border-radius:10px;background:#262626;font-size:13.5px}.cy-gr b{display:block;font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:#8f8f94}.cy-gr span{color:#7fd4a8}.cy-gr .miss span{color:#ffb09f}
+.cy-doc{border-radius:12px;background:#262626;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);overflow:hidden;animation:in .4s var(--ease) both}
+.cy-dh{display:flex;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.07);font-size:12.5px;color:#8f8f94}.cy-dh b{font:500 12.5px var(--mono);color:#e2e2e4}
+.cy-dl{display:grid;grid-template-columns:1.1fr 1fr;gap:12px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.05)}.cy-dl:last-child{border-bottom:0}
+.cy-dl p{margin:0;font:400 14.5px/1.45 var(--serif);color:#c9c9cc}.cy-dl em{font-style:normal;font-size:13px;line-height:1.4;color:#ffd2c7;padding-left:10px;border-left:2px solid #ff6a4d}
+.cy-x.ok b{color:#7fd4a8}.cy-chip.ok{color:#a8e6c6;background:rgba(127,212,168,.12);box-shadow:inset 0 0 0 1px rgba(127,212,168,.4)}
+.cy-fstat{flex:none;height:26px;display:flex;align-items:center;padding:0 12px;border-top:1px solid rgba(0,0,0,.45);background:#252528;font-size:11.5px;color:#a1a1a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cy-duo{margin-top:14px;display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:14px;flex:1}
+.cy-juke,.cy-think{height:340px;border-radius:12px;background:#121216;box-shadow:inset 0 0 0 1px rgba(255,255,255,.09);display:flex;flex-direction:column;overflow:hidden}
+.cy-jh{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:12px 14px 8px}.cy-jh b{font:600 13.5px var(--sans);color:var(--ink)}.cy-jh span{font:500 11.5px var(--mono);color:var(--t3)}
+.cy-drum{position:relative;flex:1;overflow:hidden;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);perspective:400px}
+.cy-band{position:absolute;left:10px;right:10px;top:50%;height:34px;margin-top:-17px;border-radius:9px;background:rgba(232,194,106,.08);box-shadow:inset 0 0 0 1px rgba(232,194,106,.35);transition:background .3s,box-shadow .3s}
+.cy-band.hit{background:rgba(232,194,106,.22);box-shadow:inset 0 0 0 1px rgba(232,194,106,.9),0 0 24px rgba(232,194,106,.25)}
+.cy-reel{position:absolute;left:0;right:0;top:50%;will-change:transform}
+.cy-reel div{height:34px;display:flex;align-items:center;gap:8px;padding:0 22px;font:500 13.5px var(--mono);color:#7d808a;white-space:nowrap}
+.cy-reel div::before{content:"";flex:none;width:18px;height:18px;border-radius:50%;background:radial-gradient(circle,#121216 2.5px,#2c2d33 3px,#2c2d33 8px,#3a3b42 9px)}
+.cy-reel div.hit{color:#ffe6a8}.cy-reel div.hit::before{background:radial-gradient(circle,#121216 2.5px,#e8c26a 3px,#e8c26a 8px,#f3d58c 9px)}
+.cy-jl{flex:none;padding:10px 14px 12px;border-top:1px solid rgba(255,255,255,.07);font:500 12.5px var(--mono);color:var(--t3);min-height:40px;display:flex;flex-wrap:wrap;gap:6px}
+.cy-jl b{color:#ffe6a8;font-weight:500;padding:2px 8px;border-radius:999px;background:rgba(232,194,106,.12);box-shadow:inset 0 0 0 1px rgba(232,194,106,.35)}
+.cy-tt{flex:1;overflow-y:auto;padding:4px 16px 14px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin}
+.cy-tt p{margin:0;font:italic 400 15px/1.5 var(--serif);color:#c9c9cc;transition:color .6s,opacity .6s}
+.cy-tt p.old{color:#85858a}
+.cy-tt p.rule{font-style:normal;font-family:var(--sans);font-size:13.5px;color:#ffb8a6}
+
+.cy-gate{position:absolute;inset:0 16px 30px;display:grid;place-items:center;z-index:5;transition:opacity .5s}
+.cy-gate>div{display:grid;justify-items:center;gap:14px;padding:28px 34px;border-radius:20px;background:rgba(10,11,14,.82);box-shadow:0 0 0 1px rgba(255,255,255,.1),0 40px 80px -30px #000;text-align:center}
+.cy-gate p{margin:0;font:600 clamp(22px,2.4vw,30px)/1.15 var(--sans);letter-spacing:-.03em}
+.cy-gate small{font-size:13.5px;color:var(--mut)}
+.cy-start{display:inline-flex;align-items:center;gap:10px;min-height:52px;padding:14px 26px;border-radius:999px;background:#ff6a4d;color:#1a1310;font:600 17px var(--sans);box-shadow:0 10px 30px -10px rgba(255,106,77,.8);transition:transform .2s,background .2s}
+@media (hover:hover){.cy-start:hover{background:#ff8466;transform:translateY(-1px)}}
+.cy-start span{font-size:13px}
+.cy-gate.off{opacity:0;pointer-events:none}
+.cy-below{margin:12px 2px 0;font-size:13.5px;color:var(--mut)}
+@media (max-width:1060px){.cy-grid{grid-template-columns:minmax(0,1fr)}.cy-app{height:640px}}
+@media (max-width:640px){
+ .cy-app{grid-template-columns:minmax(0,1fr);height:600px}.cy-side{display:none}
+ .cy-col{padding:10px 14px 12px}.cy-ft{padding:6px 12px 12px}.cy-hello{font-size:24px;margin-top:40px}
+ .cy-wk a{display:inline}
+ .cy-fbody{grid-template-columns:minmax(0,1fr)}.cy-fside{display:none}
+ .cy-cl{width:150px}.cy-pv{width:150px}
+ .cy-duo{grid-template-columns:minmax(0,1fr)}.cy-juke{height:260px}.cy-think{height:280px}
+ .cy-pl div{grid-template-columns:1fr auto}.cy-pl em{grid-column:1/-1}.cy-as div{grid-template-columns:1fr}
+ .cy-gate{inset:0 16px 30px;align-items:start;padding-top:180px}
+}
+</style>
+<header class="w cy-hero">
+  <p class="kick">Card 13 of 14 · 7.1</p>
+  <h1>Run it yourself</h1>
+  <p class="dek">Boot a chat, ask for the brief, then choose where it goes. The chat is what I see. Everything beside it is what runs behind it.</p>
+</header>
+<div class="cy-wrap" id="stg13">
+ <div class="cy-grid">
+  <div class="cy-front">
+   <p class="cy-lbl"><i></i>What I see</p>
+   <div class="cy-app">
+    <aside class="cy-side" aria-hidden="true">
+     <div class="cy-brand">Claude</div>
+     <a class="cy-new"><span>+</span>New chat</a><a>Chats</a><a>Projects</a><a>Artifacts</a>
+     <div class="cy-g">Recents</div><a class="on" data-recent>New chat</a><a>Website redesign</a><a>Weekly review</a><a>Reading plan</a>
+     <div class="cy-me"><i>M</i>Matthew</div>
+    </aside>
+    <div class="cy-main">
+     <div class="cy-top"><span data-title>New chat</span><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3"/></svg><em>Share</em></div>
+     <div class="cy-sc" data-sc><div class="cy-col" data-col aria-live="polite"><div class="cy-hello"><span class="cy-spark" aria-hidden="true">✻</span><b>Good evening, Matthew</b></div></div></div>
+     <div class="cy-ft">
+      <div class="cy-pick" data-pick hidden><p class="cy-pk">Pick what Matthew says next</p><div class="cy-chs" data-chs></div></div>
+      <div class="cy-comp"><div class="cy-ta" data-ta><span class="cy-ph">Reply to Claude…</span></div>
+       <div class="cy-crow"><span class="cy-plus">+</span><span class="cy-tool">◎</span><span class="cy-model">Opus 5.5</span><span class="cy-send" data-send>↑</span></div></div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="cy-back" id="cyback">
+   <p class="cy-lbl b"><i></i>Behind the chat<b data-st>waiting</b></p>
+   <div class="cy-finder">
+    <div class="cy-fbar"><span class="cy-tl"><i></i><i></i><i></i></span><span class="cy-nav">‹ ›</span><b data-ftitle>Claude</b><span class="cy-fsr">⌕</span></div>
+    <div class="cy-fbody">
+     <aside class="cy-fside"><p>iCloud Drive</p><a class="on"><svg class="cy-fi" viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3.2C1 2 1.9 1 3.1 1h4.2l1.9 2h7.7C18.1 3 19 4 19 5.2V13c0 1.1-.9 2-2.1 2H3.1C1.9 15 1 14 1 12.8z" fill="#59a8f0"/><path d="M1 5.6h18V13c0 1.1-.9 2-2.1 2H3.1C1.9 15 1 14 1 12.8z" fill="#74b9f5"/></svg> Claude</a><p>Connected</p><a data-conn="cal"><i></i>Calendar</a><a data-conn="mail"><i></i>Mail</a><a data-conn="web"><i></i>Web</a></aside>
+     <div class="cy-cols" data-cols></div>
+    </div>
+    <div class="cy-path" data-path aria-label="Path"><span>Claude</span></div><div class="cy-fstat" data-fstat>Nothing open yet</div>
+   </div>
+   <div class="cy-duo">
+    <div class="cy-juke"><div class="cy-jh"><b>Skills</b><span>76 on file</span></div>
+     <div class="cy-drum" aria-hidden="true"><div class="cy-band"></div><div class="cy-reel" data-reel></div></div>
+     <div class="cy-jl" data-jl>None loaded yet</div></div>
+    <div class="cy-think"><div class="cy-jh"><b><span class="cy-spark sm" aria-hidden="true">✻</span> Claude’s thinking</b></div><div class="cy-tt" data-think aria-live="polite"></div></div>
+   </div>
+  </div>
+ </div>
+ <div class="cy-gate" data-gate><div><p>One chat, start to finish.</p><button type="button" class="cy-start" data-start><span>▶</span>Start a chat</button><small>About two minutes. You choose every turn.</small></div></div>
+ <p class="cy-below">My real folder layout, rules and skill names. The class, the company and the chats are invented.</p>
+</div>
+<div class="w"><p class="gnote">Card goal: a visitor boots a chat, asks for the daily brief, then branches through real workflows while the folder, skills and thinking work behind the chat.</p></div>
+<script>
+(function(){
+ var TAGS={"s1": "Study", "j1": "Interview", "k1": "New skill", "s2": "Learn", "s3": "Learn", "sp": "Plan", "sx": "Practice", "sc": "Test a rule", "jy": "Test a rule", "j2": "Research", "jd": "Prepare", "jm": "Practice", "jm2": "Practice", "jx": "Review", "k2": "Learn", "kx": "Test a rule", "kt": "Borrow", "k3": "Build", "ks": "Refine", "ka": "Test a rule", "k4": "Check", "kd": "Save", "hub": "Hub", "wrap": "Finish", "brief": "Brief"},MEM=["rec_notes", "chatf", "ev_weak", "ev_plan", "rec_res", "rec_prep", "md_class-prep", "cat", "hot"],T=[["root", "", "Claude", "d", ""], ["sys", "root", "A. System", "d", ""], ["skills", "sys", "skills", "d", ""], ["sk_start", "skills", "start", "d", ""], ["md_start", "sk_start", "SKILL.md", "f", "md"], ["sk_daily-brief", "skills", "daily-brief", "d", ""], ["md_daily-brief", "sk_daily-brief", "SKILL.md", "f", "md"], ["sk_end", "skills", "end", "d", ""], ["md_end", "sk_end", "SKILL.md", "f", "md"], ["sk_anki", "skills", "anki", "d", ""], ["md_anki", "sk_anki", "SKILL.md", "f", "md"], ["sk_deep-research", "skills", "deep-research", "d", ""], ["md_deep-research", "sk_deep-research", "SKILL.md", "f", "md"], ["sk_docs", "skills", "docs", "d", ""], ["md_docs", "sk_docs", "SKILL.md", "f", "md"], ["sk_grill", "skills", "grill", "d", ""], ["md_grill", "sk_grill", "SKILL.md", "f", "md"], ["sk_exemplar", "skills", "exemplar", "d", ""], ["md_exemplar", "sk_exemplar", "SKILL.md", "f", "md"], ["sk_skill-creator", "skills", "skill-creator", "d", ""], ["md_skill-creator", "sk_skill-creator", "SKILL.md", "f", "md"], ["sk_verification-before-completion", "skills", "verification-before-completion", "d", ""], ["md_verification-before-completion", "sk_verification-before-completion", "SKILL.md", "f", "md"], ["sk_class-prep", "skills", "class-prep", "d", ""], ["md_class-prep", "sk_class-prep", "SKILL.md", "f", "md"], ["cat", "skills", "CATALOG.md", "f", "md"], ["mem", "root", "B. Memory", "d", ""], ["hot", "mem", "HOT.md", "f", "md"], ["chats", "mem", "Chats", "d", ""], ["act", "chats", "Active", "d", ""], ["cfold", "act", "thursday-brief", "d", ""], ["chatf", "cfold", "chat.md", "f", "md"], ["law", "root", "CLAUDE.md", "f", "md"], ["proj", "root", "D. Projects", "d", ""], ["ev", "proj", "Evidence", "d", ""], ["ev_syl", "ev", "syllabus.pdf", "f", "pdf"], ["ev_notes", "ev", "my-notes.md", "f", "md"], ["ev_exams", "ev", "past-exams", "d", ""], ["ev_plan", "ev", "study-plan.md", "f", "md"], ["ev_weak", "ev", "weak-spots.md", "f", "md"], ["rec", "proj", "Recruiting", "d", ""], ["lark", "rec", "larkspur", "d", ""], ["rec_post", "lark", "posting.pdf", "f", "pdf"], ["rec_res", "lark", "research.md", "f", "md"], ["rec_prep", "lark", "prep.md", "f", "md"], ["rec_draft", "lark", "cover-letter-draft.md", "f", "md"], ["rec_notes", "lark", "review-notes.md", "f", "md"], ["car", "proj", "Career", "d", ""], ["car_res", "car", "resume.docx", "f", "doc"], ["net", "proj", "Networking", "d", ""], ["net_c", "net", "contacts.md", "f", "md"], ["cls", "proj", "Class notes", "d", ""], ["cls_a", "cls", "contracts-week-6.md", "f", "md"], ["cls_b", "cls", "torts-week-3.md", "f", "md"], ["trash", "root", "J. Trash", "d", ""]],NEW=["rec_notes", "cfold", "chatf", "ev_plan", "ev_weak", "rec_res", "rec_prep", "sk_class-prep", "md_class-prep"],G={"boot": {"u": "/start", "b": [["t", "New chat. Same first move every time: read the rules, then what\u2019s open."], ["r", "law", "rules"], ["r", "hot", "4 open"], ["s", "start"], ["t", "Give this chat its own memory file, so it never writes over another chat."], ["w", "chatf", "new"], ["t", "Ready. Wait for Matt."]], "r": "Ready. The rules are loaded, four things are open, and this chat has its own memory file.", "ch": [["Give me my daily brief.", "brief"]]}, "brief": {"b": [["s", "daily-brief"], ["t", "Read every calendar, not just one. A partial read counts as none."], ["c", "cal", "4 calendars"], ["c", "mail", "2 need him"], ["t", "Before flagging anything, check sent mail. Maybe he already did it."], ["c", "mail", "sent mail checked"], ["r", "hot", "deadlines"], ["t", "Three things matter today. Lead with those."]], "f": [["brief"]], "r": "Three things stand out. Where do you want to start?", "ch": [["Help me study for my Evidence final.", "s1"], ["Get me ready for Friday\u2019s interview.", "j1"], ["Turn how I prep for class into a skill.", "k1"]]}, "s1": {"b": [["t", "Open the Evidence folder. The past exams show what this professor tests."], ["r", "ev_syl", "what it covers"], ["r", "ev_notes", "12 weeks"], ["r", "ev_exams", "3 exams"], ["t", "All three exams hit hearsay and character evidence. Start there."]], "r": "All three of your professor\u2019s past exams tested hearsay and character evidence. How do you want to study?", "ch": [["Quiz me on hearsay.", "s2"], ["Grade my practice answer.", "sx"], ["Am I free Saturday morning to study?", "sc"]]}, "s2": {"b": [["s", "anki"], ["t", "Ask in the professor\u2019s style. Grade against his notes, not the web."], ["r", "ev_exams", "question"], ["r", "ev_notes", "p. 14"], ["t", "He got the exception but missed one element. Save it for next time."], ["w", "ev_weak", "1 missed element"]], "f": [["q", "Question 1", "A witness repeats what a bystander shouted right after a crash. Hearsay? Does an exception apply?"], ["me", "It\u2019s hearsay, but the excited utterance exception applies."]], "r": "Right on the exception. You left out one element: the bystander must still be under the stress of the crash. Your notes cover it on page 14.", "ch": [["Another question.", "s3"], ["Plan my study time.", "sp"], ["Back to the brief.", "hub"]]}, "s3": {"b": [["r", "ev_exams", "question 2"], ["t", "Check his answer against the rule in his notes."], ["r", "ev_notes", "p. 22"]], "f": [["q", "Question 2", "In a fraud trial, the defendant calls a witness to his reputation for honesty. Allowed?"], ["me", "Yes, honesty matters in a fraud case."]], "r": "Right. Honesty is pertinent to fraud, so he can offer it, and that opens the door for the prosecution to rebut it.", "ch": [["Plan my study time.", "sp"], ["Grade my practice answer.", "sx"], ["Back to the brief.", "hub"]]}, "sp": {"b": [["t", "Plan around everything already on his calendars."], ["c", "cal", "all 4 read"], ["w", "ev_plan", "3 blocks"], ["c", "cal", "3 events added"]], "f": [["h", "<div class=\"cy-pl\"><div><b>Mon, Nov 30</b><span>afternoon</span><em>Hearsay exceptions</em></div><div><b>Wed, Dec 2</b><span>after class</span><em>Character evidence</em></div><div><b>Sat, Dec 5</b><span>morning</span><em>A full past exam, timed</em></div></div>"]], "r": "Three blocks, each one around your classes. They\u2019re on your calendar now.", "ch": [["Quiz me on hearsay.", "s2"], ["Grade my practice answer.", "sx"], ["Back to the brief.", "hub"]]}, "sx": {"b": [["r", "ev_exams", "rubric pattern"], ["t", "He wrote this one himself. Grade it the way the professor would."], ["r", "ev_notes", "p. 14"], ["t", "Issue and rule are right. The analysis skips the stress element."], ["w", "ev_weak", "analysis gap"]], "f": [["me", "The shout is hearsay, but it\u2019s an excited utterance: it was a startling event and the statement relates to it."], ["h", "<div class=\"cy-gr\"><div><b>Issue</b><span>Spotted</span></div><div><b>Rule</b><span>Right</span></div><div class=\"miss\"><b>Analysis</b><span>Skips the stress element</span></div></div>"]], "r": "Strong start. You spotted the issue and stated the rule. Add one sentence showing the bystander was still under the stress of the crash, and it\u2019s complete.", "ch": [["Am I free Saturday morning to study?", "sc"], ["Quiz me on hearsay.", "s2"], ["Back to the brief.", "hub"]]}, "sc": {"b": [["t", "Read every calendar before answering. One calendar is never the whole picture."], ["g", "Every calendar", "pass"], ["c", "cal", "4 of 4 read"], ["t", "Three are clear. The personal one has something at 11."]], "f": [["ok", "Read all 4 calendars", "Every calendar"]], "r": "Free until 11. Your personal calendar has something then, so I\u2019d study 8 to 10:30. Reading just one calendar would have said yes to the whole morning.", "ch": [["Plan my study time.", "sp"], ["Grade my practice answer.", "sx"], ["Back to the brief.", "hub"]]}, "j1": {"b": [["t", "Read the role, his resume and his contacts before saying anything."], ["r", "rec_post", "posting"], ["r", "car_res", "resume"], ["r", "net_c", "1 alum"], ["t", "A fellow alum works on that team. Worth leading with."]], "r": "It\u2019s a business affairs role on film deals, and a fellow alum works on that team. What first?", "ch": [["Research the company.", "j2"], ["Build my prep doc.", "jd"], ["Review my cover letter draft.", "jx"]]}, "j2": {"b": [["s", "deep-research"], ["c", "web", "9 sources"], ["t", "Keep only what I can cite. Drop the rest."], ["w", "rec_res", "3 findings"]], "f": [["h", "<ul class=\"cy-nw\"><li>Signed a three-picture deal in September<span>trade press</span></li><li>Named a new head of business affairs in July<span>company site</span></li><li>Moving into streaming series next year<span>earnings call</span></li></ul>"]], "r": "Three things worth knowing, each with its source. The September deal is the one to mention.", "ch": [["Build my prep doc.", "jd"], ["Run a mock interview.", "jm"], ["Review my cover letter draft.", "jx"]]}, "jd": {"b": [["s", "docs"], ["r", "car_res", "experience"], ["t", "Match every likely question to a story he actually has."], ["w", "rec_prep", "8 questions"]], "r": "Your prep doc is ready, in your usual format. Every story in it comes from your own resume.", "ch": [["Run a mock interview.", "jm"], ["Research the company.", "j2"], ["Back to the brief.", "hub"]]}, "jm": {"b": [["s", "grill"], ["r", "rec_prep", "questions"], ["t", "Ask, listen, then coach one thing at a time."], ["w", "rec_prep", "feedback"]], "f": [["q", "Question 1 of 8", "Why business affairs, and why Larkspur?"], ["me", "I want to work where the deal meets the creative side, and Larkspur is growing into series."]], "r": "Strong opening. Name the September deal to show you did your homework.", "ch": [["Another question.", "jm2"], ["Sign me up for a $29 mock interview service.", "jy"], ["Back to the brief.", "hub"]]}, "jm2": {"b": [["r", "rec_prep", "question 2"], ["t", "Good answer. It needs one number to stick."], ["w", "rec_prep", "feedback"]], "f": [["q", "Question 2 of 8", "Walk me through a deal you\u2019ve worked on."], ["me", "I supported diligence on an acquisition and tracked the open issues each week."]], "r": "Good structure. Add one number, like how many contracts you reviewed, so it sticks.", "ch": [["Research the company.", "j2"], ["Build my prep doc.", "jd"], ["Back to the brief.", "hub"]]}, "jx": {"b": [["t", "This is his draft. Comment in the margin, don\u2019t rewrite it."], ["r", "rec_draft", "his draft"], ["r", "rec_post", "what they ask for"], ["r", "rec_res", "findings"], ["t", "Three notes. Each one points back to the posting or the research."], ["w", "rec_notes", "3 comments"]], "f": [["h", "<div class=\"cy-doc\"><div class=\"cy-dh\"><b>cover-letter-draft.md</b><span>written by Matthew</span></div><div class=\"cy-dl\"><p>I\u2019m writing to apply for the business affairs role\u2026</p><em>Open with the September deal. It shows you know their slate.</em></div><div class=\"cy-dl\"><p>During my externship I supported diligence\u2026</p><em>Add one number, like how many contracts you reviewed.</em></div><div class=\"cy-dl\"><p>I\u2019d welcome the chance to discuss\u2026</p><em>Name the team you\u2019d join, not just the company.</em></div></div>"]], "r": "Three notes in the margin. The words stay yours, so take or leave each one.", "ch": [["Run a mock interview.", "jm"], ["Sign me up for a $29 mock interview service.", "jy"], ["Back to the brief.", "hub"]]}, "jy": {"b": [["c", "web", "checkout page"], ["t", "That would charge him $29."], ["g", "Money gate"], ["t", "Stop at checkout. The click is his."]], "f": [["x", "Paying $29 at checkout", "Money gate"]], "r": "I stopped at checkout. It would charge you $29, so that click is yours. Want a free mock interview here instead?", "ch": [["Run a mock interview.", "jm"], ["Review my cover letter draft.", "jx"], ["Back to the brief.", "hub"]]}, "k1": {"b": [["s", "skill-creator"], ["t", "Ask three questions before writing a word."]], "f": [["h", "<div class=\"cy-as\"><div><span>What do you read first?</span>The syllabus page for that day</div><div><span>How long should it be?</span>One page</div><div><span>What makes it done?</span>Questions to ask in class</div></div>"]], "r": "Got it. How should I learn what your good class prep looks like?", "ch": [["Study my best class notes.", "k2"], ["Skip that and write it now.", "kx"], ["Use a template from online.", "kt"]]}, "kx": {"b": [["t", "He wants a draft with no examples."], ["g", "Examples first"], ["s", "exemplar"], ["t", "A skill built on nothing comes out generic. Look at his best notes first."]], "f": [["x", "Drafting with no examples", "Examples first"]], "r": "Your rules say examples come first, so I\u2019ll look at your best notes before writing. It only takes a moment.", "ch": [["Study my best class notes.", "k2"], ["Use a template from online.", "kt"], ["Fine, go ahead.", "k2"]]}, "kt": {"b": [["c", "web", "1 template"], ["t", "Take the template\u2019s structure, then rewrite it in his folder\u2019s conventions."], ["r", "cat", "house style"]], "r": "I\u2019ll borrow the structure and rewrite it in your conventions, so the skill stays yours. Check it against your best notes too?", "ch": [["Yes, study my best notes.", "k2"], ["Write it now.", "k3"], ["Make it shorter than the template.", "k3"]]}, "k2": {"b": [["s", "exemplar"], ["t", "Find his best class notes and name what makes them good."], ["r", "cls_a", "strong"], ["r", "cls_b", "strong"], ["t", "Three moves repeat across both."]], "f": [["h", "<ul class=\"cy-mv\"><li>Opens with the question the class answers</li><li>Fits on one page</li><li>Ends with what to ask in class</li></ul>"]], "r": "Your best notes share three moves. The skill will follow all three.", "ch": [["Write it.", "k3"], ["Add a check for reading I skipped.", "k3"], ["Use a template from online.", "kt"]]}, "k3": {"b": [["t", "Steps first, then the checks."], ["w", "md_class-prep", "new skill"]], "f": [["h", "<div class=\"cy-sk\"><code>skills/class-prep/SKILL.md</code><b>Class prep</b><span>When to use \u00b7 Steps \u00b7 Checks</span></div>"]], "r": "Draft ready. Want a test run on a real class first?", "ch": [["Test it on tomorrow\u2019s class.", "k4"], ["Approve it now.", "ka"], ["Make it shorter.", "ks"]]}, "ks": {"b": [["r", "md_class-prep", "draft"], ["t", "Cut anything the checks don\u2019t need."], ["w", "md_class-prep", "trimmed"]], "r": "Trimmed to the essentials. Test it before saving?", "ch": [["Test it on tomorrow\u2019s class.", "k4"], ["Approve it now.", "ka"], ["Use a template from online.", "kt"]]}, "ka": {"b": [["t", "He wants to save it untested."], ["g", "Test first"], ["s", "verification-before-completion"], ["r", "md_class-prep", "test run"], ["t", "3 of 3 checks pass. Now it can be saved."]], "f": [["x", "Saving without a test", "Test first"]], "r": "I ran a quick test first, since your rules ask for one. It passed all three checks.", "ch": [["Approve it.", "kd"], ["Make it shorter.", "ks"], ["Test it on another class.", "k4"]]}, "k4": {"b": [["s", "verification-before-completion"], ["r", "md_class-prep", "run"], ["r", "ev_syl", "tomorrow"], ["t", "Checked against the three moves. 3 of 3."]], "r": "It passed all three checks. Approve it and every chat can use it.", "ch": [["Approve it.", "kd"], ["Make it shorter.", "ks"], ["Test it on another class.", "k4"]]}, "kd": {"b": [["w", "cat", "class-prep added"], ["t", "Listed in the catalog, so every new chat can find it."]], "r": "Saved to the catalog. The next chat that preps a class opens it on its own.", "ch": [["Help me study for my Evidence final.", "s1"], ["Get me ready for Friday\u2019s interview.", "j1"], ["Back to the brief.", "hub"]]}, "hub": {"u": "Back to the brief.", "b": [["r", "hot", "what\u2019s left"], ["t", "Back to the brief. Check what\u2019s done and what\u2019s left."]], "r": "HUB"}, "wrap": {"u": "/end", "b": [["s", "end"], ["t", "Close out. Write down what happened before the chat ends."], ["w", "chatf", "session log"], ["w", "hot", "status updated"], ["t", "Tonight\u2019s merge folds this chat into memory. Tomorrow\u2019s brief starts from here."]], "r": "Saved. Tomorrow\u2019s brief starts from where we stopped.", "end": "Every chat starts from the folder and leaves it a little smarter."}},JUKE=["anki", "article-extractor", "brainstorming", "canvas-design", "cook", "course-plan-sync", "create-project", "daily-brief", "deep-research", "deep-sync", "docs", "end", "executing-plans", "exemplar", "file-organizer", "grill", "grocery-order", "housekeeping", "iterate", "logo-house", "markdown-intake", "morning", "moviepicker", "networking-intake", "office-craft", "one-pager", "pdf", "pitch-deck-creator", "pptx", "readable-render", "reminder-design", "security-audit-house", "shareable-html", "site-publishing", "skill-creator", "start", "sweep", "systematic-debugging", "teardown", "theme-factory", "thoughts", "train-daily-audit", "unblock-action", "verification-before-completion", "web-design", "web-design-references", "widget-build", "writing-plans", "xlsx", "youtube-transcript"],BRIEF="<div class=\"cy-brief\"><div class=\"cy-bh\"><b>Thursday brief</b><span>4 calendars \u00b7 mail checked</span></div>\n<div class=\"cy-bi\"><i class=\"a\"></i><div><b>Evidence final</b><span>6 weeks out \u00b7 no study plan yet</span></div></div>\n<div class=\"cy-bi\"><i class=\"b\"></i><div><b>Interview at Larkspur Pictures</b><span>Friday \u00b7 prep not started</span></div></div>\n<div class=\"cy-bi\"><i class=\"c\"></i><div><b>Class prep</b><span>Every week, done by hand</span></div></div></div>",FOLD="<svg class=\"cy-fi\" viewBox=\"0 0 20 16\" aria-hidden=\"true\"><path d=\"M1 3.2C1 2 1.9 1 3.1 1h4.2l1.9 2h7.7C18.1 3 19 4 19 5.2V13c0 1.1-.9 2-2.1 2H3.1C1.9 15 1 14 1 12.8z\" fill=\"#59a8f0\"/><path d=\"M1 5.6h18V13c0 1.1-.9 2-2.1 2H3.1C1.9 15 1 14 1 12.8z\" fill=\"#74b9f5\"/></svg>";
+ var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,K=RM?.5:1;
+ function q(s){return document.querySelector(s)}function qa(s){return [].slice.call(document.querySelectorAll(s))}
+ var wrap=q('#stg13'),col=q('[data-col]'),sc=q('[data-sc]'),pick=q('[data-pick]'),chs=q('[data-chs]'),ta=q('[data-ta]'),send=q('[data-send]'),title=q('[data-title]'),recent=q('[data-recent]');
+ var pathEl=q('[data-path]'),colsEl=q('[data-cols]'),fstat=q('[data-fstat]'),ftitle=q('[data-ftitle]'),reel=q('[data-reel]'),band=q('.cy-band'),jl=q('[data-jl]'),think=q('[data-think]'),stEl=q('[data-st]');
+ var timers=[],made={},loaded=[],reelPos=0,busy=false,seen={},voice='CLAUDE',saved=[];
+ var SP={s:'Study for the Evidence final',j:'Get ready for Friday’s interview',k:'Turn class prep into a skill'},SPID={s:'s1',j:'j1',k:'k1'};
+ function spokeDone(c){return Object.keys(seen).some(function(k){return k.charAt(0)===c&&k!=='sp'||(c==='s'&&k==='sp')})}
+ function at(ms,f){timers.push(setTimeout(f,ms*K))}
+ var BY={};T.forEach(function(t){BY[t[0]]={id:t[0],p:t[1],l:t[2],k:t[3],e:t[4]}});
+ function kids(id){return T.filter(function(t){return t[1]===id&&(NEW.indexOf(t[0])<0||made[t[0]])}).map(function(t){return BY[t[0]]})}
+ function chain(id){var c=[];var n=BY[id];while(n){c.unshift(n.id);n=n.p?BY[n.p]:null}return c}
+ function pathStr(id){return chain(id).slice(1).map(function(i){return BY[i].l}).join('/')}
+ function icon(n){return n.k==='d'?FOLD:'<i class="cy-pg '+n.e+'" data-e="'+n.e+'"></i>'}
+ function renderFinder(target,mode,note){
+   var c=chain(target),html='';
+   for(var i=0;i<c.length;i++){var node=BY[c[i]];if(node.k!=='d')break;
+     var nxt=c[i+1];html+='<div class="cy-cl">'+kids(node.id).map(function(k){
+       var cls='cy-it'+(k.id===nxt?(k.id===target?' '+mode:' path'):'')+(made[k.id]?' fresh':'');
+       return '<div class="'+cls+'">'+icon(k)+'<span>'+k.l+'</span>'+(k.k==='d'?'<b class="ch">›</b>':'')+'</div>'}).join('')+'</div>'}
+   var t=BY[target];
+   if(t.k==='f'){var lab={sel:['r','Read'],sav:['w','Saved'],skl:['s','Skill loaded']}[mode];
+     html+='<div class="cy-pv"><div class="big">'+t.e+'</div><b>'+t.l+'</b><span>'+(note||'')+'</span><em class="'+lab[0]+'">'+lab[1]+' just now</em></div>'}
+   pathEl.innerHTML=c.map(function(i,ix){var nd=BY[i];return '<span class="'+(ix===c.length-1?'cur '+mode:'')+'">'+(nd.k==='d'?FOLD:'<i class="cy-pg '+nd.e+'" data-e="'+nd.e+'"></i>')+nd.l+'</span>'}).join('<b>›</b>');
+   pathEl.scrollLeft=pathEl.scrollWidth;colsEl.innerHTML=html;var ks=colsEl.children,vw=colsEl.clientWidth,last=ks[ks.length-1],isPv=last&&last.classList.contains('cy-pv'),acc=isPv?160:0,j=ks.length-(isPv?2:1);for(;j>=0;j--){if(acc+ks[j].offsetWidth>vw)break;acc+=ks[j].offsetWidth}j++;var used=0;for(var m=j;m<ks.length-(isPv?1:0);m++)used+=ks[m].offsetWidth;if(isPv)last.style.width=Math.max(160,vw-used)+'px';else if(ks.length){var sp=document.createElement('div');sp.style.cssText='flex:none;width:'+Math.max(0,vw-used)+'px';colsEl.appendChild(sp)}colsEl.style.scrollBehavior='auto';colsEl.scrollLeft=ks[j]?ks[j].offsetLeft:0;
+   ftitle.textContent=BY[c[c.length-2]]?BY[c[c.length-2]].l:'Claude'}
+ var lastWho='';function thinkLine(txt,cls,who){qa('.cy-tt p').forEach(function(p){p.classList.add('old')});var p=document.createElement('p');if(cls)p.className=cls;if(who&&(who!==lastWho||cls)){lastWho=who;var h=document.createElement('small');h.textContent=who;think.appendChild(h);h.className='cy-who'+(cls?' r':'')}think.appendChild(p);
+   var i=0;function step(){p.textContent=txt.slice(0,i);think.scrollTop=think.scrollHeight;if(i<txt.length){i+=RM?txt.length:2;timers.push(setTimeout(step,16))}}step();
+   while(think.children.length>16)think.removeChild(think.firstChild)}
+ var toastEl=null;function toast(name){if(!toastEl){toastEl=document.createElement('div');toastEl.className='cy-toast';q('.cy-main').appendChild(toastEl)}toastEl.innerHTML='<span class="cy-spark">✻</span>Claude will remember this <b></b>';toastEl.querySelector('b').textContent=name;toastEl.classList.remove('on');void toastEl.offsetWidth;toastEl.classList.add('on')}
+ function live(txt){var w=col.querySelector('.cy-wk:not(.done) .tx');if(w)w.textContent=txt}
+ // jukebox
+ var ROW=34,LIST=JUKE.concat(JUKE,JUKE,JUKE);
+ reel.innerHTML=LIST.map(function(s){return '<div>'+s+'</div>'}).join('');
+ function place(i,anim){reel.style.transition=anim?'transform '+(1.5*K)+'s cubic-bezier(.12,.65,.18,1)':'none';reel.style.transform='translateY('+(-i*ROW-ROW/2)+'px)';reelPos=i}
+ place(JUKE.length+3,false);
+ function spin(name){var base=JUKE.indexOf(name);if(base<0)return;band.classList.remove('hit');qa('.cy-reel div.hit').forEach(function(d){d.classList.remove('hit')});
+   var target=JUKE.length*2+base;if(target-reelPos<12)target+=JUKE.length;if(target>=LIST.length)target-=JUKE.length*2;
+   if(target<=reelPos){place(reelPos-JUKE.length,false);reel.getBoundingClientRect()}
+   place(target,true);
+   timers.push(setTimeout(function(){band.classList.add('hit');reel.children[target].classList.add('hit');place(base+JUKE.length,false);reel.children[base+JUKE.length].classList.add('hit');
+     if(loaded.indexOf(name)<0){loaded.push(name);if(loaded.length===1)jl.innerHTML='';jl.insertAdjacentHTML('beforeend','<b>'+name+'</b>')}},1550*K))}
+ function back(e){var k=e[0];
+   if(k==='t'){thinkLine(e[1],'',voice);live('Thinking')}
+   else if(k==='r'){renderFinder(e[1],'sel',e[2]);fstat.textContent='Read  '+pathStr(e[1]);live('Reading '+BY[e[1]].l)}
+   else if(k==='w'){var ch=chain(e[1]);ch.forEach(function(i){if(NEW.indexOf(i)>=0)made[i]=1});renderFinder(e[1],'sav',e[2]);fstat.textContent='Saved  '+pathStr(e[1]);if(MEM.indexOf(e[1])>=0){toast(BY[e[1]].l);var nm=e[1].indexOf('md_')===0?'the '+e[1].slice(3)+' skill':e[1]==='cat'?'the skill catalog':BY[e[1]].l;if(saved.indexOf(nm)<0&&e[1]!=='chatf'&&e[1]!=='hot')saved.push(nm)}live('Saving '+BY[e[1]].l)}
+   else if(k==='s'){voice=e[1].toUpperCase();spin(e[1]);renderFinder('md_'+e[1],'skl','');fstat.textContent='Loaded skill  '+e[1];live('Loading skill '+e[1])}
+   else if(k==='c'){var a=q('[data-conn="'+e[1]+'"]');if(a){a.classList.add('live');timers.push(setTimeout(function(){a.classList.remove('live')},1400*K))}
+     var nm={cal:'Calendar',mail:'Mail',web:'Web'}[e[1]];fstat.textContent=nm+'  ·  '+(e[2]||'');live('Checking '+nm.toLowerCase())}
+   else if(k==='g'){thinkLine(e[2]==='pass'?e[1]+'. Read them all before answering.':e[1]+'. This step stops here.','rule','RULE · '+e[1].toUpperCase());live('Checking the rules')}}
+ function down(){sc.scrollTop=sc.scrollHeight}
+ function add(h){col.insertAdjacentHTML('beforeend',h);down()}
+ function setBusy(b){busy=b;wrap.classList.toggle('cy-busy',b);stEl.textContent=b?'working':'idle'}
+ function counts(b){var r=0,w=0,s=0;b.forEach(function(e){if(e[0]==='r')r++;else if(e[0]==='w')w++;else if(e[0]==='s')s++});var p=[];if(r)p.push('read '+r+(r>1?' files':' file'));if(w)p.push('saved '+w);if(s)p.push('used '+s+' skill');return p.join(', ')||'checked the rules'}
+ function showChoices(list,dims,hubMode){chs.innerHTML='';chs.classList.remove('wait');pick.hidden=false;
+   var keep=list.filter(function(c){return c[1]==='hub'||c[1]==='wrap'||c[1]==='k4'&&false||!seen[c[1]]});
+   var fb=[['Back to the brief.','hub'],['Wrap up for today.','wrap']];
+   if(!hubMode&&list.length>1)fb.forEach(function(f){if(keep.length<3&&!keep.some(function(c){return c[1]===f[1]})&&!(f[1]==='hub'&&(dims||[]).length===0&&list.some(function(c){return c[1]==='s1'})))keep.push(f)});
+   if(!hubMode)list.forEach(function(c){if(keep.length<3&&!keep.some(function(k){return k[1]===c[1]}))keep.splice(Math.max(0,keep.length-1),0,c)});
+   keep=keep.slice(0,3);
+   keep.forEach(function(c,i){var b=document.createElement('button');b.type='button';var tg=TAGS[c[1]]||'';b.className='cy-c'+(tg==='Test a rule'?' risk':'');b.innerHTML='<i>'+(keep.length>1?'ABC'[i]:'↵')+'</i><span></span><em>'+tg+'</em>';b.querySelector('span').textContent=c[0];b.onclick=function(){if(!busy)say(c[1],c[0])};chs.appendChild(b)});
+   (dims||[]).forEach(function(c){var b=document.createElement('button');b.type='button';b.className='cy-c done';b.disabled=true;b.innerHTML='<i>✓</i><span></span><em>Done</em>';b.querySelector('span').textContent=c;chs.appendChild(b)});
+   timers.push(setTimeout(function(){chs.classList.add('wait')},4500));down();timers.push(setTimeout(down,450))}
+ function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
+ function say(id,text){var n=G[id];var u=n.u||text;seen[id]=1;voice='CLAUDE';pick.hidden=true;setBusy(true);
+   var hello=col.querySelector('.cy-hello');if(hello)hello.remove();
+   ta.innerHTML='';ta.classList.add('typing');var i=0,t0=0;
+   function type(){ta.textContent=u.slice(0,i);if(i<u.length){i+=RM?u.length:1;timers.push(setTimeout(type,24))}else{send.classList.add('hot');timers.push(setTimeout(fire,380*K))}}
+   type();
+   function fire(){ta.classList.remove('typing');ta.innerHTML='<span class="cy-ph">Reply to Claude…</span>';send.classList.remove('hot');
+     add('<div class="cy-ub">'+(u.charAt(0)==='/'?'<code>'+esc(u)+'</code>':esc(u))+'</div>');
+     if(id==='boot'){title.textContent='Thursday brief';recent.textContent='Thursday brief'}
+     add('<div class="cy-wk"><span class="cy-spark">✻</span><span class="tx">Thinking</span><a href="#cyback">See it ↓</a></div>');
+     var t=500;n.b.forEach(function(e){at(t,function(){back(e)});t+=e[0]==='s'?1650:e[0]==='t'?Math.max(850,e[1].length*19):620});
+     at(t,function(){var w=col.querySelector('.cy-wk:not(.done)');if(w){w.classList.add('done');w.querySelector('.tx').textContent=counts(n.b)}
+       (n.f||[]).forEach(function(f){
+         if(f[0]==='brief')add(BRIEF);else if(f[0]==='q')add('<div class="cy-q"><span>'+f[1]+'</span>'+f[2]+'</div>');
+         else if(f[0]==='me')add('<div class="cy-me2">'+f[1]+'</div>');else if(f[0]==='h')add(f[1]);
+         else if(f[0]==='ok')add('<div class="cy-x ok"><b>✓</b><span>'+f[1]+'</span><span class="cy-chip ok">'+f[2]+'</span></div>');
+         else if(f[0]==='x')add('<div class="cy-x"><b>×</b><s>'+f[1]+'</s><span class="cy-chip">'+f[2]+'</span></div>')})});
+     t+=(n.f&&n.f.length)?700:250;
+     at(t,function(){var r=n.r;if(id==='hub'){var left=['s','j','k'].filter(function(c){return !spokeDone(c)});r=left.length?(3-left.length)+' of 3 done. Where next?':'All three done. Want to wrap up?'}
+       if(id==='wrap'&&saved.length)r='Saved '+saved.length+(saved.length>1?' things':' thing')+' from this chat: '+saved.join(', ')+'. Tomorrow’s brief starts from here.';
+       add('<div class="cy-rp"><p>'+r+'</p></div>');setBusy(false);
+       if(n.end){add('<div class="cy-end"><small>THE POINT</small>'+n.end+'<br><button type="button" data-again>Start a new chat</button></div>');q('[data-again]').onclick=restart;stEl.textContent='saved'}
+       else if(id==='hub'||id==='brief'){var ch=[],dims=[];['s','j','k'].forEach(function(c){if(spokeDone(c))dims.push(SP[c]);else ch.push([G.brief.ch[['s','j','k'].indexOf(c)][0],SPID[c]])});if(dims.length)ch.push(['Wrap up for today.','wrap']);showChoices(ch,dims,true)}
+       else showChoices(n.ch)})}}
+ col.addEventListener('click',function(e){var a=e.target.closest('.cy-wk a');if(!a)return;e.preventDefault();q('#cyback').scrollIntoView({behavior:RM?'auto':'smooth',block:'start'})});
+ function restart(){timers.forEach(clearTimeout);timers=[];made={};loaded=[];seen={};saved=[];col.innerHTML='<div class="cy-hello"><span class="cy-spark" aria-hidden="true">✻</span><b>Good evening, Matthew</b></div>';
+   think.innerHTML='';jl.textContent='None loaded yet';band.classList.remove('hit');colsEl.innerHTML='';pathEl.innerHTML='<span>Claude</span>';renderRoot();fstat.textContent='Nothing open yet';title.textContent='New chat';recent.textContent='New chat';
+   timers.push(setTimeout(function(){say('boot','/start')},600))}
+ function renderRoot(){colsEl.innerHTML='<div class="cy-cl">'+kids('root').map(function(k){return '<div class="cy-it">'+icon(k)+'<span>'+k.l+'</span>'+(k.k==='d'?'<b class="ch">›</b>':'')+'</div>'}).join('')+'</div>'}
+ renderRoot();
+ wrap.classList.add('pre');stEl.textContent='waiting';
+ q('[data-start]').onclick=function(){q('[data-gate]').classList.add('off');wrap.classList.remove('pre');timers.push(setTimeout(function(){say('boot','/start')},500))};
+})();
+</script>
+<style>.gnote{display:none!important}html,body{background:#0a0b0e}</style>
+<script>(function(){var last=0;function s(){var b=document.body,h=Math.ceil(b.getBoundingClientRect().bottom+window.scrollY+parseFloat(getComputedStyle(b).marginBottom||0));if(h!==last){last=h;try{parent.postMessage({sysCard:1,h:h},'*')}catch(e){}}}addEventListener('load',s);if(window.ResizeObserver)new ResizeObserver(s).observe(document.body);setInterval(s,1500)})();</script>
+</html>
