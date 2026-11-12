@@ -98,3 +98,57 @@
 
   if (!seen()) setTimeout(show, 600);
 })();
+
+(function () {
+  var css = document.createElement('style');
+  css.textContent =
+    '.mvc{width:100%;max-width:420px;margin:0 auto;text-align:left;font-family:"Instrument Sans",-apple-system,sans-serif}' +
+    '.mvc .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#b9b1a4;margin:0 0 12px}' +
+    '.mvc .q{background:#7a2f22;color:#fbf7f0;border-radius:22px;padding:26px 24px;font:400 25px/1.3 "Spectral",Georgia,serif;min-height:180px;box-shadow:0 20px 50px rgba(0,0,0,.4)}' +
+    '.mvc .q .bl{display:inline-block;min-width:4.5em;border-bottom:2px solid #fbf7f0}' +
+    '.mvc .q .ans{background:#fbf7f0;color:#7a2f22;border-radius:6px;padding:0 6px}' +
+    '.mvc .row{display:flex;gap:10px;margin-top:18px}' +
+    '.mvc button{flex:1;border:0;border-radius:999px;padding:15px 10px;font:600 16px "Instrument Sans",sans-serif;cursor:pointer}' +
+    '.mvc .pri{background:#fbf7f0;color:#141210}' +
+    '.mvc .sec{background:#2c2924;color:#f3eee6}' +
+    '.mvc textarea{width:100%;min-height:120px;border-radius:16px;border:1px solid #3a362f;background:#1f1d1a;color:#f3eee6;font:17px/1.4 "Instrument Sans",sans-serif;padding:14px}' +
+    '.mvc .hint{font-size:13px;color:#b9b1a4;margin:8px 0 0}';
+  document.head.appendChild(css);
+
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function face(q, show) {
+    var m = q.match(/\{\{c1::([^}]+)\}\}/), term = m ? m[1] : '';
+    var parts = q.split(/\{\{c1::[^}]+\}\}/);
+    var mid = show ? '<span class="ans">' + esc(term) + '</span>' : '<span class="bl">&nbsp;</span>';
+    return esc(parts[0] || '').replace(/\*([^*]+)\*/g, '<i>$1</i>') + mid + esc(parts.slice(1).join('') || '').replace(/\*([^*]+)\*/g, '<i>$1</i>');
+  }
+  function host() { var s = document.querySelectorAll('#app > .scr'); return s[s.length - 1]; }
+  function render(view) {
+    var c = window.talkCard, h = host();
+    if (!c || !h) { try { finish(); } catch (e) {} return; }
+    var title = (window.talkL && talkL.t) ? String(talkL.t).replace(/<[^>]+>/g, '') : '';
+    var body;
+    if (view === 'try') body = '<div class="q">' + face(c.q, false) + '</div><div class="row"><button class="pri" data-mv="reveal">Show the answer</button></div>';
+    else if (view === 'edit') body = '<textarea id="mvt">' + esc(c.q.replace(/\{\{c1::([^}]+)\}\}/, '[$1]')) + '</textarea><p class="hint">Put the hidden answer in [square brackets].</p><div class="row"><button class="sec" data-mv="back">Cancel</button><button class="pri" data-mv="save">Save</button></div>';
+    else body = '<div class="q">' + face(c.q, true) + '</div><div class="row"><button class="sec" data-mv="remove">Remove</button><button class="sec" data-mv="edit">Change</button><button class="pri" data-mv="keep">Keep</button></div>';
+    h.innerHTML = '<div class="mvc"><p class="k">Your new card · ' + esc(title) + '</p>' + body + '</div>';
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-mv]'); if (!b) return;
+    var a = b.getAttribute('data-mv'), c = window.talkCard;
+    if (a === 'cardtry') render('try');
+    else if (a === 'reveal' || a === 'back') render('shown');
+    else if (a === 'edit') render('edit');
+    else if (a === 'save') {
+      var v = (document.getElementById('mvt') || {}).value || '';
+      var m = v.match(/\[([^\]]+)\]/);
+      if (!m) { try { toast('Put the answer in [brackets]'); } catch (x) {} return; }
+      c.q = v.replace(/\[([^\]]+)\]/, '{{c1::$1}}').trim(); try { WV.save(); } catch (x) {}
+      render('shown');
+    } else if (a === 'remove') {
+      var i = C.indexOf(c); if (i >= 0) { C.splice(i, 1); C.forEach(function (x, k) { x.i = k; }); }
+      window.talkCard = null; try { WV.save(); toast('Card removed'); } catch (x) {}
+      try { finish(); } catch (x) {}
+    } else if (a === 'keep') { try { toast('Card kept'); finish(); } catch (x) {} }
+  });
+})();
