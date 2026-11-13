@@ -81,7 +81,7 @@
     m.className = 'mg';
     m.innerHTML = html();
     var cur = 0;
-    function goTo(i) { var tr = m.querySelector('.mg-track'), ps = m.querySelectorAll('.mg-p'); cur = Math.max(0, Math.min(ps.length - 1, i)); tr.scrollTo({ left: ps[cur].offsetLeft, behavior: 'smooth' }); }
+    function goTo(i) { var tr = m.querySelector('.mg-track'), ps = m.querySelectorAll('.mg-p'); cur = Math.max(0, Math.min(ps.length - 1, i)); tr.scrollTo({ left: cur * tr.clientWidth, behavior: 'smooth' }); }
     function onPage(i) { cur = i; [].forEach.call(m.querySelectorAll('.mg-dots i'), function (d, k) { d.classList.toggle('on', k === i); }); [].forEach.call(m.querySelectorAll('.mg-p'), function (p, k) { p.classList.toggle('act', k === i); }); m.querySelector('.go').textContent = i === 2 ? 'Go to today’s story' : 'Next'; }
     m.addEventListener('click', function (e) {
       var a = e.target.closest('[data-mg]');
