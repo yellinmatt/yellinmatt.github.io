@@ -133,5 +133,6 @@ window.WVW=function(root,sc){try{var fo=root.querySelector('.folio');if(fo)fo.st
  [].forEach.call(root.querySelectorAll('[data-st]'),function(s){stage(s,sc)});
  [].forEach.call(root.querySelectorAll('[data-doc]'),doc);spreads(root);
  [].forEach.call(root.querySelectorAll('[data-flips] .flip'),function(f){act(f,function(){f.setAttribute('aria-pressed',f.getAttribute('aria-pressed')==='true'?'false':'true')})});
- reveal(root)}catch(e){console.error('WVW',e)}};
+ reveal(root)}catch(e){console.error('WVW',e)}
+ (window.WVX||[]).forEach(function(f){try{f(root,sc)}catch(e){console.error('WVX',e)}})};
 })();
