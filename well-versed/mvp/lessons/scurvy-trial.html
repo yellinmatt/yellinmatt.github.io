@@ -1,0 +1,303 @@
+<style>
+:host{--paper:#f7f1e3;--paper-ink:#2a2219;--paper-rule:#dccfb4;--dim:rgba(18,14,10,.62);--hi:#e2a33a}
+*{box-sizing:border-box}
+.wvb{margin:0;padding:0;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.folio{max-width:960px;margin:0 auto;padding:40px 22px 80px}
+.kicker{font:600 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+h1{display:none}
+.deck{font-size:19px;line-height:1.45;margin:0 0 28px}
+.body p{font-size:18px;line-height:1.65;margin:0 0 1em;max-width:62ch}
+.beat-h{font:700 13px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:56px 0 12px}
+
+.gloss { font: inherit; background: none; border: 0; padding: 0; margin: 0; color: inherit; cursor: help; display: inline; position: relative; text-decoration: underline dotted var(--muted); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.gloss:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.gloss-body { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 12px); width: 280px; max-width: calc(100vw - 44px); background: var(--bg); color: var(--ink); border: 1px solid var(--muted); border-radius: 3px; padding: 12px 14px; font-family: var(--serif); font-size: 13.5px; line-height: 1.55; text-align: left; font-style: normal; font-weight: 400; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 80ms ease; z-index: 10; }
+.gloss-body::before { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: var(--bg); border-right: 1px solid var(--muted); border-bottom: 1px solid var(--muted); transform: translateX(-50%) rotate(45deg); }
+.gloss[data-open="true"] > .gloss-body, .gloss:hover > .gloss-body { opacity: 1; visibility: visible; pointer-events: auto; }
+.gloss[data-flip="true"] > .gloss-body { bottom: auto; top: calc(100% + 12px); }
+.gloss[data-flip="true"] > .gloss-body::before { bottom: auto; top: -6px; border-right: 0; border-bottom: 0; border-left: 1px solid var(--muted); border-top: 1px solid var(--muted); }
+.gloss-kind { display: block; font-family: var(--sans); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+@media print { .gloss { text-decoration: none; cursor: auto } .gloss > .gloss-body { display: none } }
+/*WV-A11Y-1019*/.gloss>.gloss-body{display:none;max-width:min(280px,calc(100vw - 32px))}.gloss[data-open="true"]>.gloss-body,.gloss:hover>.gloss-body{display:block}@media print{.gloss>.gloss-body{display:none!important}}.gloss-kind{font-size:11px!important}.credit{font-size:max(11px,.78em)!important}h1,h2,h3,em{overflow-wrap:break-word}.strip>*{min-width:0;overflow-wrap:break-word}@media (max-width:520px){h1{hyphens:auto}}@media (max-width:640px){td,th{overflow-wrap:anywhere}table.auction th,table.auction td{padding-left:10px;padding-right:10px}}
+.wvb figure.tour{position:relative;margin:28px calc(var(--g,22px) * -1) 0;max-width:none}
+.tour-stage{position:sticky;top:0;height:78svh;overflow:hidden;background:#15110d;z-index:1}
+.tour-stage .cam{position:absolute;left:0;top:0;transform-origin:0 0;transition:transform 1.4s cubic-bezier(.16,1,.3,1);will-change:transform}
+.tour-stage .cam img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.tour-stage .spot{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .7s ease,background .9s ease}
+.tour-stage .spot.on{opacity:1}
+.tour-steps{position:relative;z-index:2;margin-top:-78svh;pointer-events:none}
+.tour-step{min-height:78svh;display:flex;align-items:flex-end;padding:0 14px 22px}
+.tour-step:first-child{min-height:60svh}
+.tour-cap{pointer-events:auto;max-width:34ch;background:rgba(250,246,238,.94);color:#1d1812;border-radius:14px;padding:13px 16px 14px;font:400 15.5px/1.5 var(--sans);box-shadow:0 8px 28px rgba(0,0,0,.28)}
+.tour-cap b{display:block;font:700 11px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#8a3d22;margin-bottom:4px}
+.tour-scroll{position:relative}
+.tour-bar{position:absolute;right:12px;top:12px;z-index:3;display:flex;gap:8px}
+.tour-bar [role=button]{font:600 13px/1 var(--sans);color:#fff;background:rgba(20,16,12,.62);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:999px;padding:10px 14px;cursor:pointer;min-height:38px;display:flex;align-items:center;gap:6px}
+.tour-bar [role=button]:focus-visible{outline:2px solid #fff}
+.tour-explore{padding:10px 0 0}
+.tour-explore .ex-stage{position:relative;margin:0 calc(var(--g,22px) * -1);overflow:hidden;background:#15110d}
+.ex-stage img{display:block;width:100%;height:auto}
+.ex-stage .spot{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s ease}
+.ex-stage .spot.on{opacity:1}
+.hs{position:absolute;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;background:rgba(255,255,255,.18);border:2px solid #fff;box-shadow:0 0 0 0 rgba(255,255,255,.6);animation:hsp 2.4s infinite;cursor:pointer;z-index:2}
+.hs::after{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff}
+.hs[aria-pressed=true]{background:var(--hi);border-color:var(--hi);animation:none}
+@keyframes hsp{70%{box-shadow:0 0 0 12px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+.ex-k,.ex-note{padding:0 var(--g,22px)}
+.ex-note{min-height:3.2em;font:400 15px/1.5 var(--sans);color:var(--muted);margin:12px 0 0}
+.ex-note b{color:var(--ink)}
+.ex-k{font:700 12px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 8px}
+
+figure.viz{margin:30px 0;max-width:62ch}
+.viz-k{font:700 12px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.viz figcaption{font:400 14px/1.5 var(--sans);color:var(--muted);margin:10px 0 0}
+.dots{display:grid;grid-template-columns:repeat(25,1fr);gap:4px;max-width:420px}
+.dots i{aspect-ratio:1;border-radius:50%;background:var(--accent);opacity:.9;transition:opacity .5s ease,transform .5s ease}
+.dots.go i.lost{opacity:.13;transform:scale(.7)}
+.dots-l{display:flex;justify-content:space-between;max-width:420px;font:600 14px/1.3 var(--sans);margin-top:10px}
+.dots-l span:last-child{color:var(--accent)}
+
+.pairs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pair{border:1px solid var(--rule);border-radius:12px;padding:10px 8px 9px;text-align:center;cursor:pointer;background:var(--bg);transition:border-color .2s,background .2s}
+.pair svg{width:46px;height:30px;display:block;margin:0 auto 6px;color:var(--muted)}
+.pair span{font:600 13px/1.25 var(--sans);display:block}
+.pair[aria-pressed=true]{border-color:var(--accent);background:color-mix(in oklch,var(--accent) 9%,var(--bg))}
+.pair.citrus.show svg{color:#d7892a}
+.pair.worst span::after{content:" ·  the worst two";font-weight:400;color:var(--muted)}
+.pairs-out{min-height:3.2em;font:400 15px/1.5 var(--sans);margin:12px 0 0}
+
+.doc{margin:34px calc(var(--g,22px) * -1) 8px;background:var(--paper);color:var(--paper-ink);padding:22px 0 18px}
+.doc-k{display:flex;justify-content:space-between;align-items:center;padding:0 var(--g,22px) 12px;font:700 12px/1.3 var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#7b6a52}
+.doc-k .n{font-weight:600;letter-spacing:.04em}
+.doc-track{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px var(--g,22px) 14px;scrollbar-width:none;overscroll-behavior-x:contain}
+.doc-track::-webkit-scrollbar{display:none}
+.sheet{flex:0 0 min(84%,440px);scroll-snap-align:center;background:#fbf7ec;border:1px solid var(--paper-rule);border-radius:4px;box-shadow:0 1px 0 #fff inset,0 10px 24px rgba(60,40,10,.12);padding:22px 20px;font-family:Georgia,"Times New Roman",serif;font-size:17px;line-height:1.62;color:var(--paper-ink)}
+.doc .gloss[data-open] > .gloss-body{position:fixed!important;left:16px!important;right:16px!important;top:auto!important;bottom:96px!important;transform:none!important;width:auto!important;max-width:none!important;box-shadow:0 12px 32px rgba(0,0,0,.25);font-family:var(--sans)}.doc .gloss-body::before{display:none}
+.sheet.img{padding:10px;background:#efe9da}
+.sheet.img img{display:block;width:100%;height:auto;max-height:62svh;object-fit:contain}
+.sheet .tag{display:block;font:700 10.5px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:#9a6a3c;margin-bottom:10px}
+.sheet .tag.img-t{margin:10px 6px 2px}
+.sheet .sd{font-style:italic;color:#7b6a52}
+.sheet .gloss{color:inherit}
+.doc-nav{display:flex;justify-content:center;gap:12px;padding:4px 0 0}
+.doc-nav [role=button]{width:40px;height:40px;border-radius:50%;border:1px solid #cbb994;display:grid;place-items:center;cursor:pointer;color:#5b4a33;font:600 18px/1 var(--sans)}
+.doc-src{font:400 12.5px/1.45 var(--sans);color:#7b6a52;padding:8px var(--g,22px) 0;margin:0}
+
+.tl{position:relative;overflow-x:auto;scrollbar-width:none;margin:0 calc(var(--g,22px) * -1);padding:0 var(--g,22px)}
+.tl::-webkit-scrollbar{display:none}
+.tl-row{position:relative;display:flex;gap:0;min-width:640px;padding:30px 0 4px}
+.tl-row::before{content:"";position:absolute;left:0;right:0;top:41px;height:2px;background:var(--rule)}
+.tl-gap{position:absolute;top:40px;height:4px;background:var(--accent);border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform 1.6s cubic-bezier(.16,1,.3,1)}
+.tl.go .tl-gap{transform:none}
+.tl-gap-l{position:absolute;top:8px;font:700 12px/1.2 var(--sans);color:var(--accent);white-space:nowrap;opacity:0;transition:opacity .6s 1s}
+.tl.go .tl-gap-l{opacity:1}
+.tl-e{flex:1;position:relative;padding:22px 6px 0;font:400 13px/1.35 var(--sans);color:var(--muted)}
+.tl-e::before{content:"";position:absolute;left:6px;top:6px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--ink)}
+.tl-e b{display:block;font:700 15px/1.2 var(--sans);color:var(--ink);margin-bottom:3px}
+
+.bars{max-width:420px}
+.bar{display:grid;grid-template-columns:7.5em 1fr 3.4em;align-items:center;gap:10px;margin:8px 0;font:500 14px/1.3 var(--sans)}
+.bar i{display:block;height:14px;border-radius:7px;background:var(--accent);transform:scaleX(0);transform-origin:left;transition:transform 1.2s cubic-bezier(.16,1,.3,1)}
+.bars.go .bar i{transform:none}
+.bar em{font-style:normal;font-weight:700;text-align:right}
+
+.flips{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:62ch;margin:14px 0 6px}
+.flip{position:relative;min-height:116px;cursor:pointer;perspective:800px}
+.flip .f,.flip .b{position:absolute;inset:0;border-radius:14px;padding:14px;display:flex;flex-direction:column;justify-content:space-between;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.flip .f{background:var(--soft);font:700 16px/1.3 var(--sans)}
+.flip .f small{font:500 12px/1.2 var(--sans);color:var(--muted)}
+.flip .b{background:var(--accent);color:#fff;transform:rotateY(180deg);font:500 15px/1.4 var(--sans)}
+.flip .b small{font:400 12.5px/1.3 var(--sans);opacity:.85}
+.flip[aria-pressed=true] .f{transform:rotateY(-180deg)}
+.flip[aria-pressed=true] .b{transform:none}
+.flip:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:14px}
+
+.task{display:flex;gap:14px;align-items:center;max-width:62ch;margin:18px 0 10px;padding:14px 16px;border-radius:14px;border:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.task .t1{font:700 15.5px/1.35 var(--sans)}
+.task .t2{font:400 13.5px/1.4 var(--sans);color:var(--muted);margin-top:2px}
+.task .go{margin-left:auto;font:600 20px/1 var(--sans);color:var(--accent)}
+details.found{max-width:62ch;margin:6px 0 24px}
+details.found summary{cursor:pointer;font:600 15px/1.4 var(--sans);color:var(--accent);list-style:none;padding:8px 0}
+details.found summary::-webkit-details-marker{display:none}
+details.found summary::after{content:" ↓"}
+details.found[open] summary::after{content:" ↑"}
+
+.line{max-width:30ch;margin:44px 0 10px;font:600 23px/1.35 var(--sans);text-wrap:balance}
+.line small{display:block;font:700 11px/1.3 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+
+.endmatter{margin:56px 0 0;padding-top:16px;border-top:1px solid var(--rule);max-width:62ch;font:400 13px/1.5 var(--sans);color:var(--muted)}
+.endmatter a{color:inherit}
+.em-more{margin:0 0 6px}
+.em-more a{color:var(--ink);font-weight:600;text-decoration:none}
+details.srcs summary{cursor:pointer;padding:6px 0;list-style:none}
+details.srcs summary::-webkit-details-marker{display:none}
+details.srcs ol{padding-left:18px;margin:6px 0 0}
+details.srcs li{margin:0 0 6px}
+
+[data-rv]{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .9s cubic-bezier(.16,1,.3,1)}
+[data-rv].in{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}[data-rv]{opacity:1;transform:none}}
+.folio{container-type:inline-size}
+@container (min-width:640px){.flips{grid-template-columns:repeat(4,1fr)}.pairs{grid-template-columns:repeat(6,1fr)}}
+</style>
+<div class="wvb"><article class="folio">
+  <div class="kicker">Medicine &middot; Nutrition</div>
+  <h1>The Scurvy Trial</h1>
+  <p class="deck">Twelve sick sailors, six remedies and a few oranges: how a naval surgeon in 1747 showed medicine the way to find out what works.</p>
+
+  <figure class="tour" data-tour data-src="/well-versed/mvp/img/scurvy-thom.jpg" data-w="2200" data-h="1779" data-crop=".118,.125,.887,.865">
+    <div class="tour-scroll">
+    <div class="tour-stage" aria-hidden="true"><div class="cam"><img alt="" src="/well-versed/mvp/img/scurvy-thom.jpg"></div><div class="spot"></div></div>
+    <div class="tour-bar"><span role="button" tabindex="0" data-tour-play>&#9654; Play the tour</span></div>
+    <ol class="tour-steps">
+      <li class="tour-step" data-x=".5" data-y=".5" data-z="1"><div class="tour-cap"><b>Below decks, 1747</b>A painter&rsquo;s idea of the fore-hold of HMS Salisbury. Scroll, or press play, and we&rsquo;ll walk through it.</div></li>
+      <li class="tour-step" data-x=".47" data-y=".51" data-z="2.6" data-r=".12"><div class="tour-cap"><b>The surgeon</b>James Lind, in the blue coat and wig, holds fruit to a sailor&rsquo;s mouth.</div></li>
+      <li class="tour-step" data-x=".31" data-y=".44" data-z="2.6" data-r=".12"><div class="tour-cap"><b>The remedy</b>An attendant holds the basket of oranges and lemons.</div></li>
+      <li class="tour-step" data-x=".64" data-y=".75" data-z="2.4" data-r=".15"><div class="tour-cap"><b>The disease</b>Red spots on the legs: scurvy bleeds under the skin.</div></li>
+      <li class="tour-step" data-x=".74" data-y=".58" data-z="2.2" data-r=".16"><div class="tour-cap"><b>The other patients</b>More men lie in the same room, on the same diet. That sameness is what made the test fair.</div></li>
+      <li class="tour-step" data-x=".5" data-y=".5" data-z="1"><div class="tour-cap"><b>The caption</b>Under the painting, the 1959 print says Lind&rsquo;s trial was &ldquo;proving&rdquo; citrus would cure scurvy. That claims more than twelve men could.</div></li>
+    </ol>
+    </div>
+    <div class="tour-explore" data-explore>
+      <div class="ex-k">Look for yourself &middot; tap a dot</div>
+      <div class="ex-stage"><img alt="Robert Thom&rsquo;s painting of James Lind feeding fruit to a sick sailor below decks, while an attendant holds a basket of oranges and lemons and other sick men lie nearby." src="/well-versed/mvp/img/scurvy-thom.jpg"><div class="spot"></div>
+        <span class="hs" role="button" tabindex="0" aria-pressed="false" style="left:47%;top:51%" data-r=".1" data-note="&lt;b&gt;Lind and the fruit.&lt;/b&gt; The painter puts the surgeon at the centre, feeding the sailor himself."></span>
+        <span class="hs" role="button" tabindex="0" aria-pressed="false" style="left:31%;top:44%" data-r=".1" data-note="&lt;b&gt;The basket.&lt;/b&gt; Oranges and lemons, the remedy that worked."></span>
+        <span class="hs" role="button" tabindex="0" aria-pressed="false" style="left:64%;top:75%" data-r=".12" data-note="&lt;b&gt;The spots.&lt;/b&gt; Bleeding under the skin, one of the signs Lind listed."></span>
+        <span class="hs" role="button" tabindex="0" aria-pressed="false" style="left:31%;top:26%" data-r=".08" data-note="&lt;b&gt;The lantern.&lt;/b&gt; The fore-hold sat low in the hull, the storage space below the decks."></span>
+        <span class="hs" role="button" tabindex="0" aria-pressed="false" style="left:70%;top:55%" data-r=".1" data-note="&lt;b&gt;The other patients.&lt;/b&gt; Same room, same diet, same signs. Only the remedy changed."></span>
+      </div>
+      <p class="ex-note" aria-live="polite">Five details are marked. Tap one.</p>
+    </div>
+  </figure>
+
+  <div class="body">
+
+    <p>On 20 May 1747 two sailors in the fore-hold of HMS Salisbury were each handed two oranges and a lemon, and they ate them, their surgeon noted, with greediness.</p>
+
+    <p>Ten other men lay near them with the same putrid gums, the same spots on the skin and the same weak knees, and those ten were dosed with cider, vinegar, sea water, a dilute acid or a paste of garlic and mustard seed. The fruit ran out after six days. By then one of the two was fit for duty, and the other was soon well enough to nurse the rest.</p>
+
+    <figure class="viz" data-rv>
+      <div class="viz-k">Twelve men, six pairs &middot; tap a pair</div>
+      <div class="pairs" data-pairs>
+        <div class="pair" role="button" tabindex="0" aria-pressed="false" data-out="A quart of cider a day."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Cider</span></div>
+        <div class="pair" role="button" tabindex="0" aria-pressed="false" data-out="Twenty-five drops of elixir vitriol, a dilute sulphuric acid tonic, three times a day."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Acid</span></div>
+        <div class="pair" role="button" tabindex="0" aria-pressed="false" data-out="Two spoonfuls of vinegar three times a day."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Vinegar</span></div>
+        <div class="pair worst" role="button" tabindex="0" aria-pressed="false" data-out="Half a pint of sea water a day. Lind gave it to the two worst patients himself, and that choice is the flaw in his design."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Sea water</span></div>
+        <div class="pair citrus" role="button" tabindex="0" aria-pressed="false" data-out="Two oranges and a lemon a day, for six days, until the fruit ran out. One man was fit for duty at the end of it."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Citrus</span></div>
+        <div class="pair" role="button" tabindex="0" aria-pressed="false" data-out="A paste of garlic and mustard seed, the size of a nutmeg, three times a day."><svg viewBox="0 0 46 30" fill="currentColor"><circle cx="13" cy="8" r="5"/><path d="M4 30c0-6 4-11 9-11s9 5 9 11z"/><circle cx="33" cy="8" r="5"/><path d="M24 30c0-6 4-11 9-11s9 5 9 11z"/></svg><span>Paste</span></div>
+      </div>
+      <p class="pairs-out" aria-live="polite">Same room, same food, same symptoms. One difference per pair.</p>
+    </figure>
+
+    <p>The surgeon was James Lind, thirty years old and from Edinburgh, and the disease was the great killer of the long voyage. Scurvy loosens the teeth, swells the joints, bleeds under the skin and breaks down wounds.</p>
+
+    <p>When George Anson took eight ships round the world from 1740 he began with 1,854 men and came home with 188, and on one ship alone at least 380 of 510 died of it.</p>
+
+    <figure class="viz" data-rv data-dots>
+      <div class="viz-k">Anson&rsquo;s voyage, 1740 &middot; one dot is ten men</div>
+      <div class="dots" data-n="185" data-keep="19"></div>
+      <div class="dots-l"><span>1,854 sailed</span><span>188 came home</span></div>
+    </figure>
+
+    <p>Lemons already had champions, since John Woodall had recommended them to ship surgeons in 1617. Lind added an arrangement: patients as alike as he could find, one room, one diet, and a single difference between each pair.</p>
+
+    <p>Textbooks call this the first clinical trial, a generous title, and the design deserves its fame anyway, because every drug in your cabinet reached you through a descendant of it. His own account comes from the book he published six years later.</p>
+
+  </div>
+
+  <section class="doc" data-doc>
+    <div class="doc-k"><span>In his own words &middot; 1753</span><span class="n" data-doc-n>1 / 5</span></div>
+    <div class="doc-track" data-doc-track>
+      <div class="sheet img"><img alt="The printed title page of A Treatise on the Scurvy in Three Parts by James Lind, second edition, London, 1757." src="/well-versed/mvp/img/scurvy-title.jpg"><span class="tag img-t">The book &middot; second edition, London, 1757. Swipe to read the trial &rarr;</span></div>
+      <div class="sheet"><span class="tag">The patients</span>On the 20th of May 1747, I took twelve patients in the scurvy, on board the Salisbury at sea. Their cases were as similar as I could have them. They all in general had putrid gums, the spots and lassitude, with weakness of their knees. They lay together in one place, being a proper apartment for the sick in the <button type="button" class="gloss" aria-haspopup="dialog">fore-hold<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>The forward part of the ship&rsquo;s hold, the storage space low in the hull.</span></button>; and had one diet common to all&hellip;</div>
+      <div class="sheet"><span class="tag">The remedies</span>Two of these were ordered each a quart of cyder a-day. Two others took twenty-five <button type="button" class="gloss" aria-haspopup="dialog">gutts<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>Drops, from the Latin gutta.</span></button> of <button type="button" class="gloss" aria-haspopup="dialog">elixir vitriol<span class="gloss-body" role="dialog"><span class="gloss-kind">Phrase</span>A tonic made from sulphuric acid, then called oil of vitriol, diluted with alcohol and flavourings.</span></button> three times a-day, upon an empty stomach&hellip; Two others took two spoonfuls of vinegar three times a-day&hellip; Two of the worst patients, with the tendons in the ham rigid, (a symptom none of the rest had), were put under a course of sea-water.</div>
+      <div class="sheet"><span class="tag">The fruit</span>Of this they drank half a pint every day, and sometimes more or less as it operated, by way of gentle <button type="button" class="gloss" aria-haspopup="dialog">physic<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>Medicine, and here specifically a laxative.</span></button>. Two others had each two oranges and one lemon given them every day. These they eat with greediness, at different times, upon an empty stomach. They continued but six days under this course, having consumed the quantity that could be spared. The two remaining patients, took the bigness of a nutmeg three times a-day, of an <button type="button" class="gloss" aria-haspopup="dialog">electuary<span class="gloss-body" role="dialog"><span class="gloss-kind">Word</span>A medicinal paste, its powders bound with something sticky so they can be swallowed.</span></button> recommended by a hospital-surgeon&hellip;</div>
+      <div class="sheet"><span class="tag">The result</span>The consequence was, that the most sudden and visible good effects were perceived from the use of the oranges and lemons; one of those who had taken them, being at the end of the six days fit for duty.<br><br><span class="sd">Tap the dotted words for a gloss.</span></div>
+    </div>
+    <div class="doc-nav"><span role="button" tabindex="0" aria-label="Previous page" data-doc-prev>&larr;</span><span role="button" tabindex="0" aria-label="Next page" data-doc-next>&rarr;</span></div>
+    <p class="doc-src">A Treatise of the Scurvy, abridged. Spelling as printed.</p>
+  </section>
+
+  <div class="body">
+
+    <p class="beat-h">Read it as a referee would</p>
+
+    <p>The men were alike, they shared a room and a menu, and Lind wrote down what he gave and what followed. His flaw sits in one line: &ldquo;two of the worst patients&rdquo; went on sea water, because Lind himself decided who took what.</p>
+
+    <p>A doctor who assigns treatments will steer them toward the patients he expects them to suit, however honest he is. The remedy took two centuries to arrive. The Medical Research Council&rsquo;s streptomycin trial of 1948 let random numbers do the assigning and kept the sequence hidden from the doctors enrolling patients.</p>
+
+    <p class="beat-h">Why nobody listened</p>
+
+    <p>The result then went nowhere, and part of the blame is his. <em>A Treatise of the Scurvy</em> appeared at Edinburgh in 1753, dedicated to Anson, and the trial sits inside it as a few pages of a long argument about causes.</p>
+
+    <p>Lind blamed moisture and a coarse diet that the body could not digest, which left fruit as one good remedy among many. To carry it to sea he proposed a rob, juice reduced for hours in nearly boiling water, and that heat destroyed much of what the juice held. The Navy&rsquo;s Sick and Hurt Board later judged the rob ineffective and too expensive.</p>
+
+    <p>The Navy moved in 1795, forty-eight years after the oranges. Gilbert Blane had been urging citrus since about 1780, and in 1794 the Suffolk sailed twenty-three weeks non-stop to India with lemon juice in the grog and no serious outbreak. The next year the Admiralty ordered a daily ration for every sailor, about three-quarters of an ounce.</p>
+
+    <figure class="viz" data-rv data-tl>
+      <div class="viz-k">From the fore-hold to the vitamin &middot; swipe</div>
+      <div class="tl"><div class="tl-row">
+        <i class="tl-gap" style="left:14.3%;width:28.6%"></i><span class="tl-gap-l" style="left:18%">48 years</span>
+        <div class="tl-e"><b>1617</b>Woodall urges lemons</div>
+        <div class="tl-e"><b>1747</b>Lind&rsquo;s twelve sailors</div>
+        <div class="tl-e"><b>1753</b>The Treatise</div>
+        <div class="tl-e"><b>1795</b>Navy orders a ration</div>
+        <div class="tl-e"><b>1907</b>Scurvy in guinea pigs</div>
+        <div class="tl-e"><b>1932</b>Vitamin C identified</div>
+        <div class="tl-e"><b>1948</b>Random numbers</div>
+      </div></div>
+    </figure>
+
+    <p>Nobody on board could have said why it worked. Two Norwegian physicians produced scurvy in guinea pigs by accident in 1907, and in 1932 Charles Glen King&rsquo;s laboratory proved that Albert Szent-Gy&ouml;rgyi&rsquo;s hexuronic acid was vitamin C, 185 years after the fore-hold.</p>
+
+    <p>The amount involved is tiny: about 10 milligrams a day prevents the disease, and a medium orange holds 70.</p>
+
+    <figure class="viz" data-rv data-bars>
+      <div class="viz-k">Vitamin C, milligrams</div>
+      <div class="bars">
+        <div class="bar"><span>Needed a day</span><i style="width:14.3%"></i><em>10</em></div>
+        <div class="bar"><span>One orange</span><i style="width:100%"></i><em>70</em></div>
+      </div>
+    </figure>
+
+    <p>When the Navy later swapped lemons for West Indian limes, with roughly a quarter of the vitamin, scurvy returned on voyages to Antarctica into the twentieth century. So a fair comparison can tell you that something works long before anyone can tell you why, and a wrong theory can still undo the finding.</p>
+
+    <p class="beat-h">Your turn</p>
+
+    <p>Vitamin C gives you a fair exercise of your own, since its reputation against the common cold has been argued over for decades. Find the review below, read only the abstract, and put these four questions to it before you read on.</p>
+
+    <div class="flips" data-flips>
+      <div class="flip" role="button" tabindex="0" aria-pressed="false"><div class="f">Compared with what?<small>Tap to flip</small></div><div class="b">A similar group that did not get it, named plainly.<small>What you want to hear</small></div></div>
+      <div class="flip" role="button" tabindex="0" aria-pressed="false"><div class="f">Who chose who got what?<small>Tap to flip</small></div><div class="b">Chance, with the doctors unable to steer it.<small>What you want to hear</small></div></div>
+      <div class="flip" role="button" tabindex="0" aria-pressed="false"><div class="f">How many, for how long?<small>Tap to flip</small></div><div class="b">Enough people, followed long enough. Lind had two a side.<small>What you want to hear</small></div></div>
+      <div class="flip" role="button" tabindex="0" aria-pressed="false"><div class="f">How much better, at what?<small>Tap to flip</small></div><div class="b">A number, on an outcome you care about.<small>What you want to hear</small></div></div>
+    </div>
+
+    <a class="task" target="_blank" rel="noopener" href="https://pubmed.ncbi.nlm.nih.gov/23440782/"><div><div class="t1">Vitamin C for preventing and treating the common cold</div><div class="t2">Cochrane Review, 2013 &middot; free on PubMed &middot; the abstract takes five minutes</div></div><span class="go">&rarr;</span></a>
+
+    <details class="found"><summary>Show what the review found</summary>
+    <p>You should have found this. The review pools 29 trial comparisons and 11,306 people, against placebo, mostly randomised and double-blind. Taken daily by ordinary people, vitamin C barely changed the risk of catching a cold, a risk ratio of 0.97. It shortened adults&rsquo; colds by 8 percent, about half a day on a week-long cold, and starting it once symptoms appeared showed no consistent effect. Next time a health headline crosses your phone, give it the same four questions.</p>
+    </details>
+
+    <p class="line"><small>When it comes up</small>The most famous trial in medicine took twelve sailors and six days, and the Navy still needed forty-eight years to act on it.</p>
+
+  </div>
+
+  <footer class="endmatter">
+    <p class="em-more">Learn more: <a target="_blank" rel="noopener" href="https://www.jameslindlibrary.org/articles/james-lind-and-scurvy-1747-to-1795/">Ulrich Tr&ouml;hler, James Lind and scurvy: 1747 to 1795 &rarr;</a></p>
+    <details class="srcs"><summary>Sources and picture credits</summary>
+      <ol>
+        <li>Lind&rsquo;s account: <a target="_blank" rel="noopener" href="https://www.americanrevolutioninstitute.org/wp-content/uploads/2023/03/Excerpt-from-James-Lind.pdf">American Revolution Institute</a>, checked against the passage quoted by Krehl, <a target="_blank" rel="noopener" href="https://sportsci.org/news/history/lind/lind_sp.html">Sportscience</a>.</li>
+        <li>The rob, the Anson ship and the slow uptake: <a target="_blank" rel="noopener" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC1276007">Tr&ouml;hler, J R Soc Med 2005</a>.</li>
+        <li>Symptoms, Anson&rsquo;s 1,854, Woodall, Blane&rsquo;s ration: <a target="_blank" rel="noopener" href="https://hekint.org/2017/01/29/the-mysteries-of-james-lind-and-scurvy/">Pearce, Hektoen International</a>.</li>
+        <li>Lind&rsquo;s career and the lime substitution: <a target="_blank" rel="noopener" href="https://www.encyclopedia.com/people/medicine/medicine-biographies/james-lind">Dictionary of Scientific Biography</a>.</li>
+        <li>The Suffolk, Holst and Fr&oslash;lich, King and Szent-Gy&ouml;rgyi: <a target="_blank" rel="noopener" href="https://www.alphaomegaalpha.org/wp-content/uploads/2021/07/2014-3-Gutiontov.pdf">Gutiontov, The Pharos, 2014</a>.</li>
+        <li>The 1948 streptomycin trial: <a target="_blank" rel="noopener" href="https://www.jameslindlibrary.org/records/medical-research-council-1948b/">James Lind Library</a>.</li>
+        <li>10 milligrams, the orange and the effect of heat: <a target="_blank" rel="noopener" href="https://ods.od.nih.gov/factsheets/VitaminC-HealthProfessional/">NIH Office of Dietary Supplements</a>.</li>
+        <li>Vitamin C and the common cold: <a target="_blank" rel="noopener" href="https://pubmed.ncbi.nlm.nih.gov/23440782/">Hemil&auml; and Chalker, Cochrane 2013</a>.</li>
+        <li>Pictures: portrait of Lind engraved by I. Wright after Sir George Chalmers, 1783; Robert Thom, <em>James Lind, Conqueror of Scurvy</em>, Parke, Davis &amp; Company, 1959; title page, London, 1757. All via <a target="_blank" rel="noopener" href="https://commons.wikimedia.org/wiki/File:James_Lind-conqueror_of_scurvy.jpg">Wikimedia Commons</a>, where the author and licence terms for each file are recorded.</li>
+      </ol>
+    </details>
+  </footer>
+</article></div>
