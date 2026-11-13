@@ -33,7 +33,7 @@
     '.mg-fc{position:relative;width:250px;height:190px;perspective:900px}' +
     '.mg-f,.mg-bk{position:absolute;inset:0;border-radius:22px;padding:22px;display:flex;align-items:center;font:400 21px/1.32 "Spectral",Georgia,serif;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .8s cubic-bezier(.2,.8,.2,1);box-shadow:0 24px 60px rgba(0,0,0,.5)}' +
     '.mg-f{background:#7a2f22;color:#fbf7f0}.mg-f u{text-decoration:none;border-bottom:2px solid #fbf7f0}' +
-    '.mg-bk{background:#fbf7f0;color:#7a2f22;justify-content:center;font-size:28px;transform:rotateY(180deg)}' +
+    '.mg-bk{background:#fbf7f0;color:#7a2f22;justify-content:center;font-size:26px;text-align:center;transform:rotateY(180deg)}' +
     '.mg-p.act .mg-f{transform:rotateY(-180deg);transition-delay:1.1s}.mg-p.act .mg-bk{transform:none;transition-delay:1.1s}' +
     '.mg-due{margin-top:16px;font-size:13px;font-weight:600;color:#86b4f2;opacity:0;transition:opacity .5s 2s}.mg-p.act .mg-due{opacity:1}' +
     '.mg-dots{display:flex;justify-content:center;gap:7px;padding:18px 0 12px}.mg-dots i{width:7px;height:7px;border-radius:50%;background:#4a443d;transition:background .3s,width .3s}.mg-dots i.on{background:#fbf7f0;width:20px;border-radius:4px}' +
@@ -54,7 +54,7 @@
     var v2 = '<div class="mg-chat"><div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">What did Lind give the two men who got better?</span></div>' +
       '<div class="mg-b r"><span class="mg-bb">Oranges and lemons, two and one a day<i class="mg-wave"><i></i><i></i><i></i><i></i><i></i></i></span></div>' +
       '<div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Right. Now, what was wrong with how he picked the sea-water pair?</span></div></div>';
-    var v3 = '<div class="mg-fc"><div class="mg-f">After Lind’s trial, the Navy took <u>&emsp;&emsp;&emsp;</u> to order citrus for every sailor.</div><div class="mg-bk">forty-eight years</div></div><div class="mg-due">Back in 3 days</div>';
+    var v3 = '<div class="mg-fc"><div class="mg-f"><span>After Lind’s trial, the Navy took <u>&emsp;&emsp;&emsp;</u> to order citrus for every sailor.</span></div><div class="mg-bk">forty-eight years</div></div><div class="mg-due">Back in 3 days</div>';
     return '<div class="mg-s" role="dialog" aria-modal="true" aria-labelledby="mg-t">' +
       '<div class="mg-top"><span class="mg-brand">Well-Versed</span><button class="mg-skip" data-mg="close">Skip</button></div>' +
       '<div class="mg-track">' +

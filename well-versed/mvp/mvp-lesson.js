@@ -43,7 +43,7 @@ R.trial=function(o){var sec=o.el,svg=sec.querySelector('svg'),day=sec.querySelec
   var bl=el('line',{x1:c[0]+16,x2:c[0]+148,y1:base,y2:base,stroke:'rgba(255,255,255,.14)','stroke-width':1},g);
   var tag=el('text',{x:c[0]+82,y:c[1]-6,'text-anchor':'middle','font-family':SANS,'font-size':12,'font-weight':700,fill:'#ff8a70',opacity:0},svg,'Lind chose these two');
   C.push({g:g,r:r,ic:ic,lb:lb,sp:sp,bl:bl,tag:tag,c:c,d:d});
-  g.addEventListener('click',function(e){if(o.wait!=='guess')return;e.stopPropagation();o.guess=p;C.forEach(function(x,k){x.r.setAttribute('stroke',k===p?'#f2b84b':'rgba(255,255,255,.18)')});
+  g.addEventListener('click',function(e){if(o.wait!=='guess')return;e.stopPropagation();o.guess=p;sec.classList.remove('guessing');C.forEach(function(x,k){x.r.setAttribute('stroke',k===p?'#f2b84b':'rgba(255,255,255,.18)')});
    var gs=sec.querySelector('[data-guess]');if(gs)gs.textContent=(p===4?'You got it. ':'You picked '+P[p][0].toLowerCase()+'. It was citrus. ')+'By day six one man was fit for duty and the other was nursing the sick. Cider came second.';o.resume()})});
  for(var i=0;i<12;i++){var g=el('g',{},svg);F.push({b:el('rect',{rx:6,fill:'#cbbfa9'},g),h:el('circle',{r:8,fill:'#e3d6bf'},g)})}
  function A(i){return [52+(i%4)*86,80+Math.floor(i/4)*110]}
@@ -97,7 +97,7 @@ function stage(sec,sc){var caps=[].slice.call(sec.querySelectorAll('.st-cap')),n
  function paint(){caps.forEach(function(c,i){var d=Math.abs(s-i),op=d<.3?1:cl(1-(d-.3)/.25,0,1);c.style.opacity=op.toFixed(3);c.style.transform='translateY('+((i-s)*16).toFixed(1)+'px)'});draw(s);
   pb.forEach(function(b,i){b.style.width=(i<idx?100:i>idx?0:(auto&&hold&&holdDur?cl((Date.now()-holdStart)/holdDur,0,1)*100:100))+'%'})}
  function loop(){if(!live)return;paint();requestAnimationFrame(loop)}
- function setWait(){o.wait=caps[idx].dataset.wait||null;var last=idx>=n-1;sec.classList.toggle('waiting',!auto||!!o.wait);hint.textContent=o.wait==='guess'?'Tap a pair':(last?'Scroll on':'Tap to continue');bp.setAttribute('aria-disabled',idx===0);bn.setAttribute('aria-disabled',last||o.wait==='guess'&&o.guess==null)}
+ function setWait(){o.wait=caps[idx].dataset.wait||null;sec.classList.toggle('guessing',o.wait==='guess'&&o.guess==null);var last=idx>=n-1;sec.classList.toggle('waiting',!auto||!!o.wait);hint.textContent=o.wait==='guess'?'Tap a pair':(last?'Scroll on':'Tap to continue');bp.setAttribute('aria-disabled',idx===0);bn.setAttribute('aria-disabled',last||o.wait==='guess'&&o.guess==null)}
  function arrive(){tw=null;setWait();clearTimeout(hold);hold=null;if(auto&&idx<n-1&&!o.wait&&inView){holdDur=+(caps[idx].dataset.hold||3400);holdStart=Date.now();hold=setTimeout(function(){go(idx+1)},holdDur)}}
  function go(i,fast){i=cl(i,0,n-1);if(caps[idx].dataset.wait==='guess'&&o.guess==null&&i>idx)return;clearTimeout(hold);hold=null;sec.classList.remove('waiting');var from=s,back=i<idx;idx=i;
   var dur=RM?0:fast?350:back?700:+(caps[i].dataset.dur||1400),t0=performance.now();o.wait=null;
