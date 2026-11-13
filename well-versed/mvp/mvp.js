@@ -21,7 +21,7 @@
     '.mg .fine{font-size:12px;color:#9b9386;text-align:center;margin:0 0 14px}' +
     '.mg .go{width:100%;border:0;border-radius:999px;background:#fbf7f0;color:#141210;font:600 17px "Instrument Sans",sans-serif;padding:17px;cursor:pointer}' +
     '.mg .alt{width:100%;border:0;background:none;color:#d9d2c6;font:500 15px "Instrument Sans",sans-serif;padding:14px;cursor:pointer}' +
-    '.mg-help{position:fixed;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:8000;width:36px;height:36px;border-radius:50%;border:0;background:rgba(44,40,36,.72);color:#f3eee6;font:600 17px "Instrument Sans",sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
+    '.mg-help{position:fixed;top:calc(18px + env(safe-area-inset-top));left:140px;z-index:8000;width:36px;height:36px;border-radius:50%;border:0;background:rgba(44,40,36,.72);color:#f3eee6;font:600 17px "Instrument Sans",sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
     '.mg button:focus-visible,.mg-help:focus-visible{outline:2px solid #fbf7f0;outline-offset:3px}';
   document.head.appendChild(css);
 
