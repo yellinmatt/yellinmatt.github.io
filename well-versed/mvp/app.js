@@ -479,7 +479,7 @@ if(window.matchMedia)try{matchMedia('(prefers-color-scheme: dark)').addEventList
 function lookDark(){var v=S.opts.look||'dark';return v==='dark'||(v==='system'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)}
 function autoTheme(){if(!S.opts.thSet)S.theme=''}
 function readerChrome(d,heroH){var last=0,raf=0;d.addEventListener('scroll',function(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;var y=d.scrollTop;d.classList.toggle('rt-band',y>heroH());if(Math.abs(y-last)>6){d.classList.toggle('rt-hide',y>last&&y>160);last=y}})},{passive:true})}
-var MVPL={'scurvy-trial':1};function lsnUrl(l){var k=slug(l);return MVPL[k]?'/well-versed/mvp/lessons/'+k+'.html?v=r7':'lessons/'+k+'.html'}
+var MVPL={'scurvy-trial':1};function lsnUrl(l){var k=slug(l);return MVPL[k]?'/well-versed/mvp/lessons/'+k+'.html?v=r8':'lessons/'+k+'.html'}
 function readLesson(l){
  if(l.h==='gerrymander.html'){reader();return}
  S.seen[l.h]=Date.now();autoTheme();
@@ -495,7 +495,7 @@ function readLesson(l){
    lessonDom(sh);markExternal(sh);if(window.WVW)WVW(sh,d);
    var imgs=[].slice.call(sh.querySelectorAll('img')).filter(function(i){return !i.complete});
    Promise.race([Promise.all(imgs.map(function(i){return new Promise(function(res){i.onload=i.onerror=res})})),new Promise(function(res){setTimeout(res,2500)})]).then(function(){
-    var p=S.pos[l.h]!=null?S.pos[l.h]:0,an=S.anc[l.h];if(p>.02&&p<.95){if(an)pinAnchor(d,sh,an,function(v){pinning=v});else d.scrollTop=p*(d.scrollHeight-d.clientHeight)}ready=true;prog()});
+    var p=0,an=null;if(p>.02&&p<.95){if(an)pinAnchor(d,sh,an,function(v){pinning=v});else d.scrollTop=p*(d.scrollHeight-d.clientHeight)}ready=true;prog()});
   }).catch(function(){sh.innerHTML='<div class="wv-err"><p>This lesson did not load. Check your connection.</p><button id="rt">Try again</button></div><style>.wv-err{padding:36vh 24px 0;text-align:center;font:16px var(--sans);color:var(--rink)}.wv-err button{font:inherit;min-height:44px;padding:10px 18px;border-radius:22px;border:1px solid currentColor;background:none;color:inherit}</style>';sh.getElementById('rt').onclick=load})}
  sh.addEventListener('click',function(e){
   var a=e.target.closest('a[data-wvl]');if(a){e.preventDefault();var n=byH(a.getAttribute('data-wvl')+'.html');if(n){readLesson(n)}else{window.open('https://mattyellin.com/well-versed/'+a.getAttribute('data-wvl')+'.html','_blank','noopener')}return}

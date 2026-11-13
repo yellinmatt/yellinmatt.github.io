@@ -5,22 +5,38 @@
 
   var css = document.createElement('style');
   css.textContent =
-    '.mg{position:fixed;inset:0;z-index:9000;display:flex;justify-content:center;background:#141210;color:#f3eee6;opacity:0;transition:opacity .25s;font-family:"Instrument Sans",-apple-system,BlinkMacSystemFont,sans-serif}' +
+    '.mg{position:fixed;inset:0;z-index:9000;display:flex;justify-content:center;background:#141210;color:#f3eee6;opacity:0;transition:opacity .3s;font-family:"Instrument Sans",-apple-system,BlinkMacSystemFont,sans-serif}' +
     '.mg.on{opacity:1}' +
-    '.mg-s{width:100%;max-width:460px;display:flex;flex-direction:column;padding:calc(56px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));overflow:auto}' +
-    '.mg h2{font:400 52px/1 "DM Serif Display",Georgia,serif;margin:0 0 10px;letter-spacing:-.01em}' +
-    '.mg .lede{font-size:17px;line-height:1.4;color:#d9d2c6;margin:0 0 30px}' +
-    '.mg ul{list-style:none;margin:0;padding:0}' +
-    '.mg li{display:flex;align-items:center;gap:16px;padding:12px 0}' +
-    '.mg .ic{flex:none;width:30px;height:30px;display:flex;align-items:center;justify-content:center;color:#fbf7f0}' +
-    '.mg .ic svg{width:26px;height:26px}' +
-    '.mg .ic .bosm{width:30px;height:30px}' +
-    '.mg li b{display:block;font-size:16px;font-weight:600;color:#fbf7f0}' +
-    '.mg li span{display:block;font-size:14px;color:#b9b1a4;line-height:1.35}' +
-    '.mg .sp{flex:1;min-height:24px}' +
-    '.mg .fine{font-size:12px;color:#9b9386;text-align:center;margin:0 0 14px}' +
-    '.mg .go{width:100%;border:0;border-radius:999px;background:#fbf7f0;color:#141210;font:600 17px "Instrument Sans",sans-serif;padding:17px;cursor:pointer}' +
-    '.mg .alt{width:100%;border:0;background:none;color:#d9d2c6;font:500 15px "Instrument Sans",sans-serif;padding:14px;cursor:pointer}' +
+    '.mg-s{width:100%;max-width:460px;display:flex;flex-direction:column;padding:calc(18px + env(safe-area-inset-top)) 0 calc(22px + env(safe-area-inset-bottom));overflow:hidden}' +
+    '.mg-top{display:flex;justify-content:space-between;align-items:center;padding:0 24px;height:44px}' +
+    '.mg-brand{font:400 20px/1 "DM Serif Display",Georgia,serif;color:#fbf7f0}' +
+    '.mg-skip{border:0;background:none;color:#b9b1a4;font:500 15px "Instrument Sans",sans-serif;padding:10px 0 10px 14px;cursor:pointer}' +
+    '.mg-track{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}.mg-track::-webkit-scrollbar{display:none}' +
+    '.mg-p{flex:0 0 100%;scroll-snap-align:start;display:flex;flex-direction:column;justify-content:flex-end;padding:8px 28px 0;min-height:0}' +
+    '.mg-v{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;padding:10px 0 26px}' +
+    '.mg h2{font:400 38px/1.05 "DM Serif Display",Georgia,serif;margin:0 0 12px;color:#fbf7f0;letter-spacing:-.005em}' +
+    '.mg-p p{font-size:17px;line-height:1.45;color:#d9d2c6;margin:0 0 6px;max-width:34ch}' +
+    '.mg-card{width:230px;border-radius:22px;overflow:hidden;background:#1f1c19;box-shadow:0 30px 70px rgba(0,0,0,.55);transform:translateY(16px) rotate(-2deg);opacity:0;transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .6s}' +
+    '.mg-p.act .mg-card{transform:none;opacity:1}' +
+    '.mg-card img{display:block;width:100%;height:250px;object-fit:cover;object-position:50% 30%}' +
+    '.mg-ct{padding:14px 16px 16px}.mg-ct b{display:block;font:400 22px/1.1 "DM Serif Display",Georgia,serif;color:#fbf7f0}.mg-ct span{font-size:13px;color:#b9b1a4}' +
+    '.mg-chat{width:100%;display:flex;flex-direction:column;gap:12px}' +
+    '.mg-b{display:flex;align-items:flex-end;gap:8px;opacity:0;transform:translateY(12px);transition:opacity .5s,transform .7s cubic-bezier(.16,1,.3,1)}' +
+    '.mg-b.r{justify-content:flex-end}.mg-av{flex:none;width:30px;height:30px}.mg-av .bosm,.mg-av svg{width:30px;height:30px}' +
+    '.mg-bb{max-width:78%;padding:11px 14px;border-radius:18px;font-size:15.5px;line-height:1.35;background:#2a2622;color:#f3eee6}' +
+    '.mg-b.r .mg-bb{background:#fbf7f0;color:#141210}' +
+    '.mg-p.act .mg-b{opacity:1;transform:none}.mg-p.act .mg-b:nth-child(2){transition-delay:.9s}.mg-p.act .mg-b:nth-child(3){transition-delay:2s}' +
+    '.mg-wave{display:inline-flex;gap:2px;margin-left:8px;vertical-align:middle}.mg-wave i{width:3px;height:12px;border-radius:2px;background:#9b2c1d;animation:mgw 1s ease-in-out infinite}.mg-wave i:nth-child(2){animation-delay:.15s}.mg-wave i:nth-child(3){animation-delay:.3s}.mg-wave i:nth-child(4){animation-delay:.45s}.mg-wave i:nth-child(5){animation-delay:.6s}' +
+    '@keyframes mgw{50%{transform:scaleY(.35)}}' +
+    '.mg-fc{position:relative;width:250px;height:190px;perspective:900px}' +
+    '.mg-f,.mg-bk{position:absolute;inset:0;border-radius:22px;padding:22px;display:flex;align-items:center;font:400 21px/1.32 "Spectral",Georgia,serif;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .8s cubic-bezier(.2,.8,.2,1);box-shadow:0 24px 60px rgba(0,0,0,.5)}' +
+    '.mg-f{background:#7a2f22;color:#fbf7f0}.mg-f u{text-decoration:none;border-bottom:2px solid #fbf7f0}' +
+    '.mg-bk{background:#fbf7f0;color:#7a2f22;justify-content:center;font-size:28px;transform:rotateY(180deg)}' +
+    '.mg-p.act .mg-f{transform:rotateY(-180deg);transition-delay:1.1s}.mg-p.act .mg-bk{transform:none;transition-delay:1.1s}' +
+    '.mg-due{margin-top:16px;font-size:13px;font-weight:600;color:#86b4f2;opacity:0;transition:opacity .5s 2s}.mg-p.act .mg-due{opacity:1}' +
+    '.mg-dots{display:flex;justify-content:center;gap:7px;padding:18px 0 12px}.mg-dots i{width:7px;height:7px;border-radius:50%;background:#4a443d;transition:background .3s,width .3s}.mg-dots i.on{background:#fbf7f0;width:20px;border-radius:4px}' +
+    '.mg .fine{font-size:12px;color:#9b9386;text-align:center;margin:0 24px 12px}' +
+    '.mg .go{margin:0 24px;width:calc(100% - 48px);border:0;border-radius:999px;background:#fbf7f0;color:#141210;font:600 17px "Instrument Sans",sans-serif;padding:17px;cursor:pointer}' +
     '.mg-help{position:fixed;top:calc(18px + env(safe-area-inset-top));left:140px;z-index:8000;width:36px;height:36px;border-radius:50%;border:0;background:rgba(44,40,36,.72);color:#f3eee6;font:600 17px "Instrument Sans",sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
     '.mg button:focus-visible,.mg-help:focus-visible{outline:2px solid #fbf7f0;outline-offset:3px}' +
     '.scr.talk{--room-btn:#fbf7f0;--room-btn-ink:#141210}' +
@@ -28,24 +44,23 @@
     '.scr.talk .arow .skip{opacity:1;background:rgba(251,247,240,.12);border-radius:999px;padding:0 18px;height:52px;font-weight:600}';
   document.head.appendChild(css);
 
-  function icon(k) { try { return (window.I && I[k]) || ''; } catch (e) { return ''; } }
   function bos() { try { return typeof bosMini === 'function' ? bosMini() : ''; } catch (e) { return ''; } }
-  function row(ic, t, d) { return '<li><span class="ic" aria-hidden="true">' + ic + '</span><div><b>' + t + '</b><span>' + d + '</span></div></li>'; }
-
+  function page(i, vis, t, d) { return '<section class="mg-p" data-i="' + i + '"><div class="mg-v">' + vis + '</div><h2' + (i === 0 ? ' id="mg-t"' : '') + '>' + t + '</h2><p>' + d + '</p></section>'; }
   function html() {
+    var v1 = '<div class="mg-card"><img alt="" src="/well-versed/app/img/h/scurvy-trial.webp"><div class="mg-ct"><b>The Scurvy Trial</b><span>Medicine · 7 min</span></div></div>';
+    var v2 = '<div class="mg-chat"><div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">What did Lind give the two men who got better?</span></div>' +
+      '<div class="mg-b r"><span class="mg-bb">Oranges and lemons, two and one a day<i class="mg-wave"><i></i><i></i><i></i><i></i><i></i></i></span></div>' +
+      '<div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Right. Now, what was wrong with how he picked the sea-water pair?</span></div></div>';
+    var v3 = '<div class="mg-fc"><div class="mg-f">After Lind’s trial, the Navy took <u>&emsp;&emsp;&emsp;</u> to order citrus for every sailor.</div><div class="mg-bk">forty-eight years</div></div><div class="mg-due">Back in 3 days</div>';
     return '<div class="mg-s" role="dialog" aria-modal="true" aria-labelledby="mg-t">' +
-      '<h2 id="mg-t">Well-Versed</h2>' +
-      '<p class="lede">Read a short lesson, explain it back, and keep what you learned.</p>' +
-      '<ul>' +
-      row(icon('today'), 'Today', 'Your lesson for the day.') +
-      row(bos(), 'Boswell', 'Tell him what you remember. He checks it against the lesson.') +
-      row(icon('cards'), 'Cards', 'What you missed comes back before you forget it.') +
-      row(icon('shelf'), 'Shelf', 'Every lesson, by subject.') +
-      row(icon('rec'), 'Record', 'Your streak and what you know.') +
-      '</ul><div class="sp"></div>' +
+      '<div class="mg-top"><span class="mg-brand">Well-Versed</span><button class="mg-skip" data-mg="close">Skip</button></div>' +
+      '<div class="mg-track">' +
+      page(0, v1, 'One story a day', 'Each morning you get one short, illustrated story about something worth knowing. Today’s: a ship’s surgeon, twelve sick sailors and a basket of oranges.') +
+      page(1, v2, 'Then tell it back', 'When you finish, explain it to Boswell, out loud or typed. He checks you against the story, tells you what you got right and coaches you through what you missed.') +
+      page(2, v3, 'Keep what you learned', 'Anything you were shaky on becomes a card, and it comes back just before you would forget it.') +
+      '</div><div class="mg-dots"><i class="on"></i><i></i><i></i></div>' +
       '<p class="fine">Your answers go to an AI for feedback and are not stored.</p>' +
-      '<button class="go" data-mg="start">Start with The Scurvy Trial</button>' +
-      '<button class="alt" data-mg="close">Look around first</button>' +
+      '<button class="go" data-mg="next">Next</button>' +
       '</div>';
   }
 
@@ -65,15 +80,16 @@
     var m = document.createElement('div');
     m.className = 'mg';
     m.innerHTML = html();
+    var cur = 0;
+    function goTo(i) { var tr = m.querySelector('.mg-track'), ps = m.querySelectorAll('.mg-p'); cur = Math.max(0, Math.min(ps.length - 1, i)); tr.scrollTo({ left: ps[cur].offsetLeft, behavior: 'smooth' }); }
+    function onPage(i) { cur = i; [].forEach.call(m.querySelectorAll('.mg-dots i'), function (d, k) { d.classList.toggle('on', k === i); }); [].forEach.call(m.querySelectorAll('.mg-p'), function (p, k) { p.classList.toggle('act', k === i); }); m.querySelector('.go').textContent = i === 2 ? 'Go to today’s story' : 'Next'; }
     m.addEventListener('click', function (e) {
       var a = e.target.closest('[data-mg]');
-      if (e.target === m) return close();
       if (!a) return;
-      if (a.getAttribute('data-mg') === 'start') {
-        close();
-        try { var l = byH('scurvy-trial.html'); if (l) readLesson(l); } catch (err) {}
-      } else close();
+      if (a.getAttribute('data-mg') === 'next') { if (cur < 2) return goTo(cur + 1); close(); try { S.tab = 'today'; root(); } catch (err) {} return; }
+      close(); try { S.tab = 'today'; root(); } catch (err) {}
     });
+    setTimeout(function () { var tr = m.querySelector('.mg-track'); tr.addEventListener('scroll', function () { var i = Math.round(tr.scrollLeft / tr.clientWidth); if (i !== cur) onPage(i); }, { passive: true }); onPage(0); }, 0);
     document.body.appendChild(m);
     document.addEventListener('keydown', onKey);
     requestAnimationFrame(function () { m.classList.add('on'); var b = m.querySelector('.go'); if (b) b.focus(); });
