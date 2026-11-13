@@ -16,6 +16,8 @@
     '.mg-v{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:260px;padding:10px 0 26px}' +
     '.mg h2{font:400 38px/1.05 "DM Serif Display",Georgia,serif;margin:0 0 12px;color:#fbf7f0;letter-spacing:-.005em}' +
     '.mg-p p{font-size:17px;line-height:1.45;color:#d9d2c6;margin:0 0 6px;max-width:34ch}' +
+    '.mg-real{width:240px;height:350px;position:relative;opacity:0;transform:translateY(18px);transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .6s;pointer-events:none}.mg-p.act .mg-real{opacity:1;transform:none}' +
+    '.mg-real-in{position:absolute;left:50%;top:0;width:390px;transform:translateX(-50%) scale(.615);transform-origin:top center}.mg-real-in>*{margin:0!important}.mg-real-in .panel{height:560px!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;border-radius:28px;overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.55)}' +
     '.mg-card{width:230px;border-radius:22px;overflow:hidden;background:#1f1c19;box-shadow:0 30px 70px rgba(0,0,0,.55);transform:translateY(16px) rotate(-2deg);opacity:0;transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .6s}' +
     '.mg-p.act .mg-card{transform:none;opacity:1}' +
     '.mg-card img{display:block;width:100%;height:250px;object-fit:cover;object-position:50% 30%}' +
@@ -47,7 +49,8 @@
   function bos() { try { return typeof bosMini === 'function' ? bosMini() : ''; } catch (e) { return ''; } }
   function page(i, vis, t, d) { return '<section class="mg-p" data-i="' + i + '"><div class="mg-v">' + vis + '</div><h2' + (i === 0 ? ' id="mg-t"' : '') + '>' + t + '</h2><p>' + d + '</p></section>'; }
   function html() {
-    var v1 = '<div class="mg-card"><img alt="" src="/well-versed/app/img/h/scurvy-trial.webp"><div class="mg-ct"><b>The Scurvy Trial</b><span>Medicine · 7 min</span></div></div>';
+    var v1 = '';
+    try { var tl = byH('scurvy-trial.html'), a0 = artFor(hero(tl)); var dt = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); v1 = '<div class="mg-real"><div class="mg-real-in">' + lessonCard(a0, tl, tagH(esc(tl.f), famOf(tl.f)[2]), { h1: 1, pre: '<div class="tdate">' + dt + '</div>', meta: tl.m + ' min' }) + '</div></div>'; } catch (e) { v1 = ''; }
     var v2 = '<div class="mg-chat"><div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">What did Lind give the two men who got better?</span></div>' +
       '<div class="mg-b r"><span class="mg-bb">Oranges and lemons, two and one a day<i class="mg-wave"><i></i><i></i><i></i><i></i><i></i></i></span></div>' +
       '<div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Right. Now, what was wrong with how he picked the sea-water pair?</span></div></div>';
