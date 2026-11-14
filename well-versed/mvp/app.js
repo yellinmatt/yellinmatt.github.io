@@ -479,7 +479,7 @@ if(window.matchMedia)try{matchMedia('(prefers-color-scheme: dark)').addEventList
 function lookDark(){var v=S.opts.look||'dark';return v==='dark'||(v==='system'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)}
 function autoTheme(){if(!S.opts.thSet)S.theme=''}
 function readerChrome(d,heroH){var last=0,raf=0;d.addEventListener('scroll',function(){if(raf)return;raf=requestAnimationFrame(function(){raf=0;var y=d.scrollTop;d.classList.toggle('rt-band',y>heroH());if(Math.abs(y-last)>6){d.classList.toggle('rt-hide',y>last&&y>160);last=y}})},{passive:true})}
-var MVPL={'scurvy-trial':1,'old-fashioned':1};function lsnUrl(l){var k=slug(l);return MVPL[k]?'/well-versed/mvp/lessons/'+k+'.html?v=r19':'lessons/'+k+'.html'}
+var MVPL={'scurvy-trial':1,'old-fashioned':1};function lsnUrl(l){var k=slug(l);return MVPL[k]?'/well-versed/mvp/lessons/'+k+'.html?v=r20':'lessons/'+k+'.html'}
 function readLesson(l){
  if(l.h==='gerrymander.html'){reader();return}
  S.seen[l.h]=Date.now();autoTheme();
