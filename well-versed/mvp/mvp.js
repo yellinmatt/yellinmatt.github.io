@@ -39,7 +39,8 @@
     '.mg-dots{display:flex;justify-content:center;gap:7px;padding:18px 0 12px}.mg-dots i{width:7px;height:7px;border-radius:50%;background:#4a443d;transition:background .3s,width .3s}.mg-dots i.on{background:#fbf7f0;width:20px;border-radius:4px}' +
     '.mg .fine{font-size:12px;color:#9b9386;text-align:center;margin:0 24px 12px}' +
     '.mg .go{margin:0 24px;width:calc(100% - 48px);border:0;border-radius:999px;background:#fbf7f0;color:#141210;font:600 17px "Instrument Sans",sans-serif;padding:17px;cursor:pointer}' +
-    '.mg-help{position:fixed;top:calc(18px + env(safe-area-inset-top));left:140px;z-index:8000;width:36px;height:36px;border-radius:50%;border:0;background:rgba(44,40,36,.72);color:#f3eee6;font:600 17px "Instrument Sans",sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
+    '.tdots i:only-child{display:none}' +
+    '.mg-help{position:fixed;top:calc(18px + env(safe-area-inset-top));left:max(76px,calc(50% - 130px));z-index:8000;width:36px;height:36px;border-radius:50%;border:0;background:rgba(44,40,36,.72);color:#f3eee6;font:600 17px "Instrument Sans",sans-serif;cursor:pointer;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}' +
     '.mg button:focus-visible,.mg-help:focus-visible{outline:2px solid #fbf7f0;outline-offset:3px}' +
     '.scr.talk{--room-btn:#fbf7f0;--room-btn-ink:#141210}' +
     '.reader:not(.night):not(.sepia){--rbg:#f6f2ea;--rink:#1d1a16;--rsub:#5e564b;--rrule:#ddd6c9;--rsoft:#ece6db;--racc:#9b2c1d;--rpop:#fbf9f5}' +
@@ -50,17 +51,17 @@
   function page(i, vis, t, d) { return '<section class="mg-p" data-i="' + i + '"><div class="mg-v">' + vis + '</div><h2' + (i === 0 ? ' id="mg-t"' : '') + '>' + t + '</h2><p>' + d + '</p></section>'; }
   function html() {
     var v1 = '';
-    try { var tl = byH('scurvy-trial.html'), a0 = artFor(hero(tl)); var dt = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); v1 = '<div class="mg-real"><div class="mg-real-in">' + lessonCard(a0, tl, tagH(esc(tl.f), famOf(tl.f)[2]), { h1: 1, pre: '<div class="tdate">' + dt + '</div>', meta: tl.m + ' min' }) + '</div></div>'; } catch (e) { v1 = ''; }
-    var v2 = '<div class="mg-chat"><div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">What did Lind give the two men who got better?</span></div>' +
-      '<div class="mg-b r"><span class="mg-bb">Oranges and lemons, two and one a day<i class="mg-wave"><i></i><i></i><i></i><i></i><i></i></i></span></div>' +
-      '<div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Right. Now, what was wrong with how he picked the sea-water pair?</span></div></div>';
-    var v3 = '<div class="mg-fc"><div class="mg-f"><span>After Lind’s trial, the Navy took <u>&emsp;&emsp;&emsp;</u> to order citrus for every sailor.</span></div><div class="mg-bk">forty-eight years</div></div><div class="mg-due">Back in 3 days</div>';
+    try { var tl = byH('old-fashioned.html'), a0 = artFor(hero(tl)); var dt = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }); v1 = '<div class="mg-real"><div class="mg-real-in">' + lessonCard(a0, tl, tagH(esc(tl.f), famOf(tl.f)[2]), { h1: 1, pre: '<div class="tdate">' + dt + '</div>', meta: tl.m + ' min' }) + '</div></div>'; } catch (e) { v1 = ''; }
+    var v2 = '<div class="mg-chat"><div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Why is it called an Old Fashioned?</span></div>' +
+      '<div class="mg-b r"><span class="mg-bb">Because drinkers started asking for<i class="mg-wave"><i></i><i></i><i></i><i></i><i></i></i></span></div>' +
+      '<div class="mg-b l"><span class="mg-av">' + bos() + '</span><span class="mg-bb">Good start. Asking for what, exactly?</span></div></div>';
+    var v3 = '<div class="mg-fc"><div class="mg-f"><span>The Old Fashioned was the best-selling classic cocktail until <u>&emsp;&emsp;&emsp;</u>.</span></div><div class="mg-bk">2022</div></div><div class="mg-due">Back in 3 days</div>';
     return '<div class="mg-s" role="dialog" aria-modal="true" aria-labelledby="mg-t">' +
       '<div class="mg-top"><span class="mg-brand">Well-Versed</span><button class="mg-skip" data-mg="close">Skip</button></div>' +
       '<div class="mg-track">' +
-      page(0, v1, 'One story a day', 'Each morning you get one short, illustrated story about something worth knowing. Today’s: a ship’s surgeon, twelve sick sailors and a basket of oranges.') +
-      page(1, v2, 'Then tell it back', 'When you finish, explain it to Boswell, out loud or typed. He checks you against the story, tells you what you got right and coaches you through what you missed.') +
-      page(2, v3, 'Keep what you learned', 'Anything you were shaky on becomes a card, and it comes back just before you would forget it.') +
+      page(0, v1, 'One short story', 'Each lesson is one short, illustrated story about something worth knowing. This one: a lost election, a bar tab and the oldest cocktail recipe on record.') +
+      page(1, v2, 'Then tell it back', 'When you finish, explain it out loud or typed to Boswell, the app’s AI coach. He tells you what you got right and coaches you through what you missed.') +
+      page(2, v3, 'Keep what you learned', 'Add the cards you want as you go. Each one comes back just before you would forget it.') +
       '</div><div class="mg-dots"><i class="on"></i><i></i><i></i></div>' +
       '<p class="fine">Your answers go to an AI for feedback and are not stored.</p>' +
       '<button class="go" data-mg="next">Next</button>' +
@@ -85,7 +86,7 @@
     m.innerHTML = html();
     var cur = 0;
     function goTo(i) { var tr = m.querySelector('.mg-track'), ps = m.querySelectorAll('.mg-p'); cur = Math.max(0, Math.min(ps.length - 1, i)); tr.scrollTo({ left: cur * tr.clientWidth, behavior: 'smooth' }); }
-    function onPage(i) { cur = i; [].forEach.call(m.querySelectorAll('.mg-dots i'), function (d, k) { d.classList.toggle('on', k === i); }); [].forEach.call(m.querySelectorAll('.mg-p'), function (p, k) { p.classList.toggle('act', k === i); }); m.querySelector('.go').textContent = i === 2 ? 'Go to today’s story' : 'Next'; }
+    function onPage(i) { cur = i; [].forEach.call(m.querySelectorAll('.mg-dots i'), function (d, k) { d.classList.toggle('on', k === i); }); [].forEach.call(m.querySelectorAll('.mg-p'), function (p, k) { p.classList.toggle('act', k === i); }); m.querySelector('.go').textContent = i === 2 ? 'Start the story' : 'Next'; }
     m.addEventListener('click', function (e) {
       var a = e.target.closest('[data-mg]');
       if (!a) return;
