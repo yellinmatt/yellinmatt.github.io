@@ -1803,7 +1803,7 @@ html.arrive #v-today.on>.tmorn{animation:tRise .44s .025s cubic-bezier(.22,1,.36
 
 <script>
 "use strict";
-var VERSION="v27.8";
+var VERSION="v27.9";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2835,9 +2835,13 @@ function planWeekNo(k){var b=PLAN_CACHE&&PLAN_CACHE.blockStart;if(!b)return 0;
   var rw=(PLAN_CACHE.restWeeks||[]).map(function(n){return n-1;});return r-rw.filter(function(x){return x<r;}).length;}
 function planWeekKeys(){var mon=new Date(NOW);mon.setDate(NOW.getDate()-((DOW+6)%7));var o=[];
   for(var i=0;i<7;i++){var d=new Date(mon);d.setDate(mon.getDate()+i);o.push(keyOf(d));}return o;}
-function focusOfFile(f){return String(f||"").replace(/\.html$/,"");}
-function capF(f){f=String(f||"");return f.charAt(0).toUpperCase()+f.slice(1);}
-function sessFocus(s){var f=s.focus||((/(push|pull|legs)/i.exec(s.activity||"")||[])[1]);return f?String(f).toLowerCase():null;}
+var FOCUS_NAMES={fullA:"Full body A",fullB:"Full body B",kb10:"KB 10",kb20:"KB 20"};
+var FOCUS_SETSEC={fullA:100,fullB:100,kb10:45,kb20:45};
+function focusKey(f){var l=String(f||"").toLowerCase();for(var k in FOCUS_NAMES)if(k.toLowerCase()===l)return k;return l;}
+function focusOfFile(f){return focusKey(String(f||"").replace(/\.html$/,""));}
+function capF(f){f=String(f||"");var k=focusKey(f),N=(typeof PLAN_CACHE!=="undefined"&&PLAN_CACHE&&PLAN_CACHE.names)||{};
+  if(N[k]||FOCUS_NAMES[k])return N[k]||FOCUS_NAMES[k];return f.charAt(0).toUpperCase()+f.slice(1);}
+function sessFocus(s){var f=s.focus||((/(push|pull|legs)/i.exec(s.activity||"")||[])[1]);return f?focusKey(f):null;}
 function weekKeysOf(k){var d=dayFromKey(k);d.setDate(d.getDate()-((d.getDay()+6)%7));var o=[];
   for(var i=0;i<7;i++){var x=new Date(d);x.setDate(d.getDate()+i);o.push(keyOf(x));}return o;}
 function planLiftRows(ks){
@@ -2898,7 +2902,7 @@ function planHeroHTML(d){
       (L.on&&L.on!==TODAY?'<div class="hsub">Logged '+esc(tdDayName(L.on))+'</div>':'')+tdNextHTML();}
     else{var rx=tdLiftRx(f,TODAY);
       h+='<h2>'+capF(f)+'</h2>'+(rx?tdStatsHTML([["Movements",rx.n+""],["Rounds",rx.rN+""],["Time",rx.min+'<i>min</i>']]):'')+
-        '<a class="big-start" href="d/'+esc(it.file)+'">'+I.dumbbell+' Start '+f+'</a>'+
+        '<a class="big-start" href="d/'+esc(it.file)+'">'+I.dumbbell+' Start '+esc(capF(f))+'</a>'+
         '<button class="qlink" onclick="tdSwitchSheet()">Switch workout</button>';}
   }else if(c){var g=cardioGoal(c.title.replace(/^Cardio - /,""));
     if(cardioDoneOn(TODAY)){var cc=tdCardioDone();
@@ -2976,7 +2980,7 @@ function weekLiftsHTML(rows){
       if(isOpen){var xs=sxRows(r.f);
         h+='<div class="nxt">'+(xs.length?'<div class="nh"><span></span><span>lb</span><span>reps</span></div>'+
           xs.map(function(x){return '<div class="nrb"><span class="nn">'+esc(x.n)+'</span>'+sxCols(x)+'</div>';}).join(""):'')+
-          '<a class="nxgo" href="d/'+esc(r.file)+'">Start '+esc(r.f)+'</a></div>';}
+          '<a class="nxgo" href="d/'+esc(r.file)+'">Start '+esc(capF(r.f))+'</a></div>';}
       return h;}).join("")+
     '<a class="ownbtn" href="d/custom.html">Build your own</a></div>';
 }
@@ -3097,16 +3101,19 @@ function tdNext(){var wk=planWeekKeys(),d=dayFromKey(TODAY);
 function tdNextHTML(){var n=tdNext();return n?'<div class="nextl"><span>Next</span><b>'+n+'</b></div>':'';}
 function tdStatsHTML(c){return c.length?'<div class="hstat" style="grid-template-columns:repeat('+c.length+',minmax(0,1fr))">'+c.map(function(x){
   return '<div><div class="hsl">'+x[0]+'</div><div class="hsv num">'+x[1]+'</div></div>';}).join("")+'</div>':'';}
-function tdRounds(){var r=PLAN_CACHE&&PLAN_CACHE.rounds;return (r&&r.week&&r.max)?r:{week:{0:2,1:3,2:3},max:{legs:3}};}
+var FIXED_ROUNDS0={kb10:2,kb20:4};
+function tdRounds(){var r=PLAN_CACHE&&PLAN_CACHE.rounds;var o=(r&&r.week&&r.max)?r:{week:{0:2,1:3,2:3},max:{legs:3}};
+  if(!o.fixed)o.fixed=FIXED_ROUNDS0;return o;}
 function tdLiftRx(f,k){var P=null;
   try{var ps=S.progs||{};[S.prog,"fullbody","ppl"].some(function(x){var p=x&&ps[x];
     if(p&&p.days&&p.days[f]&&p.days[f].length){P=p;return true;}return false;});}catch(e){}
   if(!P||!P.days||!P.days[f])return null;
   var wk=planWeekNo(k);
-  var RR=tdRounds(),rN=Math.min(RR.week[wk]!=null?RR.week[wk]:(P.rN||3),RR.max[f]||99);
+  var RR=tdRounds(),rN=(RR.fixed&&RR.fixed[f])||Math.min(RR.week[wk]!=null?RR.week[wk]:(P.rN||3),RR.max[f]||99);
   var rows=sxServed(P.days[f],f,wk,sxCyc(f)),sets=0;
   rows.forEach(function(m){sets+=(m.upTo&&m.upTo<rN)?m.upTo:rN;});
-  return {n:rows.length,rN:rN,min:Math.max(5,Math.round(sets*((P.restSec||105)+40)/60/5)*5)};}
+  var ss=(PLAN_CACHE&&PLAN_CACHE.setSec&&PLAN_CACHE.setSec[f])||FOCUS_SETSEC[f];
+  return {n:rows.length,rN:rN,min:ss?Math.max(1,Math.round(sets*ss/60)):Math.max(5,Math.round(sets*((P.restSec||105)+40)/60/5)*5)};}
 function tdLiftDone(){var ss=[],seen={},sec=0,sets=0,v=0;
   liftDayRows(TODAY).forEach(function(r){if(r.sess&&!seen[r.sess.id||r.sess.date]){seen[r.sess.id||r.sess.date]=1;ss.push(r.sess);}});
   ss.forEach(function(s){sec+=s.durationSec||0;(s.entries||[]).forEach(function(e){(e.sets||[]).forEach(function(t){
@@ -3396,7 +3403,7 @@ function changeSheet(){
   o+=swapGroupHTML("Lift");
   var nxF=nextLiftFocus();
   liftRotation().forEach(function(f){
-    o+=optRow(I.dumbbell,capF(f)+(f===nxF?" &middot; next up":""),"Opens the "+f+" workout","closeSheet();openWorkout('d/"+f+".html')");
+    o+=optRow(I.dumbbell,capF(f)+(f===nxF?" &middot; next up":""),"Opens the "+capF(f)+" workout","closeSheet();openWorkout('d/"+f+".html')");
   });
   o+=optRow(I.dumbbell,"Build your own","A blank workout that saves for next time","closeSheet();openWorkout('d/custom.html')");
 
@@ -6375,7 +6382,7 @@ function bwHeroHTML(){return liftHeroHTML();}
 function liftHeroHTML(){var done=(S.sessions||[]).some(function(s){return s&&s.date===TODAY&&s.type==="lift"&&!liftDraftEmpty(s);}),nx=nextLiftFocus();
   return '<div class="hero"><button class="chg" onclick="changeSheet()" aria-label="Change today">'+I.edit+'<span>Edit</span></button>'+
     '<div class="lbl">Today &middot; Strength</div><h2>'+(done?'Strength':esc(capF(nx)))+'</h2>'+
-    (done?liftDonePillHTML():'<button class="big-start" onclick="openLiftToday()">'+I.dumbbell+' Start '+esc(nx)+'</button>')+heroTailHTML()+'</div>';}
+    (done?liftDonePillHTML():'<button class="big-start" onclick="openLiftToday()">'+I.dumbbell+' Start '+esc(capF(nx))+'</button>')+heroTailHTML()+'</div>';}
 function heroTailHTML(){
   if(isBW())return "";
   return sessionDayHTML()+levelRowHTML();
