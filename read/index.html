@@ -1300,14 +1300,43 @@ function idleCheck(){ // a forgotten timer stops itself instead of logging hours
   if(Date.now()-since>lim){ t.accum+=since-t.runFrom+lim; t.paused=true; t.idle=true; save(); return true; } return false; }
 function noteTouch(){ const t=S.timer; if(t&&!t.paused){ t.lastTouch=Date.now(); } }
 
+const JUNK_T=/\b(summary|summaries|study guide|sparknotes|cliffsnotes|workbook|key takeaways|analysis of|quicklet|conversation starters|trivia|unofficial|companion guide|movie review|book review|review of)\b|: a novel by /i, JUNK_BY=/\b[Bb]y [A-Z][a-z]+ [A-Z][a-z’']+\s*$/;
+const JUNK_A=/\b(bookhabits|instaread|quickread|readtrepreneur|sapiens editorial|book summary|summaries|worth books|kidsread|dailybooks|bright summaries|super summary|supersummary|quick savant|ant hive media|sumoreads|booksum|turbo-learning|instant-summary|summary genius|easy reads)\b/i;
+const catT=t=>String(t||"").toLowerCase().replace(/[’']/g,"").replace(/\s*[:(\[].*$/,"").replace(/^(the|a|an) /,"").replace(/[^a-z0-9]+/g," ").trim();
+const catA=a=>{ const w=String(a||"").split(/,|&| and /)[0].toLowerCase().replace(/[^a-z ]/g," ").trim().split(/\s+/); return w[w.length-1]||""; };
 async function searchBooks(q){
-  const out=[];
-  const [ap,ol]=await Promise.allSettled([
-    fetch("https://itunes.apple.com/search?entity=ebook&limit=12&term="+encodeURIComponent(q)).then(r=>r.json()),
-    fetch("https://openlibrary.org/search.json?limit=12&fields=key,title,author_name,cover_i,number_of_pages_median,isbn&q="+encodeURIComponent(q)).then(r=>r.json())]);
-  if(ap.status==="fulfilled") (ap.value.results||[]).forEach(r=>r.artworkUrl100&&out.push({title:r.trackName,author:r.artistName,cu:r.artworkUrl100.replace("100x100bb","400x600bb"),src:"Apple Books"}));
-  if(ol.status==="fulfilled") (ol.value.docs||[]).forEach(d=>out.push({title:d.title,author:(d.author_name||[]).join(", "),cu:d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`:"",pages:d.number_of_pages_median||0,isbn:(d.isbn||[]).find(x=>x.length===13)||"",src:"Open Library"}));
-  if(ap.status==="rejected"&&ol.status==="rejected") throw new Error("offline");
+  const J=r=>{ if(!r.ok) throw new Error(r.status); return r.json(); };
+  const [ap,ol,gb]=await Promise.allSettled([
+    fetch("https://itunes.apple.com/search?entity=ebook&limit=25&term="+encodeURIComponent(q)).then(J),
+    fetch("https://openlibrary.org/search.json?limit=25&fields=key,title,author_name,cover_i,number_of_pages_median,isbn,first_publish_year,edition_count,readinglog_count,ratings_count&q="+encodeURIComponent(q)).then(J),
+    fetch("https://www.googleapis.com/books/v1/volumes?maxResults=30&printType=books&q="+encodeURIComponent(q)).then(J)]);
+  if(ap.status==="rejected"&&ol.status==="rejected"&&gb.status==="rejected") throw new Error("offline");
+  const raw=[];
+  if(ol.status==="fulfilled") (ol.value.docs||[]).forEach(d=>raw.push({title:d.title,author:(d.author_name||[]).join(", "),cu:d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`:"",pages:d.number_of_pages_median||0,
+    isbn:(d.isbn||[]).find(x=>x.length===13)||"",year:d.first_publish_year||0,pop:(d.readinglog_count||0)+(d.ratings_count||0)*3+(d.edition_count||0)*4,src:"Open Library",o:0}));
+  if(ap.status==="fulfilled") (ap.value.results||[]).forEach(r=>r.trackName&&raw.push({title:r.trackName,author:r.artistName,cu:r.artworkUrl100?r.artworkUrl100.replace("100x100bb","400x600bb"):"",
+    year:+String(r.releaseDate||"").slice(0,4)||0,pop:(r.userRatingCount||0)*2,src:"Apple Books",o:1}));
+  if(gb.status==="fulfilled") (gb.value.items||[]).forEach(it=>{ const v=it.volumeInfo||{}; if(!v.title) return; const id=(v.industryIdentifiers||[]).find(x=>x.type==="ISBN_13");
+    raw.push({title:v.subtitle&&v.title.length<12?v.title+": "+v.subtitle:v.title,author:(v.authors||[]).join(", "),cu:"",pages:v.pageCount||0,isbn:id?id.identifier:"",year:+String(v.publishedDate||"").slice(0,4)||0,pop:(v.ratingsCount||0)*3,src:"Google Books",o:2}); });
+  const lead=new Map(); raw.forEach(r=>{ const t=catT(r.title); if((lead.get(t)||0)<r.pop) lead.set(t,r.pop); });
+  const qt=catT(q), qw=q.toLowerCase().split(/\s+/).filter(Boolean), byKey=new Map();
+  const authorOf=new Map(); raw.forEach(r=>{ const t=catT(r.title); if(r.author&&r.pop>=(lead.get(t)||0)) authorOf.set(t,catA(r.author)); });
+  raw.forEach(r=>{ if(!r.title||JUNK_T.test(r.title)||JUNK_BY.test(r.title)||JUNK_A.test(r.author)) return;
+    const t0=catT(r.title), top=lead.get(t0)||0; if(top>=200&&r.pop<top*0.02&&catA(r.author)!==authorOf.get(t0)) return;
+    const k=t0+"|"+(r.author?catA(r.author):authorOf.get(t0)||""), m=byKey.get(k);
+    if(!m){ byKey.set(k,{...r,srcs:[r.src]}); return; }
+    if(!m.srcs.includes(r.src)) m.srcs.push(r.src);
+    if(r.src==="Apple Books"&&r.cu) m.cu=r.cu; else if(!m.cu&&r.cu) m.cu=r.cu;
+    if(!m.pages&&r.pages) m.pages=r.pages; if(!m.isbn&&r.isbn) m.isbn=r.isbn; if(r.year&&(!m.year||r.year<m.year)) m.year=r.year;
+    if(r.o<m.o){ m.title=r.title; m.author=r.author||m.author; m.o=r.o; } m.pop+=r.pop; });
+  const score=r=>{ const t=catT(r.title), a=String(r.author).toLowerCase(); let s=Math.log10(1+r.pop)*10+r.srcs.length*6;
+    if(t===qt) s+=60; else if(t.startsWith(qt)||qt.startsWith(t)) s+=30; else if(qw.every(w=>(t+" "+a).includes(w))) s+=15;
+    if(qw.some(w=>w.length>2&&a.includes(w))) s+=10; if(!r.cu) s-=15; return s; };
+  // when some results hold every word asked for, drop the ones that hold fewer than half of them (the catalogues pad with near misses)
+  const hits=r=>{ const t=(catT(r.title)+" "+String(r.author).toLowerCase()); return qw.filter(w=>t.includes(w.replace(/[^a-z0-9]/g,""))).length; };
+  let pool=[...byKey.values()]; if(qw.length>1&&pool.some(r=>hits(r)===qw.length)) pool=pool.filter(r=>hits(r)*2>=qw.length);
+  const out=pool.map(r=>({...r,s:score(r)})).sort((x,y)=>y.s-x.s).slice(0,25)
+    .map(({o,s,pop,srcs,...r})=>({...r,src:srcs.join(" · ")}));
   if(!out.length&&(ap.status==="rejected"||ol.status==="rejected")) throw new Error("offline");
   return out;
 }
@@ -2082,7 +2111,7 @@ ROUTES.search={title:()=>"Search",compactAt:9999,cls:"rootpage",
     ${body}`; }};
 function libResult(b){ return `<div class="brow" data-key="lr-${esc(b.id)}"><button style="display:contents" data-push="book" data-id="${esc(b.id)}">${cover(b)}<span class="tx"><b>${bt(b)}</b><span>${ba(b)}</span><span class="st">${esc(STATUS_WORD[b.status])}</span></span></button><button class="more" data-act="addmenu-lib" data-id="${esc(b.id)}" aria-label="Shelf">${I.more}</button></div>`; }
 function catResult(r,i){ const have=inLibrary(r);
-  return `<div class="brow" data-key="cr-${i}-${esc(r.title)}"><button style="display:contents" data-act="catopen" data-i="${i}">${r.cu?`<img class="cover img" src="${esc(coverURL(r.cu,false))}" alt="" loading="${i<8?"eager":"lazy"}" decoding="async"${corsOK(null,coverURL(r.cu,false))?' crossorigin="anonymous"':""} onerror="this.outerHTML=drawnCover({id:'cr${i}',title:this.dataset.t,author:this.dataset.a})" data-t="${esc(r.title)}" data-a="${esc(r.author)}">`:drawnCover({id:"cr"+r.title,title:r.title,author:r.author})}<span class="tx"><b>${esc(typo(r.title))}</b><span>${esc(r.author)}</span><span class="st">${have?esc(STATUS_WORD[have.status]):esc(r.pages?r.pages+" pages":r.src)}</span></span></button>
+  return `<div class="brow" data-key="cr-${i}-${esc(r.title)}"><button style="display:contents" data-act="catopen" data-i="${i}">${r.cu?`<img class="cover img" src="${esc(coverURL(r.cu,false))}" alt="" loading="${i<8?"eager":"lazy"}" decoding="async"${corsOK(null,coverURL(r.cu,false))?' crossorigin="anonymous"':""} onerror="this.outerHTML=drawnCover({id:'cr${i}',title:this.dataset.t,author:this.dataset.a})" data-t="${esc(r.title)}" data-a="${esc(r.author)}">`:drawnCover({id:"cr"+r.title,title:r.title,author:r.author})}<span class="tx"><b>${esc(typo(r.title))}</b><span>${esc(r.author)}</span><span class="st">${have?esc(STATUS_WORD[have.status]):esc([r.year>0?r.year:"",r.pages?r.pages+" pages":""].filter(Boolean).join(" · ")||r.src)}</span></span></button>
   ${have&&have.status==="Read"?`<span class="owned" aria-label="Finished">${I.check}</span>`:""}<button class="more" data-act="catmenu" data-i="${i}" aria-label="Add">${I.more}</button></div>`; }
 
 function bookHead(b,line,extraRight){ return `${cover(b,"",{eager:true})}<div class="tt"><b>${bt(b)}</b><span>${esc(line)}</span></div>${extraRight||""}<button class="navbtn circ" data-act="closesheet" aria-label="Close">${I.x}</button>`; }
