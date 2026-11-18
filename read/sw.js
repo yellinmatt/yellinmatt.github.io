@@ -2,7 +2,7 @@ var CACHE = "read-v8";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 self.addEventListener("install", function (e) { self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () { return null; }); })); })); });
-self.addEventListener("activate", function (e) { e.waitUntil(caches.keys().then(function (k) { return Promise.all(k.map(function (x) { return x === CACHE || x === COVERS ? null : caches.delete(x); })); }).then(function () { return self.clients.claim(); })); });
+self.addEventListener("activate", function (e) { e.waitUntil(caches.keys().then(function (k) { return Promise.all(k.map(function (x) { return x === CACHE || x === COVERS || !/^read-/.test(x) ? null : caches.delete(x); })); }).then(function () { return self.clients.claim(); })); });
 var COVERS = "read-covers-v1", COVER_MAX = 600;
 var COVER_HOST = /(^|\.)mzstatic\.com$|^covers\.openlibrary\.org$|(^|\.)archive\.org$|^upload\.wikimedia\.org$|^books\.google(apis)?\.com$/;
 function isCover(r, u) { return r.method === "GET" && (r.destination === "image" || r.destination === "") && (COVER_HOST.test(u.hostname) || /^\/c\/[0-9a-f]{64}$/.test(u.pathname)); }
