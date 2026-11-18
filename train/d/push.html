@@ -243,7 +243,7 @@ color:var(--accent);text-decoration:none;font-size:17px;font-weight:600}
 .rb2 .rbl{min-width:0;flex:1}
 .rb2 .rbk{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
 .rb2 .rt{display:block;font-size:28px;line-height:1.1}
-.rb2.over .rt,.rb2.over .rbk{color:var(--amber)}
+.rb2.go .rt,.rb2.go .rbk{color:var(--good)}
 .rb2 .rbn{display:block;font-size:12.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rb2 .rbb{display:flex;gap:6px;flex:none}
 .rb2 .rbb button{min-width:48px;height:44px;border-radius:12px;padding:0 8px;font-size:15px;font-weight:700;color:var(--ink)}
@@ -578,7 +578,7 @@ W.alts=altsFor(W.order.map(function(o){return o.exId;}));
 var WARM=[{"n":"Pogo jumps","d":"x20"},{"n":"Neck counter-rotation","d":"x5/side, pause 3s"},{"n":"Shoulder pass-through","d":"x10, band, towel or no hands"},{"n":"Cossack squats","d":"x6/side, pause 3s"},{"n":"World's greatest stretch","d":"x5/side, pause 3s"},{"n":"Thread the needle","d":"x6/side, reach and hold 3s"},{"n":"90/90 hip switch","d":"x8, hold 5s each side"},{"n":"catcow","d":""}];
 var OPEN={};
 
-var BUILD="1794932583232";
+var BUILD="1794961051775";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -807,7 +807,7 @@ document.addEventListener("click",function(ev){
   var rs=function(a){var p=String(t.getAttribute(a)).split(":");return [+p[0],+p[1]];};
   if(t.hasAttribute&&t.hasAttribute("data-rr")){ev.preventDefault();ev.stopPropagation();if(!LOGGED)tickRound(+t.getAttribute("data-rr"));return;}
   if(t.hasAttribute&&t.hasAttribute("data-rest")){ev.stopPropagation();var ra=t.getAttribute("data-rest");
-    if(ra==="skip")restStop(); else {RLEFT+=+ra; restPaint();} return;}
+    if(ra==="skip")restStop(); else restNudge(+ra); return;}
   if(t.hasAttribute&&t.hasAttribute("data-demo")){ev.stopPropagation();var a=rs("data-demo");demoSheet(a[0],a[1]);return;}
   if(t.hasAttribute&&t.hasAttribute("data-load")){ev.stopPropagation();if(LOGGED)return;var b=rs("data-load");numSheet(b[0],b[1],"load");return;}
   if(t.hasAttribute&&t.hasAttribute("data-reps")){ev.stopPropagation();if(LOGGED)return;var c=rs("data-reps");numSheet(c[0],c[1],"reps");return;}
@@ -834,6 +834,7 @@ function paintRow(r,si){var row=document.querySelector('.rnd[data-r="'+r+'"] .lr
 function tick(r,si){if(LOGGED)return;wakeOn();haptic();
   var was=roundsDoneN(), k=rkey(r,si);
   var c0=C(r,si);
+  if(!W.done[k]&&SETREST===0)restStop();
   if(W.done[k])delete W.done[k]; else {W.done[k]={exId:c0.exId,reps:c0.reps,w:c0.w,ts:Date.now()};
     if(SETREST>0)restStart(SETREST);}
   paintRow(r,si);
@@ -868,19 +869,29 @@ function afterTick(r,was){
   persist();
 }
 if(V26_PAGE){
-  var RLEFT=0;
+  var RLEFT=0, REST_END=0, REST_BUZZ=false, SLOT_END=0;
   var restLabel=function(){var r=firstOpenRound();if(roundComplete(r))return "";
     for(var i=0;i<W.order.length;i++)if(slotIn(r,i)&&!cellOn(r,i))return "Round "+(r+1)+" \u00b7 "+C(r,i).name;return "";};
   var restPaint=function(){var b=document.getElementById("restbar");
     if(!b.querySelector(".rbb")) b.innerHTML='<div class="rbl"><span class="rbk"></span><span class="rt num" id="restt"></span><span class="rbn"></span></div>'+
       '<div class="rbb"><button data-rest="-15" aria-label="Fifteen seconds less">\u221215</button><button data-rest="15" aria-label="Fifteen seconds more">+15</button><button data-rest="skip">Skip</button></div>';
-    b.className="restbar on rb2"+(RLEFT<0?" over":"");
-    b.querySelector(".rbk").textContent=RLEFT<0?"Rest over":"Rest";
-    b.querySelector(".rt").textContent=(RLEFT<0?"+":"")+mmss(Math.abs(RLEFT));
+    if(!REST_END)return;
+    var now=Date.now(); RLEFT=Math.ceil((REST_END-now)/1000);
+    if(now-REST_END>=30000){restStop();return;}
+    var go=RLEFT<=0;
+    if(go&&!REST_BUZZ){REST_BUZZ=true;haptic();}
+    b.className="restbar on rb2"+(go?" go":"");
+    b.querySelector(".rbk").textContent=go?"Rest done":"Rest";
+    b.querySelector(".rt").textContent=go?"Go":mmss(RLEFT);
     b.querySelector(".rbn").textContent=restLabel();};
-  restStart=function(sec){if(_rt)clearInterval(_rt);RLEFT=sec;restPaint();
-    _rt=setInterval(function(){RLEFT--;if(RLEFT<-600){restStop();return;}restPaint();},1000);};
-  restStop=function(){if(_rt){clearInterval(_rt);_rt=null;}var b=document.getElementById("restbar");b.className="restbar";b.innerHTML="";};
+  restStart=function(sec){if(_rt)clearInterval(_rt);var now=Date.now();REST_BUZZ=false;
+    if(SETREST>0){var st=(SLOT_END&&now>=SLOT_END&&now<=SLOT_END+30000)?SLOT_END:now-15000;SLOT_END=st+SETREST*1000;REST_END=Math.max(SLOT_END,now);}
+    else REST_END=now+sec*1000;
+    restPaint(); _rt=setInterval(restPaint,250);};
+  restStop=function(){if(_rt){clearInterval(_rt);_rt=null;}REST_END=0;REST_BUZZ=false;var b=document.getElementById("restbar");b.className="restbar";b.innerHTML="";};
+  restNudge=function(d){if(!REST_END)return;REST_END+=d*1000;if(SETREST>0&&SLOT_END)SLOT_END+=d*1000;if(REST_END>Date.now())REST_BUZZ=false;restPaint();};
+  document.addEventListener("visibilitychange",function(){if(!document.hidden&&REST_END)restPaint();});
+  window.addEventListener("pageshow",function(){if(REST_END)restPaint();});
 }
 function lastRoundWorked(){var r=W.rN-1;for(var i=0;i<W.order.length;i++)if(W.done[rkey(r,i)])return true;return false;}
 function paintCtl(){var a=document.getElementById("addround"),m=document.getElementById("rmround");
@@ -1326,5 +1337,5 @@ restoreLogged();
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"></div>
 <div class="restbar" id="restbar"><span class="rt" id="restt">0:45</span><button onclick="restStop()">Skip</button></div>
-<script src="../train-sync-auto.js?v=v27.8"></script>
+<script src="../train-sync-auto.js?v=v27.9"></script>
 </body></html>
