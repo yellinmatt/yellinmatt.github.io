@@ -284,7 +284,7 @@ html.li-on,html.li-on body{overflow:hidden}
   var d=document, de=d.documentElement, t0=performance.now();
   var RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
-  var warm=false; try{warm=sessionStorage.getItem('li-seen')==='1'}catch(e){}
+  var warm=nav.type==='reload';
   var v=C.variant||'fade'; if(C.demo){try{v=localStorage.getItem('li-variant')||v}catch(e){}}
   var LI=window.LI={done:false,variant:v,ready:function(){appReady=true;tick()}};
   if(nav.type==='back_forward'){LI.done=true;var o=d.getElementById('li');o&&o.remove();return}
@@ -295,20 +295,20 @@ html.li-on,html.li-on body{overflow:hidden}
     el.innerHTML='<div class="li-tile"></div><img class="li-icon" alt="" src="'+C.icon+'"><img class="li-word" alt="" src="'+C.word+'">'; (d.body||de).appendChild(el); }
   // Under the overlay the app renders at full opacity, so images decode and layout settles for real.
   var waitT=setTimeout(function(){el.classList.add('li-wait')},C.waitMs||520);
-  function imgsInView(){var out=[],h=innerHeight;d.querySelectorAll('img').forEach(function(i){var r=i.getBoundingClientRect();if(r.width&&r.bottom>0&&r.top<h)out.push(i)});return out}
+  function imgsInView(){var out=[],h=innerHeight;d.querySelectorAll('img').forEach(function(i){if(el.contains(i)||i.loading==='lazy')return;var r=i.getBoundingClientRect();if(r.width&&r.bottom>0&&r.top<h)out.push(i)});return out}
   function bgInView(){var out=[];d.querySelectorAll(C.bgSel||'[data-li-bg]').forEach(function(e){var m=/url\(["']?([^"')]+)/.exec(e.style.backgroundImage||'');if(m){var r=e.getBoundingClientRect();if(r.bottom>0&&r.top<innerHeight)out.push(m[1])}});return out}
   function settle(){
     var ps=imgsInView().map(function(i){return (i.decode?i.decode():Promise.resolve()).catch(function(){})});
     bgInView().forEach(function(u){var i=new Image();i.src=u;ps.push((i.decode?i.decode():Promise.resolve()).catch(function(){}))});
     ps.push(d.fonts&&d.fonts.ready?d.fonts.ready:Promise.resolve());
-    var to=new Promise(function(r){setTimeout(r,C.decodeMs||1400)});
-    return Promise.race([Promise.all(ps),to]).then(function(){return new Promise(function(r){requestAnimationFrame(function(){requestAnimationFrame(r)})})});
+    var to=new Promise(function(r){setTimeout(r,C.decodeMs||700)});
+    return Promise.race([Promise.all(ps),to]).then(function(){return new Promise(function(r){var k=0,f=function(){if(!k){k=1;r()}};requestAnimationFrame(function(){requestAnimationFrame(f)});setTimeout(f,60)})});
   }
   var settling=false;
   function tick(){
     if(played||settling)return;
     var have=C.wait?d.querySelector(C.wait):true;
-    if(!(appReady||have)){requestAnimationFrame(tick);return}
+    if(!(appReady||have)){setTimeout(tick,16);return}
     settling=true; settle().then(go);
   }
   // only the app's own screen roots move; overlays the app hides with a transform (a player, a sheet) are never touched
@@ -352,11 +352,11 @@ html.li-on,html.li-on body{overflow:hidden}
   }
   function finish(){ if(LI.done)return; LI.done=true; el.remove(); de.classList.remove('li-on');
     app().forEach(function(p){p.getAnimations&&p.getAnimations().forEach(function(a){a.cancel()})});
-    try{sessionStorage.setItem('li-seen','1')}catch(e){} d.dispatchEvent(new Event('li:done')); }
+    d.dispatchEvent(new Event('li:done')); }
   // a touch never waits on the intro once the page is there
   addEventListener('pointerdown',function(){ if(played&&!LI.done) finish(); },{capture:true,passive:true});
-  setTimeout(function(){ if(!played){ settling=true; go(); } }, C.capMs||2600);
-  if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',function(){requestAnimationFrame(tick)}); else requestAnimationFrame(tick);
+  setTimeout(function(){ if(!played){ settling=true; go(); } }, C.capMs||1500);
+  if(d.readyState==='loading') d.addEventListener('DOMContentLoaded',function(){setTimeout(tick,0)}); else setTimeout(tick,0);
 })();
 </script>
 <div id="app"></div>
