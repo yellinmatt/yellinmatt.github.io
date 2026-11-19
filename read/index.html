@@ -928,6 +928,42 @@ body.hasmini #toast{bottom:calc(var(--tb-gap) + var(--tabh) + 84px)}
 .mnav b{font:600 1.375rem/1 var(--serif);letter-spacing:-.01em}
 .mnav .fwd svg{transform:scaleX(-1)}
 .mnav button:disabled{opacity:.25}
+
+.hero .w .qline{font:600 0.8125rem/1.45 var(--sans);color:inherit;padding:0;background:none;min-height:0}
+
+.hcol{display:contents}
+html.desk{--sideW:232px}
+.desk #app{left:var(--sideW)}
+.desk .tabbar{top:0;bottom:0;right:auto;width:var(--sideW);padding:calc(var(--safe-t) + 26px) 14px 24px;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:4px;pointer-events:auto;
+  background:var(--bg);border-right:.5px solid rgb(var(--ink-rgb)/.1);transform:none!important}
+.desk .tabbar::before{content:"Liber";font:600 1.625rem/1 var(--serif);letter-spacing:-.01em;color:var(--ink);padding:0 12px 22px}
+.desk .tabbar .pillbar{flex:none;display:flex;flex-direction:column;gap:2px;height:auto;padding:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0}
+.desk .tabbar .pillbar .hl{display:none}
+.desk .tabbar button,.desk .tabbar .searchtab{flex-direction:row;justify-content:flex-start;gap:12px;height:44px;width:auto;padding:0 12px;border-radius:12px;font:600 0.9375rem/1 var(--sans);color:var(--sub);background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.desk .tabbar .searchtab{order:-1;margin-bottom:10px;background:rgb(var(--ink-rgb)/.07)}
+.desk .tabbar .searchtab::after{content:"Search";color:var(--sub)}
+.desk .tabbar button[aria-current="page"]{background:rgb(var(--ink-rgb)/.09);color:var(--ink)}
+.desk .tabbar button i,.desk .tabbar button i svg{width:20px;height:20px}
+.desk .tabbar button:hover{opacity:1;background:rgb(var(--ink-rgb)/.06)}
+.desk .screen .scroll{padding-bottom:48px}
+.desk body.hasmini .screen .scroll,.desk.hasmini .screen .scroll{padding-bottom:120px}
+.desk .mini{left:calc(var(--sideW) + 24px);bottom:20px}
+.desk #toast{margin-left:calc(var(--sideW)/2)}
+.desk .inner{max-width:880px;padding:0 40px}
+.desk .homepage .inner{max-width:1180px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:44px;align-items:start}
+.desk .hcol{display:block;min-width:0}
+.desk .hcol.a{position:sticky;top:0}
+.desk .homepage .hero{margin:0;border-radius:26px;padding-top:28px}
+.desk .homepage .hcol.b>.shelf:first-child{margin-top:0}
+.desk .covergrid,.desk .cgrid{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}
+.desk .posters{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
+.desk .sheet{bottom:24px;border-radius:22px;max-width:560px;left:var(--sideW)}
+.desk .navbar{padding-left:24px;padding-right:24px}
+.desk .tabbar::before{order:-2}
+.desk .homepage .scroll{padding-top:24px}
+.desk .hcol.a{top:24px}
+.desk .bhead,.desk .mhero{margin:8px 0 0;border-radius:26px;overflow:hidden;overflow:clip;padding-top:56px}
+.desk .tabbar::before{position:static;height:auto;background:none;left:auto;right:auto;bottom:auto}
 </style>
 </head>
 <body>
@@ -1236,6 +1272,8 @@ function load(){ let raw=null, bad=false;
     const synced=typeof syncReady==="function"&&syncReady();   // promise sync only where it is set up
     storeNote(!kept?"Couldn’t read your library or keep a copy of it, so Read isn’t saving.":synced?"Couldn’t read your library. A copy is kept on this device, and sync brings your library back.":"Couldn’t read your library. A copy is kept on this device; Restore from a backup brings it back."); }
   else if(!S){ S=BUILD==="public"?emptyStore():stampSeed(seedStore()); S.needsAdopt=true; }
+  const CUR=BUILD==="private"&&typeof window!=="undefined"&&window.CURRENT_STORE;   // his live library, baked into the private build at ship
+  if(CUR&&!bad){ S=S.needsAdopt?mergeStores(emptyStore(),CUR):mergeStores(S,CUR); }
   migrate(); indexStamps(); }
 function persist(){ // the one write of read_v1; false when it didn't land
   indexStamps();
@@ -1848,6 +1886,9 @@ document.addEventListener("input",e=>{ const el=e.target.closest("[data-f]"); if
   F[k]=el.type==="checkbox"?el.checked:el.type==="number"?(el.value===""?"":+el.value):el.value;
   if(el.dataset.live!=null) refreshSheet(); });
 
+(function(){ const de=document.documentElement, mq=matchMedia("(min-width:900px) and (hover:hover) and (pointer:fine)");
+  const set=()=>de.classList.toggle("desk",mq.matches&&!de.dataset.nodesk); set(); try{ mq.addEventListener("change",set); }catch(e){} window.__setDesk=set; })();
+
 const COLL={
   all:{label:"Books",icon:"lib",f:b=>!["Hidden","Pass"].includes(b.status)},
   fav:{label:"Favorites",icon:"heart",f:b=>!!b.fav},
@@ -1923,7 +1964,7 @@ function heroPage(b,i,cv){ const live=S.timer&&S.timer.bookId===b.id, reading=b.
   const where=reading?(b.unit==="percent"&&b.pages?`<b>${pctOf(b)}%</b> · page ${b.page||0} of ${b.pages}`:`page ${b.page||0}${b.pages?` of ${b.pages} · ${pctOf(b)}%`:""}`):esc(STATUS_WORD[b.status]);
   return `<div class="hpage" data-i="${i}" data-id="${esc(b.id)}"><button class="cv" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" aria-label="Open ${bt(b)}" style="width:${w}px">${cv}</button>
     <div class="r"><div class="t">${bt(b)}</div><div class="a">${ba(b)}</div>
-    <div class="w num">${where}${q?`<br><em class="quiet">Quiet since ${esc(monthDay(q.since))}</em> <button class="ask inl" data-act="stalledask" data-id="${esc(b.id)}">Still reading?</button>`:fl?`<br><span class="fl">${esc(fl)}</span>`:""}</div>
+    <div class="w num">${where}${q?`<br><button class="fl qline" data-act="stalledask" data-id="${esc(b.id)}" aria-label="Last read ${esc(monthDay(q.since))}. Still reading?">Last read ${esc(monthDay(q.since))}</button>`:fl?`<br><span class="fl">${esc(fl)}</span>`:""}</div>
     <div class="hbtns">${live?`<button class="btn teal hplay" data-act="openplayer">${I.clock}<span class="livetime num">${fmtCalm(timerMs())}</span><span>· ${S.timer.paused?"Paused":"Reading"}</span></button>`:`<button class="btn teal hplay" data-act="start" data-id="${esc(b.id)}">${I.play}${!reading?"Start this book":"Start reading"}</button>`}
       <button class="hcirc" data-act="progress" data-id="${esc(b.id)}" aria-label="Log pages">${I.pencil}</button><button class="hcirc" data-act="pickanother" aria-label="Change book">${I.swap}</button></div></div></div>`; }
 function heroBooks(){ const b=tonightBook(); return b?[b,...readingNow().filter(x=>x.id!==b.id)]:[]; }
@@ -1983,12 +2024,12 @@ ROUTES.topbooks={title:()=>"Top books",render(){ const s=S.settings, mine=s.laun
 ROUTES.home={title:()=>"Tonight",compactAt:60,cls:"homepage",
   render(){ if(!hasLibrary()) return welcomeHTML();
     const st=streakInfo();
-    return `${heroCard()}
-    <section class="shelf"><div class="wkh"><button class="sec" data-push="stats-week">This week ${chev}</button><button class="stk" data-push="streak" aria-label="${st.cur}-night streak">${I.flame}<span class="num">${st.cur}</span><em>${st.cur===1?"night":"nights"}</em></button></div>${weekDots()}</section>
+    return `<div class="hcol a">${heroCard()}
+    <section class="shelf"><div class="wkh"><button class="sec" data-push="stats-week">This week ${chev}</button><button class="stk" data-push="streak" aria-label="${st.cur}-night streak">${I.flame}<span class="num">${st.cur}</span><em>${st.cur===1?"night":"nights"}</em></button></div>${weekDots()}</section></div><div class="hcol b">
     ${upNextShelf()}
     <section class="shelf"><button class="sec" data-push="streak">${new Date().getFullYear()} Reading Challenge ${chev}</button>
     ${challengeCard()}</section>
-    ${topTen()}`; },
+    ${topTen()}</div>`; },
   after(e){ heroBind(e.el.querySelector(".hero")); }};
 function welcomeHTML(){ return `<div class="welcome"><div class="phead"><h1>Liber</h1><div class="tools"><button class="sqbtn" data-push="settings" aria-label="Settings">${I.gear}</button></div></div>
   <div class="hero">Read every night.<br>Finish more books.</div><p>Your library lives on this device. Restore a backup from your other device, or search for the book you’re reading now to start fresh.</p>
