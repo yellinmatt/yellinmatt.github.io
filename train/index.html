@@ -1913,7 +1913,7 @@ html.td-on body:has(#scrim.on) .toast{opacity:0;pointer-events:none;transition:o
 
 <script>
 "use strict";
-var VERSION="v28.0";
+var VERSION="v28.2";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -2428,7 +2428,11 @@ function sessionDayIndex(){
 }
 function liftDraftEmpty(s){
   if(!s||!s.draft)return false;
-  return !(s.entries||[]).some(function(e){return (e&&e.sets||[]).some(function(t){return t&&t.completed;});});
+  var ents=(s.entries||[]).filter(function(e){return e&&(e.sets||[]).length;});
+  var any=ents.some(function(e){return e.sets.some(function(t){return t&&t.completed;});});
+  if(!any)return true;
+  if(!s.date||s.date>=TODAY)return false;
+  return !(ents.length&&ents.every(function(e){return e.sets.some(function(t){return t&&t.completed;});}));
 }
 function exerciseOn(k){
   if(S.runs&&S.runs[k])return true;
@@ -3372,7 +3376,7 @@ function td28Week(){var ks=planWeekKeys(),rows=[],usedS={},lifts=[];
       if(s.type==="run"||s.type==="activity"){usedS[id]=1;rows.push({k:k,di:di,kind:"cardio",extra:1,name:s.type==="run"?"Run":td28Esc(s.activity||"Walk"),done:true,sess:s});}
       else if(s.type==="lift"&&!liftDraftEmpty(s)){usedS[id]=1;rows.push({k:k,di:di,kind:"lift",extra:1,name:liftName(s),done:true,sess:s});}});
   });
-  rows.forEach(function(r){r.st=r.done?"done":(td28Skip(r.k)?"skip":(r.k<TODAY?"miss":(r.k===TODAY?"now":"plan")));});
+  rows.forEach(function(r){r.st=r.done?((r.sess&&r.sess.draft&&r.k===TODAY)?"prog":"done"):(td28Skip(r.k)?"skip":(r.k<TODAY?"miss":(r.k===TODAY?"now":"plan")));});
   return rows;}
 function td28Missed(rows){return rows.filter(function(r){return r.st==="miss";}).length;}
 function td28Comeback(rows,r){var dl=(typeof daysSinceLift==="function")?daysSinceLift():null;
@@ -3391,10 +3395,14 @@ function td28Hero(rows){var H={},today=rows.filter(function(r){return r.k===TODA
       H.st="wait";H.name="Today";return H;}
     H.st="rest";H.name="Rest";return H;}
   var open=today.filter(function(r){return !r.done;});
+  var lt=today.filter(function(r){return r.kind==="lift"&&r.done&&r.sess;})[0];
+  if(lt&&lt.sess.draft){H.st="now";H.prog=1;H.row=lt;H.name=lt.name;H.rx=td28Rx(lt.f);H.kick="In progress";if(open.length)H.then=open[0].name;return H;}
+  if(lt&&open.length){H.st="done";H.row=lt;H.name=lt.name;H.next={d:"Today",n:open[0].name};return H;}
   if(!open.length){var r0=today.filter(function(r){return r.kind==="lift";})[0]||today[0];H.st="done";H.row=r0;H.name=r0.name;return H;}
   var r=open[0];H.row=r;H.st="now";
   if(td28Comeback(rows,r)){H.come=1;r.orig=r.f;r.f="kb10";r.file="kb10.html";r.name=capF("kb10");H.row=r;}
   H.name=H.row.name;
+  var oth=open.filter(function(x){return x!==r;});if(oth.length)H.then=oth[0].name;
   if(H.row.kind==="lift")H.rx=td28Rx(H.row.f);
   if(H.missed)H.kick=H.missed+" missed";
   return H;}
@@ -3440,7 +3448,7 @@ var TD_IC={info:I.info,chev:'<svg viewBox="0 0 8 14" fill="none" aria-hidden="tr
   heart:'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 14s-5.6-3.4-5.6-7.3A3 3 0 0 1 8 4.4a3 3 0 0 1 5.6 2.3C13.6 10.6 8 14 8 14Z"/></svg>',
   shoe:'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M2 10.5c0-1 .5-1.6 1.3-1.9L7 7l1.3 1.6 2.5-.4 2.6 1.2c.8.4 1.1 1 1.1 1.8V12H2v-1.5Z"/></svg>',
   flame:'<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8.6 1c.4 2.2 3.9 3.6 3.9 7.4A4.5 4.5 0 0 1 8 13a4.5 4.5 0 0 1-4.5-4.6c0-1.8 1-3 1.9-3.8.1 1.4.8 2.3 1.6 2.6C6.6 4.6 7.6 2.6 8.6 1Z"/></svg>'};
-function td28Tick(st){return '<span class="tk'+(st==="done"?" on":st==="now"?" now":(st==="miss"||st==="skip")?" miss":"")+'"><i>'+I.check+'</i></span>';}
+function td28Tick(st){return '<span class="tk'+(st==="done"?" on":(st==="now"||st==="prog")?" now":(st==="miss"||st==="skip")?" miss":"")+'"><i>'+I.check+'</i></span>';}
 function td28Tri(items,cls){return '<div class="ttri'+(cls?" "+cls:"")+'">'+items.map(function(x){
   return '<div><b class="num"'+(x.count?' data-count="'+x.count+'"':'')+'>'+x.b+'</b><span>'+td28Esc(x.l)+'</span></div>';}).join("")+'</div>';}
 function td28Top(){var n=td28Streak(),st="";
@@ -3459,7 +3467,7 @@ function td28HeroHTML(H){var h='<div class="thero'+(H.calm?" calm":"")+'" id="th
   if(H.st==="now"&&r&&r.kind==="lift"){var rx=H.rx;
     h+=rx?td28Tri([{b:String(rx.rN),l:"Rounds",count:String(rx.rN)},{b:String(rx.n),l:"Moves",count:String(rx.n)},{b:mmss(rx.sec||rx.min*60),l:"Time",count:mmss(rx.sec||rx.min*60)}])
       :td28Tri([{b:"–",l:"Rounds"},{b:"–",l:"Moves"},{b:"–",l:"Time"}]);
-    h+='<button class="tpri" onclick="td28Start()">Start</button>'+
+    h+='<button class="tpri" onclick="td28Start()">'+(H.prog?"Resume":"Start")+'</button>'+
       '<div class="tlnks"><button class="tlnk" onclick="td28Switch()">Switch</button></div>';}
   else if(H.st==="now"&&r){if(r.sec)h+=td28Tri([{b:mmss(r.sec),l:"Time",count:mmss(r.sec)}],"one");
     if(r.how)h+='<div class="thow">'+td28Esc(r.how)+'</div>';
@@ -3471,24 +3479,25 @@ function td28HeroHTML(H){var h='<div class="thero'+(H.calm?" calm":"")+'" id="th
       if(sec)items.push({b:mmss(sec),l:"Time",count:mmss(sec)});if(sets)items.push({b:String(sets),l:"Sets",count:String(sets)});if(rounds)items.push({b:String(rounds),l:"Rounds"});}
     else if(s){if(s.durationSec)items.push({b:mmss(s.durationSec),l:"Time",count:mmss(s.durationSec)});if(+s.distanceMi>0)items.push({b:(+s.distanceMi).toFixed(1),l:"Miles",count:(+s.distanceMi).toFixed(1)});}
     if(items.length)h+=td28Tri(items,items.length===1?"one":items.length===2?"two":"");}
+  if(H.st==="now"&&H.then)h+='<div class="tnext"><span>Then</span><b>'+td28Esc(H.then)+' · Today</b></div>';
   if(H.st!=="now"&&H.next)h+='<div class="tnext"><span>Next</span><b>'+td28Esc(H.next.n)+' · '+td28Esc(H.next.d)+'</b></div>';
   if(H.st==="skip")h+='<div class="tlnks"><button class="tlnk" onclick="td28Undo()">Undo</button></div>';
   if(H.st==="rest")h+='<div class="tlnks"><button class="tlnk" onclick="td28Switch()">Train anyway</button></div>';
   return h+'</div>';}
-function td28RowRight(r){if(r.st==="done")return '<span class="r"><b class="num">'+td28Dur(r.sess)+'</b></span>';
+function td28RowRight(r){if(r.st==="prog")return '<span class="r">In progress</span>';if(r.st==="done")return '<span class="r"><b class="num">'+td28Dur(r.sess)+'</b></span>';
   if(r.st==="miss")return '<span class="r">Missed</span>';
   if(r.st==="skip")return '<span class="r">'+((td28Ov(r.k)||{}).sick?"Sick":"Skipped")+'</span>';
   var t="";if(r.kind==="lift"){var rx=td28Rx(r.f);if(rx)t=mmss(rx.sec||rx.min*60);}else if(r.sec)t=mmss(r.sec);
   return '<span class="r num">'+t+'</span>';}
 function td28RowHTML(r,i,first){
-  return '<button class="trow'+(r.st==="done"?" done":"")+(r.st==="now"?" go":"")+'" onclick="td28Day('+i+')" aria-label="'+td28Esc(tdDayName(r.k)+", "+r.name+", "+(r.st==="done"?"done":r.st==="miss"?"missed":r.st==="skip"?"skipped":r.st==="now"?"today":"planned"))+'">'+
+  return '<button class="trow'+(r.st==="done"?" done":"")+((r.st==="now"||r.st==="prog")?" go":"")+'" onclick="td28Day('+i+')" aria-label="'+td28Esc(tdDayName(r.k)+", "+r.name+", "+(r.st==="done"?"done":r.st==="miss"?"missed":r.st==="skip"?"skipped":r.st==="now"?"today":"planned"))+'">'+
     td28Tick(r.st)+'<span class="d">'+(first?td28Dw(r.k):"")+'</span><span class="nm">'+td28Esc(r.name)+'</span>'+td28RowRight(r)+'</button>';}
 var TD_ROWS=[];
 function rows28(){return TD_ROWS;}
 function td28WeekHTML(rows){var ks=planWeekKeys(),a=dayFromKey(ks[0]),b=dayFromKey(ks[6]),mo=function(d){return d.toLocaleDateString(undefined,{month:"short"});};
   var span=mo(a)+" "+a.getDate()+" – "+(mo(a)===mo(b)?"":mo(b)+" ")+b.getDate(),last=null;
   return '<div class="tgl tsec" id="tweek"><div class="tgh"><b>This week</b><span class="num">'+span+'</span></div>'+
-    rows.map(function(r,i){var f=r.k!==last;last=r.k;return td28RowHTML(r,i,f);}).join("")+
+    rows.map(function(r,i){return td28RowHTML(r,i,true);}).join("")+
     '<button class="ttbtn" onclick="logSheet()">Log activity</button></div>';}
 function td28MornN(){var a=S.anchor[TODAY]||{},rows=tdMornRows(),n=(weighedToday()?1:0);rows.forEach(function(r){if(a[r.m.s])n++;});return {n:n,tot:rows.length+1};}
 function td28MornHTML(){var a=S.anchor[TODAY]||{},rows=tdMornRows(),w=weighedToday(),c=td28MornN();
@@ -3530,7 +3539,7 @@ function td28RingSVG(x){var S0=96,sw=4,R=(S0-sw)/2-2;
     '<circle class="trtrk" cx="48" cy="48" r="'+R+'" fill="none" stroke-width="1.5"/>'+
     '<circle class="trarc" cx="48" cy="48" r="'+R+'" fill="none" stroke="url(#tdg-'+x.k+')" stroke-width="'+sw+'" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="'+(100*(1-x.frac)).toFixed(2)+'" transform="rotate(-90 48 48)"/></svg>';}
 function td28RingsHTML(){var D=td28RingData();
-  return '<div class="trings tsec" id="trings" data-sig="'+td28RingSig(D)+'"><div class="tetchh">Levels</div><div class="trgrid">'+D.map(function(x){
+  return '<div class="trings tsec" id="trings" data-sig="'+td28RingSig(D)+'"><div class="trgrid">'+D.map(function(x){
     var aria=x.k==="body"?("Weight "+x.w+" "+wLbl()+", "+x.n+" weigh-ins this week"):(x.lbl+" level "+x.lvl+", "+x.xp+" XP this week, "+x.left+" to the next level");
     return '<button class="tring" data-k="'+x.k+'" onclick="levelSheet(\''+x.k+'\')" aria-label="'+td28Esc(aria)+'">'+
       '<span class="trw"><i class="trglow"></i>'+td28RingSVG(x)+'<b class="trn num'+(x.k==="body"?" w":"")+'">'+(x.k==="body"?x.w:x.lvl)+'</b></span>'+
@@ -3586,7 +3595,7 @@ function renderToday(){
   v.style.setProperty("--th1","rgb("+rgb(c1)+")");v.style.setProperty("--th2","rgb("+rgb(c2)+")");v.style.setProperty("--th2rgb",rgb(c2));
   var mc=td28MornN();if(!arrival&&TD28.mornPrevN!=null&&TD28.mornPrevN<mc.tot&&mc.n>=mc.tot&&!TD28.mornOpen){TD28.foldPending=true;setTimeout(function(){TD28.foldPending=false;td28FoldMorning();},420);}
   TD28.mornPrevN=mc.n;
-  var h='<div class="t28">'+td28Top()+td28SyncLine()+td28HeroHTML(H)+td28MornHTML()+(rows.length?td28WeekHTML(rows):'<div class="tgl tsec" id="tweek"><button class="ttbtn" onclick="logSheet()">Log activity</button></div>')+td28RingsHTML()+'</div>';
+  var h='<div class="t28">'+td28Top()+td28SyncLine()+td28HeroHTML(H)+td28MornHTML()+td28RingsHTML()+(rows.length?td28WeekHTML(rows):'<div class="tgl tsec" id="tweek"><button class="ttbtn" onclick="logSheet()">Log activity</button></div>')+'</div>';
   v.innerHTML=h;
   var nu=document.getElementById("trings");
   if(!arrival&&oldRings&&nu&&oldRings.getAttribute("data-sig")===nu.getAttribute("data-sig"))nu.replaceWith(oldRings);
