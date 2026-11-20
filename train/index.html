@@ -13,13 +13,23 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Train">
+<meta name="apple-mobile-web-app-title" content="Ongo">
 <meta name="theme-color" content="#F7F8FA" id="theme-color">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
-<title>Train</title>
+<title>Ongo</title>
+<link rel="apple-touch-startup-image" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1290x2796.png">
+<link rel="apple-touch-startup-image" media="(device-width: 440px) and (device-height: 956px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1320x2868.png">
+<link rel="apple-touch-startup-image" media="(device-width: 402px) and (device-height: 874px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1206x2622.png">
+<link rel="apple-touch-startup-image" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1179x2556.png">
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1170x2532.png">
+<link rel="apple-touch-startup-image" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1284x2778.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1242x2688.png">
+<link rel="apple-touch-startup-image" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/black-828x1792.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="splash/black-1125x2436.png">
+<link rel="apple-touch-startup-image" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)" href="splash/black-750x1334.png">
 <script>
 (function(){try{if(window.parent!==window&&window.parent.location.origin===location.origin&&window.parent.WK_OPEN){window.parent.postMessage({wk:"close"},location.origin);try{window.stop();}catch(e2){}location.replace("about:blank");throw new Error("framed");}}catch(e){}})();
 document.documentElement.classList.add("arrive");
@@ -1976,6 +1986,77 @@ html.td-on #v-lift,html.td-on #v-cardio{color:#fff}
 </style>
 </head>
 <body>
+<script>
+(function(){
+  var d=document,W=innerWidth,H=innerHeight,DPR=Math.min(3,devicePixelRatio||1);
+  try{if(window.parent!==window&&window.parent.WK_OPEN)return;}catch(e){}
+  var full=false;try{full=localStorage.getItem("oi-full")==="1";}catch(e){}
+  if(navigator.webdriver&&!full)return;
+  var again=false;try{again=sessionStorage.getItem("oi-seen")==="1";sessionStorage.setItem("oi-seen","1");}catch(e){}
+  var RM=false;try{RM=matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
+  var D=Math.PI/180,ACC="#FF5C3A";
+  var ov=d.createElement("div");ov.id="oi";ov.setAttribute("aria-hidden","true");
+  ov.style.cssText="position:fixed;inset:0;z-index:2147483000;background:#000;contain:strict";
+  var cv=d.createElement("canvas");cv.width=W*DPR;cv.height=H*DPR;cv.style.cssText="position:absolute;inset:0;width:100%;height:100%";ov.appendChild(cv);
+  var c=cv.getContext("2d");c.scale(DPR,DPR);
+  var tx=d.createElement("div");tx.style.cssText='position:absolute;left:0;right:0;text-align:center;color:#fff;font:800 40px/1 -apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;letter-spacing:-.035em;white-space:pre';ov.appendChild(tx);
+  (d.body||d.documentElement).appendChild(ov);
+  var done=false,raf=0,B0=performance.now();
+  function finish(natural){if(done)return;done=true;cancelAnimationFrame(raf);ov.remove();
+    if(natural){try{var v=d.getElementById("v-today");if(v&&v.classList.contains("on")&&typeof td28RingsArrive==="function")td28RingsArrive();}catch(e){}}}
+  ov.addEventListener("pointerdown",function(){finish(false);});
+  (function cap(){if(done)return;if(performance.now()-B0>4200)finish(false);else setTimeout(cap,250);})();
+  if(RM||again){ov.style.background="transparent";var f=d.createElement("div");f.style.cssText="position:absolute;inset:0;background:#000";ov.insertBefore(f,cv);
+    f.animate([{opacity:1},{opacity:0}],{duration:220,delay:80,fill:"forwards"}).onfinish=function(){finish(false);};return;}
+
+  function cl(x){return x<0?0:x>1?1:x}
+  function seg(t,a,b){return cl((t-a)/(b-a))}
+  function io(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
+  function out(x){return 1-Math.pow(1-x,3)}
+  function out4(x){return 1-Math.pow(1-x,4)}
+  function inC(x){return x*x*x}
+  function spring(x){return x>=1?1:1-Math.exp(-6.5*x)*Math.cos(x*Math.PI*2.1)}
+  function L(a,b,x){return a+(b-a)*x}
+  function comet(cx,cy,r,w,head,sweep,al,track){
+    c.save();c.globalAlpha=al;
+    if(track>0){c.beginPath();c.arc(cx,cy,r,0,2*Math.PI);c.strokeStyle="rgba(214,63,27,"+(.14*track)+")";c.lineWidth=w;c.stroke();}
+    sweep=Math.max(1,Math.min(359,sweep));var a0=head-sweep,s=sweep/360,g=c.createConicGradient(a0*D,cx,cy);
+    g.addColorStop(0,"rgba(90,18,6,0)");g.addColorStop(.22*s,"rgba(110,24,9,.75)");g.addColorStop(.55*s,"#A82B0E");g.addColorStop(.85*s,ACC);g.addColorStop(s,"#FF8A5C");g.addColorStop(Math.min(1,s+.002),"rgba(90,18,6,0)");g.addColorStop(1,"rgba(90,18,6,0)");
+    c.beginPath();c.arc(cx,cy,r,a0*D,head*D);c.strokeStyle=g;c.lineWidth=w;c.stroke();
+    var hx=cx+r*Math.cos(head*D),hy=cy+r*Math.sin(head*D),hg=c.createRadialGradient(hx-w*.15,hy-w*.18,w*.05,hx,hy,w/2);
+    hg.addColorStop(0,"#FFC3A6");hg.addColorStop(1,"#FF7A4A");c.beginPath();c.arc(hx,hy,w/2,0,2*Math.PI);c.fillStyle=hg;c.fill();c.restore();}
+  function bloom(x,y,r,a){if(a<=0)return;var g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,"rgba(255,170,120,"+a+")");g.addColorStop(.35,"rgba(255,92,58,"+(a*.45)+")");g.addColorStop(1,"rgba(255,92,58,0)");c.fillStyle=g;c.fillRect(x-r,y-r,2*r,2*r);}
+  function shock(x,y,r,w,a){if(a<=0)return;c.beginPath();c.arc(x,y,r,0,2*Math.PI);c.strokeStyle="rgba(255,200,170,"+a+")";c.lineWidth=w;c.stroke();}
+
+  var SX=W/2,SY=H/2,R0=65,W0=30,SH=228,SS=318;
+  function frame(t){
+    c.clearRect(0,0,W,H);
+    var wind=io(seg(t,1050,1350)),whip=out4(seg(t,1350,1800)),iris=Math.pow(seg(t,1740,1980),2.2);
+    c.fillStyle="#000";c.fillRect(0,0,W,H);
+    if(iris>0){ov.style.background="transparent";c.save();c.globalCompositeOperation="destination-out";
+      var sc0=1-.08*wind+.08*whip,rr=L(R0*sc0,Math.hypot(W,H)/2+80,iris),ww=L(W0*sc0,110,iris);
+      c.beginPath();c.arc(SX,SY,Math.max(0,rr-ww/2+1),0,2*Math.PI);c.fill();c.restore();}
+    if(t<700){/* the slam */
+      var k=seg(t,0,380);
+      if(t<380){var s=L(7,1,inC(k));for(var g=3;g>=1;g--)comet(SX,SY,R0*s*(1+.16*g*(1-k)),W0*s,SH-100*(1-k),SS,(.22/g)*seg(t,0,140),0);
+        comet(SX,SY,R0*s,W0*s,SH-100*(1-k),SS,seg(t,0,140),0);}
+      else{var u=t-380,s2=1-.12*Math.exp(-u/80)*Math.cos(u/35),dx=7*Math.exp(-u/70)*Math.sin(u/16),dy=5*Math.exp(-u/70)*Math.cos(u/19);
+        bloom(SX,SY,R0*3,.7*(1-seg(t,380,620)));
+        shock(SX,SY,L(R0,R0*3.6,out(seg(t,380,760))),L(12,1.5,seg(t,380,760)),.6*(1-seg(t,380,760)));
+        c.save();c.translate(dx,dy);comet(SX,SY,R0*s2,W0*s2,SH,SS,1,seg(t,380,560));c.restore();}
+    }else{
+      var head=SH-48*wind+(48+400)*whip,sw=L(SS,359,whip),sc=1-.08*wind+.08*whip;
+      comet(SX,SY,L(R0*sc,Math.hypot(W,H)/2+80,iris),L(W0*sc,110,iris),head,sw,1,1-iris);}
+    var top=SY+R0+40,dist=H-top+60,a=seg(t,580,1200),b=seg(t,700,1320);
+    tx.style.top=top+"px";tx.style.opacity=1-seg(t,1740,1840);
+    tx.innerHTML='<span style="display:inline-block;transform:translateY('+((1-spring(a))*dist)+'px)">On</span><span style="display:inline-block;transform:translateY('+((1-spring(b))*dist)+'px)">go</span>';
+  }
+  c.fillStyle="#000";c.fillRect(0,0,W,H);
+  function ready(){var v=d.getElementById("v-today");return !!(v&&v.childElementCount)&&(!d.fonts||d.fonts.status==="loaded");}
+  (function wait(){if(done)return;var e=performance.now()-B0;if((ready()&&e>120)||e>1400){requestAnimationFrame(function(){requestAnimationFrame(function(){var t0=performance.now();
+    (function loop(){if(done)return;var t=performance.now()-t0;if(t>1990)return finish(true);frame(t);raf=requestAnimationFrame(loop);})();});});}else setTimeout(wait,30);})();
+})();
+</script>
 <canvas id="tdbg" aria-hidden="true"></canvas>
 <div class="app">
   <section class="view on" id="v-today"></section>
@@ -2013,7 +2094,7 @@ html.td-on #v-lift,html.td-on #v-cardio{color:#fff}
 
 <script>
 "use strict";
-var VERSION="v28.3";
+var VERSION="v28.4";
 var I={
   play:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 5l12 7-12 7V5Z" fill="currentColor"/></svg>',
   chevD:'<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -5790,7 +5871,7 @@ function buildJSON(){
 }
 function buildSummary(){
   var e=ewma(),lifts=S.sessions.filter(function(s){return s.type==="lift";}),runs=S.sessions.filter(function(s){return s.type==="run";});
-  var out="# Train Export - "+TODAY+"\n\n## Snapshot\n";
+  var out="# Ongo Export - "+TODAY+"\n\n## Snapshot\n";
   out+="- Bodyweight: "+(e?e.toFixed(1)+" "+wLbl()+" (EWMA)":"not logged")+(S.weigh.length?", latest "+S.weigh[S.weigh.length-1].w+" ("+S.weigh[S.weigh.length-1].date+")":"")+(S.profile.goalLb!=null?". Goal "+S.profile.goalLb+(S.profile.stretchLb!=null?" (stretch "+S.profile.stretchLb+")":""):". No goal set")+".\n";
   out+="- Training streak: "+computeStreak()+" days. Sessions logged: "+lifts.length+" lifts, "+runs.length+" runs.\n\n";
   out+="## Personal Records\n";Object.keys(LIB).forEach(function(id){var p=prFor(id);if(p)out+="- "+LIB[id].name+": "+(LIB[id].bw?"x"+p.r:p.w+wLbl()+" x "+p.r)+" ("+p.date+")\n";});
@@ -5825,7 +5906,7 @@ function importSheet(){openSheet('<div class="grab"></div><h3>Import / merge</h3
   '<textarea class="ta" id="imp" placeholder=\'{"schema":"train.export",...}\' style="min-height:150px"></textarea>'+
   '<button class="sheet-cta" onclick="doImport(\'merge\')">Merge (combine devices)</button><button class="sheet-cta ghost" onclick="doImport(\'replace\')">Replace everything</button>');}
 function doImport(mode){var t=(document.getElementById("imp")||{}).value;var o;try{o=JSON.parse(t)}catch(e){toast("That isn\'t valid JSON.",null);return;}
-  if(!o||o.schema!=="train.export"){toast("Not a Train backup.",null);return;}
+  if(!o||o.schema!=="train.export"){toast("Not an Ongo backup.",null);return;}
   try{localStorage.setItem("train_v2_backup",JSON.stringify(S))}catch(e){}
   var inW=o.weighins?o.weighins.map(function(w){return {date:w.date,w:w.weightLb};}):[];
   if(mode==="replace"){
@@ -6648,7 +6729,7 @@ function settingsBodyHTML(){
       ["On","setMotion('on',this)",motionPref()==="on"],["Off","setMotion('off',this)",motionPref()==="off"]]),"wide"),
     (motionPref()==="auto"
       ? (osReduce()
-          ? 'Off because Reduce Motion is on in iPhone Settings. Choose On to animate Train anyway.'
+          ? 'Off because Reduce Motion is on in iPhone Settings. Choose On to animate Ongo anyway.'
           : 'The phone is not asking for reduced motion, so animations are <b>on</b>.')
       : (motionPref()==="on"
           ? 'Forced on for this device, whatever the phone asks for.'
@@ -6696,7 +6777,7 @@ function settingsBodyHTML(){
   m+=sgroup("",snav('Reset all data',"","confirmReset()","dang"),
     'This clears every session, weigh-in and setting on this device. It cannot be undone.');
 
-  m+='<div class="foot">Train '+VERSION+'</div>';
+  m+='<div class="foot">Ongo '+VERSION+'</div>';
   return m;
 }
 function settingsSheet(){
