@@ -616,7 +616,7 @@ var WARM=[{"id":"pogo","n":"Pogo jumps","d":20,"u":"reps","x":"","h":["Stay tall
 var TITLE_N="Full body B", TITLE_SUB="";
 var OPEN={};
 
-var BUILD="1795197309045";
+var BUILD="1795213499566";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -1213,7 +1213,7 @@ function completeHero(){var t=t0();return '<div class="hero2 comp"><div class="h
 function panel(id,pv,nextH,listH){
   return '<div class="pnl" data-k="pnl'+id+'"><div class="pglass'+(pv?' isr':'')+'" data-k="pg'+id+'" data-pv="'+pv+'">'+
    (pv?'<div class="pnp pnr" data-k="pnr'+id+'">'+listH+'</div>':'<div class="pnp pnx" data-k="pnx'+id+'">'+nextH+'</div>')+'</div></div>'+
-   '<div class="pdots" data-k="pd'+id+'"><button class="pdb" id="pv'+id+'" data-act="pv" data-p="'+id+'" aria-label="'+(pv?"Show next":"Show the round")+'">'+(pv?IC.sl+' Next':'Round '+IC.sr)+'</button></div>';}
+   '<div class="pdots" data-k="pd'+id+'"><button class="pdb" id="pv'+id+'" data-k="pdb'+id+pv+'" data-act="pv" data-p="'+id+'" aria-label="'+(pv?"Show next":"Show the round")+'">'+(pv?IC.sl+' Next':'Round '+IC.sr)+'</button></div>';}
 function nextCard(){
   var endH='<button class="nxc end" data-k="nxcend" data-act="pv" data-p="m" aria-label="Show the round"><span class="nk">Next</span><span class="nn">Log the session</span></button>';
   if(U.phase==="complete"||!firstOpen())return endH;
@@ -1290,6 +1290,10 @@ function restHTML(){
   return '<div class="rpin" data-k="rpin"><div class="rn rt" id="restt" data-live="rn">'+(go?"Go":mmss(left))+'</div><div class="rlab rbk" data-live="rlab">'+(go?"Rest done":"Rest")+'</div><div class="rx rbn" data-live="rx">'+restNext()+'</div>'+
    (go?'<div class="rgo"><button class="pri" data-act="rgo">Start round '+((firstOpen()||{r:U.r}).r+1)+'</button><button class="tbtn" data-rest="15">15 s more</button></div>':
    '<div class="rb"><button data-rest="-15" aria-label="Fifteen seconds less">−15</button><button data-rest="15" aria-label="Fifteen seconds more">+15</button><button data-rest="skip">Skip</button></div>')+'</div>';}
+function clkSave(){try{sessionStorage.setItem("train.clk."+PAGE,JSON.stringify({k:U.r+":"+U.si,se:SLOT_END,sl:SLOT_LEFT,sz:SLOT_ZERO,re:REST_END,rd:U.rend?U.rend.r:null}));}catch(e){}}
+function clkLoad(){var o=null;try{o=JSON.parse(sessionStorage.getItem("train.clk."+PAGE)||"null");}catch(e){}if(!o||U.phase!=="work"||LOGGED)return;
+  if(o.re&&U.rend&&o.rd===U.rend.r){U.rend.back=false;REST_END=o.re;REST_BUZZ=Date.now()>=o.re;U.goAt=REST_BUZZ?o.re:0;_rt=setInterval(restPaint,250);return;}
+  if(!U.rend&&o.k===U.r+":"+U.si&&valid(U.r,U.si)&&!isOn(U.r,U.si)&&SETREST>0){SLOT_END=o.se||0;SLOT_LEFT=o.sl||0;SLOT_ZERO=!!o.sz||(SLOT_END>0&&Date.now()>=SLOT_END);}}
 function roundEnd(r,back){slotClear();U.rend={r:r,back:!!back};U.cd=0;if(REST_END)restStop(true);}
 function rgo(){if(_rt){clearInterval(_rt);_rt=null;}REST_END=0;REST_BUZZ=false;U.goAt=0;U.cued=false;U.cd=Date.now()+3000;U.cdS=3;hap("cue");U.rend=U.rend||{r:Math.max(0,U.r-1)};draw();}
 function cdEnd(){U.cd=0;U.rend=null;U.view=null;syncCur(true);hap("go");if(SETREST>0&&U.phase==="work")slotStart();persist();draw({dir:1});}
@@ -1397,7 +1401,7 @@ function draw(o){o=o||{};if(!BODY)return;
   restLayer();warmLayer(o);
   if(FULL&&pgw0)pgMorph(FULL.querySelector(".fin2"),pgw0);
   measure();keepCurVisible();
-  var ov=!!(REST_END||U.rend||U.cd);document.body.classList.toggle("noscroll",!!(U.warm||ov));document.body.classList.toggle("resting",ov);}
+  clkSave();var ov=!!(REST_END||U.rend||U.cd);document.body.classList.toggle("noscroll",!!(U.warm||ov));document.body.classList.toggle("resting",ov);}
 function keepCurVisible(){if(MORPH)return;[BODY,FULL].forEach(function(root){if(!root)return;var sc=root.querySelector(".pnr:not(.pgg)");if(!sc)return;var c=sc.querySelector(".lr.cur,.rl.cur");if(!c)return;
   var b=sc.getBoundingClientRect(),r=c.getBoundingClientRect();
   if(r.bottom>b.bottom-20)sc.scrollTo({top:sc.scrollTop+(r.bottom-b.bottom)+44,behavior:RM?"auto":"smooth"});
@@ -1740,7 +1744,8 @@ function bootUI(){APP=document.getElementById("app");NAV=document.getElementById
   var sp=null;try{sp=sessionStorage.getItem("train.pv."+PAGE);}catch(e){}U.pv=(sp!=null?+sp:(+W.pv||0))?1:0;
   if(LOGGED)U.phase="finished";else if(ndone()||W.st||W.wu)U.phase="work";else U.phase="fresh";
   if(U.phase==="work"){syncCur();var f0=firstOpen();
-    if(f0&&f0.r>0&&!rowsOf(f0.r).some(function(i){return isOn(f0.r,i);}))roundEnd(f0.r-1,true);}
+    if(f0&&f0.r>0&&!rowsOf(f0.r).some(function(i){return isOn(f0.r,i);}))roundEnd(f0.r-1,true);
+    clkLoad();}
   draw({instant:true});
   if(RO){RO.observe(DOCK);var nt=document.getElementById("notes");if(nt)RO.observe(nt);}
   bgSetup();setInterval(liveTick,250);try{document.fonts.ready.then(measure);}catch(e){}addEventListener("load",measure);addEventListener("resize",function(){measure();if(BG.cv)bgDims();});}
@@ -1750,5 +1755,5 @@ bootUI();
 </script>
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"></div>
-<script src="../train-sync-auto.js?v=v28.3"></script>
+<script src="../train-sync-auto.js?v=v28.5"></script>
 </body></html>
