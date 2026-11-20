@@ -18,7 +18,7 @@
     wrap.setAttribute("style", "position:fixed;inset:0;z-index:99999;background:rgba(8,10,14,.74);display:flex;align-items:center;justify-content:center;padding:22px;font-family:-apple-system,system-ui,sans-serif");
     wrap.innerHTML = '<div style="background:#161a20;color:#fff;max-width:340px;width:100%;border-radius:16px;padding:20px 18px;box-shadow:0 20px 60px rgba(0,0,0,.5)">'
       + '<div style="font-size:17px;font-weight:800;margin-bottom:4px">Sync this device</div>'
-      + '<div style="font-size:13px;color:#aab3c0;margin-bottom:14px;line-height:1.4">Enter your Train passphrase once. Your workouts and weigh-ins then sync across every device.</div>'
+      + '<div style="font-size:13px;color:#aab3c0;margin-bottom:14px;line-height:1.4">Paste your Ongo passphrase. It syncs as soon as you paste, and your workouts and weigh-ins then sync across every device.</div>'
       + '<input id="tsync-pass" type="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="passphrase" style="width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #2a313b;background:#0e1116;color:#fff;font-size:15px;margin-bottom:12px">'
       + '<button id="tsync-go" style="width:100%;min-height:44px;padding:12px;border:0;border-radius:10px;background:#e0592e;color:#fff;font-size:15px;font-weight:700">Sync</button>'
       + '<button id="tsync-skip" style="width:100%;min-height:44px;padding:12px 10px;border:0;border-radius:10px;background:transparent;color:#8a93a0;font-size:13px;margin-top:6px">Not now</button></div>';
@@ -28,6 +28,9 @@
     wrap.querySelector("#tsync-go").addEventListener("click", done);
     wrap.querySelector("#tsync-skip").addEventListener("click", function () { if (wrap.parentNode) wrap.parentNode.removeChild(wrap); overlayShown = false; });
     inp.addEventListener("keydown", function (e) { if (e.key === "Enter") done(); });
+    function settle() { try { window.scrollTo(0, 0); } catch (e) {} }
+    inp.addEventListener("blur", function () { setTimeout(settle, 60); });
+    inp.addEventListener("paste", function () { setTimeout(function () { if ((inp.value || "").trim().length >= 8) { try { inp.blur(); } catch (e) {} settle(); done(); } }, 120); });
     setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60);
   }
 
