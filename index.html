@@ -236,6 +236,30 @@ html.intro-on .bar .mk{visibility:hidden}
 .phone video,.phone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
 .phone .isl{position:absolute;z-index:2;top:9px;left:50%;transform:translateX(-50%);width:32%;height:22px;border-radius:999px;background:#000}
 .media.phone{margin-bottom:58px}
+.card{grid-template-columns:minmax(220px,3fr) minmax(0,9fr)!important;gap:clamp(24px,3vw,44px)!important;padding:clamp(20px,2.6vw,36px)!important}
+.card h3{font-size:clamp(28px,2.8vw,42px)!important;margin:12px 0 10px!important}
+.card p{font-size:15px;line-height:1.5;max-width:34ch}
+.card .ver{display:flex;flex-direction:column;gap:2px;margin:0 0 16px;font-size:13px;color:var(--mut)}
+.card .ver b{font-weight:500;color:var(--hue)}
+.card .cta{margin-top:22px}
+.media.duo{position:relative;width:100%}
+.duo .dev{position:absolute;z-index:5;top:0;right:0;display:flex;gap:2px;padding:3px;border-radius:999px;background:rgba(255,255,255,.07);box-shadow:inset 0 0 0 1px var(--line2)}
+.duo .dev button{height:28px;padding:0 14px;border-radius:999px;font-size:13px;font-weight:500;color:var(--mut)}
+.duo .dev button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.duo{--sh:min(calc(100svh - var(--barh) - 150px),620px)}
+.duo .stage{display:flex;justify-content:center;align-items:flex-end;padding-top:44px;height:var(--sh)}
+.duo .lap,.duo .phone{display:none}
+.duo.show-lap .lap{display:block}.duo.show-ph .phone{display:block}
+.duo .lap{width:min(100%,calc((var(--sh) - 16px)/.668));display:none;flex-direction:column}
+.duo.show-lap .lap{display:flex}
+.duo .lap .lid{position:relative;border-radius:18px 18px 4px 4px;padding:1.4% 1.4% 2.2%;background:#0b0c0f;box-shadow:0 0 0 1px var(--line2),0 0 0 4px #1a1c22,0 40px 80px rgba(0,0,0,.5)}
+.duo .lap .lid::before{content:"";position:absolute;top:.6%;left:50%;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:#20232a}
+.duo .lap .scr{position:relative;width:100%;aspect-ratio:16/10;border-radius:6px;overflow:hidden;background:#000}
+.duo .lap .scr video,.duo .lap .scr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.duo .lap .base{display:block;flex:none;height:14px;margin:0 -6%;border-radius:0 0 16px 16px;background:linear-gradient(180deg,#2a2d35,#15171c 70%);box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 20px 40px rgba(0,0,0,.45);position:relative}
+.duo .lap .base::before{content:"";position:absolute;top:0;left:50%;width:15%;height:40%;transform:translateX(-50%);border-radius:0 0 8px 8px;background:#0d0e12}
+.duo .phone{height:100%!important;width:auto!important;aspect-ratio:390/844;margin:0}
+@media (max-width:900px){.card{grid-template-columns:1fr!important}.duo .stage{height:auto;padding-top:46px}.duo .lap{width:100%}.duo .phone{width:min(300px,72vw)!important;height:auto!important}}
 @media (min-width:901px){.phone{width:auto;height:min(671px,calc(100svh - var(--barh) - 16px - var(--i,0)*10px - 2*clamp(24px,3.4vw,48px) - 74px))}}
 @media (max-width:900px){
   .card{position:relative;top:auto;min-height:0;grid-template-columns:1fr}
@@ -364,7 +388,7 @@ footer .fine{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
 .mx-d{color:var(--ink);font-weight:500}
 </style>
 <script>setTimeout(function(){document.documentElement.classList.add('hero-go')},4200)</script>
-<style id="r9">
+<style id="r9">/* ---------- round 9 ---------- */
 .r9h{padding-top:clamp(28px,6vh,72px);padding-bottom:clamp(48px,8vh,96px)}
 .r9t{font:600 clamp(31px,8.2vw,108px)/1 var(--sans);letter-spacing:-.052em;white-space:nowrap;margin:0;display:block}
 .r9t .w{display:inline-block}
@@ -712,9 +736,9 @@ svg.cmb.ph .nm{font-size:14.5px}svg.cmb.ph .nm.big{font-size:16px}svg.cmb.ph .lb
 .lic .no{display:none}
 .lic .ghost{width:44px;right:16px;bottom:16px}
 }
-</style><style>
-html.intro-on .bar .mk{visibility:hidden}
-#intro canvas,#intro svg{display:block}
+</style><style>/* MY intro (final). intro-final.js sets its own inline styles; these two rules are all the page needs. */
+html.intro-on .bar .mk{visibility:hidden}   /* the real bar mark hides while the intro owns it */
+#intro canvas,#intro svg{display:block}      /* no inline gaps under the full-screen layers */
 @media (min-width:1024px){.r9lead{max-width:none;white-space:nowrap;font-size:min(26px,1.72vw)}}
 
 
@@ -775,7 +799,7 @@ html.intro-on .bar .mk{visibility:hidden}
 
 
 <section class="s" id="work" aria-labelledby="wh"><div class="wrap">
-  <div class="intro"><div><div class="eye">Seven projects</div><h2 class="h2" id="wh">Work</h2></div></div>
+  <div class="intro"><div><div class="eye">Seven projects, newest first</div><h2 class="h2" id="wh">Work</h2></div></div>
   <div class="stack" id="stack"></div>
 </div></section>
 
@@ -869,7 +893,7 @@ function target(mark){var r=mark.getBoundingClientRect(),cs=getComputedStyle(mar
   var c=document.createElement('canvas').getContext('2d');c.font=cs.fontWeight+' '+fs+'px '+cs.fontFamily;var m=c.measureText('M');
   var asc=m.fontBoundingBoxAscent||r.height*.8;
   return{x:r.left-(m.actualBoundingBoxLeft||0)-50.89*s+CAL.x,y:r.top+asc+CAL.y,s:s,r:r}}
-var CAL={x:0.65,y:0};
+var CAL={x:0.65,y:0};/* sub-pixel residual against the rendered text; set by the test harness */
 
 var T={draw:[0,380],pk:[200,1050],charge:[1050,1150],pop:[1150,1380],settle:[1380,1520],split:[1520,1780],
   morph:[1780,2160],hold:[2160,2560],fly:[2560,3000],bg:[2560,2950],xf:[2880,3000],end:3000};
@@ -925,7 +949,7 @@ Intro.prototype.build=function(){var W=innerWidth,H=innerHeight,self=this;this.W
 Intro.prototype.share=function(t){var A=this.arrs,n=A.length,sum=0;for(var k=0;k<5;k++){var tt=t-k*18,lo=0,hi=n;while(lo<hi){var m=(lo+hi)>>1;if(A[m]<=tt)lo=m+1;else hi=m}sum+=lo/n}return sum/5};
 Intro.prototype.render=function(t){var c=this.ctx,dpr=this.dpr,W=this.W,H=this.H,R=this.R,mid=this.mid,cu='196,128,86',acc=this.acc;
   c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
-  var bf=1-E.inout(seg(t,T.charge[1],T.split[0]+80));
+  var bf=1-E.inout(seg(t,T.charge[1],T.split[0]+80));/* board fades as the dot takes over */
   var ch=seg(t,T.charge[0],T.charge[1]),flash=Math.sin(ch*Math.PI);
   if(bf>0){var drawU=function(ti){return E.draw(seg(t,T.draw[0]+ti.lag*.6,T.draw[1]+ti.lag*.6))};
     var gA=.045*bf*seg(t,0,300);if(gA>0){c.fillStyle='rgba('+cu+','+gA.toFixed(3)+')';var g=24,x0=(mid[0]%g),y0=(mid[1]%g);for(var y=y0;y<H;y+=g)for(var x=x0;x<W;x+=g){c.fillRect(Math.round(x),Math.round(y),1,1)}}
@@ -949,8 +973,8 @@ Intro.prototype.render=function(t){var c=this.ctx,dpr=this.dpr,W=this.W,H=this.H
       for(var i=0;i<this.tr.length;i++){var pn=this.tr[i].pin,ax=pn[0]-mid[0],ay=pn[1]-mid[1],l=Math.hypot(ax,ay)||1;
         c.beginPath();c.moveTo(mid[0]+ax/l*R*(.6+.4*pu),mid[1]+ay/l*R*(.6+.4*pu));c.lineTo(mid[0]+ax/l*(R*(.6+.4*pu)+4),mid[1]+ay/l*(R*(.6+.4*pu)+4));c.strokeStyle='rgba('+cu+','+(.55*bf*pu).toFixed(3)+')';c.stroke()}}
     var col=acc.join(',');
-    for(var q=0;q<this.pk.length;q++){var p=this.pk[q];if(t<=p.t0||t>=p.arr)continue;var u=(t-p.t0)/p.dur,e=u*u*(1.6-.6*u);
-      var dd=p.t.len*e,spd=p.t.len*(2*u*1.6/1.0-1.8*u*u)/p.dur*16;
+    for(var q=0;q<this.pk.length;q++){var p=this.pk[q];if(t<=p.t0||t>=p.arr)continue;var u=(t-p.t0)/p.dur,e=u*u*(1.6-.6*u);/* ease-in with a soft entry */
+      var dd=p.t.len*e,spd=p.t.len*(2*u*1.6/1.0-1.8*u*u)/p.dur*16;/* px per frame, for the tail length */
       var tail=clamp(spd*2.2,2,18);
       for(var k=3;k>=0;k--){var pt=polyAt(p.t.P,p.t.L,dd-k*tail/3),a=(k?.2*(4-k):1)*Math.min(1,u*6);
         c.beginPath();c.arc(pt[0],pt[1],k?1.25:1.9,0,6.2832);c.fillStyle='rgba('+col+','+a.toFixed(3)+')';c.fill()}}
@@ -1011,7 +1035,7 @@ function run(o){o=o||{};var m=o.mark,D=document.documentElement;if(!m){o.onEnd&&
   function start(){if(started||ended)return;started=true;it=new Intro(m);ctl.intro=it;cov.remove();
     function f(now){if(t0===null)t0=now;var t=now-t0;it.render(t);if(t<T.end)raf=requestAnimationFrame(f);else end()}
     raf=requestAnimationFrame(f)}
-  fonts.then(start);setTimeout(start,1200);
+  fonts.then(start);setTimeout(start,1200);/* never wait on fonts for more than 1.2 s */
   addEventListener('resize',function(){if(it&&!ended)it.build()});
   ctl.skip=skip;ctl.end=end;return ctl}
 window.MYIntro={run:run,mini:mini,T:T,CAL:CAL,
@@ -1026,34 +1050,34 @@ var D=document.documentElement;D.classList.add('js');
 var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,HOVER=matchMedia('(hover:hover)').matches;
 var IMGS=new Proxy({},{get:function(o,k){return 'assets/work/'+String(k)+'.jpg?v=24'}});
 var P=[
- {k:'brief',n:'The Morning Brief',kind:'Published daily · phone app',phone:true,href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
-  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose rather than a link list, with sources from across the spectrum and a close that says what each story changes. Hover or tap a marked term and it explains itself. It also reads as an app on your phone, with one headline at 7 AM.',app:'brief/',
+ {k:'brief',n:'Daybreak',kind:'Published daily · iPhone and web',duo:true,href:'news/',url:'mattyellin.com/news/',open:'Read today’s edition',tint:'#2a1a16',hue:'#ff8a6b',
+  lede:'A daily newspaper that writes and publishes itself every morning. Reported prose with sources from across the spectrum, a close on what each story changes, and one headline on your phone at 7 AM.',app:'brief/',
   facts:[['Edition','No. <span class="num" data-brief>140</span>'],['Cadence','Every morning']],
-  ch:[[0,'Today'],[4.5,'A story'],[10.67,'Past'],[18.67,'Settings']]},
- {k:'versed',n:'Well-Versed',kind:'Published daily · phone app',phone:true,href:'well-versed/app/',url:'mattyellin.com/well-versed/',open:'Open the app',tint:'#17221d',hue:'#8fd1ae',
-  lede:'One lesson a day toward a general education, each an illustrated essay across art, history, science, food and craft, with the hard terms explained in place. It lives on your phone now. Today’s lesson comes as a card you swipe, every lesson you finish unlocks flashcards that come back just before you would forget them, and the shelf keeps the whole library by collection.',
-  facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
-  ch:[[0,'Today'],[6.2,'A lesson'],[18.6,'Cards'],[31.03,'Shelf']]},
- {k:'bits',n:'Greatest Bits',kind:'Published · archive',href:'greatest-bits/',url:'mattyellin.com/greatest-bits/',open:'Search the archive',tint:'#2a1414',hue:'#ff7a5c',
-  lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found. Search a name, open the comic, play a bit, then follow the rest of their work and career.',
-  facts:[['Comics','<span class="num" data-gbc>459</span>'],['Bits','<span class="num" data-gbb>2,284</span>']],
-  ch:[[0,'Bit of the day'],[4.2,'The archive'],[17.2,'Comic of the day'],[23.38,'Their page']]},
+  ch:[[0,'Today'],[4.5,'A story'],[10.67,'Past'],[18.67,'Settings']],ver:'Edition No. <span class="num" data-brief>175</span>',upd:'Updated every morning'},
+ {k:'read',n:'Liber',kind:'New · iPhone and laptop app',isNew:true,duo:true,tint:'#10201d',hue:'#5fd4bf',
+  lede:'The reading tracker I open every night. It opens on a wall of my favorite covers, times a session with rain, and fills in a streak and a yearly challenge as I read.',
+  facts:[['Redesigned','November 2026'],['Shown with','A sample library']],
+  ch:[[0,'Opening'],[5,'Tonight'],[17,'Reading time'],[39,'Reading Challenge'],[56,'Stats']],ver:'Version 4',upd:'Updated Nov 19, 2026'},
  {k:'train',n:'Train',kind:'Private · phone app',phone:true,tint:'#1d1830',hue:'#b7a6ff',
   lede:'The training app I use every day. It prescribes the session off a rotation, tracks strength, cardio and body over months rather than days, and syncs across my devices. No number in it you can fail.',
   facts:[['Version','v27.7'],['Shown with','A sample profile']],
-  ch:[[0,'Today'],[4.4,'The week'],[8.7,'Strength'],[14.57,'A workout'],[20.77,'Cardio']]},
- {k:'read',n:'Read',kind:'New · phone app',isNew:true,phone:true,tint:'#10201d',hue:'#5fd4bf',
-  lede:'The reading tracker I open every night. A timer with rain and a night scene, the page I stopped on, a streak that counts any night I read, and a nudge when a book has gone quiet. It syncs between my phone and laptop.',
-  facts:[['Shipped','October 2026'],['Shown with','A sample library']],
-  ch:[[0,'Tonight'],[10,'Reading Time'],[32.77,'Stats']]},
+  ch:[[0,'Today'],[4.4,'The week'],[8.7,'Strength'],[14.57,'A workout'],[20.77,'Cardio']],ver:'Version 28.3',upd:'Updated Nov 19, 2026'},
+ {k:'versed',n:'Well-Versed',kind:'Published daily · phone app',phone:true,href:'well-versed/app/',url:'mattyellin.com/well-versed/',open:'Open the app',tint:'#17221d',hue:'#8fd1ae',
+  lede:'One illustrated lesson a day toward a general education, with flashcards that come back just before you would forget them.',
+  facts:[['Lesson','No. <span class="num" data-versed>151</span>'],['Cadence','Every morning']],
+  ch:[[0,'Today'],[6.2,'A lesson'],[18.6,'Cards'],[31.03,'Shelf']],ver:'Lesson No. <span class="num" data-versed>151</span>',upd:'Updated every morning'},
  {k:'course',n:'Law Course Planner',kind:'New · for law students',isNew:true,href:'course-plan/',url:'mattyellin.com/course-plan/',open:'Open the planner',tint:'#141c2b',hue:'#8fb4ff',try:true,
-  lede:'A tool for law students to pick their classes. Search every law and MBA course, filter by requirement, and build a week that flags clashes before you register, then share it with a link. Unofficial. Switch the frame to Try it and tick a few.',
+  lede:'Pick law and MBA classes, filter by requirement, and build a week that flags clashes before you register. Unofficial. Switch to Try it and tick a few.',
   facts:[['Built for','Law students'],['Courses','283']],
-  ch:[[0,'Build a week'],[17.49,'Add alternatives'],[28.02,'Compare plans'],[41.92,'Export'],[47.37,'Law, MBA or both']]},
+  ch:[[0,'Build a week'],[17.49,'Add alternatives'],[28.02,'Compare plans'],[41.92,'Export'],[47.37,'Law, MBA or both']],ver:'Spring 2027 data',upd:'Updated Nov 5, 2026'},
  {k:'system',n:'Claude OS',kind:'The system behind the work',href:'system/',url:'mattyellin.com/system/',open:'See how it works',tint:'#24170f',hue:'#ffb08f',
-  lede:'The operating system I run school, work and these projects on: written rules Claude reads first, memory kept in plain files, routines that run on a schedule, and checks that must pass before anything ships.',
+  lede:'The operating system I run school, work and these projects on: written rules, memory in plain files, routines on a schedule, and checks before anything ships.',
   facts:[['Skills','28'],['Routines on a schedule','9']],
-  ch:[[0,'The machine']]}
+  ch:[[0,'The machine']],ver:'Version 2.0',upd:'Updated Oct 29, 2026'},
+ {k:'bits',n:'Greatest Bits',kind:'Published · archive',href:'greatest-bits/',url:'mattyellin.com/greatest-bits/',open:'Search the archive',tint:'#2a1414',hue:'#ff7a5c',
+  lede:'An archive of great stand-up, indexed by comic, special and bit, so a joke you half remember can be found.',
+  facts:[['Comics','<span class="num" data-gbc>459</span>'],['Bits','<span class="num" data-gbb>2,284</span>']],
+  ch:[[0,'Bit of the day'],[4.2,'The archive'],[17.2,'Comic of the day'],[23.38,'Their page']],ver:'<span class="num" data-gbc>459</span> comics',upd:'Updated Oct 21, 2026'}
 ];
 function $(s,r){return (r||document).querySelector(s)}
 function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
@@ -1072,9 +1096,11 @@ try{var st=$('#stack');
     var c=el('article','card');c.id='w-'+p.k;c.style.setProperty('--i',i);c.style.setProperty('--tint',p.tint);c.style.setProperty('--halo',p.tint);c.style.setProperty('--hue',p.hue);
     var facts=p.facts.map(function(f){return '<div><dt>'+f[0]+'</dt><dd>'+f[1]+'</dd></div>'}).join('');
     var go=p.href?'<a class="btn p" href="'+p.href+'">'+p.open+'</a>'+(p.app?'<a class="btn" href="'+p.app+'">Open the app</a>':''):'<span class="eye">Private, so there is no public link.</span>';
-    c.innerHTML='<div class="txt"><div class="no"><b class="num">0'+(i+1)+'</b><span>'+p.kind+'</span>'+(p.isNew?'<span class="tag">New</span>':'')+'</div><h3>'+p.n+'</h3><p>'+p.lede+'</p><dl class="facts">'+facts+'</dl><div class="cta">'+go+'</div></div>';
-    var v=p.still?null:vid(p.k),m,scr;
-    if(p.phone){m=el('div','media phone','<div class="glass"><span class="isl" aria-hidden="true"></span></div>');scr=m.firstChild}
+    c.innerHTML='<div class="txt"><div class="no"><span>'+p.kind+'</span>'+(p.isNew?'<span class="tag">New</span>':'')+'</div><h3>'+p.n+'</h3><div class="ver"><b>'+p.ver+'</b><span>'+p.upd+'</span></div><p>'+p.lede+'</p><div class="cta">'+go+'</div></div>';
+    var v=p.still?null:vid(p.k),m,scr,v2=null;
+    if(p.duo){var wide=matchMedia('(min-width:901px)').matches;m=el('div','media duo '+(wide?'show-lap':'show-ph'),'<div class="dev" role="group" aria-label="Show on"><button type="button" data-d="lap">Computer</button><button type="button" data-d="ph">iPhone</button></div><div class="stage"><div class="lap"><div class="lid"><div class="scr"></div></div><i class="base"></i></div><div class="phone"><div class="glass"><span class="isl" aria-hidden="true"></span></div></div></div>');
+      var stg=m.lastChild;scr=stg.lastChild.firstChild;v2=vid(p.k);v2.src='assets/work/'+p.k+'-d.mp4?v=25';v2.poster='assets/work/'+p.k+'-d.jpg?v=25';var lp=stg.firstChild.firstChild.firstChild;lp.appendChild(v2);var bp2=el('div','bar-p','<i></i>');lp.appendChild(bp2);v.src='assets/work/'+p.k+'-v.mp4?v=25';v.poster='assets/work/'+p.k+'.jpg?v=25'}
+    else if(p.phone){m=el('div','media phone','<div class="glass"><span class="isl" aria-hidden="true"></span></div>');scr=m.firstChild}
     else{m=el('div','media frame','<div class="chrome" aria-hidden="true"><i></i><i></i><i></i><span class="u">'+p.url+'</span></div><div class="screen"></div>');scr=m.lastChild}
     if(v){scr.appendChild(v)}else{var im=el('img');im.src=IMGS[p.k];im.alt='';im.loading='lazy';im.decoding='async';scr.appendChild(im)}
     var bp=el('div','bar-p','<i></i>');if(v)scr.appendChild(bp);
@@ -1082,7 +1108,7 @@ try{var st=$('#stack');
     p.ch.forEach(function(x){var b=el('button','',x[1]);b.type='button';b.dataset.t=x[0];ch.appendChild(b)});
     
     c.appendChild(m);st.appendChild(c);
-    var rec={c:c,v:v,p:p,ch:[].slice.call(ch.children),bar:bp.firstChild,cur:0,dur:0,dist:0,on:true};
+    var rec={c:c,v:v,v2:v2,bar2:v2?bp2.firstChild:null,p:p,ch:[].slice.call(ch.children),bar:bp.firstChild,cur:0,dur:0,dist:0,on:true};
     if(v)v.addEventListener('loadedmetadata',function(){rec.dur=v.duration||0});
     ch.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;seek(rec,+b.dataset.t)});
     if(p.try)tryIt(m,rec);
@@ -1096,11 +1122,17 @@ function play(v){var pr=v.play();pr&&pr.catch(function(){})}
 
 var cur=null;
 function pick(){var vh=innerHeight,best=null,bi=-1;cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(b.top<vh*.8&&b.bottom>vh*.2){best=r;bi=i}});
-  cards.forEach(function(r,i){if(!r.v)return;if(r===best&&r.on){if(r.v.preload!=='auto')r.v.preload='auto';if(r.v.paused)play(r.v)}else if(!r.v.paused)r.v.pause();
-    if((i===bi+1||(bi<0&&i===0))&&r.v.preload!=='auto')r.v.preload='auto'});cur=best}
+  cards.forEach(function(r,i){if(!r.v)return;var a=act(r),o=a===r.v?r.v2:r.v;if(o&&!o.paused)o.pause();if(r===best&&r.on){if(a.preload!=='auto')a.preload='auto';if(a.paused)play(a)}else if(!a.paused)a.pause();
+    if((i===bi+1||(bi<0&&i===0))&&a.preload!=='auto')a.preload='auto'});cur=best}
 var pq=0;addEventListener('scroll',function(){if(!pq)pq=requestAnimationFrame(function(){pq=0;pick()})},{passive:true});addEventListener('resize',pick);
-document.addEventListener('visibilitychange',function(){if(document.hidden)cards.forEach(function(r){r.v&&r.v.pause()});else pick()});
-cards.forEach(function(r){r.v&&r.v.addEventListener('timeupdate',function(){mark(r,r.v.currentTime)})});pick();
+document.addEventListener('visibilitychange',function(){if(document.hidden)cards.forEach(function(r){r.v&&r.v.pause();r.v2&&r.v2.pause()});else pick()});
+function act(r){return r.v2&&r.c.querySelector('.duo.show-lap')?r.v2:r.v}
+cards.forEach(function(r){r.v&&r.v.addEventListener('timeupdate',function(){mark(r,r.v.currentTime)});
+  if(r.v2){r.v2.addEventListener('timeupdate',function(){if(r.v2.duration)r.bar2.style.transform='scaleX('+Math.min(1,r.v2.currentTime/r.v2.duration)+')'});
+    var m=r.c.querySelector('.duo'),bs=m.querySelectorAll('.dev button');
+    function setD(d){m.classList.toggle('show-lap',d==='lap');m.classList.toggle('show-ph',d==='ph');[].forEach.call(bs,function(b){b.setAttribute('aria-pressed',String(b.dataset.d===d))});
+      var on=act(r),off=on===r.v?r.v2:r.v;off.pause();if(cur===r){on.preload='auto';try{on.currentTime=0}catch(e){}play(on)}}
+    [].forEach.call(bs,function(b){b.addEventListener('click',function(){setD(b.dataset.d)})});setD(m.classList.contains('show-lap')?'lap':'ph')}});pick();
 
 function tryIt(m,rec){
   var C=[['LAW 100','Business Associations','TR',640,730,'#8fd1ae',1],['LAW 104','Securities Regulation','MW',930,1020,'#f2c46d',1],['LAW 108','Antitrust','MW',830,920,'#b7a6ff',1],['LAW 132','Trademark Law','T',930,1050,'#8fb4ff',1],
@@ -1198,7 +1230,7 @@ try{(function(){
     for(var i=1;i<pts.length-1;i++){var a=pts[i-1],b=pts[i],c=pts[i+1],l1=Math.hypot(b[0]-a[0],b[1]-a[1]),l2=Math.hypot(c[0]-b[0],c[1]-b[1]);
       if(!l1||!l2)continue;var k=Math.min(r,l1/2,l2/2);d+='L'+(b[0]+(a[0]-b[0])*k/l1).toFixed(1)+' '+(b[1]+(a[1]-b[1])*k/l1).toFixed(1)+'L'+(b[0]+(c[0]-b[0])*k/l2).toFixed(1)+' '+(b[1]+(c[1]-b[1])*k/l2).toFixed(1)}
     var z=pts[pts.length-1];return d+'L'+z[0]+' '+z[1]}
-  function cpts(pts,r){var o=[pts[0]];
+  function cpts(pts,r){/* the same chamfered corners, as points, for packets */var o=[pts[0]];
     for(var i=1;i<pts.length-1;i++){var a=pts[i-1],b=pts[i],c=pts[i+1],l1=Math.hypot(b[0]-a[0],b[1]-a[1]),l2=Math.hypot(c[0]-b[0],c[1]-b[1]);
       if(!l1||!l2){continue}var k=Math.min(r,l1/2,l2/2);o.push([b[0]+(a[0]-b[0])*k/l1,b[1]+(a[1]-b[1])*k/l1],[b[0]+(c[0]-b[0])*k/l2,b[1]+(c[1]-b[1])*k/l2])}
     o.push(pts[pts.length-1]);return o}
@@ -1399,7 +1431,7 @@ var bar=$('#bar');addEventListener('scroll',function(){bar.classList.toggle('sc'
  setTimeout(go,3600)})();
 })();
 </script>
-<script>
+<script>/* flag names on tap */
 (function(){var fs=[].slice.call(document.querySelectorAll('.lic .fl'));
 document.addEventListener('click',function(e){var b=e.target.closest('.lic .fl');fs.forEach(function(f){if(f!==b)f.classList.remove('tip')});if(b)b.classList.toggle('tip')});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')fs.forEach(function(f){f.classList.remove('tip')})});})();</script></body>
