@@ -298,6 +298,53 @@ body.dragmode{touch-action:none;overscroll-behavior:none}
 .hzs>.sline{font-size:13px;line-height:16px;font-weight:600;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding:0 4px;margin-top:6px}
 .hzs>.sline span,.hzs>.sline .tab{color:inherit;font-variant-numeric:tabular-nums}
 .hzs>.sline,body .hzs>.sline{color:rgba(255,255,255,.44);mix-blend-mode:plus-lighter}
+
+.vb.sd{color:#fff;gap:8px}
+.vb.sd i{width:8px;height:8px;border-radius:4px;background:var(--acc)}
+.vb.sd i+i{background:rgba(255,255,255,.22)}
+.vb.sd.l i:first-child{background:rgba(255,255,255,.22)}.vb.sd.l i+i{background:var(--acc)}
+.slot.zero b{color:var(--acc);animation:zpulse 1.2s ease-in-out infinite}
+.slot.zero .sb i{background:var(--acc)}
+.slot.paused b{color:var(--sub)}
+@keyframes zpulse{50%{opacity:.45}}
+.rpop .rend .rck{width:44px;height:44px;margin:0 auto 14px;border-radius:22px;background:var(--good);display:flex;align-items:center;justify-content:center;color:#000}
+.rpop .rend .rck svg{width:22px;height:22px}
+.rpop .rend .rdn{font-size:56px;line-height:60px}
+.rpop .rst{display:flex;justify-content:center;gap:28px;margin-top:26px}
+.rpop .rst div{display:flex;flex-direction:column;align-items:center}
+.rpop .rst b{font-size:28px;line-height:32px;font-weight:700;font-variant-numeric:tabular-nums}
+.rpop .rst span{margin-top:2px;font-size:12px;line-height:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--onf)}
+.rpop .rgo{margin-top:32px}
+.rpop .cdn .cdd{font-size:168px;line-height:160px;color:var(--acc);margin-top:12px}
+.hdemo{margin:0}
+.hfr{position:relative;width:100%;aspect-ratio:4/3;border-radius:14px;overflow:hidden;background:#0B0B0C}
+.hfr img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.hdemo.two .hfr img+img{animation:hswap 3.2s ease-in-out infinite}
+.hlab{position:absolute;left:10px;bottom:10px;display:grid}
+.hlab b{grid-area:1/1;padding:4px 10px;border-radius:12px;background:rgba(0,0,0,.62);font-size:12px;line-height:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.hdemo.two .hlab .a{animation:hswapA 3.2s ease-in-out infinite}
+.hdemo.two .hlab .z{animation:hswap 3.2s ease-in-out infinite}
+@keyframes hswap{0%,38%{opacity:0}50%,88%{opacity:1}100%{opacity:0}}
+@keyframes hswapA{0%,38%{opacity:1}50%,88%{opacity:0}100%{opacity:1}}
+.hdemo figcaption{margin-top:8px;font-size:13px;line-height:18px;color:var(--sub)}
+.hflow{list-style:none;margin:0;padding:4px 0 0;position:relative}
+.hflow li{position:relative;display:flex;gap:12px;align-items:flex-start;padding:8px 0 8px;opacity:.42;animation:hstep calc(var(--n) * 1.4s) linear infinite;animation-delay:calc(var(--q) * 1.4s)}
+.hflow li:not(:last-child)::after{content:"";position:absolute;left:15px;top:40px;bottom:-6px;width:2px;background:rgba(255,255,255,.16)}
+.hflow .fn{flex:none;width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:700;background:rgba(255,255,255,.12);font-variant-numeric:tabular-nums}
+.hflow .ft{padding-top:5px;font-size:17px;line-height:22px;font-weight:600}
+@keyframes hstep{0%,20%{opacity:1}26%,100%{opacity:.42}}
+.hflow li .fn{animation:hdot calc(var(--n) * 1.4s) linear infinite;animation-delay:calc(var(--q) * 1.4s)}
+@keyframes hdot{0%,20%{background:var(--acc);color:#000}26%,100%{background:rgba(255,255,255,.12);color:#fff}}
+.hsteps{margin:8px 0 0;padding-left:22px;font-size:16px;line-height:22px}
+.hsteps li{margin:6px 0}
+.hwatch{margin:12px 0 0;font-size:15px;line-height:20px;color:var(--sub)}
+.hwatch b{color:var(--acc);margin-right:6px;font-weight:700}
+.hside{margin:6px 0 0;font-size:15px;line-height:20px;font-weight:600;color:var(--acc)}
+@media (prefers-reduced-motion: reduce){
+  .hdemo.two .hfr{aspect-ratio:8/3}
+  .hdemo.two .hfr img{width:50%}.hdemo.two .hfr img+img{left:50%;animation:none;opacity:1}
+  .hdemo.two .hlab b{animation:none}.hdemo.two .hlab .z{display:none}
+  .hflow li,.hflow li .fn{animation:none;opacity:1}.slot.zero b{animation:none}}
 </style>
 <script>
 function today(){var d=new Date(),p=function(n){return (n<10?"0":"")+n;};
@@ -565,11 +612,11 @@ var RN0=FIXR||Math.min((WROUNDS[WK]!=null)?WROUNDS[WK]:PROG_RN, MAXR[FOCUS]||99)
 var W={rN:RN0, order:orderFrom(canonRows(loadS()),WK,RN0), done:{}, wu:false};
 var PLAN_SIG=JSON.stringify(canonRows(loadS()));   /* the plan this page was drawn from (2026-10-14) */
 W.alts=altsFor(W.order.map(function(o){return o.exId;}));
-var WARM=[{"id":"pogo","n":"Pogo jumps","d":20,"u":"reps","x":"","h":["Stay tall, knees almost straight, bounce off the balls of the feet.","Short and springy. The floor should barely know you are there.","Ankles do the work, not the knees."]},{"id":"neckrot","n":"Neck counter-rotation","d":5,"u":"a side","x":"Pause 3 s","h":["Hands over the opposite elbows so the forearms make a box out in front of the chest.","Take the whole box round to one side, and turn your head far the other way.","Turn until you FEEL it, never until it stops. Pause three seconds, then swap.","If it sparks a headache, stop and tell the app the neck is sore."]},{"id":"banddisloc","n":"Shoulder pass-through","d":10,"u":"reps","x":"Band, towel or no hands","h":["Band, towel or broomstick held wide, arms straight the whole way. Empty hands work too.","Take it overhead and behind, then back. Widen the grip if it pinches.","Straight arms are the drill. Bent elbows are cheating the range."]},{"id":"cossack","n":"Cossack squats","d":6,"u":"a side","x":"Pause 3 s","h":["Wide stance, sit down over one leg, the other stays straight.","Toe of the straight leg can turn up. Heel of the bent leg stays down.","Hold something in front for balance until it is easy."]},{"id":"wgs","n":"World's greatest stretch","d":5,"u":"a side","x":"Pause 3 s","h":["Long lunge, back knee off the floor.","Front elbow down toward the instep, then rotate that arm to the ceiling and follow it with your eyes.","Lunge and rotate only. Do NOT straighten the front leg and reach for the toe: that is a standing forward fold, and the first hour after rising is the one time of day it is contraindicated."]},{"id":"needlethread","n":"Thread the needle","d":6,"u":"a side","x":"Reach and hold 3 s","h":["Hands and knees, slide one arm under the other and let the shoulder reach the floor.","Then reach the same arm up and open the chest to the ceiling.","Turn from the mid-back. The hips stay square."]},{"id":"hip9090","n":"90/90 hip switch","d":8,"u":"reps","x":"Hold 5 s each side","h":["Sit with both knees bent at right angles, one in front, one out to the side.","Rotate the knees over to the other side without using your hands.","Chest tall the whole way."]},{"id":"catcow","n":"Cat-cow","d":8,"u":"reps","x":"Slow, with the breath","h":["On hands and knees, round the back up, then let the belly drop, slowly."]}], MEDIA={};
+var WARM=[{"id":"pogo","n":"Pogo jumps","d":20,"u":"reps","x":"","h":["Stay tall, knees almost straight, bounce off the balls of the feet.","Short and springy. The floor should barely know you are there.","Ankles do the work, not the knees."]},{"id":"neckrot","n":"Neck counter-rotation","d":5,"u":"a side","x":"Pause 3 s","h":["Hands over the opposite elbows so the forearms make a box out in front of the chest.","Take the whole box round to one side, and turn your head far the other way.","Turn until you FEEL it, never until it stops. Pause three seconds, then swap.","If it sparks a headache, stop and tell the app the neck is sore."]},{"id":"banddisloc","n":"Shoulder pass-through","d":10,"u":"reps","x":"Band, towel or no hands","h":["Band, towel or broomstick held wide, arms straight the whole way. Empty hands work too.","Take it overhead and behind, then back. Widen the grip if it pinches.","Straight arms are the drill. Bent elbows are cheating the range."]},{"id":"cossack","n":"Cossack squats","d":6,"u":"a side","x":"Pause 3 s","h":["Wide stance, sit down over one leg, the other stays straight.","Toe of the straight leg can turn up. Heel of the bent leg stays down.","Hold something in front for balance until it is easy."]},{"id":"wgs","n":"World's greatest stretch","d":5,"u":"a side","x":"Pause 3 s","h":["Long lunge, back knee off the floor.","Front elbow down toward the instep, then rotate that arm to the ceiling and follow it with your eyes.","Lunge and rotate only. Do NOT straighten the front leg and reach for the toe: that is a standing forward fold, and the first hour after rising is the one time of day it is contraindicated."]},{"id":"needlethread","n":"Thread the needle","d":6,"u":"a side","x":"Reach and hold 3 s","h":["Hands and knees, slide one arm under the other and let the shoulder reach the floor.","Then reach the same arm up and open the chest to the ceiling.","Turn from the mid-back. The hips stay square."]},{"id":"hip9090","n":"90/90 hip switch","d":8,"u":"reps","x":"Hold 5 s each side","h":["Sit with both knees bent at right angles, one in front, one out to the side.","Rotate the knees over to the other side without using your hands.","Chest tall the whole way."]},{"id":"catcow","n":"Cat-cow","d":8,"u":"reps","x":"Slow, with the breath","h":["On hands and knees, round the back up, then let the belly drop, slowly."]}], MEDIA={}, HOWTO={"tkbsquat":{"img":"goblet-squat","steps":["Hold the bell by the horns against your chest, elbows tucked under it.","Feet just wider than hips, toes turned out a little.","Sit straight down between your heels, chest up, until the elbows brush the knees.","Drive through the whole foot and stand tall."],"watch":"Knees cave in or heels lift. Push the knees out over the toes."},"tkbpress":{"img":"kb-press","note":"The photo shows two bells. You press one bell with both hands on the horns.","steps":["Hold the bell by the horns at your chin, elbows under it.","Squeeze your glutes and pull the ribs down.","Press straight up until the arms are nearly straight, head stays still.","Lower it back to the chin under control."],"watch":"Leaning back to finish the press. Stop short of a hard lockout."},"tkbdead":{"img":"db-deadlift","note":"The photo shows dumbbells. You use one bell set between your feet.","steps":["Bell on the floor between the middle of your feet.","Push the hips back, soft knees, flat back, grab the handle.","Stand up by driving the hips forward. Squeeze at the top.","Hips back again to set it down. Do not round the back to reach it."],"watch":"Squatting it up. This is a hinge: the hips move most, the knees a little."},"tkbrow":{"img":"kb-row","side":"arm","steps":["Free hand on a bench or chair, back flat, bell hanging under the shoulder.","Pull the elbow back toward the hip, not up toward the ear.","Pause with the bell at the ribs, then lower it all the way.","Five reps on the right, then switch to the left."],"watch":"Twisting the torso to lift. Keep the shoulders square to the floor."},"tkbcurl":{"img":"db-curl","note":"The photo shows dumbbells. You curl one bell held by the horns.","steps":["Stand tall, bell held by the horns at arm's length.","Elbows pinned to your sides.","Curl the bell to the chest without swinging.","Lower slowly to straight arms."],"watch":"Swinging the hips. If you need momentum, the reps are too hard."},"kbohext":{"img":"oh-ext","note":"The photo shows a dumbbell. You hold the bell upside down by the horns.","steps":["Hold the bell overhead in both hands, arms straight.","Elbows point forward and stay by the ears.","Bend only at the elbows to lower the bell behind your head.","Straighten the arms to bring it back up."],"watch":"Elbows flaring wide or the lower back arching. Ribs down."},"kbaround":{"flow":["Bell in the right hand in front of the hips","Swing it to your right side and behind you","Pass it to the left hand behind your back","Bring it round the left side to the front, pass it back to the right"],"steps":["Stand tall, feet hip width, bell in one hand.","Pass it around the waist hand to hand. Hips stay still.","Five circles one way, then five the other way."],"watch":"Hips swaying to chase the bell. Brace and let the arms do it."},"pushup":{"img":"push-up","steps":["Hands under the shoulders, body in one straight line.","Lower the chest to a fist's height off the floor, elbows at about 45 degrees.","Push the floor away to straight arms."],"watch":"Hips sagging or piking. Squeeze the glutes."},"goblet":{"img":"goblet-squat","steps":["Hold the weight at your chest, elbows under it.","Sit between your heels, chest up.","Stand tall through the whole foot."],"watch":"Knees caving in. Push them out over the toes."},"dbbench":{"img":"db-bench","steps":["Lie on the bench, feet flat, dumbbells over the shoulders.","Lower them to the sides of the chest, elbows at about 45 degrees.","Press back up until they nearly touch."],"watch":"Bouncing off the chest or flaring the elbows straight out."},"bentrow":{"img":"db-bent-row","steps":["Hinge to about 45 degrees, flat back, weights hanging.","Pull both elbows back to the hips.","Lower all the way down under control."],"watch":"Standing up as you pull. Hold the hinge."},"rdl":{"img":"db-deadlift","steps":["Stand tall, dumbbells in front of the thighs, soft knees.","Push the hips back and slide the weights down the legs.","Stop when you feel the hamstrings stretch, back flat.","Drive the hips forward to stand."],"watch":"Rounding the back to go lower. Range ends where the back stays flat."},"plank":{"img":"plank","steps":["Forearms under the shoulders, body in one straight line.","Squeeze the glutes and brace like you are about to be poked.","Breathe and hold."],"watch":"Hips sagging. Shorter and solid beats longer and sagging.","n":1},"inclinepress":{"img":"incline-press","steps":["Bench at a low incline, dumbbells over the upper chest.","Lower them to the sides of the upper chest.","Press up and slightly in."],"watch":"Arching the lower back off the bench."},"row1":{"img":"db-row","side":"arm","steps":["One hand and knee on the bench, back flat.","Pull the dumbbell toward the hip, elbow close.","Lower it all the way.","Finish the right side, then switch to the left."],"watch":"Twisting the torso to lift it."},"bulgarian":{"img":"split-squat","side":"leg","steps":["Back foot on a bench, front foot far enough forward that the knee stays over the foot.","Drop the back knee straight down.","Drive up through the front heel.","Finish the right leg, then switch to the left."],"watch":"Front heel lifting. Move the front foot further out."},"hipthrust":{"img":"hip-thrust","steps":["Upper back on the bench, weight across the hips, feet flat.","Drive the hips up until the body is flat from knees to shoulders.","Squeeze the glutes, then lower."],"watch":"Arching the lower back at the top. Tuck the chin and ribs."},"dbcurl":{"img":"db-curl","steps":["Stand tall, dumbbells at your sides.","Elbows pinned, curl the weights up.","Lower slowly."],"watch":"Swinging the body."},"sidetoetouch":{"img":"heel-touch","steps":["Lie on your back, knees bent, feet flat.","Lift the shoulders just off the floor.","Reach side to side to touch each heel. Count both sides."],"watch":"Pulling on the neck. Keep the chin off the chest."},"kblatlunge":{"flow":["Bell at the chest, feet together","Step wide to the right","Sit back into the right hip, left leg straight","Push back to centre"],"side":"leg","steps":["Bell at the chest.","Step wide and sit back into one hip, other leg straight.","Push back to the start. Finish the right side, then the left."],"watch":"The knee drifting past the toes. Sit the hips back."},"suitcasemarch":{"flow":["Bell in the right hand at your side","Stand tall, shoulders level","March in place, slow knees","Switch hands at halfway"],"side":"hand","steps":["Bell in one hand at your side.","Stand tall and level, do not lean toward the bell.","March in place slowly."],"watch":"Leaning toward the bell."},"pogo":{"flow":["Stand tall, knees nearly straight","Bounce off the balls of the feet","Land soft and spring straight back up","Ankles do the work"]},"neckrot":{"flow":["Stand tall, chin level","Turn the head right as the eyes look left","Pause 3 s","Switch: head left, eyes right"]},"banddisloc":{"flow":["Hold a band or towel wide in front of the hips","Raise it overhead with straight arms","Carry it behind you as far as is easy","Return the same path"]},"cossack":{"flow":["Stand in a very wide stance","Shift into the right leg and sit down into it","Left leg straight, toes up","Pause 3 s, then shift to the left"]},"wgs":{"img":"wgs"},"needlethread":{"flow":["On hands and knees","Reach the right arm up to the ceiling","Thread it under the body toward the left","Hold 3 s, then switch sides"]},"hip9090":{"flow":["Sit with both knees bent to 90 degrees, to one side","Sit tall, hands behind or beside you","Swing both knees over to the other side","Hold 5 s each side"]},"catcow":{"img":"cat-cow"}};
 var TITLE_N="Your own", TITLE_SUB="";
 var OPEN={};
 
-var BUILD="1795091841501";
+var BUILD="1795196936432";
 var DB_LADDER=[5,7.5,10,12.5,15,17.5,20,22.5,25,30,35,40,45,50,52.5], KB_LADDER=[8,12,20,25,35,40];
 function ladderOf(o){return o.ladder==="kb"?KB_LADDER:(o.ladder==="db"?DB_LADDER:null);}
 function stepLoad(o,w,dir){var L=ladderOf(o);if(!L)return Math.max(0,w+dir);
@@ -653,7 +700,9 @@ function persist(){ autosave(); saveProg({build:BUILD,psig:PLAN_SIG,rN:W.rN,orde
   focus:FOCUS,draftRev:W.draftRev||0,draftN:W.draftN||0,st:W.st||0,t0:W.t0||0,pre:W.pre||null,pv:W.pv||0}); }
 function autosave(){
   var S=loadS(); if(!S||!S.sessions) return;
-  if(S.sessions.some(function(x){return x&&x.slot===SLOTID&&!x.draft;})) return;
+  if(S.sessions.some(function(x){return x&&x.slot===SLOTID&&!x.draft;})){
+    if(W.resumed&&!LOGGED&&Object.keys(W.done).length){var o=recNow("full");o.rec.notes=W.resumed.notes||o.rec.notes;logSession(o.rec,o.D,true);}
+    return; }
   var n=Object.keys(W.done).length, changed=false;
   W.draftRev=W.draftRev||0;
   if(n<(W.draftN||0)){ tombId(S,SLOTID+"~draft"+W.draftRev); W.draftRev++; changed=true; }
@@ -834,8 +883,7 @@ function customSave(){var S=loadS();if(!S)return;var P=planDoc(S);
 function rmBlock(si){if(W.order.length<=1&&FOCUS!=="custom")return "One movement is the floor.";
   var lt=lastTick(si),o=W.order[si],end=(o.upTo==null?W.rN:o.upTo);
   if(lt>=0&&lt+1>=end)return "Ticked in its last round. Nothing left to remove.";return "";}
-function finish(kind){
-  if(LOGGED) return;
+function recNow(kind){
   var n=Math.max(roundsDoneN(),1);
   var by={},ids=[];
   for(var r=0;r<W.rN;r++)for(var i=0;i<W.order.length;i++){var c=W.done[rkey(r,i)];
@@ -854,6 +902,10 @@ function finish(kind){
     durationSec:dur,startedAt:t0,endedAt:t1,notes:"workout-page "+kind,rounds:n,focus:FOCUS,
     entries:entries, warmup:W.wu, feel:FEEL.feel, twinge:FEEL.twinge, loggedAt:Date.now()};
   if(FEEL.comment) rec.comment=FEEL.comment;
+  return {rec:rec,entries:entries,n:n,dur:dur,D:D};}
+function finish(kind){
+  if(LOGGED) return;
+  var o=recNow(kind),rec=o.rec,entries=o.entries,n=o.n,dur=o.dur,D=o.D;
   var PREV=prevSessionOf(D);
   var S0=loadS(), had=!!(S0&&S0.sessions&&S0.sessions.some(function(x){return x&&x.slot===SLOTID&&!x.draft;}));
   var ok=logSession(rec,D,true);
@@ -1062,6 +1114,13 @@ function planNext(entries){var out=[];
 function restoreLogged(){var S=loadS(), rec=null;
   ((S&&S.sessions)||[]).forEach(function(x){if(x&&x.slot===SLOTID&&!x.draft&&x.type==="lift")rec=x;});
   if(!rec) return false;
+  var last=rec.endedAt||rec.loggedAt||0;
+  if(last&&Date.now()-last<4*3600000&&(rec.rounds||1)<W.rN){
+    FEEL.feel=rec.feel||null; FEEL.twinge=!!rec.twinge; FEEL.comment=rec.comment||"";
+    W.resumed={notes:rec.notes||""};
+    if(!Object.keys(W.done).length)(rec.entries||[]).forEach(function(e){var i=-1;W.order.forEach(function(o,q){if(i<0&&o.exId===e.exerciseId)i=q;});
+      if(i<0)return;(e.sets||[]).forEach(function(st,k){if(k<W.rN)W.done[rkey(k,i)]={exId:e.exerciseId,reps:st.reps,w:st.weightLb,ts:last};});});
+    if(!W.t0)W.t0=rec.startedAt||last; W.st=1; return false; }
   LOGGED=true; FEEL.feel=rec.feel||null; FEEL.twinge=!!rec.twinge; FEEL.comment=rec.comment||"";
   var nx=planNext(rec.entries);
   U.fin={entries:rec.entries||[],dur:rec.durationSec||0,prev:prevSession(rec.date||SLOT),nx:nx,comment:rec.comment||"",rounds:rec.rounds||1,fromRec:true,tail:"",dbl:""};
@@ -1092,7 +1151,6 @@ function nextOpenAfter(r,si){var L=rowsOf(r),p=L.indexOf(si),n=L.length;
 function ndone(){var n=0;Object.keys(W.done).forEach(function(k){var p=k.split(":");if(+p[0]<W.rN&&W.order[+p[1]]&&slotIn(+p[0],+p[1]))n++;});return n;}
 function valid(r,si){return r>=0&&r<W.rN&&si>=0&&si<W.order.length&&slotIn(r,si);}
 function syncCur(force){
-  if(!force&&SETREST>0&&SLOT_END&&!REST_END&&U.phase==="work"&&valid(U.r,U.si)&&isOn(U.r,U.si)&&firstOpen())return;
   if(U.view&&(!valid(U.view.r,U.view.si)||!isOn(U.view.r,U.view.si)))U.view=null;
   var f=firstOpen();
   if(!f){var a=SQ();if(a.length){U.r=a[a.length-1].r;U.si=a[a.length-1].si;}if(U.phase==="work")U.phase="complete";return;}
@@ -1121,18 +1179,31 @@ function heroNums(r,si){var c=C(r,si),cols=[],vals=[];
 function nav(inline){return '<div class="nav"><a class="bk navback" href="../index.html">'+IC.back+'Train</a><span class="it">'+(inline?esc(TITLE_N):"")+'</span>'+
   (LOGGED?'<span></span>':'<button class="ed" id="editbtn" data-act="edit" aria-label="Edit this session">Edit</button>')+'</div>';}
 function sline(txt){var t=t0();return '<div class="sline" data-k="sl"><span>'+txt+'</span><span class="tab" data-live="el">'+mmss(t?(Date.now()-t)/1000:0)+'</span></div>';}
-function slotLeft(){if(!SLOT_END||(REST_END&&Date.now()<REST_END))return null;return Math.ceil((SLOT_END-Date.now())/1000);}
-function slotFrac(){var sl=slotLeft();if(sl==null)return 0;return Math.min(1,Math.max(0,1-(SLOT_END-Date.now())/(SETREST*1000)));}
-function doneBtn(){if(SETREST>0&&!SLOT_END)return '<button class="pri" data-act="kbstart">Start</button>';
-  if(SETREST>0&&REST_END&&Date.now()<REST_END)return '<button class="pri" data-act="rskip">Start round '+(U.r+1)+'</button>';
-  if(SETREST>0&&isOn(U.r,U.si))return '<button class="pri ton" data-act="noop" aria-label="Done, the slot runs out">'+IC.ck.replace('<svg','<svg class="ick"')+'Done</button>';
-  return '<button class="pri" id="donebtn" data-act="done">Done</button>';}
+function slotMs(){if(SLOT_END)return Math.max(0,SLOT_END-Date.now());if(SLOT_LEFT)return SLOT_LEFT;return null;}
+function slotLeft(){var m=slotMs();return m==null?null:Math.ceil(m/1000);}
+function slotFrac(){var m=slotMs();if(m==null)return 0;return Math.min(1,Math.max(0,1-m/(SETREST*1000)));}
+function slotStart(){SLOT_END=Date.now()+SETREST*1000;SLOT_LEFT=0;SLOT_ZERO=false;wakeOn();}
+function slotPause(){if(!SLOT_END||SLOT_ZERO)return false;SLOT_LEFT=Math.max(1000,SLOT_END-Date.now());SLOT_END=0;return true;}
+function slotResume(){if(!SLOT_LEFT)return false;SLOT_END=Date.now()+SLOT_LEFT;SLOT_LEFT=0;return true;}
+function slotClear(){SLOT_END=0;SLOT_LEFT=0;SLOT_ZERO=false;}
+function sidedOf(r,si){if(!valid(r,si))return "";var c=C(r,si),h=HOWTO[c.exId];if(h&&h.side)return h.side;
+  return /\b(1-arm|one-arm|single-arm|single-leg|bulgarian|split squat|lateral lunge|suitcase)\b/i.test(c.name||"")?"arm":"";}
+function sideNow(){var k=U.r+":"+U.si;if(U.sideK!==k){U.sideK=k;U.side=0;try{var v=sessionStorage.getItem("train.side."+PAGE);if(v&&v.split("|")[0]===k)U.side=+v.split("|")[1]||0;}catch(e){}}return U.side;}
+function sideSet(v){U.side=v;U.sideK=U.r+":"+U.si;try{sessionStorage.setItem("train.side."+PAGE,U.sideK+"|"+v);}catch(e){}}
+function sideLab(r,si){var k=sidedOf(r,si);if(!k)return "";return (sideNow()?"Left ":"Right ")+k;}
+function doneBtn(){var sd=sidedOf(U.r,U.si),s0=sd&&!sideNow(),lab=sd?sideLab(U.r,U.si):"";
+  if(SETREST>0&&!SLOT_END&&!SLOT_LEFT)return '<button class="pri" data-act="kbstart">Start'+(lab?" "+lab.toLowerCase():"")+'</button>';
+  if(SETREST>0&&SLOT_LEFT)return '<button class="pri" data-act="kbresume">Resume</button><button class="tbtn" data-act="'+(s0?"sidedone":"done")+'">'+(s0?"Right side done":"Done")+'</button>';
+  var main=s0?'<button class="pri" id="donebtn" data-act="sidedone">Right side done</button>':'<button class="pri" id="donebtn" data-act="done">Done</button>';
+  if(SETREST>0&&SLOT_END&&!SLOT_ZERO)return main+'<button class="tbtn" data-act="kbpause">Pause</button>';
+  return main;}
 function viewDock(){var c=cur();return '<button class="pri ton" data-act="undo" data-r="'+c.r+'" data-si="'+c.si+'">Undo this set</button><button class="tbtn" data-act="backnow">Back to '+esc(C(U.r,U.si).name)+'</button>';}
 
-function heroInner(r,si){var c=C(r,si),vb=U.view?'<span class="vb ok">'+IC.ck+'Done · round '+(r+1)+'</span>':'';
+function heroInner(r,si){var c=C(r,si),sl0=!U.view&&r===U.r&&si===U.si?sideLab(r,si):"",
+  vb=U.view?'<span class="vb ok">'+IC.ck+'Done · round '+(r+1)+'</span>':(sl0?'<span class="vb sd'+(sideNow()?' l':'')+'"><i></i><i></i>'+esc(sl0)+(sideNow()?"":" first")+'</span>':'');
   var h='<div class="hero2"><div class="hvb">'+vb+'</div><div class="hnm"><button class="hname" data-act="how" data-r="'+r+'" data-si="'+si+'">'+esc(c.name)+'</button></div>'+heroNums(r,si);
   if(SETREST>0&&!U.view){var sl=slotLeft(),tk=isOn(r,si);
-    h+='<div class="slot live'+(sl!=null&&sl<=3&&!tk?" hot":"")+'"><span class="sb"><i data-live="slotbar" style="transform:scaleX('+slotFrac().toFixed(4)+')"></i></span><b data-live="slot">'+(sl==null?mmss(SETREST):mmss(Math.max(0,sl)))+'</b></div>';}
+    h+='<div class="slot live'+(sl!=null&&sl<=3&&!tk?" hot":"")+(SLOT_ZERO?" zero":"")+(SLOT_LEFT?" paused":"")+'"><span class="sb"><i data-live="slotbar" style="transform:scaleX('+slotFrac().toFixed(4)+')"></i></span><b data-live="slot">'+(sl==null?mmss(SETREST):mmss(Math.max(0,sl)))+'</b></div>';}
   return h+'</div>';}
 function arrows(){var c=cur(),a=ordOf(c.r,c.si),n=SQ().length;
   return '<button class="arw l" data-act="prev" aria-label="Previous set"'+(a<=0?' disabled':'')+'>'+IC.back+'</button><button class="arw r" data-act="next" aria-label="Next set"'+(a>=n-1?' disabled':'')+'>'+IC.fwd+'</button>';}
@@ -1203,33 +1274,36 @@ function warmGo(j,dir){var w=U.warm;if(j<0)return;if(j>=WARM.length){warmFinish(
   var running=w.run;w.i=j;w.left=WSEC*1000;w.cued=false;w.zero=false;if(running){w.end=Date.now()+WSEC*1000;}hap("tap");draw({dir:dir});}
 function warmFinish(){U.warm=null;W.wu=true;W.st=1;if(U.phase==="fresh")U.phase="work";if(!W.t0)W.t0=Date.now();U.arrive=true;hap("go");persist();syncCur();draw({instant:true});}
 
-var REST_END=0,REST_BUZZ=false,SLOT_END=0,_rt=null;
+var REST_END=0,REST_BUZZ=false,SLOT_END=0,SLOT_LEFT=0,SLOT_ZERO=false,_rt=null;
 function restNext(){var f=firstOpen();if(!f)return "Log the session";
   return '<span class="k">'+(f.r!==U.r||rowsOf(f.r).indexOf(f.si)===0?"Round "+(f.r+1):"Next")+'</span> '+esc(C(f.r,f.si).name)+' <span class="k">'+setTxt(f.r,f.si)+'</span>';}
-function restHTML(){if(!REST_END)return "";var left=Math.ceil((REST_END-Date.now())/1000),go=left<=0;
+function roundStats(r){var L=rowsOf(r),n=0,a=0,b=0;L.forEach(function(i){var c=W.done[rkey(r,i)];if(c){n++;if(c.ts){if(!a||c.ts<a)a=c.ts;if(c.ts>b)b=c.ts;}}});return {n:n,of:L.length,sec:a&&b?(b-a)/1000:0};}
+function restHTML(){
+  if(U.cd){var s=Math.max(1,Math.ceil((U.cd-Date.now())/1000)),f=firstOpen();
+    return '<div class="rpin cdn" data-k="cdn"><div class="rlab" >'+(f?"Round "+(f.r+1):"")+'</div><div class="rn cdd" data-live="cdn">'+s+'</div><div class="rx">'+(f?esc(C(f.r,f.si).name)+' <span class="k">'+setTxt(f.r,f.si)+'</span>':"")+'</div></div>';}
+  if(U.rend&&!REST_END){var st=roundStats(U.rend.r),nr=U.rend.r+2;
+    return '<div class="rpin rend" data-k="rend"><div class="rck">'+IC.ck+'</div><div class="rn rdn">Round '+(U.rend.r+1)+'</div><div class="rlab">'+(U.rend.back?"Done earlier · pick up here":"Done")+'</div>'+
+     '<div class="rst"><div><b>'+st.n+'</b><span>sets</span></div>'+(st.sec>=1?'<div><b>'+mmss(st.sec)+'</b><span>round time</span></div>':'')+'<div><b>'+(W.rN-U.rend.r-1)+'</b><span>to go</span></div></div>'+
+     '<div class="rx">'+restNext()+'</div>'+
+     '<div class="rgo"><button class="pri" data-act="rstart">Rest '+mmss(REST)+'</button><button class="tbtn" data-act="rgo">Skip rest · start round '+nr+'</button></div></div>';}
+  if(!REST_END)return "";var left=Math.ceil((REST_END-Date.now())/1000),go=left<=0;
   return '<div class="rpin" data-k="rpin"><div class="rn rt" id="restt" data-live="rn">'+(go?"Go":mmss(left))+'</div><div class="rlab rbk" data-live="rlab">'+(go?"Rest done":"Rest")+'</div><div class="rx rbn" data-live="rx">'+restNext()+'</div>'+
-   '<div class="rb"><button data-rest="-15" aria-label="Fifteen seconds less">−15</button><button data-rest="15" aria-label="Fifteen seconds more">+15</button><button data-rest="skip">Skip</button></div></div>';}
-function restStart(sec,quiet){if(_rt)clearInterval(_rt);REST_END=Date.now()+sec*1000;REST_BUZZ=false;U.cued=false;U.goAt=0;_rt=setInterval(restPaint,250);if(!quiet)draw();}
+   (go?'<div class="rgo"><button class="pri" data-act="rgo">Start round '+((firstOpen()||{r:U.r}).r+1)+'</button><button class="tbtn" data-rest="15">15 s more</button></div>':
+   '<div class="rb"><button data-rest="-15" aria-label="Fifteen seconds less">−15</button><button data-rest="15" aria-label="Fifteen seconds more">+15</button><button data-rest="skip">Skip</button></div>')+'</div>';}
+function roundEnd(r,back){slotClear();U.rend={r:r,back:!!back};U.cd=0;if(REST_END)restStop(true);}
+function rgo(){if(_rt){clearInterval(_rt);_rt=null;}REST_END=0;REST_BUZZ=false;U.goAt=0;U.cued=false;U.cd=Date.now()+3000;U.cdS=3;hap("cue");U.rend=U.rend||{r:Math.max(0,U.r-1)};draw();}
+function cdEnd(){U.cd=0;U.rend=null;U.view=null;syncCur(true);hap("go");if(SETREST>0&&U.phase==="work")slotStart();persist();draw({dir:1});}
+function restStart(sec,quiet){if(_rt)clearInterval(_rt);U.cd=0;REST_END=Date.now()+sec*1000;REST_BUZZ=false;U.cued=false;U.goAt=0;_rt=setInterval(restPaint,250);if(!quiet)draw();}
 function restStop(quiet){if(_rt){clearInterval(_rt);_rt=null;}var was=!!REST_END;REST_END=0;REST_BUZZ=false;U.cued=false;U.goAt=0;if(was&&!quiet)draw();}
-function restNudge(d){if(!REST_END)return;REST_END+=d*1000;if(SETREST>0&&SLOT_END)SLOT_END+=d*1000;
+function restNudge(d){if(!REST_END)return;if(d>0&&REST_END<Date.now())REST_END=Date.now();REST_END+=d*1000;
   if(REST_END>Date.now()){REST_BUZZ=false;U.goAt=0;}if((REST_END-Date.now())/1000>10)U.cued=false;draw();}
 function restPaint(){if(!REST_END)return;var now=Date.now(),left=Math.ceil((REST_END-now)/1000);
   if(left<=0&&!REST_BUZZ){REST_BUZZ=true;U.goAt=now;hap("go");draw();return;}
-  if(REST_BUZZ&&now-REST_END>=GO_HOLD){restStop();return;}
   if(!REST_BUZZ){if(left<=10&&!U.cued){U.cued=true;hap("cue");if(REST_EL)REST_EL.classList.add("soon");}
     [].forEach.call(document.querySelectorAll('#rest [data-live="rn"]'),function(e){setT(e,mmss(left));});}}
 document.addEventListener("visibilitychange",function(){if(!document.hidden){if(REST_END)restPaint();liveTick();}});
 window.addEventListener("pageshow",function(){if(REST_END)restPaint();});
 
-function kbSlotEnd(){var r=U.r,si=U.si,late=Date.now()-SLOT_END;
-  if(late>5000){SLOT_END=0;draw();return;}
-  var was=roundsDoneN();
-  if(!isOn(r,si)){var c0=C(r,si);W.done[rkey(r,si)]={exId:c0.exId,reps:c0.reps,w:c0.w,ts:Date.now()};if(!W.t0)W.t0=Date.now();}
-  hap("go");var endAt=SLOT_END;U.view=null;syncCur(true);
-  if(U.phase==="complete"){SLOT_END=0;afterTick(r,was);return;}
-  if(U.r!==r){REST_END=endAt+REST*1000;REST_BUZZ=false;U.cued=false;if(_rt)clearInterval(_rt);_rt=setInterval(restPaint,250);SLOT_END=REST_END+SETREST*1000;}
-  else SLOT_END=endAt+SETREST*1000;
-  afterTick(r,was,{dir:1});}
 
 function finishView(){var o=U.fin||{};return {key:"fin",nav:nav(false),cls:"scr fin",body:'<div id="doneflag">'+(o.html||"")+'</div>',dock:""};}
 
@@ -1323,7 +1397,7 @@ function draw(o){o=o||{};if(!BODY)return;
   restLayer();warmLayer(o);
   if(FULL&&pgw0)pgMorph(FULL.querySelector(".fin2"),pgw0);
   measure();keepCurVisible();
-  document.body.classList.toggle("noscroll",!!(U.warm||REST_END));document.body.classList.toggle("resting",!!REST_END);}
+  var ov=!!(REST_END||U.rend||U.cd);document.body.classList.toggle("noscroll",!!(U.warm||ov));document.body.classList.toggle("resting",ov);}
 function keepCurVisible(){if(MORPH)return;[BODY,FULL].forEach(function(root){if(!root)return;var sc=root.querySelector(".pnr:not(.pgg)");if(!sc)return;var c=sc.querySelector(".lr.cur,.rl.cur");if(!c)return;
   var b=sc.getBoundingClientRect(),r=c.getBoundingClientRect();
   if(r.bottom>b.bottom-20)sc.scrollTo({top:sc.scrollTop+(r.bottom-b.bottom)+44,behavior:RM?"auto":"smooth"});
@@ -1418,17 +1492,18 @@ function tick(r,si){if(LOGGED)return;if(!valid(r,si))return;var k=rkey(r,si),was
     if(wasView||wasComp||r<U.r){U.view=null;U.r=r;U.si=si;}
     afterTick(r,was,wasView?{noslide:true}:{});return;}
   var c0=C(r,si),live=r===U.r&&si===U.si;
-  if(SETREST===0&&REST_END)restStop(true);
+  if(U.rend||U.cd||(SETREST===0&&REST_END)){restStop(true);U.rend=null;U.cd=0;}
   W.done[k]={exId:c0.exId,reps:c0.reps,w:c0.w,ts:Date.now()};if(!W.t0)W.t0=Date.now();W.st=1;
   if(U.phase==="fresh")U.phase="work";
-  if((SETREST>0&&SLOT_END)||!live){afterTick(r,was);return;}
-  U.view=null;afterTick(r,was,{dir:1});}
+  if(!live){afterTick(r,was);return;}
+  U.view=null;sideSet(0);afterTick(r,was,{dir:1,flow:SETREST>0});}
 function afterTick(r,was,o){var now=roundsDoneN();
   syncCur();
   if(now>was){persist();syncNow();}
-  if(now<was&&REST_END)restStop(true);
-  if(SETREST===0&&now>was&&now<W.rN){persist();restStart(REST,true);draw({noslide:true});return;}
-  if(now>was&&now>=W.rN){if(REST_END)restStop(true);SLOT_END=SETREST>0?0:SLOT_END;}
+  if(now<was){if(REST_END)restStop(true);U.rend=null;U.cd=0;}
+  if(now>was&&now<W.rN){roundEnd(r);persist();draw({noslide:true});return;}
+  if(now>was&&now>=W.rN){if(REST_END)restStop(true);U.rend=null;U.cd=0;slotClear();}
+  else if(o&&o.flow&&U.phase==="work"&&!U.view)slotStart();
   persist();draw(o||{});}
 function tickRound(r){if(LOGGED)return;wakeOn();
   var was=roundsDoneN(),full=roundComplete(r),t=Date.now();
@@ -1444,9 +1519,9 @@ function setPv(id,pv){if(U.pv===pv)return draw();U.pv=pv;pvSave();persist();hap(
 function render(){ensureCells();if(U.phase!=="finished"){if(U.phase==="fresh"&&(ndone()||W.st))U.phase="work";syncCur();}draw();persist();}
 
 var hdrag=null,RD=null,suppressClick=false,PEND=null;
-function canSwipe(){if(document.querySelector(".scrim.on"))return false;if(U.warm)return true;return U.phase==="work";}
+function canSwipe(){if(document.querySelector(".scrim.on")||U.rend||U.cd)return false;if(U.warm)return true;return U.phase==="work";}
 function sheetOpen(){return !!document.querySelector(".scrim.on");}
-function liftable(r,si){return U.phase==="work"&&!U.warm&&!sheetOpen()&&!REST_END&&U.pv===1&&r===U.r&&!isOn(r,si)&&!LOGGED;}
+function liftable(r,si){return U.phase==="work"&&!U.warm&&!sheetOpen()&&!REST_END&&!U.rend&&!U.cd&&U.pv===1&&r===U.r&&!isOn(r,si)&&!LOGGED;}
 document.addEventListener("pointerdown",function(e){suppressClick=false;if(e.button>0)return;
   var row=e.target.closest&&e.target.closest(".pnr:not(.pgg) .lr");
   if(row&&!U.warm){var rr=+row.getAttribute("data-r"),ii=+row.getAttribute("data-si"),pn=row.closest(".pnl");
@@ -1559,9 +1634,17 @@ function rmMove(si){if(LOGGED||rmBlock(si))return;var lt=lastTick(si);
   if(FOCUS==="custom")customSave();
   var nd={};Object.keys(W.done).forEach(function(k){var p=k.split(":"),r=+p[0],i=+p[1];if(i===si)return;nd[rkey(r,i>si?i-1:i)]=W.done[k];});
   W.done=nd;if(U.si>si)U.si--;else if(U.si===si)U.si=0;U.view=null;closeSheet();render();}
-function demoSheet(r,si){var o=C(r,si),rb=rmBlock(si),md=MEDIA[o.exId];
-  var media=md?'<div class="hclip"><video src="'+md+'" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video></div>':'';
-  openSheet(media+'<h3 class="hh'+(media?'':' nm0')+'">'+esc(o.name)+'</h3><p class="cue">'+esc(cap1(o.cue||""))+'</p><div class="srs">'+
+function howMedia(id){var h=HOWTO[id];if(MEDIA[id])return '<div class="hclip"><video src="'+MEDIA[id]+'" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video></div>';
+  if(!h)return "";
+  if(h.img){var two=h.n!==1;return '<figure class="hdemo'+(two?' two':'')+'" data-k="hd"><div class="hfr"><img src="media/ex/'+h.img+'-0.jpg" alt="'+esc(h.alt0||"Start position")+'" decoding="async">'+(two?'<img src="media/ex/'+h.img+'-1.jpg" alt="'+esc(h.alt1||"Finish position")+'" decoding="async">':'')+
+    '<span class="hlab"><b class="a">Start</b>'+(two?'<b class="z">Finish</b>':'')+'</span></div>'+(h.note?'<figcaption>'+esc(h.note)+'</figcaption>':'')+'</figure>';}
+  if(h.flow)return '<ol class="hflow" aria-label="The move, step by step">'+h.flow.map(function(t,q){return '<li style="--q:'+q+';--n:'+h.flow.length+'"><span class="fn">'+(q+1)+'</span><span class="ft">'+esc(t)+'</span></li>';}).join("")+'</ol>';
+  return "";}
+function howText(id,cue){var h=HOWTO[id];if(!h||!h.steps)return '<p class="cue">'+esc(cap1(cue||""))+'</p>';
+  return '<ol class="hsteps">'+h.steps.map(function(t){return '<li>'+esc(t)+'</li>';}).join("")+'</ol>'+(h.watch?'<p class="hwatch"><b>Watch</b> '+esc(h.watch)+'</p>':'')+
+    (cue?'<p class="cue">'+esc(cap1(cue))+'</p>':'');}
+function demoSheet(r,si){var o=C(r,si),rb=rmBlock(si),media=howMedia(o.exId),sd=sidedOf(r,si);
+  openSheet(media+'<h3 class="hh'+(media?'':' nm0')+'">'+esc(o.name)+'</h3>'+(sd?'<p class="hside">Right '+esc(sd)+' first, then left. The clock waits between sides.</p>':'')+howText(o.exId,o.cue)+'<div class="srs">'+
     (o.vid?'<button class="sr" id="fvid"><span>Form video</span><span class="v">'+IC.chev+'</span></button><div id="fvbox"></div>':'')+
     (LOGGED?'':'<button class="sr" id="swapbtn"><span>Swap for something comparable</span><span class="v">'+IC.chev+'</span></button>'+
     '<div class="sr"><span>Rounds this movement</span><span class="stp"><button data-upto="-1" aria-label="One round fewer">−</button><span class="val tab" id="upv">'+(W.order[si].upTo==null?W.rN:W.order[si].upTo)+'</span><button data-upto="1" aria-label="One round more">+</button></span></div>'+
@@ -1574,19 +1657,25 @@ function demoSheet(r,si){var o=C(r,si),rb=rmBlock(si),md=MEDIA[o.exId];
       mo.upTo=(nx>=W.rN?null:nx);document.getElementById("upv").textContent=(mo.upTo==null?W.rN:mo.upTo);persist();render();return;}
     if(b.id==="swapbtn"){swapSheet(r,si);return;}
     if(b.id==="rmmv"){rmMove(si);return;}});}
-function warmHow(i){var x=WARM[i],md=MEDIA[x.id];
-  var media=md?'<div class="hclip"><video src="'+md+'" muted loop playsinline autoplay preload="auto" disablepictureinpicture aria-hidden="true"></video></div>':'';
+function warmHow(i){var x=WARM[i],media=howMedia(x.id);
   openSheet(media+'<h3 class="hh'+(media?'':' nm0')+'">'+esc(x.n)+'</h3><div class="wdose">'+(x.d==null?'':'<b>'+x.d+'</b><span>'+esc(x.u)+'</span>')+(x.x?'<em>'+esc(x.x)+'</em>':'')+'</div>'+
     (x.h||[]).map(function(t){return '<p class="wcue">'+esc(t)+'</p>';}).join("")+
     (U.warm&&i!==U.warm.i?'<button class="sr" id="wjump"><span>Do this one now</span><span class="v">'+IC.chev+'</span></button>':''));
   var b=document.getElementById("wjump");if(b)b.addEventListener("click",function(){closeSheet();if(U.warm&&i!==U.warm.i)warmGo(i,i>U.warm.i?1:-1);});}
+var CLK=null;
+function clocksPause(){if(CLK)return;var c={};if(U.warm&&U.warm.run){U.warm.left=Math.max(0,U.warm.end-Date.now());U.warm.run=false;c.w=1;}
+  if(SETREST>0&&slotPause())c.s=1;if(c.w||c.s){CLK=c;draw();}}
+function clocksResume(){var c=CLK;CLK=null;if(!c)return;if(c.w&&U.warm&&!U.warm.run){U.warm.run=true;U.warm.end=Date.now()+U.warm.left;}if(c.s)slotResume();draw();}
+var _openSheet0=openSheet,_closeSheetNow0=closeSheetNow;
+openSheet=function(h){_openSheet0(h);clocksPause();};
+closeSheetNow=function(){_closeSheetNow0();clocksResume();};
 function warmSheet(){if(U.warm)return;openWarm(0);wakeOn();draw();}
 function noteSheet(){openSheet('<h3>Note</h3><textarea id="fcom" class="fcom" rows="3" maxlength="500" placeholder="Note" aria-label="Note on this session">'+esc(FEEL.comment||"")+'</textarea><button class="sheet-cta" id="notesave">Save</button>');
   keepNote();document.getElementById("notesave").addEventListener("click",function(){var fc=document.getElementById("fcom");FEEL.comment=fc?String(fc.value||"").trim().slice(0,500):"";closeSheet();refeel();});}
 
 document.addEventListener("click",function(e){if(suppressClick){suppressClick=false;e.preventDefault();e.stopPropagation();return;}
   var rb=e.target.closest("[data-rest]");if(rb&&!rb.closest(".leaving")){var ra=rb.getAttribute("data-rest");
-    if(ra==="skip"){if(SETREST>0&&SLOT_END){var sh=REST_END-Date.now();if(sh>0)SLOT_END-=sh;}restStop();}else restNudge(+ra);return;}
+    if(ra==="skip"){rgo();}else restNudge(+ra);return;}
   var b=e.target.closest("[data-act]");if(!b||b.disabled)return;var a=b.getAttribute("data-act"),si=+b.getAttribute("data-si"),r=+b.getAttribute("data-r"),i=+b.getAttribute("data-i");
   if(b.closest(".leaving")||LIFT)return;
   if(LOGGED&&["feel","twinge","note","how","edit","noop"].indexOf(a)<0)return;
@@ -1596,7 +1685,12 @@ document.addEventListener("click",function(e){if(suppressClick){suppressClick=fa
   case "tick":tick(r,si);return;
   case "pick":pick(r,si);return;
   case "pv":setPv(b.getAttribute("data-p"),U.pv?0:1);return;
-  case "kbstart":if(!W.t0)W.t0=Date.now();W.st=1;if(U.phase==="fresh")U.phase="work";SLOT_END=Date.now()+SETREST*1000;wakeOn();persist();draw();return;
+  case "kbstart":if(!W.t0)W.t0=Date.now();W.st=1;if(U.phase==="fresh")U.phase="work";slotStart();hap("tap");persist();draw();return;
+  case "kbpause":slotPause();hap("tap");draw();return;
+  case "kbresume":slotResume();hap("tap");draw();return;
+  case "sidedone":sideSet(1);slotClear();hap("go");draw();return;
+  case "rstart":restStart(REST);hap("tap");return;
+  case "rgo":rgo();return;
   case "warm":openWarm(0);wakeOn();draw();return;
   case "skipwarm":W.st=1;U.phase="work";U.arrive=true;persist();syncCur();draw();return;
   case "wclose":U.warm=null;draw();return;
@@ -1615,16 +1709,16 @@ document.addEventListener("click",function(e){if(suppressClick){suppressClick=fa
   case "backnow":var c1=cur();U.view=null;draw({dir:ordOf(U.r,U.si)>ordOf(c1.r,c1.si)?1:-1});return;
   case "log":doLog("full");return;
   case "step":numSheet(r,si,b.getAttribute("data-f"));return;
-  case "rskip":if(SETREST>0&&SLOT_END){var sh2=REST_END-Date.now();if(sh2>0)SLOT_END-=sh2;}restStop();return;
+  case "rskip":rgo();return;
   case "feel":refeel(b.getAttribute("data-v"),null);return;
   case "twinge":refeel(null,!FEEL.twinge);return;
   case "note":noteSheet();return;}});
 
 function liveTick(){var t=Date.now(),q=function(s,root){return [].filter.call((root||document).querySelectorAll('[data-live="'+s+'"]'),function(e){return !e.closest(".ghost,.leaving");});};
-  if(SETREST>0&&SLOT_END&&U.phase==="work"&&!U.warm&&!LIFT&&!LOGGED){var sl=Math.ceil((SLOT_END-t)/1000);
-    if(REST_END&&t<REST_END){}
-    else if(sl<=0){kbSlotEnd();return;}
-    else if(!U.view){q("slot").forEach(function(e){setT(e,mmss(sl));var c=e.closest(".live");if(c)c.classList.toggle("hot",sl<=3&&!isOn(U.r,U.si));});
+  if(U.cd){var cs=Math.ceil((U.cd-t)/1000);if(cs<=0){cdEnd();return;}if(cs!==U.cdS){U.cdS=cs;hap("cue");q("cdn").forEach(function(e){setT(e,String(cs));if(!RM)anim(e,[{transform:"scale(1.25)",opacity:.4},{transform:"none",opacity:1}],{duration:380,easing:"cubic-bezier(.2,.8,.2,1)"});});}}
+  if(SETREST>0&&SLOT_END&&U.phase==="work"&&!U.warm&&!LIFT&&!LOGGED){var sl=Math.max(0,Math.ceil((SLOT_END-t)/1000));
+    if(sl<=0&&!SLOT_ZERO){SLOT_ZERO=true;hap("go");draw();return;}
+    if(!U.view){q("slot").forEach(function(e){setT(e,mmss(sl));var c=e.closest(".live");if(c)c.classList.toggle("hot",sl<=3&&!isOn(U.r,U.si));});
       q("slotbar").forEach(function(e){e.style.transform="scaleX("+slotFrac().toFixed(4)+")";});}}
   if(U.warm&&U.warm.run){var w=U.warm,ms=Math.max(0,w.end-t),wl=Math.ceil(ms/1000);
     if(ms<=0&&!w.zero){w.zero=true;hap("go");}
@@ -1645,7 +1739,8 @@ function bootUI(){APP=document.getElementById("app");NAV=document.getElementById
   ensureCells();
   var sp=null;try{sp=sessionStorage.getItem("train.pv."+PAGE);}catch(e){}U.pv=(sp!=null?+sp:(+W.pv||0))?1:0;
   if(LOGGED)U.phase="finished";else if(ndone()||W.st||W.wu)U.phase="work";else U.phase="fresh";
-  if(U.phase==="work")syncCur();
+  if(U.phase==="work"){syncCur();var f0=firstOpen();
+    if(f0&&f0.r>0&&!rowsOf(f0.r).some(function(i){return isOn(f0.r,i);}))roundEnd(f0.r-1,true);}
   draw({instant:true});
   if(RO){RO.observe(DOCK);var nt=document.getElementById("notes");if(nt)RO.observe(nt);}
   bgSetup();setInterval(liveTick,250);try{document.fonts.ready.then(measure);}catch(e){}addEventListener("load",measure);addEventListener("resize",function(){measure();if(BG.cv)bgDims();});}
@@ -1655,5 +1750,5 @@ bootUI();
 </script>
 <div class="scrim" id="scrim" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet"></div>
-<script src="../train-sync-auto.js?v=v27.9"></script>
+<script src="../train-sync-auto.js?v=v28.3"></script>
 </body></html>
