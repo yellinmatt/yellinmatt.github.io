@@ -265,6 +265,34 @@ img.ld{opacity:0}
 .drag .nb.sc-on,.gv .nb.sc-on{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--ground)}
 .story,.view,.gv{contain:layout paint}
 .gv.parked{visibility:hidden;transform:translate3d(110%,0,0);pointer-events:none}
+@media (min-width:1000px) and (hover:hover) and (pointer:fine){
+ #app{max-width:none}
+ .tabs{top:0;bottom:0;right:auto;width:232px;flex-direction:column;justify-content:flex-start;gap:4px;padding:84px 14px 24px;background:var(--ground);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:.5px 0 0 var(--hair)}
+ .tabs::before{content:"Daybreak";position:absolute;top:30px;left:26px;font:italic 600 24px/1 var(--serif);color:var(--ink);letter-spacing:-.01em}
+ .tabs button{flex:none;display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;height:46px;padding:0 14px;border-radius:12px}
+ .tabs button svg{width:22px;height:20px}
+ .tabs button span{font-size:15px;letter-spacing:0;font-family:var(--sans,inherit)}
+ .tabs button[aria-current],.tabs button[aria-selected=true],.tabs button.on{background:var(--fill)}
+ .view,.gv,.story{left:232px}
+ .tabs{transform:none!important}
+ .view>.nb .t,.gv>.nb .t{opacity:0}
+ .sc>.g,.sc>section.g,.sc>div.g{max-width:1160px;margin-inline:auto;padding-inline:44px;box-sizing:border-box}
+ .lt h1{font-size:40px}
+ .front{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);column-gap:36px;align-items:start}
+ .front .lead{grid-row:span 3}
+ .front .lead .hh{font-size:34px;line-height:1.12}
+ .front>.ex{grid-column:1/-1}
+ .front .s1{border-bottom:.5px solid var(--hair)}
+ .sec{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:32px;row-gap:8px;align-items:start}
+ .sec>.sh{grid-column:1/-1}
+ .sec>.s1{grid-column:span 2;grid-row:span 3}
+ .sec .row{grid-template-columns:1fr 96px}
+ .endp{max-width:760px}
+ .story .sbody{padding-inline:max(44px,calc((100% - 760px)/2))}
+ .story .sbody h1{font-size:38px;line-height:1.12}
+ .story{box-shadow:-1px 0 0 var(--hair)}
+ .jl{max-width:860px}
+}
 
 </style>
 <style>
@@ -410,6 +438,8 @@ if(window.__GROUND)document.documentElement.dataset.ground=window.__GROUND;
 const isDark=()=>true; // 2026-11-18: Daybreak is dark always
 const theme=()=>{const t='dark';document.documentElement.dataset.theme=t;let m=$('meta[name=theme-color]');if(!m){m=document.createElement('meta');m.name='theme-color';document.head.append(m)}m.content=isDark()?'#2C2026':getComputedStyle(document.documentElement).getPropertyValue('--ground').trim()||'#fbfaf7'};theme();try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',theme)}catch(e){}
 const RM=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+// a computer (wide screen, mouse or trackpad) switches tabs at once: the swipe slide is for a phone (2026-11-19)
+const DESK=()=>matchMedia('(min-width:1000px) and (hover:hover) and (pointer:fine)').matches;
 const DM=(()=>{try{return JSON.parse(localStorage.getItem('brief_demo'))||{}}catch(e){return{}}})();
 const OPEN=()=>DM.open||'push';document.documentElement.dataset.rows=DM.rows||'tint';if(DM.ground)document.documentElement.dataset.ground=DM.ground;
 document.addEventListener('touchstart',()=>{},{passive:true}); // lets iOS Safari apply :active press states
@@ -491,7 +521,7 @@ function ghost(html,y){const g=document.createElement('div');g.className='gv';g.
 let edN=0;
 // Opening an old edition and going back to Past run through the same two layers and springs as the swipes; a tap is a
 // swipe that was already flicked at 1.2 px/ms.
-function nav(ax,ed){if(settling)settling.finish();if(RM())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-1.2:1.2);return true}
+function nav(ax,ed){if(settling)settling.finish();if(RM()||DESK())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-1.2:1.2);return true}
 function openEdition(n){if(!nav(-1,n)){edN=n;E=ED[n];today()}}
 function backToPast(){if(!nav(1))past(edN)}
 function buildStory(i){const it=E.items[i];const w=document.createElement('div');w.className='story m-'+(RM()?'fade':OPEN());w.dataset.i=i;
@@ -667,7 +697,7 @@ function mkScreen(ax,ed){const W=app.offsetWidth,sc=$('#sc'),y=sc?sc.scrollTop:0
    done:()=>{over.classList.remove('gtopx');done()},undo:()=>{over.classList.remove('gtopx');undo()}});
  g.render(0);return g}
 // Taps use the same layers: a tap is a swipe already moving at 0.9 px/ms.
-function nav(ax,ed){if(settling)settling.finish();if(RM())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-.9:.9);return true}
+function nav(ax,ed){if(settling)settling.finish();if(RM()||DESK())return false;const g=mkScreen(ax,ed);if(!g)return false;g.release(ax<0?-.9:.9);return true}
 // The one controller. Sideways means at least 12 px and 1.6 times more sideways than up or down; anything more vertical
 // is reading and is left to the page. A swipe never starts in something that scrolls sideways or while a scroll is still
 // gliding, and a story pulls down only after it has rested at the top. Move and end are listened for on the touched
