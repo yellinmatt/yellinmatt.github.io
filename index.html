@@ -1110,6 +1110,7 @@ try{var st=$('#stack');
     c.appendChild(m);st.appendChild(c);
     var rec={c:c,v:v,v2:v2,bar2:v2?bp2.firstChild:null,p:p,ch:[].slice.call(ch.children),bar:bp.firstChild,cur:0,dur:0,dist:0,on:true};
     if(v)v.addEventListener('loadedmetadata',function(){rec.dur=v.duration||0});
+    if(v2)[v,v2].forEach(function(x){x.dataset.fresh='1';x.addEventListener('loadedmetadata',function(){if(x.dataset.fresh&&x.paused)try{x.currentTime=Math.min(6,(x.duration||0)/3)}catch(e){}})});
     ch.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;seek(rec,+b.dataset.t)});
     if(p.try)tryIt(m,rec);
     cards.push(rec);
@@ -1121,8 +1122,8 @@ function seek(r,t){try{r.v.currentTime=t;play(r.v)}catch(e){}}
 function play(v){var pr=v.play();pr&&pr.catch(function(){})}
 
 var cur=null;
-function pick(){var vh=innerHeight,best=null,bi=-1;cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(b.top<vh*.8&&b.bottom>vh*.2){best=r;bi=i}});
-  cards.forEach(function(r,i){if(!r.v)return;var a=act(r),o=a===r.v?r.v2:r.v;if(o&&!o.paused)o.pause();if(r===best&&r.on){if(a.preload!=='auto')a.preload='auto';if(a.paused)play(a)}else if(!a.paused)a.pause();
+function pick(){var vh=innerHeight,best=null,bi=-1;cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(b.top<vh*.5&&b.bottom>vh*.2){best=r;bi=i}});if(!best)cards.forEach(function(r,i){var b=r.c.getBoundingClientRect();if(!best&&b.top<vh*.8&&b.bottom>vh*.2){best=r;bi=i}});
+  cards.forEach(function(r,i){if(!r.v)return;var a=act(r),o=a===r.v?r.v2:r.v;if(o&&!o.paused)o.pause();if(r===best&&r.on){if(a.preload!=='auto')a.preload='auto';if(a.paused){if(a.dataset.fresh){delete a.dataset.fresh;try{a.currentTime=0}catch(e){}}play(a)}}else if(!a.paused)a.pause();
     if((i===bi+1||(bi<0&&i===0))&&a.preload!=='auto')a.preload='auto'});cur=best}
 var pq=0;addEventListener('scroll',function(){if(!pq)pq=requestAnimationFrame(function(){pq=0;pick()})},{passive:true});addEventListener('resize',pick);
 document.addEventListener('visibilitychange',function(){if(document.hidden)cards.forEach(function(r){r.v&&r.v.pause();r.v2&&r.v2.pause()});else pick()});
