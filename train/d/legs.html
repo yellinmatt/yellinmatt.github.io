@@ -388,8 +388,8 @@ function loadProg(){try{return JSON.parse(localStorage.getItem(pkey()))||{};}cat
 function saveProg(p){try{localStorage.setItem(pkey(),JSON.stringify(p));}catch(e){}}
 function noStore(){
   var w=document.createElement("div"); w.className="warn";
-  w.innerHTML='This browser has no Train data yet, so a tick cannot be saved here. '+
-    'Open <a href="../index.html">the Train app</a> once on this device, then come back.';
+  w.innerHTML='This browser has no Ongo data yet, so a tick cannot be saved here. '+
+    'Open <a href="../index.html">the Ongo app</a> once on this device, then come back.';
   var app=document.querySelector(".app"); app.insertBefore(w,app.children[1]);
   [].forEach.call(document.querySelectorAll(".cta"),function(b){if(!b.classList.contains("ghost"))b.disabled=true;});
 }
@@ -543,7 +543,7 @@ if(FRAMED){
 document.addEventListener("DOMContentLoaded",function(){ if(!haveStore()) noStore(); });
 </script>
 </head><body>
-<canvas id="bgc" aria-hidden="true"></canvas><div id="app"><div id="nav"></div><div id="notes"><div class="note8" id="storenote" hidden>This browser has no Train data yet, so a tick cannot be saved here. Open <a href="../index.html">the Train app</a> once on this device, then come back.</div><div class="note8" id="syncnote" hidden>This browser is not syncing, so what you log here stays on this device. Open <a href="../index.html">the Train app</a> here once and enter the passphrase.</div><div class="note8" id="plannote" hidden></div></div><div id="body" class="scr"></div><div id="dock" class="dock"></div></div>
+<canvas id="bgc" aria-hidden="true"></canvas><div id="app"><div id="nav"></div><div id="notes"><div class="note8" id="storenote" hidden>This browser has no Ongo data yet, so a tick cannot be saved here. Open <a href="../index.html">the Ongo app</a> once on this device, then come back.</div><div class="note8" id="syncnote" hidden>This browser is not syncing, so what you log here stays on this device. Open <a href="../index.html">the Ongo app</a> here once and enter the passphrase.</div><div class="note8" id="plannote" hidden></div></div><div id="body" class="scr"></div><div id="dock" class="dock"></div></div>
 
 <script>
 var V26_PAGE=true;
@@ -918,7 +918,7 @@ function finish(kind){
     if(had){nx=planNext(entries);W.pre={mode:"had",entries:entries};}
     else if(r.ok){try{var S1=loadS();W.pre={mode:"adv",entries:entries,rows:JSON.stringify(planDoc(S1).days[PLANKEY])};nx=advancePlan(entries);}catch(e){}}
     else{queueAdvance(entries);W.pre={mode:"queued",entries:entries};
-      tail=(r.reason==="not paired"||r.reason==="no sync")?"This browser is not syncing, so this session stays on this device. Open the Train app here once and enter the passphrase.":
+      tail=(r.reason==="not paired"||r.reason==="no sync")?"This browser is not syncing, so this session stays on this device. Open the Ongo app here once and enter the passphrase.":
         r.reason==="busy"?"Saved. The plan moves the next time this page syncs.":
         "Could not reach sync, so the plan moves the next time this page syncs.";}
     U.fin.nx=nx;U.fin.tail=tail;U.fin.dbl=doubleNote(rec);paintFin();persist();
@@ -1176,7 +1176,7 @@ function heroNums(r,si){var c=C(r,si),cols=[],vals=[];
   var wide=cols.length===2&&vals.some(function(v){return v.length>2;});
   return '<div class="hnum'+(cols.length===1?" one":"")+(wide?" wide":"")+'">'+cols.join('<i class="hsep" aria-hidden="true"></i>')+'</div>';}
 
-function nav(inline){return '<div class="nav"><a class="bk navback" href="../index.html">'+IC.back+'Train</a><span class="it">'+(inline?esc(TITLE_N):"")+'</span>'+
+function nav(inline){return '<div class="nav"><a class="bk navback" href="../index.html">'+IC.back+'Ongo</a><span class="it">'+(inline?esc(TITLE_N):"")+'</span>'+
   (LOGGED?'<span></span>':'<button class="ed" id="editbtn" data-act="edit" aria-label="Edit this session">Edit</button>')+'</div>';}
 function sline(txt){var t=t0();return '<div class="sline" data-k="sl"><span>'+txt+'</span><span class="tab" data-live="el">'+mmss(t?(Date.now()-t)/1000:0)+'</span></div>';}
 function slotMs(){if(SLOT_END)return Math.max(0,SLOT_END-Date.now());if(SLOT_LEFT)return SLOT_LEFT;return null;}
