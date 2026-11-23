@@ -476,6 +476,15 @@ body.kb .tabbar,body.kb .mini{opacity:0;pointer-events:none}
 [tabindex="-1"]:focus{outline:none}
 
 .fanrow{display:flex;flex:none;width:64px;height:60px;position:relative}
+.sermeta{font-size:0.8438rem;color:var(--sub);margin:-4px 2px 4px}
+.serieslist .brow{padding:8px 0}
+.brow.cur b{color:var(--accent)}
+.brow .qnext{flex:none;display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 12px;border-radius:16px;background:var(--card2);color:var(--ink);font:600 0.8125rem/1 var(--sans);position:relative}
+.brow .qnext span{display:inline;color:inherit;font:inherit}
+.brow .qnext svg{width:15px;height:15px}
+.brow .qnext::before{content:"";position:absolute;inset:-6px -2px}
+.brow.sercard{margin-bottom:6px}
+.brow.sercard>svg{width:14px;height:14px;color:var(--faint);flex:none}
 .fanrow .cover{position:absolute;width:38px;bottom:0;box-shadow:var(--e2)}
 .fanrow .cover:nth-child(1){left:0;z-index:3}.fanrow .cover:nth-child(2){left:13px;z-index:2}.fanrow .cover:nth-child(3){left:26px;z-index:1}
 .jnote{display:block;font:italic 400 0.875rem/1.35 var(--serif);color:var(--ink);margin-top:4px;white-space:normal}
@@ -888,6 +897,15 @@ body.hasmini #toast{bottom:calc(var(--tb-gap) + var(--tabh) + 84px)}
 @media (hover:none){ .cell:active,.lrow:active,.brow:active{transform:none;opacity:1;background:var(--tonal)} }
 .notes{resize:none}
 .undob{width:auto;height:34px;padding:0 14px;font-size:.875rem;border-radius:17px;flex:none}
+
+html,body,*{touch-action:manipulation}
+.homepage .scroll,.bookpage .scroll{overscroll-behavior-y:none}
+.bookpage .group.plain{border-radius:16px;overflow:hidden}
+.bookpage .group.plain .cell{padding-left:16px;padding-right:14px}
+.bookpage .group.plain .cell+.cell::before{left:16px}
+.bookpage .les{border-radius:16px;overflow:hidden;padding:0 14px}
+.bookpage .les .le:last-child{border-bottom:0}
+.bookpage .morelink{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;padding:0 2px}
 
 .navbar .nt{opacity:0!important;pointer-events:none}
 :root{--g-bg:rgb(255 255 255/.09);--g-hi:inset 0 .5px 0 rgb(255 255 255/.24),inset 0 0 0 .5px rgb(255 255 255/.11);--g-blur:blur(28px) saturate(170%)}
@@ -2156,6 +2174,7 @@ ROUTES.book={title:p=>S.books[p.id]?typo(S.books[p.id].title):"Book",navTitle:p=
     <div class="tiles-x">${bookTiles(b).map(t=>`<button class="atile ${t.cls||""}" data-act="${t.act}" data-id="${esc(b.id)}"${t.v?` data-v="${t.v}"`:""}><i>${t.icon}</i>${t.label}</button>`).join("")}</div>
     ${b.syn?`<h2 class="bsec">About</h2><div class="about ${p.more?"":"clamp"}"><p>${esc(typo(b.syn))}</p></div>${b.syn.length>220&&!p.more?`<button class="morelink" data-act="readmore">More</button>`:""}`:""}
     ${prog}
+    ${seriesSection(b)}
     <h2 class="bsec">Reading history</h2>
     ${historyCards(b)}
     ${ss.length?`<h2 class="bsec">Reading Log</h2><div class="les bklog">${ss.slice(0,p.allsess?ss.length:3).map(s=>logRow(s,true)).join("")}</div>
@@ -2372,6 +2391,22 @@ function settingsHTML(){ const s=S.settings;
   <div class="gfoot">${esc(syncStatusLine())} A backup is one block of text you can paste on another device.</div>
   <div class="gfoot" style="margin-top:24px;text-align:center">Tassel · ${Object.keys(S.books).length} books · ${S.sessions.length} sessions</div>`; }
 
+const seriesSort=(x,y)=>(+x.seriesNo||99)-(+y.seriesNo||99)||x.title.localeCompare(y.title);
+function seriesBooks(name){ return name?Object.values(S.books).filter(x=>x.series===name&&x.status!=="Hidden").sort(seriesSort):[]; }
+const QUICK_NEXT=["Queue","Maybe","Pass","Reference"];
+function seriesRow(x,curId){ const me=x.id===curId, meta=[x.pages?x.pages+" pages":"",x.status==="Reading"&&x.pages?Math.round(100*(x.page||0)/x.pages)+"%":""].filter(Boolean).join(" · ");
+  const inner=`${cover(x)}<span class="tx"><b>${x.seriesNo?esc("#"+x.seriesNo+" · "):""}${bt(x)}</b><span>${meta?esc(meta):ba(x)}</span><span class="st">${esc((me?"This book · ":"")+STATUS_WORD[x.status])}</span></span>`;
+  return `<div class="brow srow${me?" cur":""}" data-key="sr-${esc(x.id)}">${me?`<div style="display:contents" aria-current="page">${inner}</div>`:`<button style="display:contents" data-push="book" data-id="${esc(x.id)}">${inner}</button>`}${me?"":QUICK_NEXT.includes(x.status)?`<button class="qnext" data-act="setshelf" data-id="${esc(x.id)}" data-v="Up Next" aria-label="Add ${esc(typo(x.title))} to Up Next">${I.upnext}<span>Up Next</span></button>`:`<button class="more" data-act="addmenu-lib" data-id="${esc(x.id)}" aria-label="Shelf for ${esc(typo(x.title))}">${I.more}</button>`}</div>`; }
+function seriesSection(b){ const bs=seriesBooks(b.series); if(!b.series) return "";
+  const read=bs.filter(x=>x.status==="Read").length, who=String(b.author||"").split(",")[0].trim();
+  return `<h2 class="bsec">${esc(b.series)}</h2><div class="sermeta">${plural(bs.length,"book")} in your library · ${read} read</div>
+    <div class="serieslist">${bs.map(x=>seriesRow(x,b.id)).join("")}</div>
+    ${who?`<button class="morelink" data-act="seriesfind" data-q="${esc(who)}">More by ${esc(typo(who))} in the catalog</button>`:""}`; }
+function seriesCards(q){ const ql=q.toLowerCase().trim(), qt=catT(q); if(ql.length<3) return "";
+  const names=[]; Object.values(S.books).forEach(b=>{ if(b.status==="Hidden"||!b.series||names.includes(b.series)) return; if(b.series.toLowerCase().includes(ql)||catT(b.title)===qt) names.push(b.series); });
+  return names.slice(0,3).map(k=>{ const bs=seriesBooks(k), read=bs.filter(b=>b.status==="Read").length;
+    return `<button class="brow sercard" data-push="coll" data-k="series:${esc(k)}"><span class="fanrow">${bs.slice(0,3).map(b=>cover(b)).join("")}</span><span class="tx"><b>${esc(k)}</b><span>Series · ${plural(bs.length,"book")} · ${read} read${bs.some(b=>b.status==="Reading")?" · reading":""}</span></span>${I.chev}</button>`; }).join(""); }
+
 ROUTES.search={title:()=>"Search",compactAt:9999,cls:"rootpage",
   render(){ const q=searchQ.trim();
     let body="";
@@ -2380,12 +2415,18 @@ ROUTES.search={title:()=>"Search",compactAt:9999,cls:"rootpage",
       body=(q?"":`<div class="caps" style="margin:18px 2px 6px">${list.length?"Ready when you are":""}</div>`)+(list.length?list.map(b=>libResult(b)).join(""):q?`<div class="empty"><b>Not in your library</b><button class="btn dark" data-act="searchmode" data-m="catalog" style="margin-top:14px">Search the catalog</button></div>`:`<div class="empty"><b>Find a book</b>Search by title or author.</div>`); }
     else if(searchBusy&&!searchRes) body=`<div class="empty">Searching…</div>`;
     else if(searchRes&&searchRes.error) body=`<div class="empty"><b>Can’t reach the catalog</b>Check your connection, or add it by hand.<button class="btn dark" data-act="manualadd" style="margin-top:14px">Add “${esc(q)}” by hand</button></div>`;
-    else if(searchRes){ const rows=searchRes.items.map((r,i)=>catResult(r,i)).join("");
-      body=(rows||`<div class="empty"><b>No results</b>Try fewer words.</div>`)+`<button class="btn dark" data-act="manualadd" style="margin-top:14px">Add “${esc(q)}” by hand</button>`; }
+    else if(searchRes){ const mine=libMatches(q), own=new Set(mine.map(b=>b.id));
+      const rows=searchRes.items.map((r,i)=>{ const h=inLibrary(r); return h&&own.has(h.id)?"":catResult(r,i); }).join("");
+      if(mine.length) body=`<div class="caps" style="margin:14px 2px 2px">In your library</div>${mine.map(b=>libResult(b)).join("")}<div class="caps" style="margin:16px 2px 2px">Catalog</div>`;
+      body+=(rows||`<div class="empty"><b>No results</b>Try fewer words.</div>`)+`<button class="btn dark" data-act="manualadd" style="margin-top:14px">Add “${esc(q)}” by hand</button>`; }
+    if(q) body=seriesCards(q)+body;
     return `<div class="phead" style="margin-bottom:10px"><h1>Search</h1></div>
     <div class="searchrow"><label class="filterfield">${I.search(false)}<input id="sq" type="search" placeholder="e.g. Dune, Toni Morrison…" value="${esc(searchQ)}" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false">${searchQ?`<button data-act="clearsearch" aria-label="Clear" class="sub">${I.xcirc}</button>`:""}</label><button class="tb scanbtn" data-act="scan" aria-label="Scan a barcode">${I.scan}</button></div>
     <div class="seg" style="margin-bottom:6px"><button data-act="searchmode" data-m="catalog" aria-pressed="${searchMode==="catalog"}">Catalog</button><button data-act="searchmode" data-m="mine" aria-pressed="${searchMode==="mine"}">My Books</button></div>
     ${body}`; }};
+function libMatches(q){ const ql=q.toLowerCase().trim(); if(ql.length<2) return []; const words=ql.split(/\s+/);
+  return Object.values(S.books).filter(b=>b.status!=="Hidden"&&words.every(w=>(b.title+" "+b.author+" "+(b.series||"")).toLowerCase().includes(w)))
+    .sort((x,y)=>(RANK.indexOf(x.status)-RANK.indexOf(y.status))||seriesSort(x,y)).slice(0,4); }
 function libResult(b){ return `<div class="brow" data-key="lr-${esc(b.id)}"><button style="display:contents" data-push="book" data-id="${esc(b.id)}">${cover(b)}<span class="tx"><b>${bt(b)}</b><span>${ba(b)}</span><span class="st">${esc(STATUS_WORD[b.status])}</span></span></button><button class="more" data-act="addmenu-lib" data-id="${esc(b.id)}" aria-label="Shelf">${I.more}</button></div>`; }
 function catResult(r,i){ const have=inLibrary(r);
   return `<div class="brow" data-key="cr-${i}-${esc(r.title)}"><button style="display:contents" data-act="catopen" data-i="${i}">${r.cu?`<img class="cover img" src="${esc(coverURL(r.cu,false))}" alt="" loading="${i<8?"eager":"lazy"}" decoding="async"${corsOK(null,coverURL(r.cu,false))?' crossorigin="anonymous"':""} onerror="this.outerHTML=drawnCover({id:'cr${i}',title:this.dataset.t,author:this.dataset.a})" data-t="${esc(r.title)}" data-a="${esc(r.author)}">`:drawnCover({id:"cr"+r.title,title:r.title,author:r.author})}<span class="tx"><b>${esc(typo(r.title))}</b><span>${esc(r.author)}</span><span class="st">${have?esc(STATUS_WORD[have.status]):esc([r.year>0?r.year:"",r.pages?r.pages+" pages":""].filter(Boolean).join(" · ")||r.src)}</span></span></button>
@@ -2980,6 +3021,10 @@ function setShelf(id,s,quiet){ const b=S.books[id]; if(!b) return; const was=b.s
   if(s==="Read"&&was!=="Read"){ b.finished=todayKey(); b.pageBefore=b._pb!=null?b._pb:(b.page||0); delete b._pb; if(b.pages) b.page=b.pages; b.fuzzy=""; S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"finish",updatedAt:Date.now()}); }
   if(s!=="Read"&&was==="Read"&&s!=="Reading") b.finished="";
   if(!quiet) save(); }
+function leavesReading(b,s){ return !!b&&b.status==="Reading"&&!["Reading","Read","Paused","DNF"].includes(s); }
+function confirmLeaveReading(b,s,go){ const to=COLL[s]?COLL[s].label:(SHELF_LABEL[s]||s), pg=b.page||0;
+  alertCard({title:"Take "+typo(b.title)+" off Currently Reading?",message:"You’re on page "+pg+(b.pages?" of "+b.pages:"")+". Moving it to "+to+" keeps your page and sessions.",
+    buttons:[{label:"Keep Reading",style:"teal",cancel:true},{label:"Move to "+to,style:"dark",fn:go}]}); }
 function bookMenu(id){ const b=S.books[id]; if(!b) return;
   const items=[]; if(b.status==="Reading") items.push({label:"Start Session",icon:I.clock,fn:()=>startSession(id)},{label:"Update Progress",icon:I.pages,fn:()=>sheetProgress(id)});
   else if(b.status!=="Read") items.push({label:"Start Reading",icon:I.reading,fn:()=>startBook(id)});
@@ -3065,10 +3110,12 @@ document.addEventListener("click",e=>{
     case "coverretry": coverLoad(F.id); refreshSheet(); break;
     case "coverfilter": F.filter=el.dataset.k; refreshSheet(); break;
     case "coverurl": coverFromURL(); break;
-    case "shelfpick": { const t=sheet.target, s=el.dataset.s, before=snapshot(); let bid=t.id;
-      if(!bid){ const have=inLibrary(t.r); bid=have?have.id:addFromResult(t.r,"Queue"); }
-      const b=S.books[bid]; if(s==="Read") setShelf(bid,"Read"); else setShelf(bid,s); touch(b); save(); closeSheet(true); update(); haptic();
-      undoable((t.id?"Moved to ":"Added to ")+(COLL[s]?COLL[s].label:s),before); if(!t.id&&topE().route!=="book"){ if(tab==="search") switchTab("library"); push("book",{id:bid}); } break; }
+    case "shelfpick": { const t=sheet.target, s=el.dataset.s; let bid=t.id;
+      const go=()=>{ const before=snapshot();
+        if(!bid){ const have=inLibrary(t.r); bid=have?have.id:addFromResult(t.r,"Queue"); }
+        const b=S.books[bid]; if(s==="Read") setShelf(bid,"Read"); else setShelf(bid,s); touch(b); save(); closeSheet(true); update(); haptic();
+        undoable((t.id?"Moved to ":"Added to ")+(COLL[s]?COLL[s].label:s),before); if(!t.id&&topE().route!=="book"){ if(tab==="search") switchTab("library"); push("book",{id:bid}); } };
+      const cb=t.id?S.books[t.id]:null; if(leavesReading(cb,s)){ closeSheet(true); confirmLeaveReading(cb,s,go); } else go(); break; }
     case "libview": S.settings.libView=(S.settings.libView||"grid")==="grid"?"list":"grid"; touchSettings(); save(); renderEntry(topE()); break;
     case "findin": { const cs=colState[el.dataset.k]; cs.find=!cs.find; if(!cs.find) cs.q=""; renderEntry(topE()); if(cs.find) setTimeout(()=>{ const i=topE().el.querySelector("[data-colq]"); if(i) i.focus(); },30); break; }
     case "sort": { const cs=colState[el.dataset.k]; popMenu(el,[{title:"Sort",items:SORTS.filter(([k])=>k!=="list"||el.dataset.k.startsWith("list:")).filter(([k])=>k!=="series"||el.dataset.k.startsWith("series:")||cs.sort==="series").map(([k,l,ic])=>({label:l,icon:typeof I[ic]==="function"?I[ic](false):I[ic],on:cs.sort===k,fn:()=>{ cs.sort=k; if(k==="color") warmTints(); renderEntry(topE()); }}))}]); break; }
@@ -3079,6 +3126,7 @@ document.addEventListener("click",e=>{
     case "catmenu": sheetShelf({r:searchRes.items[+el.dataset.i]}); break;
     case "catopen": { const r=searchRes.items[+el.dataset.i], have=inLibrary(r); if(have) push("book",{id:have.id}); else sheetShelf({r}); break; }
     case "addmenu-lib": sheetShelf({id}); break;
+    case "seriesfind": searchMode="catalog"; searchQ=el.dataset.q||""; searchRes=null; switchTab("search"); runSearch(); break;
     case "manualadd": { const before=snapshot(), nid=addFromResult({title:searchQ.trim(),author:"",cu:""},"Queue"); save(); update(); push("book",{id:nid}); undoable("Added to Want to Read",before); setTimeout(()=>sheetLength(nid),400); break; }
     case "calprev": case "calnext": { const [y,m]=calMonth.split("-").map(Number), d=new Date(y,m-1+(a==="calnext"?1:-1),1); calMonth=d.getFullYear()+"-"+pad(d.getMonth()+1); renderEntry(topE()); break; }
     case "day": sheetDay(el.dataset.k); break;
@@ -3122,7 +3170,8 @@ function runTile(t,id){ const b=S.books[id], before=snapshot();
     case "finish": finishBook(id); break;
     case "stop": setShelf(id,"Paused"); update(); undoable("Paused "+typo(b.title),before); break;
     case "startbook": startBook(id); break;
-    case "setshelf": setShelf(id,t.v); update(); undoable("Moved to "+COLL[t.v].label,before); break;
+    case "setshelf": if(!t.ok&&leavesReading(b,t.v)){ confirmLeaveReading(b,t.v,()=>runTile({...t,ok:true},id)); break; }
+      setShelf(id,t.v); update(); undoable("Moved to "+COLL[t.v].label,before); break;
     case "unfinish": { const fin=b.finished; b.status="Reading"; b.finished=""; if(b.pageBefore!=null){ b.page=b.pageBefore; delete b.pageBefore; }
       S.activity=S.activity.filter(a=>{ const gone=a.bookId===id&&a.src==="finish"&&a.day===fin; if(gone) tombstone(a.id); return !gone; }); touch(b); save(); update(); undoable("Back to Currently Reading · page "+(b.page||0),before); break; }
     case "remove": removeBook(id); break;
