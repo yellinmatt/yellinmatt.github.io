@@ -1,7 +1,7 @@
-var CACHE = "read-v8";
+var CACHE = "read-v9";
 var SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-512.png"];
 self.addEventListener("install", function (e) { self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(u).catch(function () { return null; }); })); })); });
+  e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(SHELL.map(function (u) { return c.add(new Request(u, { cache: "no-store" })).catch(function () { return null; }); })); })); });
 self.addEventListener("activate", function (e) { e.waitUntil(caches.keys().then(function (k) { return Promise.all(k.map(function (x) { return x === CACHE || x === COVERS || !/^read-/.test(x) ? null : caches.delete(x); })); }).then(function () { return self.clients.claim(); })); });
 var COVERS = "read-covers-v1", COVER_MAX = 600;
 var COVER_HOST = /(^|\.)mzstatic\.com$|^covers\.openlibrary\.org$|(^|\.)archive\.org$|^upload\.wikimedia\.org$|^books\.google(apis)?\.com$/;
@@ -24,7 +24,7 @@ self.addEventListener("fetch", function (e) { var r = e.request; if (r.method !=
   if (isCover(r, u)) { if (r.cache !== "no-store" && r.cache !== "reload") e.respondWith(coverFetch(r, function (p) { e.waitUntil(p); })); return; }
   if (u.origin !== self.location.origin) return;
   var key = r.mode === "navigate" ? u.origin + u.pathname : r;
-  var net = fetch(r).then(function (res) { if (!res || !res.ok) return res; var c = res.clone();
+  var net = fetch(r.mode === "navigate" ? new Request(u.href, { cache: "no-store", credentials: "same-origin" }) : r).then(function (res) { if (!res || !res.ok) return res; var c = res.clone();
     return caches.open(CACHE).then(function (x) { return x.put(key, c); }).then(function () { return res; }, function () { return res; }); });
   e.waitUntil(net.catch(function () {}));
   e.respondWith(caches.match(key).then(function (m) {
@@ -32,7 +32,11 @@ self.addEventListener("fetch", function (e) { var r = e.request; if (r.method !=
 function db() { return new Promise(function (ok, no) { var q = indexedDB.open("read-sw", 1); q.onupgradeneeded = function () { q.result.createObjectStore("kv"); }; q.onsuccess = function () { ok(q.result); }; q.onerror = function () { no(q.error); }; }); }
 function kvGet(k) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction("kv").objectStore("kv").get(k); t.onsuccess = function () { ok(t.result); }; t.onerror = function () { ok(null); }; }); }).catch(function () { return null; }); }
 function kvSet(k, v) { return db().then(function (d) { return new Promise(function (ok) { var t = d.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = function () { ok(true); }; t.onerror = function () { ok(false); }; }); }).catch(function () { return false; }); }
-self.addEventListener("message", function (e) { var m = e.data || {}; if (m.t === "read-sync" && m.url && m.token) kvSet("sync", { url: m.url, token: m.token });
+self.addEventListener("message", function (e) { var m = e.data || {};
+  if (m.t === "refresh-shell") { var sc = self.registration.scope, port = e.ports && e.ports[0];
+    e.waitUntil(fetch(new Request(sc, { cache: "no-store", credentials: "same-origin" })).then(function (res) { if (!res || !res.ok) return;
+      return caches.open(CACHE).then(function (c) { return Promise.all([c.put(sc, res.clone()), c.put(sc + "index.html", res)]); }); })
+      .catch(function () {}).then(function () { if (port) port.postMessage("ok"); })); return; } if (m.t === "read-sync" && m.url && m.token) kvSet("sync", { url: m.url, token: m.token });
   if (m.t === "warm-covers" && m.urls && m.urls.length) e.waitUntil(kvSet("libcovers", m.urls.slice(0, COVER_MAX)).then(function () { return warm(m.urls.slice(0, COVER_MAX)); })); });
 function warm(urls) { return caches.open(COVERS).then(function (c) { var i = 0;
   function next() { if (i >= urls.length) return Promise.resolve(); var u = urls[i++]; var r = new Request(u, { mode: "cors", credentials: "omit" });

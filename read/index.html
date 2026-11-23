@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Tassel</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src https://itunes.apple.com https://openlibrary.org https://www.googleapis.com https://*.workers.dev; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://itunes.apple.com https://openlibrary.org https://www.googleapis.com https://*.workers.dev; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
@@ -907,6 +907,22 @@ html,body,*{touch-action:manipulation}
 .bookpage .les .le:last-child{border-bottom:0}
 .bookpage .morelink{background:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;padding:0 2px}
 
+.plansum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 4px}
+.plansum div{background:var(--g-bg);box-shadow:var(--g-hi);border-radius:16px;padding:12px 12px 10px}
+.plansum b{display:block;font:700 1.75rem/1.1 var(--sans)}.plansum b small{font-size:1rem;color:var(--sub);font-weight:600}
+.plansum span{display:block;margin-top:4px;font-size:.78rem;color:var(--sub);line-height:1.25}
+.plist .prow{padding:9px 0;cursor:default}
+.prow .pn{width:20px;flex:none;text-align:right;color:var(--faint);font:600 .875rem/1 var(--sans)}
+.prow .grip{flex:none;width:28px;height:28px;display:grid;place-items:center;color:var(--faint)}.prow .grip svg{width:18px;height:18px}
+.prow.quiet .tx b{color:var(--sub)}
+.yearmark{display:flex;align-items:baseline;gap:10px;margin:14px 0 4px;padding-top:10px;border-top:.5px solid rgb(var(--ink-rgb)/.18)}
+.yearmark b{font:700 1.25rem/1 var(--serif,var(--sans))}.yearmark span{font-size:.8125rem;color:var(--sub)}
+[data-reorder] [data-rid]{-webkit-touch-callout:none}
+[data-rid].lift{transform:scale(1.04);transition:transform .15s ease;z-index:2;position:relative}
+[data-rid].dragsrc{opacity:.25}
+.dragghost{box-shadow:0 18px 40px rgb(0 0 0/.45);border-radius:6px;opacity:.96;background:var(--bg)}
+body.dragging,body.dragging *{cursor:grabbing}
+
 .navbar .nt{opacity:0!important;pointer-events:none}
 :root{--g-bg:rgb(255 255 255/.09);--g-hi:inset 0 .5px 0 rgb(255 255 255/.24),inset 0 0 0 .5px rgb(255 255 255/.11);--g-blur:blur(28px) saturate(170%)}
 :root[data-theme="paper"]{--g-bg:rgb(255 255 255/.66);--g-hi:inset 0 .5px 0 rgb(255 255 255/.9),inset 0 0 0 .5px rgb(0 0 0/.08)}
@@ -1184,6 +1200,7 @@ const SEED_V = 6;
 const SHELVES = ["Reading","Up Next","Queue","Maybe","Paused","Read","DNF","Reference","Pass","Hidden"];
 const SHELF_LABEL = {"Reading":"Reading","Up Next":"Up Next","Queue":"Want to Read","Maybe":"Maybe","Paused":"Stopped","Read":"Finished","DNF":"Did Not Finish","Reference":"Reference","Pass":"Pass","Hidden":"Not a book"};
 const RANK = ["Read","Reading","Up Next","DNF","Paused","Queue","Reference","Maybe","Pass","Hidden"];
+const APP_V = "51e6de7c5daa";            // this build's id; the public build compares it with version.json to update itself (R6)
 const DEFAULT_PACE = 0.75;          // pages per minute until his own sessions say otherwise
 const DEF_SETTINGS = {goalType:"any",dailyMin:20,dailyPages:20,yearGoal:6,theme:"auto",dimDefault:true,idleMin:90};
 const SEED_AT = 1;                  // stamp of a starter record never edited on this device: older than any real edit, so a real copy anywhere wins
@@ -1379,7 +1396,7 @@ function bookPace(id){ let p=0,m=0; S.sessions.forEach(s=>{ if(s.bookId===id&&s.
 function nightlyMinutes(){ const g=goalSpec(); return g.type==="minutes"?g.n:g.type==="pages"?g.n/pace().ppm:20; }
 function projection(b){
   if(!b.pages) return null;
-  const left=Math.max(0,b.pages-(b.page||0)), ppm=bookPace(b.id)||pace().ppm, mins=left/ppm, nights=Math.ceil(mins/nightlyMinutes());
+  const left=Math.max(0,b.pages-(b.page||0)), ppm=bookPPM(b), mins=left/ppm, nights=Math.max(1,Math.ceil(mins/readingRate().mpd-1e-6));   // R6: the plan's model
   return {left,mins,nights,by:addDays(todayKey(),Math.max(0,nights-1)),pct:Math.min(100,Math.round((b.page||0)/b.pages*100))};
 }
 function finishLine(b){ if(b.status!=="Reading"||!b.pages) return "";
@@ -1389,7 +1406,7 @@ function finishLine(b){ if(b.status!=="Reading"||!b.pages) return "";
 function lastActivityDay(id){ let k=""; S.sessions.forEach(s=>{ if(s.bookId===id){ const d=keyOf(new Date(s.start).getTime()); if(d>k) k=d; } }); S.activity.forEach(a=>{ if(a.bookId===id&&a.day>k) k=a.day; }); const b=S.books[id]; if(b&&b.started&&b.started>k) k=b.started; return k; }
 function daysSince(k){ if(!k) return null; return Math.round((dateOfKey(todayKey())-dateOfKey(k))/864e5); }
 function bookMinutes(id){ return S.sessions.filter(s=>s.bookId===id).reduce((a,s)=>a+s.min,0); }
-function booksBy(status){ return Object.values(S.books).filter(b=>b.status===status); }
+function booksBy(status){ const l=Object.values(S.books).filter(b=>b.status===status); return status==="Up Next"?upNextSort(l):l; }
 function finishYear(b){ return b.finished?b.finished.slice(0,4):(/(\d{4})/.exec(b.fuzzy||"")||[])[1]||""; }
 function finishedIn(year){ return Object.values(S.books).filter(b=>b.status==="Read"&&finishYear(b)===String(year)); }
 function progressLabel(b){ if(!b.pages) return "Page "+(b.page||0); return b.unit==="percent"?Math.round((b.page||0)/b.pages*100)+"%":"Page "+(b.page||0)+" of "+b.pages; }
@@ -1614,7 +1631,60 @@ function decodeEanRow(bits){ // bits: array of 0/1 across one row (1 = dark). Re
   for(let i=1;i<runs.length-58;i++){ if(runs[i].v===1&&runs[i-1].v===0&&runs[i-1].n>=runs[i].n*2){ const d=tryFrom(i); if(d) return d; } }
   return null; }
 
-if(typeof module!=="undefined"&&module.exports){ module.exports={cleanCoverFields,okColor,okCu,resolveCover,coverKey,coverURL,drawnCover,cover,coverSrc,corsOK,coverOdd,dominantRGB,tintFromRGB,contrastWhite,coverMatch,coverFmt,fillCoverMeta,genPal,hslToRgb,applyMeasure,mergeStores,decodeEanRow,EAN_L,EAN_G,EAN_R,EAN_PAR,listsOf,nextRating,starFill,fmtRating,monthStats,prevMonth,keyOf,todayKey,addDays,dateOfKey,fmtMin,clk,parseDur,fmtCalm,fmtClock,dayData,goalFor,goalSpec,dayMet,streakInfo,pace,bookPace,projection,finishYear,finishedIn,upgradeStore,touch,tombstone,emptyStore,seedStore,load,save,persist,snapshot,diffStores,undoDiff,scrubMsg,logError,stampSeed,SEED_AT,normalize,migrate,lastActivityDay,daysSince,get S(){ return S; },set S(v){ S=v; }}; }
+if(typeof module!=="undefined"&&module.exports){ module.exports={cleanCoverFields,okColor,okCu,resolveCover,coverKey,coverURL,drawnCover,cover,coverSrc,corsOK,coverOdd,dominantRGB,tintFromRGB,contrastWhite,coverMatch,coverFmt,fillCoverMeta,genPal,hslToRgb,applyMeasure,mergeStores,decodeEanRow,EAN_L,EAN_G,EAN_R,EAN_PAR,listsOf,nextRating,starFill,fmtRating,monthStats,prevMonth,keyOf,todayKey,addDays,dateOfKey,fmtMin,clk,parseDur,fmtCalm,fmtClock,dayData,goalFor,goalSpec,dayMet,streakInfo,pace,bookPace,projection,finishYear,finishedIn,upgradeStore,touch,tombstone,emptyStore,seedStore,load,save,persist,snapshot,diffStores,undoDiff,scrubMsg,logError,stampSeed,SEED_AT,normalize,migrate,lastActivityDay,daysSince,readingRate,minutesByNight,bookPPM,pagesLeft,readingPlan,upNextSort,upNextAppend,reorderUpNext,reorderList,recommend,booksBy,get S(){ return S; },set S(v){ S=v; }}; }
+
+const PLAN_HALF=21, PLAN_WIN=120, PLAN_PRIOR=45, PLAN_UNKNOWN_PAGES=350;
+function minutesByNight(){ const m={}; S.sessions.forEach(s=>{ if(!(s.min>0)) return; const k=keyOf(new Date(s.start).getTime()); m[k]=(m[k]||0)+s.min; }); return m; }
+function readingRate(){ const m=minutesByNight(), keys=Object.keys(m).sort(), t=todayKey();
+  const fb=()=>{ const n=nightlyMinutes(); return {mpd:n,lo:n*0.6,hi:n*1.3,own:false,nights:0}; };
+  if(!keys.length) return fb();
+  const end=m[t]?t:addDays(t,-1), first=keys[0]; let days=[]; for(let k=end,i=0;k>=first&&i<PLAN_WIN;k=addDays(k,-1),i++) days.push(m[k]||0);
+  const total=days.reduce((a,x)=>a+x,0); if(days.length<7||total<60) return fb();
+  let sw=0,sm=0; days.forEach((x,i)=>{ const w=Math.pow(0.5,i/PLAN_HALF); sw+=w; sm+=w*x; }); const mpd=sm/sw;
+  const roll=[]; for(let i=0;i+7<=Math.min(days.length,56);i++) roll.push(days.slice(i,i+7).reduce((a,x)=>a+x,0)/7); roll.sort((a,b)=>a-b);
+  const q=p=>roll.length?roll[Math.min(roll.length-1,Math.floor(p*(roll.length-1)))]:mpd;
+  const lo=Math.max(5,Math.min(mpd,q(0.25))), hi=Math.max(mpd,q(0.75));
+  return {mpd:Math.max(5,mpd),lo,hi,own:true,nights:days.filter(x=>x>0).length,days:days.length}; }
+function bookPPM(b){ const g=pace().ppm; let p=0,m=0; S.sessions.forEach(s=>{ if(s.bookId===b.id&&s.toPage>s.fromPage&&s.min>=3){ p+=s.toPage-s.fromPage; m+=s.min; } });
+  return (p+PLAN_PRIOR*g)/(m+PLAN_PRIOR); }
+function pagesLeft(b){ const n=+b.pages||0; return n?Math.max(0,n-(+b.page||0)):null; }
+function readingPlan(order){ const r=readingRate(), t=todayKey(); let at=0, atLo=0, atHi=0;
+  const day=x=>addDays(t,Math.max(0,Math.ceil(x-1e-6)-1));   // 1e-6: 300/59.99999 nights is five nights, not six
+  return {rate:r,rows:order.map(b=>{ const known=pagesLeft(b), left=known==null?PLAN_UNKNOWN_PAGES:known, ppm=bookPPM(b), mins=left/ppm;
+    const start=at; at+=mins/r.mpd; atLo+=mins/r.hi; atHi+=mins/r.lo;
+    return {id:b.id,left,guess:known==null,ppm,mins,start:addDays(t,Math.floor(start+1e-6)),finish:day(at),early:day(atLo),late:day(atHi),nights:at-start}; })}; }
+function upNextSort(list){ return list.slice().sort((a,b)=>(a.qo==null?Infinity:a.qo)-(b.qo==null?Infinity:b.qo)); }
+function upNextAppend(b){ const others=Object.values(S.books).filter(x=>x.status==="Up Next"&&x.id!==b.id);
+  if(others.every(x=>x.qo!=null)) b.qo=others.reduce((a,x)=>Math.max(a,x.qo),0)+1024; }
+function reorderUpNext(ids,movedId){ const full=upNextSort(Object.values(S.books).filter(b=>b.status==="Up Next")).map(b=>b.id);
+  const order=ids.filter(id=>S.books[id]&&S.books[id].status==="Up Next").concat(full.filter(id=>!ids.includes(id)));
+  const bs=order.map(id=>S.books[id]), i=order.indexOf(movedId), stamped=[];
+  const tight=bs.some((b,j)=>b.qo==null||(j&&j!==i&&j-1!==i&&!(b.qo>bs[j-1].qo)));
+  const prev=bs[i-1], next=bs[i+1];
+  if(!tight&&i>=0&&(!prev||!next||next.qo-prev.qo>1e-6)){ const b=bs[i]; b.qo=!prev?next.qo-1024:!next?prev.qo+1024:(prev.qo+next.qo)/2; touch(b); stamped.push(b); }
+  else bs.forEach((b,j)=>{ const q=(j+1)*1024; if(b.qo!==q){ b.qo=q; touch(b); stamped.push(b); } });
+  return stamped; }
+function reorderList(l,ids){ l.books=ids.filter(id=>l.books.includes(id)).concat(l.books.filter(id=>!ids.includes(id))); touch(l); return l; }
+function recommend(n=6){ const all=Object.values(S.books), done=all.filter(b=>b.status==="Read"), score={}, why={};
+  const stars=b=>(+b.rating||0)||(b.tier==="Loved"?5:b.tier==="Liked"?4:b.tier==="Was Fine"?3:0);
+  const by={}, gen={}; done.forEach(b=>{ const s=stars(b); if(b.author){ const a=by[b.author]||(by[b.author]={n:0,good:0}); a.n++; if(s>=4) a.good++; }
+    if(b.genre&&b.genre!=="Unclassified"){ const g=gen[b.genre]||(gen[b.genre]={n:0,pts:0}); g.n++; g.pts+=s>=4?2:s?0.5:1; } });
+  const topG=Object.entries(gen).sort((a,b)=>b[1].pts-a[1].pts).slice(0,3).map(x=>x[0]);
+  const add=(b,p,w)=>{ score[b.id]=(score[b.id]||0)+p; if(!why[b.id]||p>why[b.id].p) why[b.id]={p,w}; };
+  const cands=all.filter(b=>b.status==="Queue"||b.status==="Maybe");
+  const seriesNext={}; all.forEach(b=>{ if(!b.series) return; (seriesNext[b.series]=seriesNext[b.series]||[]).push(b); });
+  Object.entries(seriesNext).forEach(([name,bs])=>{ const ord=bs.slice().sort((a,b)=>(+a.seriesNo||99)-(+b.seriesNo||99));
+    const lastIn=ord.reduce((k,b,j)=>b.status==="Read"||b.status==="Reading"?j:k,-1); if(lastIn<0) return;
+    const nx=ord.slice(lastIn+1).find(b=>b.status!=="Read"&&b.status!=="Reading"&&b.status!=="Pass"&&b.status!=="Hidden"&&b.status!=="DNF");
+    if(nx&&(nx.status==="Queue"||nx.status==="Maybe")) add(nx,60,"Next in "+name+(nx.seriesNo?" (#"+nx.seriesNo+")":"")); });
+  cands.forEach(b=>{ const a=by[b.author];
+    if(a&&a.good) add(b,Math.min(42,14*a.good),`You loved ${a.good} ${a.good===1?"book":"books"} by ${String(b.author).split(",")[0]}`);
+    else if(a&&a.n) add(b,Math.min(18,6*a.n),`You’ve finished ${a.n} by ${String(b.author).split(",")[0]}`);
+    const gi=topG.indexOf(b.genre); if(gi>=0) add(b,10-gi*3,b.genre+" is one of your favourite genres");
+    if(b.recBy) add(b,10,"Recommended by "+b.recBy);
+    if(b.added&&daysSince(b.added)!=null&&daysSince(b.added)<=45) add(b,5,"Added recently");
+    if(b.status==="Maybe") score[b.id]=(score[b.id]||0)-8; });
+  return cands.filter(b=>score[b.id]>0).sort((a,b)=>score[b.id]-score[a.id]||a.title.localeCompare(b.title)).slice(0,n).map(b=>({b,score:score[b.id],why:why[b.id].w})); }
 
 const sv=(d,o="")=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${o}>${d}</svg>`;
 const I={
@@ -1650,6 +1720,7 @@ const I={
   owl:`<svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14 40c-4-6-4-16 2-22 3-3 10-4 14-1 6 4 7 14 3 21"/><path d="M14 18c1-4 4-6 6-6M30 17c1-3 3-5 5-5"/><circle cx="20" cy="22" r="3.5"/><circle cx="29" cy="22" r="3.5"/><path d="m24 26 1 2 1-2M10 41h30M18 41v-3M30 41v-3"/></svg>`,
   square:`<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="1.8" fill="currentColor"/></svg>`,
   gear:sv('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>'),
+  grip:sv('<path d="M5 9h14M5 15h14"/>'),
   plus:sv('<path d="M12 5v14M5 12h14" stroke-width="2.2"/>'),
   x:sv('<path d="M6 6l12 12M18 6 6 18" stroke-width="2.2"/>'),
   back:sv('<path d="M15 4.5 7.5 12l7.5 7.5" stroke-width="2.4"/>'),
@@ -1796,7 +1867,7 @@ function paintTabbar(){
   document.querySelectorAll(".tabbar [data-tab]").forEach(b=>{ const on=b.dataset.tab===tab; b.setAttribute("aria-current",on?"page":"false"); const i=b.querySelector("i"); if(i&&b.dataset.icon) i.innerHTML=I[b.dataset.icon](on); });
   const hl=$(".pillbar .hl"); if(hl){ hl.style.opacity=idx==null?"0":"1"; if(idx!=null) hl.style.transform=`translateX(${idx*100}%)`; }
 }
-function update(){
+function update(){ if(drag){ update._p=true; return; } update._p=false;
   TABS.forEach(t=>stacks[t].forEach(e=>{ if(t===tab) renderEntry(e); else e.dirty=true; }));
   renderMini(); refreshSheet(); if(playerOpen) renderPlayer();
 }
@@ -1882,23 +1953,53 @@ function popMenu(anchor,sections){
   el.addEventListener("click",e=>{ e.stopPropagation(); const b=e.target.closest("[data-i]"); if(!b) return; close(); setTimeout(()=>items[+b.dataset.i].fn(),60); });
 }
 
-function contextMenu(b,items){
+function contextMenu(b,items,onRelease){
   haptic(); const veil=document.createElement("div"); veil.className="blurveil"; const el=document.createElement("div"); el.className="ctx";
   el.innerHTML=`<div class="preview">${cover(b,"fill",{big:true,eager:true})}</div><div class="menu" role="menu">${items.map((it,i)=>`<button role="menuitem" data-i="${i}" class="${it.red?"red":""}"><span>${esc(it.label)}</span>${it.icon||""}</button>`).join("")}</div>`;
   document.body.append(veil,el); requestAnimationFrame(()=>requestAnimationFrame(()=>{ veil.classList.add("on"); el.classList.add("on"); }));
   const close=()=>{ veil.classList.remove("on"); el.classList.remove("on"); setTimeout(()=>{ veil.remove(); el.remove(); },260); };
-  let armed=false; const arm=()=>setTimeout(()=>armed=true,60); document.addEventListener("pointerup",arm,{once:true}); setTimeout(()=>armed=true,900); // the finger lifting after a long press is not a tap
+  /* opened on release: the click of that same lift lands a moment later and must not close it, so arm after 350 ms */ let armed=false; const arm=()=>setTimeout(()=>armed=true,60); if(onRelease) setTimeout(()=>armed=true,350); else document.addEventListener("pointerup",arm,{once:true}); setTimeout(()=>armed=true,900); // the finger lifting after a long press is not a tap
   veil.addEventListener("click",()=>{ if(armed) close(); }); el.addEventListener("click",e=>{ e.stopPropagation(); if(!armed) return; const btn=e.target.closest("[data-i]"); close(); if(btn) setTimeout(()=>items[+btn.dataset.i].fn(),80); });
 }
 function initLongPress(){
   let lp=null;
-  document.addEventListener("pointerdown",e=>{ const t=e.target.closest("[data-ctx]"); if(!t) return;
-    lp={x:e.clientX,y:e.clientY,el:t,timer:setTimeout(()=>{ if(lp){ lp.fired=true; bookMenu(t.dataset.ctx); } },460)}; },{passive:true});
-  document.addEventListener("pointermove",e=>{ if(lp&&Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>8){ clearTimeout(lp.timer); lp=null; } },{passive:true});
-  const stop=()=>{ if(lp){ clearTimeout(lp.timer); if(lp.fired){ const el=lp.el; el.dataset.suppress="1"; setTimeout(()=>delete el.dataset.suppress,450); } lp=null; } };
-  document.addEventListener("pointerup",stop); document.addEventListener("pointercancel",stop);
+  document.addEventListener("pointerdown",e=>{ const t=e.target.closest("[data-ctx]"); if(!t||drag) return; const box=t.dataset.rid?t.closest("[data-reorder]"):null;
+    lp={x:e.clientX,y:e.clientY,el:t,box,timer:setTimeout(()=>{ if(!lp) return; lp.fired=true;
+      if(box){ lp.armed=true; t.classList.add("lift"); haptic(); } else bookMenu(t.dataset.ctx); },460)}; },{passive:true});
+  document.addEventListener("pointermove",e=>{ if(!lp) return; if(drag){ dragMove(e.clientX,e.clientY); return; }
+    if(Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>8){ if(lp.armed) dragStart(lp,e.clientX,e.clientY); else { clearTimeout(lp.timer); lp=null; } } },{passive:true});
+  document.addEventListener("touchmove",e=>{ if(lp&&(lp.armed||drag)) e.preventDefault(); },{passive:false});
+  const stop=cancel=>{ if(!lp) return; clearTimeout(lp.timer); const el=lp.el;
+    if(drag) dragEnd(cancel); else if(lp.armed){ el.classList.remove("lift"); if(!cancel) bookMenu(el.dataset.ctx,true); }
+    if(lp.fired){ el.dataset.suppress="1"; setTimeout(()=>delete el.dataset.suppress,450); } lp=null; };
+  document.addEventListener("pointerup",()=>stop(false)); document.addEventListener("pointercancel",()=>stop(true));
   document.addEventListener("contextmenu",e=>{ if(e.target.closest("[data-ctx]")) e.preventDefault(); });
 }
+let drag=null;
+function rids(box){ return [...box.querySelectorAll("[data-rid]")].filter(e=>e.closest("[data-reorder]")===box).map(e=>e.dataset.rid); }
+function dragStart(lp,x,y){ const t=lp.el, r=t.getBoundingClientRect(), g=t.cloneNode(true);
+  g.classList.add("dragghost"); g.classList.remove("lift"); ["data-rid","data-ctx","data-push","data-key"].forEach(a=>g.removeAttribute(a));
+  g.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;margin:0;z-index:300;pointer-events:none;transform:scale(1.06)`;
+  document.body.appendChild(g); t.classList.remove("lift"); t.classList.add("dragsrc");
+  const horiz=lp.box.classList.contains("hscroll"), sc=horiz?lp.box:t.closest(".scroll");
+  drag={t,g,box:lp.box,x0:x,y0:y,x,y,sc,horiz,before:rids(lp.box)}; document.body.classList.add("dragging"); requestAnimationFrame(dragTick); }
+function dragMove(x,y){ if(!drag) return; drag.x=x; drag.y=y; drag.g.style.transform=`translate(${x-drag.x0}px,${y-drag.y0}px) scale(1.06)`; dragHit(); }
+function dragHit(){ const {x,y,t,box}=drag, h=document.elementFromPoint(x,y), o=h&&h.closest("[data-rid]"); if(!o||o===t||o.closest("[data-reorder]")!==box) return;
+  const kids=[...box.querySelectorAll("[data-rid]")], it=kids.indexOf(t), io=kids.indexOf(o);
+  const first=new Map(kids.map(k=>[k,k.getBoundingClientRect()])); if(io>it) o.after(t); else o.before(t);
+  kids.forEach(k=>{ if(k===t) return; const a=first.get(k), b=k.getBoundingClientRect(), dx=a.left-b.left, dy=a.top-b.top; if(!dx&&!dy) return;
+    k.style.transition="none"; k.style.transform=`translate(${dx}px,${dy}px)`; requestAnimationFrame(()=>{ k.style.transition="transform .2s ease"; k.style.transform=""; }); }); }
+function dragTick(){ if(!drag) return; const {sc,x,y}=drag; if(sc){ const r=sc.getBoundingClientRect(); let d=0;
+    if(drag.horiz){ if(x<r.left+60) d=-(r.left+60-x)/3; else if(x>r.right-60) d=(x-(r.right-60))/3; if(d){ sc.scrollLeft+=d; dragHit(); } }
+    else { const top=r.top+110, bot=r.bottom-140; if(y<top) d=-(top-y)/3; else if(y>bot) d=(y-bot)/3; if(d){ sc.scrollTop+=d; dragHit(); } } }
+  requestAnimationFrame(dragTick); }
+function dragEnd(cancel){ const d=drag; if(!d) return; drag=null; document.body.classList.remove("dragging"); update._p=false;
+  const after=rids(d.box), r=d.t.getBoundingClientRect(); d.g.style.transition="transform .18s ease,left .18s ease,top .18s ease"; d.g.style.transform="none"; d.g.style.left=r.left+"px"; d.g.style.top=r.top+"px";
+  setTimeout(()=>{ d.g.remove(); d.t.classList.remove("dragsrc"); },190);
+  if(!cancel&&after.join()!==d.before.join()) commitReorder(d.box.dataset.reorder,after,d.t.dataset.rid); else update(); }
+function commitReorder(kind,ids,moved){ const before=snapshot(), b=S.books[moved];
+  if(kind==="upnext") reorderUpNext(ids,moved); else if(kind.startsWith("list:")){ const l=(S.lists||{})[kind.slice(5)]; if(!l) return update(); reorderList(l,ids); } else return update();
+  save(); update(); haptic(); undoable("Moved "+(b?typo(b.title):"book"),before); }
 
 function toast(msg,undo){ const t=$("#toast"); t.innerHTML=`<span>${esc(msg)}</span>${undo?`<button data-act="undo">Undo</button>`:""}`; t.classList.toggle("solo",!undo); toast._undo=undo||null;
   t.classList.remove("on"); void t.offsetWidth; t.classList.add("on"); clearTimeout(toast._t); toast._t=setTimeout(()=>{ t.classList.remove("on"); toast._undo=null; },undo?7000:2200); }
@@ -2035,8 +2136,8 @@ function alsoOnTheGo(){ const b=tonightBook(), others=b?readingNow().filter(x=>x
       const when=q?`<em class="quiet">Quiet since ${esc(monthDay(q.since))}</em>`:ld?" · last read "+(dd===0?"tonight":dd===1?"last night":dd+" days ago"):"";
       return `<div class="then${q?" isquiet":""}" data-key="then-${esc(o.id)}"><button class="go" data-push="book" data-id="${esc(o.id)}" data-ctx="${esc(o.id)}">${cover(o,"",{eager:true})}<span class="tx"><b>${bt(o)}</b><span>${esc(progressLabel(o))}${q?" · ":""}${when}</span></span>${q?"":chev}</button>${q?`<button class="ask" data-act="stalledask" data-id="${esc(o.id)}">Still reading?</button>`:""}</div>`; }).join("")}</div></section>`; }
 function upNextShelf(){ const nx=booksBy("Up Next"), k=nx.length?"Up Next":"Queue", list=nx.length?nx:booksBy("Queue"), label=nx.length?"Up Next":"Want to Read";
-  return `<section class="shelf"><button class="sec" data-push="coll" data-k="${k}">${label} ${chev}</button>
-    ${list.length?`<div class="upn hscroll">${list.slice(0,24).map(b=>`<button class="ucell" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" aria-label="${bt(b)}" style="width:${Math.round(220*arOf(b))}px">${standing(b,220,{eager:true})}<span class="cap">${bt(b)}</span><span class="cap2">${ba(b)}</span></button>`).join("")}</div>`:`<div class="sub" style="font-size:14px">Nothing here yet</div>`}</section>`; }
+  return `<section class="shelf"><button class="sec" ${nx.length?`data-push="plan"`:`data-push="coll" data-k="${k}"`}>${label} ${chev}</button>
+    ${list.length?`<div class="upn hscroll"${nx.length?` data-reorder="upnext"`:""}>${list.slice(0,24).map(b=>`<button class="ucell" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" data-key="u-${esc(b.id)}"${nx.length?` data-rid="${esc(b.id)}"`:""} aria-label="${bt(b)}" style="width:${Math.round(220*arOf(b))}px">${standing(b,220,{eager:true})}<span class="cap">${bt(b)}</span><span class="cap2">${ba(b)}</span></button>`).join("")}</div>`:`<div class="sub" style="font-size:14px">Nothing here yet</div>`}</section>`; }
 const TOP_MAX=10;
 function topRated(){ return Object.values(S.books).filter(b=>b.status==="Read"&&+b.rating>0).sort((a,b)=>(+b.rating)-(+a.rating)||String(b.finished||"").localeCompare(String(a.finished||""))); }
 function topBooks(){ const s=S.settings; return s.launchMode==="mine"?(s.launchBooks||[]).map(id=>S.books[id]).filter(Boolean).slice(0,TOP_MAX):topRated().slice(0,TOP_MAX); }
@@ -2116,7 +2217,7 @@ ROUTES.series={title:()=>"Series",
     return `<div class="chead"><div><h1>Series</h1><span>${plural(list.length,"series","series")}</span></div></div>
     ${list.length?list.map(([k,bs])=>`<button class="brow" data-push="coll" data-k="series:${esc(k)}"><span class="fanrow">${bs.slice(0,3).map(b=>cover(b)).join("")}</span><span class="tx"><b>${esc(k)}</b><span>${plural(bs.length,"book")} · ${bs.filter(b=>b.status==="Read").length} read${bs.some(b=>b.status==="Reading")?" · reading":""}</span></span>${chev}</button>`).join(""):`<div class="empty"><b>No series yet</b>A book’s series is set from its catalog entry.</div>`}`; }};
 
-const SORTS=[["list","List Order","list"],["series","Series Order","series"],["recent","Recently Active","hist"],["added","Recently Added","plus"],["title","Title","book"],["author","Author","person"],["length","Length","ruler"],["color","Color","sparkle"]];
+const SORTS=[["queue","Your Order","upnext"],["list","List Order","list"],["series","Series Order","series"],["recent","Recently Active","hist"],["added","Recently Added","plus"],["title","Title","book"],["author","Author","person"],["length","Length","ruler"],["color","Color","sparkle"]];
 function sortBooks(list,how){ const c=(x,y)=>String(x||"").localeCompare(String(y||""));
   const by={recent:(a,b)=>c(lastTouched(b.id)||b.finished,lastTouched(a.id)||a.finished)||c(b.finished,a.finished),added:(a,b)=>c(b.added,a.added),title:(a,b)=>c(a.title.replace(/^(the|a|an) /i,""),b.title.replace(/^(the|a|an) /i,"")),
     author:(a,b)=>c(a.author.split(" ").pop(),b.author.split(" ").pop())||c(a.title,b.title),length:(a,b)=>(a.pages||9999)-(b.pages||9999),color:(a,b)=>colorKey(a)-colorKey(b),series:(a,b)=>(+a.seriesNo||99)-(+b.seriesNo||99)||c(a.title,b.title)}[how]||(()=>0);
@@ -2126,18 +2227,19 @@ function bookTint(b){ const t=okColor(b.coverTint)&&!(b.cuUser&&b.coverNoSample)
 function colorKey(b){ const t0=okColor(b.coverTint)?b.coverTint:tintCache[b.id], t=okTint(t0)?t0:""; if(!t) return 999+hue(b.id)/1000; const [r,g,bl]=t[0]==="#"?[1,3,5].map(i=>parseInt(t.slice(i,i+2),16)):t.match(/\d+/g).map(Number); const mx=Math.max(r,g,bl), mn=Math.min(r,g,bl); if(mx-mn<14) return 400+(255-mx)/10;
   let h=mx===r?((g-bl)/(mx-mn))%6:mx===g?(bl-r)/(mx-mn)+2:(r-g)/(mx-mn)+4; return ((h*60)+360)%360; }
 ROUTES.coll={title:p=>collOf(p.k).label,compactAt:60,
-  render(p){ const c=collOf(p.k), cs=colState[p.k]||(colState[p.k]={sort:p.k.startsWith("series:")?"series":p.k.startsWith("list:")?"list":"recent",show:"all",q:"",find:false});
+  render(p){ const c=collOf(p.k), cs=colState[p.k]||(colState[p.k]={sort:p.k.startsWith("series:")?"series":p.k.startsWith("list:")?"list":p.k==="Up Next"?"queue":"recent",show:"all",q:"",find:false});
     let list=Object.values(S.books).filter(c.f); const total=list.length;
     if(cs.show!=="all") list=list.filter(b=>b.status===cs.show);
     if(cs.q){ const q=cs.q.toLowerCase(); list=list.filter(b=>(b.title+" "+b.author+" "+(b.series||"")).toLowerCase().includes(q)); }
-    list=cs.sort==="list"&&c.list?list.slice().sort((a,b)=>c.list.books.indexOf(a.id)-c.list.books.indexOf(b.id)):sortBooks(list,cs.sort); const grid=(S.settings.libView||"grid")==="grid";
+    const reo=cs.show==="all"&&!cs.q?(p.k==="Up Next"&&cs.sort==="queue"?"upnext":c.list&&cs.sort==="list"?"list:"+c.list.id:""):"";
+    list=cs.sort==="queue"?upNextSort(list):cs.sort==="list"&&c.list?list.slice().sort((a,b)=>c.list.books.indexOf(a.id)-c.list.books.indexOf(b.id)):sortBooks(list,cs.sort); const grid=(S.settings.libView||"grid")==="grid";
     const icon=typeof I[c.icon]==="function"?I[c.icon](false):I[c.icon];
     let body;
     if(!list.length) body=`<div class="empty"><b>${cs.q?"No matches":"Nothing here yet"}</b>${cs.q?"Try a different word.":p.k==="Queue"?"Books you want to read land here.":c.list?"Open a book and choose Add to List.":"Search to add a book."}</div>`;
     else if(p.k==="Read"&&(cs.sort==="recent")&&!cs.q){ const yrs={}; list.forEach(b=>{ const y=finishYear(b)||"Date unknown"; (yrs[y]=yrs[y]||[]).push(b); });
       const cy=String(new Date().getFullYear()); if(!yrs[cy]&&cs.show==="all") yrs[cy]=[];
       body=Object.keys(yrs).sort((a,b)=>(a==="Date unknown")-(b==="Date unknown")||b.localeCompare(a)).map(y=>`<div class="yearhead"><b>${esc(y)}</b><span class="${y===cy&&yrs[y].length>=S.settings.yearGoal?"met":""}">${y===cy?`${yrs[y].length} of ${S.settings.yearGoal} books`:plural(yrs[y].length,"book")}</span></div>${yrs[y].length?layout(yrs[y],grid,true):`<p class="gfoot" style="margin:0 2px 6px">Nothing finished yet this year. The next one lands here.</p>`}`).join(""); }
-    else body=layout(list,grid,p.k==="Read"||cs.show==="Read");
+    else body=layout(list,grid,p.k==="Read"||cs.show==="Read",reo);
     return `<div class="chead"><div><span class="ic">${icon}</span><h1>${esc(c.label)}</h1><span class="num">${cs.show!=="all"||cs.q?`${list.length} of ${plural(total,"item")}`:plural(total,"item")}</span></div></div>
     <div class="toolrow">
       <button class="tb" data-act="tab" data-t="search" aria-label="Add a book">${I.plus}</button>
@@ -2149,10 +2251,10 @@ ROUTES.coll={title:p=>collOf(p.k).label,compactAt:60,
       <button class="tb" data-act="sort" data-k="${esc(p.k)}" aria-label="Sort">${I.sort}</button></div>
     ${cs.find?`<label class="filterfield">${I.search(false)}<input type="search" placeholder="Filter ${esc(c.label)}" value="${esc(cs.q)}" data-colq="${esc(p.k)}" enterkeyhint="done" autocomplete="off"></label>`:""}
     ${body}`; }};
-function layout(list,grid,noBadge){ return grid?`<div class="cgrid">${list.map((b,i)=>gridCell(b,noBadge,i)).join("")}</div>`:`<div>${list.map((b,i)=>listRow(b,i)).join("")}</div>`; }
-function gridCell(b,noBadge,i=99){ return `<button class="gcell" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" data-key="g-${esc(b.id)}" aria-label="${bt(b)}">${cover(b,"",{eager:i<9})}${b.status==="Reading"&&b.pages?`<div class="gp"><i style="width:${pctOf(b)}%"></i></div>`:""}${b.status==="Read"&&!noBadge?`<span class="badge">${I.check}</span>`:""}</button>`; }
-function listRow(b,i=99){ const sub=b.status==="Reading"?(b.pages?`${pctOf(b)}% · page ${b.page||0} of ${b.pages}`:`Page ${b.page||0}`):b.status==="Read"?(b.finished?"Finished "+shortDate(b.finished):b.fuzzy&&b.fuzzy!=="Not sure"?"Finished "+b.fuzzy.toLowerCase():"Finished, date unknown"):STATUS_WORD[b.status];
-  return `<button class="brow" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" data-key="l-${esc(b.id)}">${cover(b,"",{eager:i<8})}<span class="tx"><b>${bt(b)}</b><span>${ba(b)}</span><span class="st">${esc(sub)}</span></span>${b.rating?`<span class="sub num" style="font-size:13px">${fmtRating(b.rating)}★</span>`:""}</button>`; }
+function layout(list,grid,noBadge,reo){ const r=reo?` data-reorder="${esc(reo)}"`:""; return grid?`<div class="cgrid"${r}>${list.map((b,i)=>gridCell(b,noBadge,i,!!reo)).join("")}</div>`:`<div${r}>${list.map((b,i)=>listRow(b,i,!!reo)).join("")}</div>`; }
+function gridCell(b,noBadge,i=99,rid){ return `<button class="gcell" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" data-key="g-${esc(b.id)}"${rid?` data-rid="${esc(b.id)}"`:""} aria-label="${bt(b)}">${cover(b,"",{eager:i<9})}${b.status==="Reading"&&b.pages?`<div class="gp"><i style="width:${pctOf(b)}%"></i></div>`:""}${b.status==="Read"&&!noBadge?`<span class="badge">${I.check}</span>`:""}</button>`; }
+function listRow(b,i=99,rid){ const sub=b.status==="Reading"?(b.pages?`${pctOf(b)}% · page ${b.page||0} of ${b.pages}`:`Page ${b.page||0}`):b.status==="Read"?(b.finished?"Finished "+shortDate(b.finished):b.fuzzy&&b.fuzzy!=="Not sure"?"Finished "+b.fuzzy.toLowerCase():"Finished, date unknown"):STATUS_WORD[b.status];
+  return `<button class="brow" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}" data-key="l-${esc(b.id)}"${rid?` data-rid="${esc(b.id)}"`:""}>${cover(b,"",{eager:i<8})}<span class="tx"><b>${bt(b)}</b><span>${ba(b)}</span><span class="st">${esc(sub)}</span></span>${b.rating?`<span class="sub num" style="font-size:13px">${fmtRating(b.rating)}★</span>`:""}</button>`; }
 
 ROUTES.book={title:p=>S.books[p.id]?typo(S.books[p.id].title):"Book",navTitle:p=>{ const b=S.books[p.id]; return b?`${cover(b,"nav")}<span>${bt(b)}</span>`:"Book"; },cls:"bookpage",compactAt:300,
   actions:p=>{ const b=S.books[p.id]; return b?`<div class="navgrp"><button class="navbtn circ fav" data-act="fav" data-id="${esc(b.id)}" aria-pressed="${!!b.fav}" aria-label="Favorite">${b.fav?I.heartf:I.heart}</button><button class="navbtn circ" data-act="bookactions" data-id="${esc(b.id)}" aria-label="Actions">${I.more}</button></div>`:""; },
@@ -2431,6 +2533,47 @@ function libResult(b){ return `<div class="brow" data-key="lr-${esc(b.id)}"><but
 function catResult(r,i){ const have=inLibrary(r);
   return `<div class="brow" data-key="cr-${i}-${esc(r.title)}"><button style="display:contents" data-act="catopen" data-i="${i}">${r.cu?`<img class="cover img" src="${esc(coverURL(r.cu,false))}" alt="" loading="${i<8?"eager":"lazy"}" decoding="async"${corsOK(null,coverURL(r.cu,false))?' crossorigin="anonymous"':""} onerror="this.outerHTML=drawnCover({id:'cr${i}',title:this.dataset.t,author:this.dataset.a})" data-t="${esc(r.title)}" data-a="${esc(r.author)}">`:drawnCover({id:"cr"+r.title,title:r.title,author:r.author})}<span class="tx"><b>${esc(typo(r.title))}</b><span>${esc(r.author)}</span><span class="st">${have?esc(STATUS_WORD[have.status]):esc([r.year>0?r.year:"",r.pages?r.pages+" pages":""].filter(Boolean).join(" · ")||r.src)}</span></span></button>
   ${have&&have.status==="Read"?`<span class="owned" aria-label="Finished">${I.check}</span>`:""}<button class="more" data-act="catmenu" data-i="${i}" aria-label="Add">${I.more}</button></div>`; }
+
+let recNew=null, recBusy=false;
+function fmtMins(m){ m=Math.round(m); if(m<60) return m+" min"; const h=Math.floor(m/60), r=m%60; return h+" h"+(r?" "+r+" min":""); }
+function dayLab(k,yr){ const d=dateOfKey(k), y=d.getFullYear(); return MO[d.getMonth()]+" "+d.getDate()+(yr||y!==dateOfKey(todayKey()).getFullYear()?", "+y:""); }
+function planOrder(){ const hero=tonightBook(), rd=readingNow().filter(b=>!quietOf(b.id)), quiet=readingNow().filter(b=>quietOf(b.id));
+  const cur=[...(hero&&hero.status==="Reading"&&!quietOf(hero.id)?[hero]:[]),...rd.filter(b=>!hero||b.id!==hero.id)];
+  return {cur,next:booksBy("Up Next"),hold:quiet}; }
+function finishedInYear(y){ return Object.values(S.books).filter(b=>b.status==="Read"&&String(b.finished||"").startsWith(String(y))).length; }
+function planRow(b,r,i,drag){ const span=r.early===r.late?dayLab(r.finish):`${dayLab(r.early)} – ${dayLab(r.late)}`;
+  const when=b.status==="Reading"?`${progressLabel(b)} · done about ${dayLab(r.finish)}`:`${r.start<=todayKey()?"Next":"Starts "+dayLab(r.start)} · done about ${dayLab(r.finish)}`;
+  const len=r.guess?"Length unknown, planned at "+PLAN_UNKNOWN_PAGES+" pages":`${r.left.toLocaleString()} pages · ${fmtMins(r.mins)}`;
+  return `<div class="prow brow${drag?" draggable":""}${quietOf(b.id)?" quiet":""}" role="button" tabindex="0" data-key="pl-${esc(b.id)}" data-push="book" data-id="${esc(b.id)}" data-ctx="${esc(b.id)}"${drag?` data-rid="${esc(b.id)}"`:""}>
+    ${drag?`<span class="pn num">${i+1}</span>`:""}${cover(b)}<span class="tx"><b>${bt(b)}</b><span>${esc(when)}</span><span class="st">${esc(len)} · could be ${esc(span)}</span></span>${drag?`<span class="grip" aria-hidden="true">${I.grip}</span>`:""}</div>`; }
+ROUTES.plan={title:()=>"Reading Plan",compactAt:60,
+  render(){ const {cur,next,hold}=planOrder(), all=[...cur,...next,...hold], P=readingPlan(all), R=P.rate, rows={}; P.rows.forEach(r=>rows[r.id]=r);
+    const t=todayKey(), y=dateOfKey(t).getFullYear(), goal=+S.settings.yearGoal||0, done=finishedInYear(y);
+    const byEnd=P.rows.filter(r=>r.finish<=y+"-12-31").length, last=P.rows.length?P.rows[P.rows.length-1]:null;
+    const rate=R.own?`About ${fmtMins(R.mpd)} a night, from your last ${R.days} nights (a slow week ${fmtMins(R.lo)}, a good one ${fmtMins(R.hi)}).`:`About ${fmtMins(R.mpd)} a night until your sessions show your own pace.`;
+    let nextHTML="", lastYear=y;
+    next.forEach((b,i)=>{ const r=rows[b.id], fy=dateOfKey(r.finish).getFullYear(); if(fy!==lastYear){ nextHTML+=`<div class="yearmark" data-key="ym-${fy}"><b>${fy}</b><span>Into the new year</span></div>`; lastYear=fy; } nextHTML+=planRow(b,r,i,true); });
+    const recs=recommend(6);
+    return `<div class="chead"><div><h1>Reading Plan</h1><span>${esc(rate)}</span></div></div>
+    <div class="plansum">
+      <div><b class="num">${done}</b><span>finished in ${y}</span></div>
+      <div><b class="num">${byEnd}</b><span>more by Dec 31</span></div>
+      <div><b class="num">${done+byEnd}${goal?`<small>/${goal}</small>`:""}</b><span>${y} at this pace</span></div></div>
+    ${last?`<p class="gfoot" style="margin:6px 2px 14px">This plan runs to about ${esc(dayLab(last.finish,true))}. Dates move with your pace; the range is a slow week to a good one.</p>`:""}
+    ${cur.length?`<h2 class="bsec">Reading now</h2><div class="plist">${cur.map((b,i)=>planRow(b,rows[b.id],i,false)).join("")}</div>`:""}
+    <h2 class="bsec">Up Next</h2>
+    ${next.length?`<p class="sermeta">Hold a book, then drag it to change the order.</p><div class="plist" data-reorder="upnext">${nextHTML}</div>`:`<div class="empty" style="padding:18px 0"><b>Nothing lined up</b>Add books to Up Next and they land on this plan.</div>`}
+    ${hold.length?`<h2 class="bsec">On hold</h2><p class="sermeta">Started, but quiet for two weeks or more, so planned after Up Next.</p><div class="plist">${hold.map((b,i)=>planRow(b,rows[b.id],i,false)).join("")}</div>`:""}
+    ${recs.length?`<h2 class="bsec">Worth moving up</h2><div class="serieslist">${recs.map(x=>`<div class="brow srow" data-key="rc-${esc(x.b.id)}"><button style="display:contents" data-push="book" data-id="${esc(x.b.id)}">${cover(x.b)}<span class="tx"><b>${bt(x.b)}</b><span>${ba(x.b)}</span><span class="st">${esc(x.why)}</span></span></button><button class="qnext" data-act="setshelf" data-id="${esc(x.b.id)}" data-v="Up Next" aria-label="Add ${esc(typo(x.b.title))} to Up Next">${I.upnext}<span>Up Next</span></button></div>`).join("")}</div>`:""}
+    <h2 class="bsec">New to you</h2>
+    ${recNew&&recNew.length?`<div class="serieslist">${recNew.map((r,i)=>`<div class="brow srow" data-key="rn-${i}"><button style="display:contents" data-act="recadd" data-i="${i}">${r.cu?`<img class="cover img" src="${esc(coverURL(r.cu,false))}" alt="" loading="lazy" decoding="async">`:drawnCover({id:"rn"+r.title,title:r.title,author:r.author})}<span class="tx"><b>${esc(typo(r.title))}</b><span>${esc(r.author)}</span><span class="st">${esc(r.why)}</span></span></button><button class="more" data-act="recadd" data-i="${i}" aria-label="Add">${I.plus}</button></div>`).join("")}</div>`
+      :recNew?`<p class="gfoot">Nothing new turned up from your favourite authors.</p>`:`<button class="btn dark" data-act="recauthors" ${recBusy?"disabled":""}>${recBusy?"Looking…":"Find new books by authors you love"}</button>`}
+    <div style="height:20px"></div>`; }};
+async function findNewByAuthors(){ if(recBusy) return; recBusy=true; renderEntry(topE());
+  const sc={}; Object.values(S.books).forEach(b=>{ if(b.status!=="Read"||!b.author) return; const s=(+b.rating||0)||(b.tier==="Loved"?5:b.tier==="Liked"?4:0); if(s>=4) sc[b.author]=(sc[b.author]||0)+s; });
+  const top=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]); const out=[], seen=new Set();
+  for(const a of top){ try{ const rs=await searchBooks(a.split(",")[0]); rs.filter(r=>!inLibrary(r)&&catA(r.author)===catA(a)).slice(0,3).forEach(r=>{ const k=catT(r.title); if(seen.has(k)) return; seen.add(k); out.push({...r,why:"By "+a.split(",")[0]+", whose books you loved"}); }); }catch(e){} }
+  recNew=out.slice(0,8); recBusy=false; if(topE().route==="plan") renderEntry(topE()); }
 
 function bookHead(b,line,extraRight){ return `${cover(b,"",{eager:true})}<div class="tt"><b>${bt(b)}</b><span>${esc(line)}</span></div>${extraRight||""}<button class="navbtn circ" data-act="closesheet" aria-label="Close">${I.x}</button>`; }
 function dayWord(k){ const t=todayKey(); return k===t?"Today":k===addDays(t,-1)?"Yesterday":MO[dateOfKey(k).getMonth()]+" "+dateOfKey(k).getDate(); }
@@ -3016,7 +3159,7 @@ function b64urlToBytes(s){ const b=atob(s.replace(/-/g,"+").replace(/_/g,"/").pa
 function applyTheme(){ const t=S.settings.theme||"auto"; const dark=matchMedia("(prefers-color-scheme: dark)").matches;
   const v=(t==="auto"||t==="system")?(dark?"dark":"paper"):t==="paper"?"paper":"dark"; document.documentElement.setAttribute("data-theme",v);
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=v==="paper"?"#F2F2F7":"#000000"; }
-function setShelf(id,s,quiet){ const b=S.books[id]; if(!b) return; const was=b.status; b.status=s; touch(b);
+function setShelf(id,s,quiet){ const b=S.books[id]; if(!b) return; const was=b.status; b.status=s; if(s==="Up Next"&&was!=="Up Next") upNextAppend(b); touch(b);
   if(s==="Reading"&&(!b.started||was==="Read")){ if(was==="Read"){ b.reads=(b.reads||[]).concat([{started:b.started,finished:b.finished}]); b.finished=""; b.page=0; } b.started=todayKey(); S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"start",updatedAt:Date.now()}); }
   if(s==="Read"&&was!=="Read"){ b.finished=todayKey(); b.pageBefore=b._pb!=null?b._pb:(b.page||0); delete b._pb; if(b.pages) b.page=b.pages; b.fuzzy=""; S.activity.push({id:uid(),day:todayKey(),bookId:id,fromPage:null,toPage:b.page||0,src:"finish",updatedAt:Date.now()}); }
   if(s!=="Read"&&was==="Read"&&s!=="Reading") b.finished="";
@@ -3025,11 +3168,11 @@ function leavesReading(b,s){ return !!b&&b.status==="Reading"&&!["Reading","Read
 function confirmLeaveReading(b,s,go){ const to=COLL[s]?COLL[s].label:(SHELF_LABEL[s]||s), pg=b.page||0;
   alertCard({title:"Take "+typo(b.title)+" off Currently Reading?",message:"You’re on page "+pg+(b.pages?" of "+b.pages:"")+". Moving it to "+to+" keeps your page and sessions.",
     buttons:[{label:"Keep Reading",style:"teal",cancel:true},{label:"Move to "+to,style:"dark",fn:go}]}); }
-function bookMenu(id){ const b=S.books[id]; if(!b) return;
+function bookMenu(id,onRelease){ const b=S.books[id]; if(!b) return;
   const items=[]; if(b.status==="Reading") items.push({label:"Start Session",icon:I.clock,fn:()=>startSession(id)},{label:"Update Progress",icon:I.pages,fn:()=>sheetProgress(id)});
   else if(b.status!=="Read") items.push({label:"Start Reading",icon:I.reading,fn:()=>startBook(id)});
   items.push({label:"Change Shelf",icon:I.bookmark,fn:()=>sheetShelf({id})},{label:b.fav?"Remove Favorite":"Favorite",icon:I.heart,fn:()=>{ b.fav=!b.fav; touch(b); save(); update(); }},{label:"Change Cover",icon:I.photo,fn:()=>sheetCover(id)});
-  contextMenu(b,items); }
+  contextMenu(b,items,onRelease); }
 function startBook(id){ const before=snapshot(), b=S.books[id]; setShelf(id,"Reading"); update(); undoable("Now reading "+typo(b.title),before); }
 function finishBook(id){ const before=snapshot(), b=S.books[id]; setShelf(id,"Read"); save(); update(); finishedCelebration(b,before); }
 function removeBook(id){ const b=S.books[id]; alertCard({title:"Remove "+typo(b.title)+"?",message:"Its sessions stay in your log. You can undo this from Settings › Recent changes.",buttons:[{label:"Remove from Library",style:"red",fn:()=>{ const before=snapshot(); delete S.books[id]; tombstone(id); save(); if(topE().route==="book") pop(); update(); undoable("Removed "+typo(b.title),before); }},{label:"Cancel",style:"dark",cancel:true}]}); }
@@ -3118,7 +3261,7 @@ document.addEventListener("click",e=>{
       const cb=t.id?S.books[t.id]:null; if(leavesReading(cb,s)){ closeSheet(true); confirmLeaveReading(cb,s,go); } else go(); break; }
     case "libview": S.settings.libView=(S.settings.libView||"grid")==="grid"?"list":"grid"; touchSettings(); save(); renderEntry(topE()); break;
     case "findin": { const cs=colState[el.dataset.k]; cs.find=!cs.find; if(!cs.find) cs.q=""; renderEntry(topE()); if(cs.find) setTimeout(()=>{ const i=topE().el.querySelector("[data-colq]"); if(i) i.focus(); },30); break; }
-    case "sort": { const cs=colState[el.dataset.k]; popMenu(el,[{title:"Sort",items:SORTS.filter(([k])=>k!=="list"||el.dataset.k.startsWith("list:")).filter(([k])=>k!=="series"||el.dataset.k.startsWith("series:")||cs.sort==="series").map(([k,l,ic])=>({label:l,icon:typeof I[ic]==="function"?I[ic](false):I[ic],on:cs.sort===k,fn:()=>{ cs.sort=k; if(k==="color") warmTints(); renderEntry(topE()); }}))}]); break; }
+    case "sort": { const cs=colState[el.dataset.k]; popMenu(el,[{title:"Sort",items:SORTS.filter(([k])=>k!=="list"||el.dataset.k.startsWith("list:")).filter(([k])=>k!=="queue"||el.dataset.k==="Up Next").filter(([k])=>k!=="series"||el.dataset.k.startsWith("series:")||cs.sort==="series").map(([k,l,ic])=>({label:l,icon:typeof I[ic]==="function"?I[ic](false):I[ic],on:cs.sort===k,fn:()=>{ cs.sort=k; if(k==="color") warmTints(); renderEntry(topE()); }}))}]); break; }
     case "showonly": { const cs=colState[el.dataset.k]; const opts=[["all","All Items"],["Reading","Currently Reading"],["Up Next","Up Next"],["Queue","Want to Read"],["Read","Finished"],["Paused","Stopped"],["DNF","Did Not Finish"]];
       popMenu(el,[{title:"Show Only",items:opts.map(([k,l])=>({label:l,on:cs.show===k,fn:()=>{ cs.show=k; renderEntry(topE()); }}))}]); break; }
     case "searchmode": searchMode=el.dataset.m; renderEntry(topE()); if(searchMode==="catalog"&&searchQ.trim()) runSearch(); break;
@@ -3126,6 +3269,8 @@ document.addEventListener("click",e=>{
     case "catmenu": sheetShelf({r:searchRes.items[+el.dataset.i]}); break;
     case "catopen": { const r=searchRes.items[+el.dataset.i], have=inLibrary(r); if(have) push("book",{id:have.id}); else sheetShelf({r}); break; }
     case "addmenu-lib": sheetShelf({id}); break;
+    case "recauthors": findNewByAuthors(); break;
+    case "recadd": if(recNew&&recNew[+el.dataset.i]) sheetShelf({r:recNew[+el.dataset.i]}); break;
     case "seriesfind": searchMode="catalog"; searchQ=el.dataset.q||""; searchRes=null; switchTab("search"); runSearch(); break;
     case "manualadd": { const before=snapshot(), nid=addFromResult({title:searchQ.trim(),author:"",cu:""},"Queue"); save(); update(); push("book",{id:nid}); undoable("Added to Want to Read",before); setTimeout(()=>sheetLength(nid),400); break; }
     case "calprev": case "calnext": { const [y,m]=calMonth.split("-").map(Number), d=new Date(y,m-1+(a==="calnext"?1:-1),1); calMonth=d.getFullYear()+"-"+pad(d.getMonth()+1); renderEntry(topE()); break; }
@@ -3232,7 +3377,19 @@ function boot(){
   openDeepLink(); addEventListener("hashchange",openDeepLink);
   if(syncReady()){ const p=syncPull(); if(window.LI&&LI.hold&&!LI.done) LI.hold(p); } document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") syncPull(); }); // syncPull checks syncReady, so sync turned on later also pulls on foreground
   if(BUILD==="public"&&"serviceWorker" in navigator&&syncReady()) navigator.serviceWorker.ready.then(swShare).catch(()=>{});
+  if(BUILD==="public"&&location.protocol==="https:"){ updatedToast(); setTimeout(checkUpdate,2500); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") checkUpdate(); }); }
 }
+let updWant=null;
+function appReload(){ location.reload(); }
+function swRefresh(){ return new Promise(res=>{ const c=navigator.serviceWorker&&navigator.serviceWorker.controller; if(!c) return res(); const ch=new MessageChannel(); ch.port1.onmessage=()=>res(); try{ c.postMessage({t:"refresh-shell"},[ch.port2]); }catch(e){ res(); } setTimeout(res,6000); }); }
+async function checkUpdate(){ if(BUILD!=="public"||/^__/.test(APP_V)||updWant) return;
+  try{ const r=await fetch("version.json?t="+Date.now(),{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(!j||!j.v||j.v===APP_V) return; updWant=j.v;
+    try{ const reg=navigator.serviceWorker&&await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); }catch(e){}
+    await swRefresh(); applyUpdate(); }catch(e){ logError&&logError("update",e); } }
+function applyUpdate(){ if(!updWant) return; const busy=sheet||playerOpen||drag||alertOpen||(document.activeElement&&/^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName));
+  if(busy||document.visibilityState!=="visible"){ clearTimeout(applyUpdate._t); applyUpdate._t=setTimeout(applyUpdate,3000); return; }
+  try{ sessionStorage.setItem("read_updated",updWant); }catch(e){} appReload(); }
+function updatedToast(){ try{ if(sessionStorage.getItem("read_updated")){ sessionStorage.removeItem("read_updated"); setTimeout(()=>toast("Updated to the newest version"),1200); } }catch(e){} }
 function openDeepLink(){ const m=/^#(book|start)=([\w.-]+)$/.exec(location.hash||""); if(!m) return; const b=S.books[m[2]]; history.replaceState(null,"",location.pathname+location.search); if(!b) return;
   if(tab!=="home") switchTab("home"); if(topE().route!=="book"||topE().params.id!==b.id) push("book",{id:b.id});
   if(m[1]==="start") setTimeout(()=>startSession(b.id),350); }
